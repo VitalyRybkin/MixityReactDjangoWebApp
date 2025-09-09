@@ -1,0 +1,57 @@
+# ---- General ----
+.DS_Store
+*.log
+*.pot
+*.pyc
+__pycache__/
+*.pyo
+*.pyd
+*.so
+
+# ---- Python / Django (backend) ----
+backend/.env
+backend/.env.*
+backend/*.sqlite3
+backend/db.sqlite3
+backend/media/
+backend/staticfiles/
+backend/*.egg-info/
+backend/.mypy_cache/
+backend/.pytest_cache/
+backend/.coverage
+backend/htmlcov/
+backend/.cache/
+backend/local_settings.py
+
+# ---- uv ----
+backend/.venv/
+backend/.uv/
+backend/.uv-cache/
+
+# ---- Node / React (frontend) ----
+frontend/node_modules/
+frontend/.vite/
+frontend/dist/
+frontend/.eslintcache
+frontend/*.local
+
+# ---- IDE / Editor ----
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# ---- Docker ----
+*.pid
+*.seed
+*.bak
+*.backup
+docker-compose.override.yml
+
+# ---- Coverage / Reports ----
+coverage.xml
+*.cover
+reports/
+
+# ---- OS Files ----
+Thumbs.db
