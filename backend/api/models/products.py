@@ -1,6 +1,6 @@
 from django.db import models
 
-from orders_app.models.product_units import ProductWeight
+from api.models import ProductWeight
 
 
 class Product(models.Model):
