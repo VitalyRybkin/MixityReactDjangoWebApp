@@ -2,7 +2,7 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
 class Settings(BaseSettings):
-    DB_NAME: str = "orders_db"
+    DB_NAME: str = "orders"
     DB_USER: str = "rybkin"
     DB_PASSWORD: str | None = None
     DB_HOST: str | None = None
