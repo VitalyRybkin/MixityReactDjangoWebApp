@@ -1,6 +1,8 @@
 from django.contrib.auth.models import User
 from rest_framework import serializers
 
+from api.models import Customer
+
 
 class UserSerializer(serializers.ModelSerializer):
     class Meta:
@@ -18,7 +20,12 @@ class UserSerializer(serializers.ModelSerializer):
         instance.save()
         return instance
 
-    def to_representation(self, instance):
-        data = super().to_representation(instance)
-        data["id"] = str(data["id"])
-        return data
+
+class CustomerSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Customer
+        fields = "__all__"
+
+    def create(self, validated_data):
+        customer = Customer.objects.create(**validated_data)
+        return customer

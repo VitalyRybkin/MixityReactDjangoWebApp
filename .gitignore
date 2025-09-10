@@ -35,6 +35,7 @@ frontend/.vite/
 frontend/dist/
 frontend/.eslintcache
 frontend/*.local
+frontend/.env
 
 # ---- IDE / Editor ----
 .vscode/
