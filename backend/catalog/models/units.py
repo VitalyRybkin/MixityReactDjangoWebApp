@@ -35,5 +35,5 @@ class AppUnit(models.Model):
     class Meta:
         db_table = "orders_app_units"
 
-    def __str__(self):
+    def __str__(self) -> str:
         return f"ЕДИНИЦА ИЗМЕРЕНИЯ: {self.unit_name}"

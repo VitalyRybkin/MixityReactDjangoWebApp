@@ -1,3 +1,5 @@
+from typing import Any
+
 from django.contrib.auth.models import User
 from rest_framework import serializers
 
@@ -10,11 +12,11 @@ class UserSerializer(serializers.ModelSerializer):
         fields = ["id", "username", "password"]
         extra_kwargs = {"password": {"write_only": True}}
 
-    def create(self, validated_data):
+    def create(self, validated_data: dict) -> User:
         user = User.objects.create_user(**validated_data)
         return user
 
-    def update(self, instance, validated_data):
+    def update(self, instance: Any, validated_data: dict) -> User:
         instance.username = validated_data.get("username", instance.username)
         instance.set_password(validated_data.get("password", instance.password))
         instance.save()
@@ -26,6 +28,6 @@ class CustomerSerializer(serializers.ModelSerializer):
         model = Customer
         fields = "__all__"
 
-    def create(self, validated_data):
+    def create(self, validated_data: dict) -> Customer:
         customer = Customer.objects.create(**validated_data)
         return customer

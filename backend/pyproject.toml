@@ -22,3 +22,60 @@ dependencies = [
     "pytz>=2025.2",
     "sqlparse>=0.5.3",
 ]
+
+[tool.black]
+line-length = 88
+target-version = ["py310"]
+include = "(catalog/).*"
+exclude = '''
+/(
+    \.git |
+    \.hg |
+    \.mypy_cache |
+    \.tox |
+    \.venv |
+    venv |
+    env |
+    _build |
+    build |
+    dist |
+    media |
+    swagger_ui |
+    swagger |
+    migrations |
+    __pycache__
+)/
+'''
+force-exclude = '''
+/(
+    migrations
+)/
+'''
+
+
+[tool.isort]
+profile = "black"
+line_length = 88
+skip = ["venv", ".venv", "env"]
+src_paths = ["catalog"]
+known_first_party = ["catalog"]
+combine_as_imports = true
+
+
+[tool.mypy]
+python_version = "3.10"
+warn_unused_configs = true
+disallow_untyped_defs = true
+ignore_missing_imports = true
+show_error_codes = true
+mypy_path = "."
+plugins = ["mypy_django_plugin.main"]
+exclude = ["migrations/"]
+
+[tool.django-stubs]
+django_settings_module = "backend.settings"
+
+[dependency-groups]
+dev = [
+    "django-stubs[compatible-mypy]>=5.2.8",
+]

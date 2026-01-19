@@ -1,7 +1,11 @@
 from decimal import Decimal
+from typing import TYPE_CHECKING
 
 from django.db import models
-from django.db.models import F, Sum
+from django.db.models import F, QuerySet, Sum
+
+if TYPE_CHECKING:
+    from catalog.models import OrderItem, Product
 
 
 class Order(models.Model):
@@ -48,7 +52,7 @@ class Order(models.Model):
     driver = models.ForeignKey("Driver", on_delete=models.PROTECT)
     truck = models.ForeignKey("Truck", on_delete=models.PROTECT)
 
-    products = models.ManyToManyField(
+    products: "models.ManyToManyField[Product, OrderItem]" = models.ManyToManyField(
         "Product", through="OrderItem", related_name="orders"
     )
 
@@ -70,17 +74,17 @@ class Order(models.Model):
     )
 
     @property
-    def items(self):
+    def items(self) -> QuerySet:
         """Returns a queryset of order items related to this order."""
         return self.orderitem_set.select_related("product")
 
     @property
-    def total_weight(self):
+    def total_weight(self) -> Decimal:
         """Returns the total weight of the order in kg."""
         result = self.items.aggregate(
             total=Sum(F("product__base_unit_weight") * F("quantity"))
         )["total"]
         return result or Decimal("0.000")
 
-    def __str__(self):
+    def __str__(self) -> str:
         return f"ЗАКАЗ: {self.id} (Покупатель: {self.customer.customer})"

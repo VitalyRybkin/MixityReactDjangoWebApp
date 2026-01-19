@@ -21,5 +21,5 @@ class Stock(models.Model):
     )
     description = models.TextField(null=True, blank=True)
 
-    def __str__(self):
+    def __str__(self) -> str:
         return f"СКЛАД: {self.stock_name}"

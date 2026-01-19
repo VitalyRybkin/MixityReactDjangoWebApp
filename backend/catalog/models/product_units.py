@@ -31,5 +31,5 @@ class ProductWeight(models.Model):
         unique_together = ("product", "product_unit")
         db_table = "orders_app_product_weights"
 
-    def __str__(self):
+    def __str__(self) -> str:
         return f"ВЕС: {self.product.product_name} - <{self.product_unit.unit_shortcut}, {self.kg_per_unit} кг>"

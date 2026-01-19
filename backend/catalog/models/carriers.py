@@ -20,5 +20,5 @@ class Carrier(models.Model):
     carrier_name = models.CharField(max_length=100)
     description = models.TextField(null=True, blank=True)
 
-    def __str__(self):
+    def __str__(self) -> str:
         return f"ТРАНСПОРТНАЯ КОМПАНИЯ: {self.carrier_name}"

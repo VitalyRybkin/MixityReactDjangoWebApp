@@ -1,6 +1,12 @@
+from typing import TYPE_CHECKING, Any, cast
+
 from django.db import models
+from django.db.models import Model
 
 from catalog.models import ProductWeight
+
+if TYPE_CHECKING:
+    from catalog.models.units import AppUnit
 
 
 class Product(models.Model):
@@ -23,20 +29,28 @@ class Product(models.Model):
     palette_volume = models.SmallIntegerField(null=True)
     description = models.TextField(null=True, blank=True)
 
-    product_unit = models.ManyToManyField("AppUnit", through="ProductWeight")
+    product_unit: "models.ManyToManyField[AppUnit, ProductWeight]" = (
+        models.ManyToManyField("AppUnit", through="ProductWeight")
+    )
 
-    def convert(self, quantity: float, from_unit, to_unit) -> float:
+    def convert(self, quantity: float, from_unit: Any, to_unit: Any) -> float:
         """Converts quantity from one unit to another"""
         try:
             if from_unit.is_weight_based:
                 from_factor = float(from_unit.to_kg_factor)
             else:
-                from_factor = float(self.product_unit.get(unit=from_unit).kg_per_unit)
+                unit_relation = cast(
+                    "ProductWeight", cast(Model, self.product_unit.get(unit=from_unit))
+                )
+                from_factor = float(unit_relation.kg_per_unit)
 
             if to_unit.is_weight_based:
                 to_factor = float(to_unit.to_kg_factor)
             else:
-                to_factor = float(self.product_unit.get(unit=to_unit).kg_per_unit)
+                unit_relation = cast(
+                    "ProductWeight", cast(Model, self.product_unit.get(unit=from_unit))
+                )
+                to_factor = float(unit_relation.kg_per_unit)
 
         except ProductWeight.DoesNotExist:
             raise ValueError(
@@ -46,5 +60,5 @@ class Product(models.Model):
         kg = quantity * from_factor
         return kg / to_factor
 
-    def __str__(self):
+    def __str__(self) -> str:
         return f"МАТЕРИАЛ: {self.product_name.capitalize()}"

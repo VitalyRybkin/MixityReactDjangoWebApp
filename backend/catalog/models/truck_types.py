@@ -20,5 +20,5 @@ class TruckType(models.Model):
     truck_type = models.CharField(max_length=20)
     description = models.TextField(null=True, blank=True)
 
-    def __str__(self):
+    def __str__(self) -> str:
         return f"ТИП ТС: {self.truck_type}"

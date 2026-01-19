@@ -47,16 +47,16 @@ coverage:
 # Formatting & Linting
 
 format:
-	$(UV) isort cart order users catalog payment --skip-glob "*/migrations/*" --skip-glob "*/fixtures/*"
-	$(UV) black cart order users catalog payment --exclude "/(\.git|\.hg|\.mypy_cache|\.tox|\.venv|venv|env|_build|build|dist|media|swagger_ui/static|migrations|__pycache__|fixtures|templates)/" --include "\.py$$"
+	$(UV) isort catalog --skip-glob "*/migrations/*" --skip-glob "*/fixtures/*"
+	$(UV) black catalog --exclude "/(\.git|\.hg|\.mypy_cache|\.tox|\.venv|venv|env|_build|build|dist|media|swagger_ui/static|migrations|__pycache__|fixtures|templates)/" --include "\.py$$"
 
 check:
-	$(UV) isort cart order users catalog payment --skip-glob "*/migrations/*" --skip-glob "*/fixtures/*"
-	$(UV) black cart order users catalog payment --exclude "/(\.git|\.hg|\.mypy_cache|\.tox|\.venv|venv|env|_build|build|dist|media|swagger_ui/static|migrations|__pycache__|fixtures|templates)/" --include "\.py$$"
-	$(UV) isort cart order users catalog payment --check-only --skip-glob "*/migrations/*"
-	$(UV) black cart order users catalog payment --check --exclude "/(\.git|\.hg|\.mypy_cache|\.tox|\.venv|venv|env|_build|\.json|build|dist|media|swagger_ui/static|migrations|__pycache__)/" --include "\.pyi?$$"
-	$(UV) flake8 cart order users catalog payment --exclude migrations,__pycache__
-	$(UV) mypy cart order users catalog payment --config-file=pyproject.toml
+	$(UV) isort catalog --skip-glob "*/migrations/*" --skip-glob "*/fixtures/*"
+	$(UV) black catalog --exclude "/(\.git|\.hg|\.mypy_cache|\.tox|\.venv|venv|env|_build|build|dist|media|swagger_ui/static|migrations|__pycache__|fixtures|templates)/" --include "\.py$$"
+	$(UV) isort catalog --check-only --skip-glob "*/migrations/*"
+	$(UV) black catalog --check --exclude "/(\.git|\.hg|\.mypy_cache|\.tox|\.venv|venv|env|_build|\.json|build|dist|media|swagger_ui/static|migrations|__pycache__)/" --include "\.pyi?$$"
+	$(UV) flake8 catalog --exclude migrations,__pycache__
+	$(UV) mypy catalog --config-file=pyproject.toml
 
 pre-commit:
 	 $(UV) pre-commit run --all-files

@@ -36,5 +36,5 @@ class Truck(models.Model):
         related_name="trucks",
     )
 
-    def __str__(self):
+    def __str__(self) -> str:
         return f"АВТО: тип - {self.truck_type}, тоннаж - {self.truck_capacity}, ТК - {self.carrier}"

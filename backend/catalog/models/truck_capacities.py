@@ -20,5 +20,5 @@ class TruckCapacity(models.Model):
     truck_capacity = models.SmallIntegerField()
     description = models.TextField(null=True, blank=True)
 
-    def __str__(self):
+    def __str__(self) -> str:
         return f"ГРУЗОПОДЪЕМНОСТЬ: {self.truck_capacity} тонн"
