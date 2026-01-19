@@ -16,13 +16,13 @@ run:
 	$(UV) python3 manage.py runserver
 
 migrate:
-	$(UV) python3 manage.py migrate
+	$(UV) python3 manage.py migrate $(app)
 
 show:
 	$(UV) python3 manage.py showmigrations
 
 migrations:
-	$(UV) python3 manage.py makemigrations
+	$(UV) python3 manage.py makemigrations $(app)
 
 shell:
 	$(UV) python3 manage.py shell

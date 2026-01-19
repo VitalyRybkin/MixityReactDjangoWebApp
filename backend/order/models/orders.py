@@ -53,7 +53,7 @@ class Order(models.Model):
     truck = models.ForeignKey("carrier.Truck", on_delete=models.PROTECT)
 
     products: "models.ManyToManyField[Product, OrderItem]" = models.ManyToManyField(
-        "Product", through="OrderItem", related_name="orders"
+        "catalog.Product", through="OrderItem", related_name="orders"
     )
 
     created_at = models.DateTimeField(auto_now_add=True)
