@@ -58,6 +58,7 @@ INSTALLED_APPS = [
     "rest_framework",
     "corsheaders",
     "catalog.apps.ApiConfig",
+    "carrier.apps.CarrierConfig",
 ]
 
 MIDDLEWARE = [

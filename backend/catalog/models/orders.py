@@ -48,9 +48,9 @@ class Order(models.Model):
     user = models.ForeignKey("auth.User", on_delete=models.PROTECT)
     customer = models.ForeignKey("Customer", on_delete=models.PROTECT)
     stock = models.ForeignKey("Stock", on_delete=models.PROTECT)
-    carrier = models.ForeignKey("Carrier", on_delete=models.PROTECT)
-    driver = models.ForeignKey("Driver", on_delete=models.PROTECT)
-    truck = models.ForeignKey("Truck", on_delete=models.PROTECT)
+    carrier = models.ForeignKey("carrier.Carrier", on_delete=models.PROTECT)
+    driver = models.ForeignKey("carrier.Driver", on_delete=models.PROTECT)
+    truck = models.ForeignKey("carrier.Truck", on_delete=models.PROTECT)
 
     products: "models.ManyToManyField[Product, OrderItem]" = models.ManyToManyField(
         "Product", through="OrderItem", related_name="orders"
