@@ -1,4 +1,5 @@
 UV := uv run
+CATS := catalog carrier
 
 # Virtualenv & Setup
 sync:
@@ -47,16 +48,16 @@ coverage:
 # Formatting & Linting
 
 format:
-	$(UV) isort catalog --skip-glob "*/migrations/*" --skip-glob "*/fixtures/*"
-	$(UV) black catalog --exclude "/(\.git|\.hg|\.mypy_cache|\.tox|\.venv|venv|env|_build|build|dist|media|swagger_ui/static|migrations|__pycache__|fixtures|templates)/" --include "\.py$$"
+	$(UV) isort $(CATS) --skip-glob "*/migrations/*" --skip-glob "*/fixtures/*"
+	$(UV) black $(CATS) --exclude "/(\.git|\.hg|\.mypy_cache|\.tox|\.venv|venv|env|_build|build|dist|media|swagger_ui/static|migrations|__pycache__|fixtures|templates)/" --include "\.py$$"
 
 check:
-	$(UV) isort catalog --skip-glob "*/migrations/*" --skip-glob "*/fixtures/*"
-	$(UV) black catalog --exclude "/(\.git|\.hg|\.mypy_cache|\.tox|\.venv|venv|env|_build|build|dist|media|swagger_ui/static|migrations|__pycache__|fixtures|templates)/" --include "\.py$$"
-	$(UV) isort catalog --check-only --skip-glob "*/migrations/*"
-	$(UV) black catalog --check --exclude "/(\.git|\.hg|\.mypy_cache|\.tox|\.venv|venv|env|_build|\.json|build|dist|media|swagger_ui/static|migrations|__pycache__)/" --include "\.pyi?$$"
-	$(UV) flake8 catalog --exclude migrations,__pycache__
-	$(UV) mypy catalog --config-file=pyproject.toml
+	$(UV) isort $(CATS) --skip-glob "*/migrations/*" --skip-glob "*/fixtures/*"
+	$(UV) black $(CATS) --exclude "/(\.git|\.hg|\.mypy_cache|\.tox|\.venv|venv|env|_build|build|dist|media|swagger_ui/static|migrations|__pycache__|fixtures|templates)/" --include "\.py$$"
+	$(UV) isort $(CATS) --check-only --skip-glob "*/migrations/*"
+	$(UV) black $(CATS) --check --exclude "/(\.git|\.hg|\.mypy_cache|\.tox|\.venv|venv|env|_build|\.json|build|dist|media|swagger_ui/static|migrations|__pycache__)/" --include "\.pyi?$$"
+	$(UV) flake8 $(CATS) --exclude migrations,__pycache__
+	$(UV) mypy $(CATS) --config-file=pyproject.toml
 
 pre-commit:
 	 $(UV) pre-commit run --all-files
