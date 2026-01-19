@@ -1,6 +1,6 @@
 from django.urls import path
 
-from api.views import CustomerListView, CustomerDeleteView, CustomerDetailView, CustomerCreateView
+from catalog.views import CustomerListView, CustomerDeleteView, CustomerDetailView, CustomerCreateView
 
 urlpatterns = [
     path("customers/", CustomerListView.as_view(), name="customer_list"),
