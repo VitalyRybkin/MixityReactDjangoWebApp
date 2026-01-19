@@ -59,6 +59,7 @@ INSTALLED_APPS = [
     "corsheaders",
     "catalog.apps.ApiConfig",
     "carrier.apps.CarrierConfig",
+    "order.apps.OrderConfig",
 ]
 
 MIDDLEWARE = [

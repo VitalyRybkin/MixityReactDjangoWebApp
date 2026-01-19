@@ -18,11 +18,11 @@ from carrier.models.drivers import Driver
 from carrier.models.truck_capacities import TruckCapacity
 from carrier.models.truck_types import TruckType
 from carrier.models.trucks import Truck
+from order.models.clients import Customer
+from order.models.order_items import OrderItem
+from order.models.orders import Order
+from order.models.stocks import Stock
 
-from .clients import Customer
-from .order_items import OrderItem
-from .orders import Order
 from .product_units import ProductWeight
 from .products import Product
-from .stocks import Stock
 from .units import AppUnit

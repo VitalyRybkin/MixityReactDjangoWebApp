@@ -7,7 +7,7 @@ from django.db import models
 
 class OrderItem(models.Model):
     order = models.ForeignKey("Order", on_delete=models.CASCADE)
-    product = models.ForeignKey("Product", on_delete=models.PROTECT)
+    product = models.ForeignKey("catalog.Product", on_delete=models.PROTECT)
     quantity = models.PositiveIntegerField(validators=[MinValueValidator(1)])
 
     class Meta:

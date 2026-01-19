@@ -1,5 +1,5 @@
 UV := uv run
-CATS := catalog carrier
+CATS := catalog carrier order
 
 # Virtualenv & Setup
 sync:
