@@ -52,14 +52,13 @@ force-exclude = '''
 )/
 '''
 
-
 [tool.isort]
 profile = "black"
 line_length = 88
-skip = ["venv", ".venv", "env"]
-src_paths = ["catalog"]
-known_first_party = ["catalog"]
-combine_as_imports = true
+extend_skip_glob = ["*/migrations/*", "*/fixtures/*"]
+known_first_party = ["catalog", "carrier", "order"]
+src_paths = ["."]
+filter_files = true
 
 
 [tool.mypy]

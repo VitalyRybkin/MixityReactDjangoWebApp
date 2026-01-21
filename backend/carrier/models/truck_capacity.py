@@ -14,9 +14,6 @@ class TruckCapacity(models.Model):
     :type description: TextField
     """
 
-    class Meta:
-        db_table = "orders_app_truck_capacities"
-
     truck_capacity = models.SmallIntegerField()
     description = models.TextField(null=True, blank=True)
 

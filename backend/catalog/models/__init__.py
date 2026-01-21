@@ -13,11 +13,11 @@ __all__ = (
     "ProductWeight",
 )
 
-from carrier.models.carriers import Carrier
-from carrier.models.drivers import Driver
-from carrier.models.truck_capacities import TruckCapacity
-from carrier.models.truck_types import TruckType
-from carrier.models.trucks import Truck
+from carrier.models.carrier import Carrier
+from carrier.models.driver import Driver
+from carrier.models.truck import Truck
+from carrier.models.truck_capacity import TruckCapacity
+from carrier.models.truck_type import TruckType
 from order.models.clients import Customer
 from order.models.order_items import OrderItem
 from order.models.orders import Order
