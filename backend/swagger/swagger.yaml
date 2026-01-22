@@ -1,0 +1,21 @@
+openapi: 3.0.3
+info:
+  title: Swagger Mixity Orders Project
+  version: 1.0.0
+tags:
+  - name: auth
+  - name: carrier
+  - name: catalog
+  - name: order
+servers:
+  - url: http://127.0.0.1:8000/api
+paths:
+  /carriers:
+    $ref: 'carriers.yaml'
+
+
+
+
+
+
+
