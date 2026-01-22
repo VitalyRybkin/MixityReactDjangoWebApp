@@ -13,6 +13,7 @@ dependencies = [
     "djangorestframework-simplejwt>=5.5.1",
     "djangorestframework-stubs>=3.16.7",
     "dotenv>=0.9.9",
+    "drf-spectacular[sidecar]>=0.29.0",
     "flake8>=7.3.0",
     "isort>=7.0.0",
     "mypy>=1.19.1",
