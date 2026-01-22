@@ -4,8 +4,8 @@ CATS := catalog carrier order
 # Virtualenv & Setup
 sync:
 	rm -rf .venv
-	uv sync
-
+	uv sync --all-groups
+	uv run pre-commit install
 
 write:
 	$(UV) pip3 freeze > requirements.txt
@@ -13,16 +13,16 @@ write:
 # Django Commands
 
 run:
-	$(UV) python3 manage.py runserver
+	uv run manage.py runserver
 
 migrate:
-	$(UV) python3 manage.py migrate $(app)
+	$(UV) manage migrate $(app)
 
 show:
-	$(UV) python3 manage.py showmigrations
+	$(UV) manage showmigrations
 
 migrations:
-	$(UV) python3 manage.py makemigrations $(app)
+	$(UV) manage makemigrations $(app)
 
 shell:
 	$(UV) python3 manage.py shell
