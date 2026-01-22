@@ -11,6 +11,7 @@ dependencies = [
     "django-cors-headers>=4.8.0",
     "djangorestframework>=3.16.1",
     "djangorestframework-simplejwt>=5.5.1",
+    "djangorestframework-stubs>=3.16.7",
     "dotenv>=0.9.9",
     "flake8>=7.3.0",
     "isort>=7.0.0",
