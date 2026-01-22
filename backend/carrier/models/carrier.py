@@ -17,11 +17,18 @@ class Carrier(models.Model):
         additional relevant information. This field is optional and can
         be left blank.
     :type description: str or None
+    :ivar is_active: Indicates whether the carrier is currently active or has been
+        deactivated. This field is used to filter active carriers in queries.
+    :type is_active: bool
     """
 
-    name = models.CharField(max_length=100)
-    address = models.CharField(max_length=100, null=True, blank=True)
+    name = models.CharField(max_length=100, unique=True)
+    address = models.CharField(max_length=255, null=True, blank=True)
     description = models.TextField(null=True, blank=True)
+    is_active = models.BooleanField(default=True)
+
+    class Meta:
+        indexes = [models.Index(fields=["is_active", "name"])]
 
     def __str__(self) -> str:
-        return f"ТРАНСПОРТНАЯ КОМПАНИЯ: {self.name}"
+        return f"Транспортная компания: {self.name}, удален - {'да' if not self.is_active else 'нет'}"

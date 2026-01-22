@@ -1,5 +1,5 @@
 version = 1
-revision = 2
+revision = 3
 requires-python = ">=3.12"
 
 [[package]]
@@ -46,6 +46,7 @@ dependencies = [
 [package.dev-dependencies]
 dev = [
     { name = "django-stubs", extra = ["compatible-mypy"] },
+    { name = "isort" },
 ]
 
 [package.metadata]
@@ -69,7 +70,10 @@ requires-dist = [
 ]
 
 [package.metadata.requires-dev]
-dev = [{ name = "django-stubs", extras = ["compatible-mypy"], specifier = ">=5.2.8" }]
+dev = [
+    { name = "django-stubs", extras = ["compatible-mypy"], specifier = ">=5.2.8" },
+    { name = "isort", specifier = ">=7.0.0" },
+]
 
 [[package]]
 name = "black"

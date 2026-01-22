@@ -1,4 +1,4 @@
-UV := uv run
+UV := uv run python -m
 CATS := catalog carrier order
 
 # Virtualenv & Setup

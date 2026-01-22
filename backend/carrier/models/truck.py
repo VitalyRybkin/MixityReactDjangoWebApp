@@ -23,25 +23,25 @@ class Truck(models.Model):
     """
 
     plate_regex = RegexValidator(
-        regex=r"^[АВЕКМНОРСТУХ]\d{3}[АВЕКМНОРСТУХ]{2}\d{2,3}$",
-        message="Format: A123BC77 (Use Cyrillic characters А, В, Е, К, М, Н, О, Р, С, Т, У, Х)",
+        regex=r"^[ABEKMHOPCTUX]\d{3}[ABEKMHOPCTUX]{2}\d{2,3}$",
+        message="Format: A123BC77 (Use Latin characters A, B, E, K, M, H, O, P, C, T, U, X)",
     )
 
     carrier = models.ForeignKey(
         "carrier.Carrier",
-        on_delete=models.CASCADE,
+        on_delete=models.PROTECT,
         related_name="trucks",
     )
 
     type = models.ForeignKey(
         "carrier.TruckType",
-        on_delete=models.CASCADE,
+        on_delete=models.PROTECT,
         related_name="trucks",
     )
 
     capacity = models.ForeignKey(
         "carrier.TruckCapacity",
-        on_delete=models.CASCADE,
+        on_delete=models.PROTECT,
         related_name="trucks",
     )
 
@@ -55,6 +55,9 @@ class Truck(models.Model):
 
     description = models.TextField(null=True, blank=True)
 
+    class Meta:
+        indexes = [models.Index(fields=["carrier"])]
+
     def save(self, *args: Any, **kwargs: Any) -> None:
         if self.license_plate:
             self.license_plate = (
@@ -64,5 +67,5 @@ class Truck(models.Model):
 
     def __str__(self) -> str:
         return (
-            f"АВТО: тип - {self.type}, тоннаж - {self.capacity} т, ТК - {self.carrier}"
+            f"Авто: тип - {self.type}, тоннаж - {self.capacity} т, ТК - {self.carrier}"
         )

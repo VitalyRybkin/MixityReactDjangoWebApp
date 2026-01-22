@@ -37,9 +37,10 @@ class Driver(models.Model):
 
     carrier = models.ForeignKey(
         "carrier.Carrier",
-        on_delete=models.CASCADE,
+        on_delete=models.PROTECT,
         related_name="drivers",
     )
+
     full_name = models.CharField(max_length=100)
 
     phone = models.CharField(
@@ -68,10 +69,15 @@ class Driver(models.Model):
         help_text="Passport issuer",
     )
 
+    class Meta:
+        indexes = [models.Index(fields=["carrier", "full_name"])]
+
     def save(self, *args: Any, **kwargs: Any) -> None:
         if self.passport_number:
-            self.passport = self.passport_number.replace(" ", "")
+            self.passport_number = self.passport_number.replace(" ", "")
+        if self.phone:
+            self.phone = self.phone.replace(" ", "")
         super().save(*args, **kwargs)
 
     def __str__(self) -> str:
-        return f"ВОДИТЕЛЬ: {self.full_name}, {self.carrier}, {self.phone}"
+        return f"Водитель: {self.full_name}, {self.carrier}, {self.phone}"

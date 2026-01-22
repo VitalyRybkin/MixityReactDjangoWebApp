@@ -14,8 +14,11 @@ class TruckType(models.Model):
     :type description: TextField
     """
 
-    truck_type = models.CharField(max_length=20)
+    truck_type = models.CharField(max_length=20, unique=True)
     description = models.TextField(null=True, blank=True)
 
+    class Meta:
+        indexes = [models.Index(fields=["truck_type"])]
+
     def __str__(self) -> str:
-        return f"ТИП ТС: {self.truck_type}"
+        return f"Тип ТС: {self.truck_type}"

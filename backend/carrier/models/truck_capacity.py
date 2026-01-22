@@ -8,14 +8,17 @@ class TruckCapacity(models.Model):
     This model is used to store information about truck capacities, their description.
     It serves as a representation of vehicle capacities used for transportation purposes in the system.
 
-    :ivar truck_capacity: The capacity of the truck capacity.
-    :type truck_capacity: SmallIntegerField
+    :ivar capacity: The capacity of the truck capacity.
+    :type capacity: SmallIntegerField
     :ivar description: Optional description providing additional details about the truck capacity.
     :type description: TextField
     """
 
-    truck_capacity = models.SmallIntegerField()
+    capacity = models.SmallIntegerField(unique=True)
     description = models.TextField(null=True, blank=True)
 
+    class Meta:
+        indexes = [models.Index(fields=["capacity"])]
+
     def __str__(self) -> str:
-        return f"ГРУЗОПОДЪЕМНОСТЬ: {self.truck_capacity} тонн"
+        return f"Грузоподъемность: {self.capacity} тонн"
