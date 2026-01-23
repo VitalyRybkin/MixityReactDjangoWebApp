@@ -32,4 +32,4 @@ class Carrier(models.Model):
         indexes = [models.Index(fields=["is_active", "name"])]
 
     def __str__(self) -> str:
-        return f"Транспортная компания: {self.name}, удалена - {'да' if not self.is_active else 'нет'}"
+        return f"TK: {self.name}"

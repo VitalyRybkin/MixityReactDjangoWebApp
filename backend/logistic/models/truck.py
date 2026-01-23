@@ -67,5 +67,5 @@ class Truck(models.Model):
 
     def __str__(self) -> str:
         return (
-            f"Авто: тип - {self.type}, тоннаж - {self.capacity} т, ТК - {self.carrier}"
+            f"Авто: {self.type}, {self.capacity}, {self.carrier}"
         )
