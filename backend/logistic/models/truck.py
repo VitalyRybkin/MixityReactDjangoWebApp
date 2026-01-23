@@ -66,6 +66,4 @@ class Truck(models.Model):
         super().save(*args, **kwargs)
 
     def __str__(self) -> str:
-        return (
-            f"Авто: {self.type}, {self.capacity}, {self.carrier}"
-        )
+        return f"Авто: {self.type}, {self.capacity}, {self.carrier}"

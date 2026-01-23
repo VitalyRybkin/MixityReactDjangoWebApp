@@ -30,6 +30,7 @@ class TruckNestedSerializer(serializers.ModelSerializer):
         fields: Specifies the fields to be included in the serialized representation,
             which are "id", "type", "capacity", "licensePlate", and "description".
     """
+
     licensePlate = serializers.CharField(source="license_plate")
     type = TruckTypeSerializer()
     capacity = TruckCapacitySerializer()
@@ -71,4 +72,12 @@ class CarrierSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Carrier
-        fields = ["id", "name", "full_name", "address", "description", "isActive", "trucks"]
+        fields = [
+            "id",
+            "name",
+            "full_name",
+            "address",
+            "description",
+            "isActive",
+            "trucks",
+        ]

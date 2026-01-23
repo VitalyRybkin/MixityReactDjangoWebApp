@@ -40,6 +40,7 @@ class CarrierBaseAPIView(GenericAPIView):
     Raises:
         No explicit errors are raised by this class directly.
     """
+
     serializer_class = CarrierSerializer
     permission_classes = [AllowAny]
 
@@ -59,6 +60,7 @@ class CarrierListCreateAPIView(CarrierBaseAPIView, generics.ListCreateAPIView):
     a list of existing carriers. It extends the functionalities of CarrierBaseAPIView
     and Django REST Framework's ListCreateAPIView to provide this functionality.
     """
+
     pass
 
 
@@ -86,6 +88,7 @@ class CarrierRetrieveUpdateDestroyAPIView(
         the delete operation by marking the carrier instance inactive, serializing
         it, and returning the updated data in the response.
     """
+
     def perform_destroy(self, instance: Carrier) -> None:
         instance.is_active = False
         instance.save(update_fields=["is_active"])

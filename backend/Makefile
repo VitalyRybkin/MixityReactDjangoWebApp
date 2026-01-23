@@ -1,5 +1,5 @@
 UV := uv run python -m
-CATS := catalog carrier order
+CATS := catalog logistic order
 
 # Virtualenv & Setup
 sync:

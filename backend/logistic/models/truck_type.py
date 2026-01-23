@@ -19,8 +19,8 @@ class TruckType(models.Model):
 
     class Meta:
         indexes = [models.Index(fields=["truck_type"])]
-        verbose_name = 'Truck Type'
-        verbose_name_plural = 'Truck Types'
+        verbose_name = "Truck Type"
+        verbose_name_plural = "Truck Types"
 
     def __str__(self) -> str:
         return f"Тип ТС - {self.truck_type}"

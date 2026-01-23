@@ -46,14 +46,16 @@ class Driver(models.Model):
     phone = models.CharField(
         validators=[russian_phone_regex],
         max_length=18,
-        null=True, blank=True,
+        null=True,
+        blank=True,
         help_text="Russian phone number",
     )
 
     passport_number = models.CharField(
         validators=[passport_regex],
         max_length=11,
-        null=True, blank=True,
+        null=True,
+        blank=True,
         db_index=True,
         help_text="Format: 1234 567890",
     )

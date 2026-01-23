@@ -1,5 +1,4 @@
-from .truck_admin import TruckAdmin, TruckTypeAdmin, TruckCapacityAdmin
 from .carrier_admin import CarrierAdmin
+from .truck_admin import TruckAdmin, TruckCapacityAdmin, TruckTypeAdmin
 
-
-__all__ = ['TruckAdmin', 'TruckTypeAdmin', 'TruckCapacityAdmin', 'CarrierAdmin']
+__all__ = ["TruckAdmin", "TruckTypeAdmin", "TruckCapacityAdmin", "CarrierAdmin"]

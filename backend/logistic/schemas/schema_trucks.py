@@ -1,6 +1,7 @@
 """
-    Provides schemas for truck-related API endpoints.
+Provides schemas for truck-related API endpoints.
 """
+
 from drf_spectacular.utils import OpenApiResponse, extend_schema, extend_schema_view
 
 from logistic.schemas.schema_errors import (
