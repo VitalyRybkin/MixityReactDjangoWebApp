@@ -59,7 +59,7 @@ INSTALLED_APPS = [
     "rest_framework",
     "corsheaders",
     "catalog.apps.ApiConfig",
-    "carrier.apps.CarrierConfig",
+    "logistic.apps.LogisticConfig",
     "order.apps.OrderConfig",
     "drf_spectacular",
     "drf_spectacular_sidecar",

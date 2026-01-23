@@ -18,7 +18,7 @@ urlpatterns = [
     path("auth/token/", TokenObtainPairView.as_view(), name="token_obtain_pair"),
     path("auth/token/refresh/", TokenRefreshView.as_view(), name="token_refresh"),
     path("auth/auth/", include("rest_framework.urls")),
-    path("api/", include("carrier.urls")),
+    path("api/", include("logistic.urls")),
     path(
       "api/schema/",
       SpectacularAPIView.as_view(permission_classes=[AllowAny]),

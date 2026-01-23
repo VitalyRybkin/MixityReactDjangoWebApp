@@ -3,13 +3,13 @@
 """
 from drf_spectacular.utils import OpenApiResponse, extend_schema, extend_schema_view
 
-from carrier.schemas.schema_errors import (
+from logistic.schemas.schema_errors import (
     ERRORS_DETAIL,
     ERRORS_DETAIL_WRITE,
     ERRORS_READ,
     ERRORS_WRITE,
 )
-from carrier.serializers.truck_serializers import (
+from logistic.serializers.truck_serializers import (
     TruckCapacitySerializer,
     TruckSerializer,
     TruckTypeSerializer,

@@ -1,10 +1,10 @@
 from django.urls import path
 
-from carrier.views.carriers import (
+from logistic.views.carriers import (
     CarrierListCreateAPIView,
     CarrierRetrieveUpdateDestroyAPIView,
 )
-from carrier.views.trucks import (
+from logistic.views.trucks import (
     TruckCapacitiesListCreateAPIView,
     TruckCapacitiesRetrieveUpdateDestroyAPIView,
     TruckListCreateAPIView,

@@ -3,13 +3,13 @@
 """
 from drf_spectacular.utils import OpenApiResponse, extend_schema, extend_schema_view
 
-from carrier.schemas.schema_errors import (
+from logistic.schemas.schema_errors import (
     ERRORS_DETAIL,
     ERRORS_DETAIL_WRITE,
     ERRORS_READ,
     ERRORS_WRITE,
 )
-from carrier.serializers.carrier_serializers import CarrierSerializer
+from logistic.serializers.carrier_serializers import CarrierSerializer
 
 carrier_list_create_schema = extend_schema_view(
     get=extend_schema(

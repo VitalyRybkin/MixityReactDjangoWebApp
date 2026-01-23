@@ -1,6 +1,6 @@
 from rest_framework import serializers
 
-from carrier.models import Carrier, Truck, TruckCapacity, TruckType
+from logistic.models import Carrier, Truck, TruckCapacity, TruckType
 
 
 class CarrierNestedSerializer(serializers.ModelSerializer):

@@ -1,7 +1,7 @@
 from rest_framework import serializers
 
-from carrier.models import Carrier, Truck
-from carrier.serializers.truck_serializers import (
+from logistic.models import Carrier, Truck
+from logistic.serializers.truck_serializers import (
     TruckCapacitySerializer,
     TruckTypeSerializer,
 )
@@ -71,4 +71,4 @@ class CarrierSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Carrier
-        fields = ["id", "name", "address", "description", "isActive", "trucks"]
+        fields = ["id", "name", "full_name", "address", "description", "isActive", "trucks"]

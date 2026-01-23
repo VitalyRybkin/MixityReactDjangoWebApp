@@ -28,19 +28,19 @@ class Truck(models.Model):
     )
 
     carrier = models.ForeignKey(
-        "carrier.Carrier",
+        "logistic.Carrier",
         on_delete=models.PROTECT,
         related_name="trucks",
     )
 
     type = models.ForeignKey(
-        "carrier.TruckType",
+        "logistic.TruckType",
         on_delete=models.PROTECT,
         related_name="trucks",
     )
 
     capacity = models.ForeignKey(
-        "carrier.TruckCapacity",
+        "logistic.TruckCapacity",
         on_delete=models.PROTECT,
         related_name="trucks",
     )

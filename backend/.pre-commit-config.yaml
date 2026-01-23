@@ -1,6 +1,6 @@
 variables:
-  - &target_folders_blc "^(carrier|catalog)/.*\\.py$"
-  - &target_folders "^(carrier|catalog)/"
+  - &target_folders_blc "^(logistic|catalog)/.*\\.py$"
+  - &target_folders "^(logistic|catalog)/"
 repos:
   - repo: https://github.com/psf/black
     rev: 24.3.0

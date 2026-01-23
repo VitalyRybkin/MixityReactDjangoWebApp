@@ -36,7 +36,7 @@ class Driver(models.Model):
     )
 
     carrier = models.ForeignKey(
-        "carrier.Carrier",
+        "logistic.Carrier",
         on_delete=models.PROTECT,
         related_name="drivers",
     )
@@ -46,14 +46,14 @@ class Driver(models.Model):
     phone = models.CharField(
         validators=[russian_phone_regex],
         max_length=18,
-        unique=True,
+        null=True, blank=True,
         help_text="Russian phone number",
     )
 
     passport_number = models.CharField(
         validators=[passport_regex],
         max_length=11,
-        unique=True,
+        null=True, blank=True,
         db_index=True,
         help_text="Format: 1234 567890",
     )

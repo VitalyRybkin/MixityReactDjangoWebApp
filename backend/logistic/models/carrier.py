@@ -23,6 +23,7 @@ class Carrier(models.Model):
     """
 
     name = models.CharField(max_length=100, unique=True)
+    full_name = models.CharField(max_length=255, null=True, blank=True)
     address = models.CharField(max_length=255, null=True, blank=True)
     description = models.TextField(null=True, blank=True)
     is_active = models.BooleanField(default=True)
@@ -31,4 +32,4 @@ class Carrier(models.Model):
         indexes = [models.Index(fields=["is_active", "name"])]
 
     def __str__(self) -> str:
-        return f"Транспортная компания: {self.name}, удален - {'да' if not self.is_active else 'нет'}"
+        return f"Транспортная компания: {self.name}, удалена - {'да' if not self.is_active else 'нет'}"

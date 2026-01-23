@@ -7,12 +7,12 @@ from rest_framework.permissions import AllowAny
 from rest_framework.request import Request
 from rest_framework.response import Response
 
-from carrier.models import Carrier, Truck
-from carrier.schemas.schema_carriers import (
+from logistic.models import Carrier, Truck
+from logistic.schemas.schema_carriers import (
     carrier_list_create_schema,
     carrier_retrieve_update_destroy_schema,
 )
-from carrier.serializers.carrier_serializers import CarrierSerializer
+from logistic.serializers.carrier_serializers import CarrierSerializer
 
 
 class CarrierBaseAPIView(GenericAPIView):
