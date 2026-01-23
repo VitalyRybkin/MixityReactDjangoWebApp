@@ -16,6 +16,30 @@ from carrier.serializers.carrier_serializers import CarrierSerializer
 
 
 class CarrierBaseAPIView(GenericAPIView):
+    """
+    Provides a base API view for carrier-related data.
+
+    CarrierBaseAPIView is a generic API view that provides functionality for
+    serializing and handling carrier-related data. It specifies a serializer class
+    and defines permission requirements for accessing the view. The view
+    customizes the queryset to include active carriers and prefetches related
+    truck data, optimizing database queries.
+
+    Attributes:
+        serializer_class: The serializer class used for data validation and
+                          representation.
+        permission_classes: A list of permission classes that specify the
+                            authorization required to access the view.
+
+    Methods:
+        get_queryset:
+            Retrieves the queryset of active carriers from the database. The
+            method prefetches related truck data with specific fields for
+            optimized query performance.
+
+    Raises:
+        No explicit errors are raised by this class directly.
+    """
     serializer_class = CarrierSerializer
     permission_classes = [AllowAny]
 
@@ -28,6 +52,13 @@ class CarrierBaseAPIView(GenericAPIView):
 
 @carrier_list_create_schema
 class CarrierListCreateAPIView(CarrierBaseAPIView, generics.ListCreateAPIView):
+    """
+    Handles the creation and listing of carrier entities.
+
+    Serves as an API view to allow creating new carriers and retrieving
+    a list of existing carriers. It extends the functionalities of CarrierBaseAPIView
+    and Django REST Framework's ListCreateAPIView to provide this functionality.
+    """
     pass
 
 
@@ -35,6 +66,26 @@ class CarrierListCreateAPIView(CarrierBaseAPIView, generics.ListCreateAPIView):
 class CarrierRetrieveUpdateDestroyAPIView(
     CarrierBaseAPIView, generics.RetrieveUpdateDestroyAPIView
 ):
+    """
+    API view for retrieving, updating, and deactivating a carrier.
+
+    Provides functionality to retrieve, update, and
+    deactivate carriers. When a carrier is deleted using this view, it is
+    marked as inactive instead of being permanently removed from the database.
+    This ensures that carrier records are retained while indicating they are
+    no longer active.
+
+    Inherits common functionality from CarrierBaseAPIView and
+    generics.RetrieveUpdateDestroyAPIView.
+
+    Methods:
+        perform_destroy(instance: Carrier) -> None: Marks the specified carrier
+        instance as inactive in the database.
+
+        destroy(request: Request, *args: Any, **kwargs: Any) -> Response: Handles
+        the delete operation by marking the carrier instance inactive, serializing
+        it, and returning the updated data in the response.
+    """
     def perform_destroy(self, instance: Carrier) -> None:
         instance.is_active = False
         instance.save(update_fields=["is_active"])

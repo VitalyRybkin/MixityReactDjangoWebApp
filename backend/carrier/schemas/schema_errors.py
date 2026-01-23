@@ -1,3 +1,6 @@
+"""
+    Provides schemas for error responses in carrier-related API endpoints.
+"""
 from drf_spectacular.utils import OpenApiExample, OpenApiResponse, inline_serializer
 from rest_framework import serializers
 
