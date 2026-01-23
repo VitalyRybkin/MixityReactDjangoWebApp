@@ -9,8 +9,8 @@ from carrier.views.trucks import (
     TruckCapacitiesRetrieveUpdateDestroyAPIView,
     TruckListCreateAPIView,
     TruckRetrieveUpdateDestroyAPIView,
+    TruckTypeRetrieveUpdateDestroyAPIView,
     TruckTypesListCreateAPIView,
-    TruckTypesRetrieveUpdateDestroyAPIView,
 )
 
 urlpatterns = [
@@ -43,7 +43,7 @@ urlpatterns = [
     ),
     path(
         "truck_types/<int:pk>/",
-        TruckTypesRetrieveUpdateDestroyAPIView.as_view(),
+        TruckTypeRetrieveUpdateDestroyAPIView.as_view(),
         name="truck_types_operations",
     ),
 ]
