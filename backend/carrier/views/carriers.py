@@ -2,6 +2,7 @@ from typing import Any
 
 from django.db.models import Prefetch, QuerySet
 from rest_framework import generics, status
+from rest_framework.generics import GenericAPIView
 from rest_framework.permissions import AllowAny
 from rest_framework.request import Request
 from rest_framework.response import Response
@@ -14,27 +15,26 @@ from carrier.schemas.schema_carriers import (
 from carrier.serializers.carrier_serializers import CarrierSerializer
 
 
-class CarrierQuerysetMixin:
+class CarrierBaseAPIView(GenericAPIView):
+    serializer_class = CarrierSerializer
+    permission_classes = [AllowAny]
+
     def get_queryset(self) -> QuerySet[Carrier]:
-        trucks_qs = Truck.objects.select_related("type", "capacity")
+        _trucks_qs = Truck.objects.select_related("type", "capacity")
         return Carrier.objects.filter(is_active=True).prefetch_related(
-            Prefetch("trucks", queryset=trucks_qs)
+            Prefetch("trucks", queryset=_trucks_qs)
         )
 
 
 @carrier_list_create_schema
-class CarrierListCreateAPIView(CarrierQuerysetMixin, generics.ListCreateAPIView):
-    serializer_class = CarrierSerializer
-    permission_classes = [AllowAny]
+class CarrierListCreateAPIView(CarrierBaseAPIView, generics.ListCreateAPIView):
+    pass
 
 
 @carrier_retrieve_update_destroy_schema
 class CarrierRetrieveUpdateDestroyAPIView(
-    CarrierQuerysetMixin, generics.RetrieveUpdateDestroyAPIView
+    CarrierBaseAPIView, generics.RetrieveUpdateDestroyAPIView
 ):
-    serializer_class = CarrierSerializer
-    permission_classes = [AllowAny]
-
     def perform_destroy(self, instance: Carrier) -> None:
         instance.is_active = False
         instance.save(update_fields=["is_active"])
