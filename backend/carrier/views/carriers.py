@@ -1,12 +1,12 @@
 from typing import Any
 
-from django.db.models import QuerySet
+from django.db.models import Prefetch, QuerySet
 from rest_framework import generics, status
 from rest_framework.permissions import AllowAny
 from rest_framework.request import Request
 from rest_framework.response import Response
 
-from carrier.models import Carrier
+from carrier.models import Carrier, Truck
 from carrier.schemas.schema_carriers import (
     carrier_list_create_schema,
     carrier_retrieve_update_destroy_schema,
@@ -14,18 +14,24 @@ from carrier.schemas.schema_carriers import (
 from carrier.serializers.carrier_serializers import CarrierSerializer
 
 
+class CarrierQuerysetMixin:
+    def get_queryset(self) -> QuerySet[Carrier]:
+        trucks_qs = Truck.objects.select_related("type", "capacity")
+        return Carrier.objects.filter(is_active=True).prefetch_related(
+            Prefetch("trucks", queryset=trucks_qs)
+        )
+
+
 @carrier_list_create_schema
-class CarrierListCreateAPIView(generics.ListCreateAPIView):
+class CarrierListCreateAPIView(CarrierQuerysetMixin, generics.ListCreateAPIView):
     serializer_class = CarrierSerializer
     permission_classes = [AllowAny]
 
-    def get_queryset(self) -> QuerySet[Carrier]:
-        return Carrier.objects.filter(is_active=True)
-
 
 @carrier_retrieve_update_destroy_schema
-class CarrierRetrieveUpdateDestroyAPIView(generics.RetrieveUpdateDestroyAPIView):
-    queryset = Carrier.objects.all()
+class CarrierRetrieveUpdateDestroyAPIView(
+    CarrierQuerysetMixin, generics.RetrieveUpdateDestroyAPIView
+):
     serializer_class = CarrierSerializer
     permission_classes = [AllowAny]
 

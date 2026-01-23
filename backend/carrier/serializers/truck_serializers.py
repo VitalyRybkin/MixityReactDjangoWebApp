@@ -1,21 +1,14 @@
 from rest_framework import serializers
 
-from carrier.models import Truck, TruckCapacity, TruckType
+from carrier.models import Carrier, Truck, TruckCapacity, TruckType
 
 
-class TruckSerializer(serializers.ModelSerializer):
-    licensePlate = serializers.CharField(source="license_plate")
+class CarrierNestedSerializer(serializers.ModelSerializer):
+    isActive = serializers.BooleanField(source="is_active")
 
     class Meta:
-        model = Truck
-        fields = [
-            "id",
-            "carrier",
-            "type",
-            "capacity",
-            "licensePlate",
-            "description",
-        ]
+        model = Carrier
+        fields = ["id", "name", "isActive"]
 
 
 class TruckTypeSerializer(serializers.ModelSerializer):
@@ -34,3 +27,21 @@ class TruckCapacitySerializer(serializers.ModelSerializer):
     class Meta:
         model = TruckCapacity
         fields = "__all__"
+
+
+class TruckSerializer(serializers.ModelSerializer):
+    licensePlate = serializers.CharField(source="license_plate")
+    type = TruckTypeSerializer()
+    capacity = TruckCapacitySerializer()
+    carrier = CarrierNestedSerializer()
+
+    class Meta:
+        model = Truck
+        fields = [
+            "id",
+            "carrier",
+            "type",
+            "capacity",
+            "licensePlate",
+            "description",
+        ]
