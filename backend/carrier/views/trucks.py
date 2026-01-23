@@ -2,19 +2,18 @@ from rest_framework import generics
 from rest_framework.permissions import AllowAny
 
 from carrier.models import Truck, TruckCapacity, TruckType
+from carrier.schemas.schema_trucks import (
+    truck_capacity_list_create_schema,
+    truck_capacity_retrieve_update_destroy_schema,
+    truck_list_create_schema,
+    truck_retrieve_update_destroy_schema,
+    truck_type_list_create_schema,
+    truck_type_retrieve_update_destroy_schema,
+)
 from carrier.serializers.truck_serializers import (
     TruckCapacitySerializer,
     TruckSerializer,
     TruckTypeSerializer,
-)
-
-from carrier.schemas.schema_trucks import (
-    truck_list_create_schema,
-    truck_retrieve_update_destroy_schema,
-    truck_capacity_list_create_schema,
-    truck_capacity_retrieve_update_destroy_schema,
-    truck_type_list_create_schema,
-    truck_type_retrieve_update_destroy_schema,
 )
 
 

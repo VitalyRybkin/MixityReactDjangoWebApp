@@ -7,8 +7,11 @@ from rest_framework.request import Request
 from rest_framework.response import Response
 
 from carrier.models import Carrier
+from carrier.schemas.schema_carriers import (
+    carrier_list_create_schema,
+    carrier_retrieve_update_destroy_schema,
+)
 from carrier.serializers.carrier_serializers import CarrierSerializer
-from carrier.schemas.schema_carriers import carrier_list_create_schema, carrier_retrieve_update_destroy_schema
 
 
 @carrier_list_create_schema

@@ -1,15 +1,15 @@
 from drf_spectacular.utils import OpenApiResponse, extend_schema, extend_schema_view
 
-from carrier.serializers.truck_serializers import (
-    TruckCapacitySerializer,
-    TruckSerializer,
-    TruckTypeSerializer,
-)
 from carrier.schemas.schema_errors import (
     ERRORS_DETAIL,
     ERRORS_DETAIL_WRITE,
     ERRORS_READ,
     ERRORS_WRITE,
+)
+from carrier.serializers.truck_serializers import (
+    TruckCapacitySerializer,
+    TruckSerializer,
+    TruckTypeSerializer,
 )
 
 truck_list_create_schema = extend_schema_view(
@@ -38,7 +38,10 @@ truck_retrieve_update_destroy_schema = extend_schema_view(
         operation_id="patchTruck",
         summary="Partially update a truck",
         tags=["Truck"],
-        responses={200: OpenApiResponse(response=TruckSerializer), **ERRORS_DETAIL_WRITE},
+        responses={
+            200: OpenApiResponse(response=TruckSerializer),
+            **ERRORS_DETAIL_WRITE,
+        },
     ),
     put=extend_schema(exclude=True),
     delete=extend_schema(
@@ -69,7 +72,10 @@ truck_capacity_retrieve_update_destroy_schema = extend_schema_view(
         operation_id="getTruckCapacity",
         summary="Retrieve a truck capacity",
         tags=["TruckCapacity"],
-        responses={200: OpenApiResponse(response=TruckCapacitySerializer), **ERRORS_DETAIL},
+        responses={
+            200: OpenApiResponse(response=TruckCapacitySerializer),
+            **ERRORS_DETAIL,
+        },
     ),
     patch=extend_schema(
         operation_id="patchTruckCapacity",
@@ -118,7 +124,10 @@ truck_type_retrieve_update_destroy_schema = extend_schema_view(
         operation_id="patchTruckType",
         summary="Partially update a truck type",
         tags=["TruckType"],
-        responses={200: OpenApiResponse(response=TruckTypeSerializer), **ERRORS_DETAIL_WRITE},
+        responses={
+            200: OpenApiResponse(response=TruckTypeSerializer),
+            **ERRORS_DETAIL_WRITE,
+        },
     ),
     put=extend_schema(exclude=True),
     delete=extend_schema(
