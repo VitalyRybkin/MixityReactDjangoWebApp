@@ -1,6 +1,7 @@
 from rest_framework import serializers
 
 from logistic.models import Carrier, Truck
+from logistic.serializers.driver_serializers import DriverSerializer
 from logistic.serializers.truck_serializers import (
     TruckBaseSerializer,
     TruckCapacitySerializer,
@@ -94,4 +95,4 @@ class CarrierResourcesSerializer(serializers.Serializer):
     """
 
     trucks = TruckBaseSerializer(many=True)
-    # drivers = DriverSerializer(many=True)
+    drivers = DriverSerializer(many=True)

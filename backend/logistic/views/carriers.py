@@ -7,7 +7,7 @@ from rest_framework.permissions import AllowAny
 from rest_framework.request import Request
 from rest_framework.response import Response
 
-from logistic.models import Carrier, Truck
+from logistic.models import Carrier, Driver, Truck
 from logistic.schemas.schema_carriers import (
     carrier_list_create_schema,
     carrier_resources_schema,
@@ -129,12 +129,12 @@ class CarrierResourcesAPIView(generics.GenericAPIView):
         carrier = get_object_or_404(Carrier, pk=kwargs["pk"], is_active=True)
 
         trucks = Truck.objects.filter(carrier=carrier)
-        # drivers = Driver.objects.filter(carrier=carrier, is_active=True)
+        drivers = Driver.objects.filter(carrier=carrier)
 
         serializer = self.get_serializer(
             {
                 "trucks": trucks,
-                # "drivers": drivers,
+                "drivers": drivers,
             },
             context={"request": request},
         )
