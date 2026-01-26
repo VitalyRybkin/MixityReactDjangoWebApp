@@ -3,7 +3,7 @@ from rest_framework import serializers
 from logistic.models import Carrier, Truck
 from logistic.serializers.truck_serializers import (
     TruckCapacitySerializer,
-    TruckTypeSerializer,
+    TruckTypeSerializer, TruckSerializer, TruckBaseSerializer,
 )
 
 
@@ -62,13 +62,13 @@ class CarrierSerializer(serializers.ModelSerializer):
         Indicates whether the carrier is active. This is sourced from the 'is_active'
         field on the Carrier model.
 
-    trucks : TruckNestedSerializer
+    carrier_trucks : TruckNestedSerializer
         A nested serializer for representing related Truck instances. Handles multiple
         truck objects associated with a carrier.
     """
 
     isActive = serializers.BooleanField(source="is_active")
-    trucks = TruckNestedSerializer(many=True)
+    carrier_trucks = TruckBaseSerializer(many=True)
 
     class Meta:
         model = Carrier
@@ -79,5 +79,10 @@ class CarrierSerializer(serializers.ModelSerializer):
             "address",
             "description",
             "isActive",
-            "trucks",
+            "carrier_trucks",
         ]
+
+
+class CarrierResourcesSerializer(serializers.Serializer):
+    trucks = TruckBaseSerializer(many=True)
+    # drivers = DriverSerializer(many=True)

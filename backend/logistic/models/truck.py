@@ -30,19 +30,19 @@ class Truck(models.Model):
     carrier = models.ForeignKey(
         "logistic.Carrier",
         on_delete=models.PROTECT,
-        related_name="trucks",
+        related_name="carrier_trucks",
     )
 
     type = models.ForeignKey(
         "logistic.TruckType",
         on_delete=models.PROTECT,
-        related_name="trucks",
+        related_name="truck_type",
     )
 
     capacity = models.ForeignKey(
         "logistic.TruckCapacity",
         on_delete=models.PROTECT,
-        related_name="trucks",
+        related_name="truck_capacity",
     )
 
     license_plate = models.CharField(

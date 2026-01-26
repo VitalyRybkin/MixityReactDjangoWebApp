@@ -8,19 +8,19 @@ class TruckType(models.Model):
     Model is used to store information about truck types, their description.
     It serves as a representation of vehicle types used for transportation purposes in the system.
 
-    :ivar truck_type: The type of the truck type.
-    :type truck_type: CharField
+    :ivar type: The type of the truck type.
+    :type type: CharField
     :ivar description: Optional description providing additional details about the truck type.
     :type description: TextField
     """
 
-    truck_type = models.CharField(max_length=20, unique=True)
+    type = models.CharField(max_length=20, unique=True)
     description = models.TextField(null=True, blank=True)
 
     class Meta:
-        indexes = [models.Index(fields=["truck_type"])]
+        indexes = [models.Index(fields=["type"])]
         verbose_name = "Truck Type"
         verbose_name_plural = "Truck Types"
 
     def __str__(self) -> str:
-        return f"Тип ТС - {self.truck_type}"
+        return f"Тип ТС - {self.type}"

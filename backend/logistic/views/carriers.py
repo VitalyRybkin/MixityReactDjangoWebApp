@@ -2,7 +2,7 @@ from typing import Any
 
 from django.db.models import Prefetch, QuerySet
 from rest_framework import generics, status
-from rest_framework.generics import GenericAPIView
+from rest_framework.generics import GenericAPIView, get_object_or_404
 from rest_framework.permissions import AllowAny
 from rest_framework.request import Request
 from rest_framework.response import Response
@@ -10,9 +10,10 @@ from rest_framework.response import Response
 from logistic.models import Carrier, Truck
 from logistic.schemas.schema_carriers import (
     carrier_list_create_schema,
-    carrier_retrieve_update_destroy_schema,
+    carrier_retrieve_update_destroy_schema, carrier_resources_schema,
 )
-from logistic.serializers.carrier_serializers import CarrierSerializer
+from logistic.serializers.carrier_serializers import CarrierSerializer, CarrierResourcesSerializer
+from logistic.serializers.truck_serializers import TruckSerializer
 
 
 class CarrierBaseAPIView(GenericAPIView):
@@ -47,7 +48,7 @@ class CarrierBaseAPIView(GenericAPIView):
     def get_queryset(self) -> QuerySet[Carrier]:
         _trucks_qs = Truck.objects.select_related("type", "capacity")
         return Carrier.objects.filter(is_active=True).prefetch_related(
-            Prefetch("trucks", queryset=_trucks_qs)
+            Prefetch("carrier_trucks", queryset=_trucks_qs)
         )
 
 
@@ -97,4 +98,25 @@ class CarrierRetrieveUpdateDestroyAPIView(
         instance = self.get_object()
         self.perform_destroy(instance)
         serializer = self.get_serializer(instance)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+@carrier_resources_schema
+class CarrierResourcesAPIView(generics.GenericAPIView):
+    permission_classes = [AllowAny]
+    serializer_class = CarrierResourcesSerializer
+
+    def get(self, request, *args, **kwargs):
+        carrier = get_object_or_404(Carrier, pk=kwargs["pk"], is_active=True)
+
+        trucks = Truck.objects.filter(carrier=carrier)
+        # drivers = Driver.objects.filter(carrier=carrier, is_active=True)
+
+        serializer = self.get_serializer(
+            {
+                "trucks": trucks,
+                # "drivers": drivers,
+            },
+            context={"request": request},
+        )
+
         return Response(serializer.data, status=status.HTTP_200_OK)

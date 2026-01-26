@@ -2,7 +2,7 @@ from django.urls import path
 
 from logistic.views.carriers import (
     CarrierListCreateAPIView,
-    CarrierRetrieveUpdateDestroyAPIView,
+    CarrierRetrieveUpdateDestroyAPIView, CarrierResourcesAPIView,
 )
 from logistic.views.trucks import (
     TruckCapacitiesListCreateAPIView,
@@ -14,17 +14,30 @@ from logistic.views.trucks import (
 )
 
 urlpatterns = [
-    path("carriers/", CarrierListCreateAPIView.as_view(), name="carrier_list_create"),
+    path(
+        "carriers/",
+        CarrierListCreateAPIView.as_view(),
+        name="carrier_list_create",
+    ),
     path(
         "carriers/<int:pk>/",
         CarrierRetrieveUpdateDestroyAPIView.as_view(),
-        name="carrier_operations",
+        name="carrier_details",
     ),
-    path("trucks/", TruckListCreateAPIView.as_view(), name="trucks_list_create"),
+    path(
+        "carriers/<int:pk>/resources/",
+        CarrierResourcesAPIView.as_view(),
+        name="carrier_resources",
+    ),
+    path(
+        "trucks/",
+        TruckListCreateAPIView.as_view(),
+        name="trucks_list_create",
+    ),
     path(
         "trucks/<int:pk>/",
         TruckRetrieveUpdateDestroyAPIView.as_view(),
-        name="truck_operations",
+        name="truck_details",
     ),
     path(
         "truck_capacities/",
@@ -34,7 +47,7 @@ urlpatterns = [
     path(
         "truck_capacities/<int:pk>/",
         TruckCapacitiesRetrieveUpdateDestroyAPIView.as_view(),
-        name="truck_capacities_operations",
+        name="truck_capacities_details",
     ),
     path(
         "truck_types/",
@@ -44,6 +57,6 @@ urlpatterns = [
     path(
         "truck_types/<int:pk>/",
         TruckTypeRetrieveUpdateDestroyAPIView.as_view(),
-        name="truck_types_operations",
+        name="truck_types_details",
     ),
 ]

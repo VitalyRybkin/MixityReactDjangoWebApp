@@ -28,20 +28,52 @@ class TruckCapacitySerializer(serializers.ModelSerializer):
         model = TruckCapacity
         fields = "__all__"
 
+class TruckBaseSerializer(serializers.ModelSerializer):
+    """
+    Serializer for representing nested Truck objects.
 
-class TruckSerializer(serializers.ModelSerializer):
+    Serves the purpose of converting Truck model instances into
+    nested JSON representations and vice versa. It includes related fields, such
+    as the truck type and capacity, which are serialized using their respective
+    serializers. Additionally, it maps the `license_plate` field from the model
+    to `licensePlate` in the serialized output.
+
+    Attributes:
+        licensePlate (str): The license plate of the truck, mapped from the
+            `license_plate` field in the model.
+        type (TruckTypeSerializer): Nested serializer representing the truck's
+            type details.
+        capacity (TruckCapacitySerializer): Nested serializer representing the
+            truck's capacity details.
+
+    Meta:
+        model: Defines the Truck model as the source of the data for the serializer.
+        fields: Specifies the fields to be included in the serialized representation,
+            which are "id", "type", "capacity", "licensePlate", and "description".
+    """
     licensePlate = serializers.CharField(source="license_plate")
     type = TruckTypeSerializer()
     capacity = TruckCapacitySerializer()
-    carrier = CarrierNestedSerializer()
 
     class Meta:
         model = Truck
         fields = [
             "id",
-            "carrier",
             "type",
             "capacity",
             "licensePlate",
             "description",
+        ]
+
+
+class TruckSerializer(TruckBaseSerializer):
+    # licensePlate = serializers.CharField(source="license_plate")
+    # type = TruckTypeSerializer()
+    # capacity = TruckCapacitySerializer()
+    carrier = CarrierNestedSerializer()
+
+    class Meta(TruckBaseSerializer.Meta):
+        model = Truck
+        fields = TruckBaseSerializer.Meta.fields + [
+            "carrier",
         ]

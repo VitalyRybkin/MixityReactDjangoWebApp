@@ -10,7 +10,7 @@ from logistic.schemas.schema_errors import (
     ERRORS_READ,
     ERRORS_WRITE,
 )
-from logistic.serializers.carrier_serializers import CarrierSerializer
+from logistic.serializers.carrier_serializers import CarrierSerializer, CarrierResourcesSerializer
 
 carrier_list_create_schema = extend_schema_view(
     get=extend_schema(
@@ -24,6 +24,18 @@ carrier_list_create_schema = extend_schema_view(
         summary="Create a new carrier",
         tags=["Carrier"],
         responses={201: CarrierSerializer, **ERRORS_WRITE},
+    ),
+)
+
+carrier_resources_schema = extend_schema_view(
+    get=extend_schema(
+        operation_id="resourcesCarriers",
+        summary="List carriers resources",
+        tags=["Carrier"],
+        responses={
+            200: CarrierResourcesSerializer,
+            **ERRORS_READ,
+        },
     ),
 )
 

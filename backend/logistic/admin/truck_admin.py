@@ -18,9 +18,9 @@ class TruckAdmin(admin.ModelAdmin):
 
 @admin.register(TruckType)
 class TruckTypeAdmin(admin.ModelAdmin):
-    list_display = ["truck_type", "description"]
-    list_display_links = ["truck_type"]
-    ordering = ["truck_type"]
+    list_display = ["type", "description"]
+    list_display_links = ["type"]
+    ordering = ["type"]
     verbose_name = "Truck Type"
     verbose_name_plural = "Truck Types"
 
