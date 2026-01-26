@@ -1,5 +1,5 @@
 version = 1
-revision = 3
+revision = 2
 requires-python = ">=3.12"
 
 [[package]]
@@ -38,6 +38,7 @@ dependencies = [
     { name = "black" },
     { name = "django" },
     { name = "django-cors-headers" },
+    { name = "django-project-settings" },
     { name = "djangorestframework" },
     { name = "djangorestframework-simplejwt" },
     { name = "djangorestframework-stubs" },
@@ -66,6 +67,7 @@ requires-dist = [
     { name = "black", specifier = ">=26.1.0" },
     { name = "django", specifier = ">=5.2.6" },
     { name = "django-cors-headers", specifier = ">=4.8.0" },
+    { name = "django-project-settings", specifier = ">=0.2" },
     { name = "djangorestframework", specifier = ">=3.16.1" },
     { name = "djangorestframework-simplejwt", specifier = ">=5.5.1" },
     { name = "djangorestframework-stubs", specifier = ">=3.16.7" },
@@ -185,6 +187,12 @@ sdist = { url = "https://files.pythonhosted.org/packages/89/8e/6225441edcfe179bf
 wheels = [
     { url = "https://files.pythonhosted.org/packages/ac/b3/29ef49d6ff7800f323f3d98cde7777b3cfdda133de8feea84cffafea4578/django_cors_headers-4.8.0-py3-none-any.whl", hash = "sha256:3b883f4c6d07848673218456a5e070d8ab51f97341c1f27d0242ca167e7272ab", size = 12804, upload-time = "2025-09-08T15:58:03.882Z" },
 ]
+
+[[package]]
+name = "django-project-settings"
+version = "0.2"
+source = { registry = "https://pypi.org/simple" }
+sdist = { url = "https://files.pythonhosted.org/packages/ab/fd/c8e8b48821946010efe9b66094e92d2b2083e119e167a0345fd65630340c/django-project-settings-0.2.tar.gz", hash = "sha256:d706e3f3127ded9f7325cb227434dbc5be906d32530ab6edd057a43a0c964cdc", size = 21745, upload-time = "2014-10-20T07:35:04.951Z" }
 
 [[package]]
 name = "django-stubs"

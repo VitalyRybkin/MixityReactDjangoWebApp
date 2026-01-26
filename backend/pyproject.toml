@@ -9,6 +9,7 @@ dependencies = [
     "black>=26.1.0",
     "django>=5.2.6",
     "django-cors-headers>=4.8.0",
+    "django-project-settings>=0.2",
     "djangorestframework>=3.16.1",
     "djangorestframework-simplejwt>=5.5.1",
     "djangorestframework-stubs>=3.16.7",
