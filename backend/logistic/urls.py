@@ -2,7 +2,8 @@ from django.urls import path
 
 from logistic.views.carriers import (
     CarrierListCreateAPIView,
-    CarrierRetrieveUpdateDestroyAPIView, CarrierResourcesAPIView,
+    CarrierResourcesAPIView,
+    CarrierRetrieveUpdateDestroyAPIView,
 )
 from logistic.views.trucks import (
     TruckCapacitiesListCreateAPIView,

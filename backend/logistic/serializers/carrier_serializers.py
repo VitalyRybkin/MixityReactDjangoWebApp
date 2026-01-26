@@ -2,8 +2,9 @@ from rest_framework import serializers
 
 from logistic.models import Carrier, Truck
 from logistic.serializers.truck_serializers import (
+    TruckBaseSerializer,
     TruckCapacitySerializer,
-    TruckTypeSerializer, TruckSerializer, TruckBaseSerializer,
+    TruckTypeSerializer,
 )
 
 
@@ -84,5 +85,13 @@ class CarrierSerializer(serializers.ModelSerializer):
 
 
 class CarrierResourcesSerializer(serializers.Serializer):
+    """
+    Serializer for representing carrier resources data.
+
+    Serialize and deserialize carrier resources data, including
+    associated truck information. This serializer is designed for API
+    endpoints that require detailed carrier resource information.
+    """
+
     trucks = TruckBaseSerializer(many=True)
     # drivers = DriverSerializer(many=True)
