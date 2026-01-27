@@ -1,0 +1,26 @@
+[
+    {
+        "model": "auth.group",
+        "pk": 1,
+        "fields": {
+            "name": "Admins",
+            "permissions": []
+        }
+    },
+    {
+        "model": "auth.group",
+        "pk": 2,
+        "fields": {
+            "name": "Order Manager",
+            "permissions": [28, 29, 30, 31, 32, 37, 38, 39, 40, 36, 41, 43, 44]
+        }
+    },
+    {
+        "model": "auth.group",
+        "pk": 3,
+        "fields": {
+            "name": "Logistic Manager",
+            "permissions": [28, 29, 30, 31, 32, 37, 38, 39, 40, 36, 41, 43, 44]
+        }
+    }
+]

@@ -61,6 +61,7 @@ INSTALLED_APPS = [
     "order.apps.OrderConfig",
     "drf_spectacular",
     "drf_spectacular_sidecar",
+    "core.apps.CoreConfig",
 ]
 
 MIDDLEWARE = [
