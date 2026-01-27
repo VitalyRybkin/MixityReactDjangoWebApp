@@ -5,6 +5,10 @@ from logistic.views.carriers import (
     CarrierResourcesAPIView,
     CarrierRetrieveUpdateDestroyAPIView,
 )
+from logistic.views.driver import (
+    DriverListCreateAPIView,
+    DriverRetrieveUpdateDestroyAPIView,
+)
 from logistic.views.trucks import (
     TruckCapacitiesListCreateAPIView,
     TruckCapacitiesRetrieveUpdateDestroyAPIView,
@@ -59,5 +63,15 @@ urlpatterns = [
         "truck_types/<int:pk>/",
         TruckTypeRetrieveUpdateDestroyAPIView.as_view(),
         name="truck_types_details",
+    ),
+    path(
+        "driver/",
+        DriverListCreateAPIView.as_view(),
+        name="driver_list_create",
+    ),
+    path(
+        "driver/<int:pk>/",
+        DriverRetrieveUpdateDestroyAPIView.as_view(),
+        name="driver_details",
     ),
 ]
