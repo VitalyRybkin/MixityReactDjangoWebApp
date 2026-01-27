@@ -23,6 +23,8 @@ dependencies = [
     "psycopg2-binary>=2.9.10",
     "pydantic-settings>=2.10.1",
     "pyjwt>=2.10.1",
+    "pytest>=9.0.2",
+    "pytest-django>=4.11.1",
     "pytz>=2025.2",
     "sqlparse>=0.5.3",
 ]
