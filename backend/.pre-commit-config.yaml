@@ -1,36 +1,36 @@
-variables:
-  - &target_folders_blc "^(logistic|catalog)/.*\\.py$"
-  - &target_folders "^(logistic|catalog)/"
+# Only run hooks for these folders:
+files: &target_py '^backend/(logistic)/.*\.py$'
+
 repos:
   - repo: https://github.com/psf/black
-    rev: 24.3.0
+    rev: 26.1.0
     hooks:
       - id: black
-        files: *target_folders_blc
+        files: *target_py
 
   - repo: https://github.com/pycqa/isort
-    rev: 5.13.2
+    rev: 7.0.0
     hooks:
       - id: isort
-        files: *target_folders
+        files: *target_py
+        exclude: ^.*/migrations/
 
   - repo: https://github.com/PyCQA/flake8
-    rev: 7.1.0
+    rev: 7.3.0
     hooks:
       - id: flake8
-        files: *target_folders
-        args: [
-          "--max-line-length=120",
-          "--extend-ignore=E203,W503",
-          "--exclude=.venv,venv,env,__pycache__,**/migrations/*"
-        ]
+        files: *target_py
+        args:
+          [
+            "--max-line-length=88",
+            "--extend-ignore=E203,W503,E501",
+            "--exclude=.venv,venv,env,__pycache__,**/migrations/*",
+          ]
 
-  - repo: https://github.com/pre-commit/mirrors-mypy
-    rev: v1.10.0
+  - repo: local
     hooks:
       - id: mypy
-        files: *target_folders
-        exclude: ^.*/migrations/
-        additional_dependencies: [
-          "types-pytz"
-        ]
+        name: mypy (uv)
+        entry: uv run mypy --config-file=backend/pyproject.toml backend/catalog backend/logistic --pretty
+        language: system
+        pass_filenames: false

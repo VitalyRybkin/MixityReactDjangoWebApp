@@ -1,7 +1,8 @@
-UV := uv run python -m
+UV := uv run python
+DJ := $(UV) manage.py
 CATS := catalog logistic order
 
-# Virtualenv & Setup
+# ---- VIRTUALENV & SETUP ----
 sync:
 	rm -rf .venv
 	uv sync --all-groups
@@ -10,29 +11,7 @@ sync:
 write:
 	$(UV) pip3 freeze > requirements.txt
 
-# Django Commands
-
-run:
-	uv run manage.py runserver
-
-migrate:
-	$(UV) manage migrate $(app)
-
-show:
-	$(UV) manage showmigrations
-
-migrations:
-	$(UV) manage makemigrations $(app)
-
-shell:
-	$(UV) python3 manage.py shell
-
-
-collectstatic:
-	$(UV) python3 manage.py collectstatic --noinput
-
-
-# Tests
+# ---- TESTS ----
 
 test:
 	$(UV) pytest
@@ -40,24 +19,24 @@ test:
 coverage:
 	$(UV) pytest --cov
 
-# Formatting & Linting
+# ---- FORMATTING & LINTING ----
 
 format:
-	$(UV) isort $(CATS) --skip-glob "*/migrations/*" --skip-glob "*/fixtures/*"
-	$(UV) black $(CATS) --exclude "/(\.git|\.hg|\.mypy_cache|\.tox|\.venv|venv|env|_build|build|dist|media|swagger_ui/static|migrations|__pycache__|fixtures|templates)/" --include "\.py$$"
+	$(UV) -m isort $(CATS) --skip-glob "*/migrations/*" --skip-glob "*/fixtures/*"
+	$(UV) -m black $(CATS) --exclude "/(\.git|\.hg|\.mypy_cache|\.tox|\.venv|venv|env|_build|build|dist|media|swagger_ui/static|migrations|__pycache__|fixtures|templates)/" --include "\.py$$"
 
 check:
-	$(UV) isort $(CATS) --skip-glob "*/migrations/*" --skip-glob "*/fixtures/*"
-	$(UV) black $(CATS) --exclude "/(\.git|\.hg|\.mypy_cache|\.tox|\.venv|venv|env|_build|build|dist|media|swagger_ui/static|migrations|__pycache__|fixtures|templates)/" --include "\.py$$"
-	$(UV) isort $(CATS) --check-only --skip-glob "*/migrations/*"
-	$(UV) black $(CATS) --check --exclude "/(\.git|\.hg|\.mypy_cache|\.tox|\.venv|venv|env|_build|\.json|build|dist|media|swagger_ui/static|migrations|__pycache__)/" --include "\.pyi?$$"
-	$(UV) flake8 $(CATS) --exclude migrations,__pycache__
-	$(UV) mypy $(CATS) --config-file=pyproject.toml
+	$(UV) -m isort $(CATS) --skip-glob "*/migrations/*" --skip-glob "*/fixtures/*"
+	$(UV) -m black $(CATS) --exclude "/(\.git|\.hg|\.mypy_cache|\.tox|\.venv|venv|env|_build|build|dist|media|swagger_ui/static|migrations|__pycache__|fixtures|templates)/" --include "\.py$$"
+	$(UV) -m isort $(CATS) --check-only --skip-glob "*/migrations/*"
+	$(UV) -m black $(CATS) --check --exclude "/(\.git|\.hg|\.mypy_cache|\.tox|\.venv|venv|env|_build|\.json|build|dist|media|swagger_ui/static|migrations|__pycache__)/" --include "\.pyi?$$"
+	$(UV) -m flake8 $(CATS) --exclude migrations,__pycache__
+	$(UV) -m mypy $(CATS) --config-file=pyproject.toml
 
 pre-commit:
-	 $(UV) pre-commit run --all-files
+	$(UV) -m pre_commit run --all-files
 
-# Git Shortcuts
+# --- GIT SHORTCUTS ---
 
 # Merge feature branch into dev
 # Usage: make merge-dev branch=bug-fix
@@ -109,17 +88,34 @@ seeds-check:
 	@test -f "$(SEED_FILE)" || (echo "Missing $(SEED_FILE). Copy it here." && exit 1)
 	@python -m json.tool "$(SEED_FILE)" >/dev/null
 
-# ---- Django ----
-db:
-	@python manage.py migrate
+# ---- DJANGO COMMANDS ----
+
+run:
+	$(DJ) runserver
+
+migrate:
+	$(DJ) migrate $(if $(app),$(app),)
+
+show:
+	$(DJ) showmigrations
+
+migrations:
+	$(DJ) makemigrations $(if $(app),$(app),)
+
+shell:
+	$(DJ) shell
+
+
+collectstatic:
+	$(DJ) collectstatic --noinput
 
 fixtures:
-	@python manage.py loaddata "$(FIXTURE_USERS)"
+	$(DJ) loaddata "$(FIXTURE_USERS)"
 
 users:
-	@python manage.py seed_users
+	$(DJ) seed_users
 
-seed: db fixtures users
+seed: migrate fixtures users
 
 # ---- workflows ----
 bootstrap: env seeds seed
