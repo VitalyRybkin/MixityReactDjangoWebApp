@@ -1,3 +1,4 @@
+#!/usr/bin/env bash
 set -euo pipefail
 
 ITEM="mixity-django"
@@ -22,4 +23,5 @@ DB_HOST=$(get DB_HOST)
 DB_PORT=$(get DB_PORT)
 DB_SSL_MODE=$(get DB_SSL_MODE)
 DB_SSL_ROOT_CERT=$(get DB_SSL_ROOT_CERT)
+SEED_USERS_FILE=$(get SEED_USERS_FILE)
 EOF

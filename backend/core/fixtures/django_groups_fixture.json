@@ -22,5 +22,13 @@
             "name": "Logistic Manager",
             "permissions": [28, 29, 30, 31, 32, 37, 38, 39, 40, 36, 41, 43, 44]
         }
+    },
+    {
+        "model": "auth.group",
+        "pk": 4,
+        "fields": {
+            "name": "Accountant",
+            "permissions": [28, 29, 30, 31, 32, 37, 38, 39, 40, 36, 41, 43, 44]
+        }
     }
 ]

@@ -32,11 +32,6 @@ collectstatic:
 	$(UV) python3 manage.py collectstatic --noinput
 
 
-# Load demo data
-load:
-	$(UV) python3 manage.py load_demo_data
-
-
 # Tests
 
 test:
@@ -64,16 +59,6 @@ pre-commit:
 
 # Git Shortcuts
 
-# Create a new feature branch
-# Usage: make feature name=name-of-feature
-feature:
-	git checkout dev && git pull && git checkout -b feature/$(name)
-
-# Create a new hotfix branch
-# Usage: make hotfix name=bug-fix
-hotfix:
-	git checkout master && git pull && git checkout -b hotfix/$(name)
-
 # Merge feature branch into dev
 # Usage: make merge-dev branch=bug-fix
 merge-releases:
@@ -97,3 +82,49 @@ prune:
 reset:
 	git fetch origin $(br)
 	git reset --hard origin/$(br)
+
+
+# ---- BITWARDEN WORKFLOW ----
+
+.PHONY: env env-check seeds-check db fixtures users seed bootstrap bootstrap-no-bw
+
+ENV_FILE := credentials/.env
+SEED_FILE := credentials/seed_users.json
+FIXTURE_USERS := load_users.json
+
+# ---- env generation (Bitwarden → .env) ----
+env:
+	@./generate-env.sh
+	@test -f "$(ENV_FILE)" || (echo "Missing $(ENV_FILE)" && exit 1)
+
+# ---- seed_users.json generation (Bitwarden → file) ----
+seeds:
+	@./generate-json.sh
+
+# ---- checks for machines without Bitwarden ----
+env-check:
+	@test -f "$(ENV_FILE)" || (echo "Missing $(ENV_FILE). Copy it here." && exit 1)
+
+seeds-check:
+	@test -f "$(SEED_FILE)" || (echo "Missing $(SEED_FILE). Copy it here." && exit 1)
+	@python -m json.tool "$(SEED_FILE)" >/dev/null
+
+# ---- Django ----
+db:
+	@python manage.py migrate
+
+fixtures:
+	@python manage.py loaddata "$(FIXTURE_USERS)"
+
+users:
+	@python manage.py seed_users
+
+seed: db fixtures users
+
+# ---- workflows ----
+bootstrap: env seeds seed
+	@echo "Bootstrap complete (Bitwarden)."
+
+bootstrap-no-bw: env-check seeds-check seed
+	@echo "Bootstrap complete (no Bitwarden)."
+
