@@ -1,4 +1,4 @@
-UV := uv run python
+UV := uv run --active python
 DJ := $(UV) manage.py
 CATS := catalog logistic order
 
@@ -14,7 +14,7 @@ write:
 # ---- TESTS ----
 
 test:
-	$(UV) pytest
+	uv run --active python manage.py test -v 2
 
 coverage:
 	$(UV) pytest --cov
