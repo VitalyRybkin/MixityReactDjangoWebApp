@@ -69,7 +69,7 @@ reset:
 
 ENV_FILE := credentials/.env
 SEED_FILE := credentials/seed_users.json
-FIXTURE_USERS := load_users.json
+FIXTURE_USERS := django_groups_fixture.json
 
 # ---- env generation (Bitwarden → .env) ----
 env:
@@ -113,11 +113,11 @@ fixtures:
 	$(DJ) loaddata "$(FIXTURE_USERS)"
 
 users:
-	$(DJ) seed_users
+	$(DJ) seed_data
 
 seed: migrate fixtures users
 
-# ---- workflows ----
+# ---- WORKFLOWS ----
 bootstrap: env seeds seed
 	@echo "Bootstrap complete (Bitwarden)."
 
