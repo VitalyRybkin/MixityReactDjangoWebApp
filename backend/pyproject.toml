@@ -70,4 +70,5 @@ dev = [
     "djangorestframework-stubs>=3.16.7",
     "isort>=7.0.0",
     "pydantic-settings>=2.10.1",
+    "pytest-django>=4.11.1",
 ]

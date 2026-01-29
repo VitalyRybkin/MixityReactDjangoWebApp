@@ -9,9 +9,11 @@ https://docs.djangoproject.com/en/5.2/topics/settings/
 For the full list of settings and their values, see
 https://docs.djangoproject.com/en/5.2/ref/settings/
 """
+import os
 import sys
 from pathlib import Path
 from datetime import timedelta
+from typing import Any
 
 from app_settings import project_settings
 
@@ -98,24 +100,34 @@ WSGI_APPLICATION = "backend.wsgi.application"
 # Database
 # https://docs.djangoproject.com/en/5.2/ref/settings/#databases
 
-DATABASES = {
-    # "default": {
-    #     "ENGINE": "django.db.backends.sqlite3",
-    #     "NAME": BASE_DIR / "db.sqlite3",
-    # }
-    "default": {
-        "ENGINE": "django.db.backends.postgresql",
-        "NAME": project_settings.DB_NAME,
-        "USER": project_settings.DB_USER,
-        "PASSWORD": project_settings.DB_PASSWORD,
-        "HOST": project_settings.DB_HOST,
-        "PORT": project_settings.DB_PORT,
-        "OPTIONS": {
-            "sslmode": project_settings.DB_SSL_MODE,
-            "sslrootcert": project_settings.DB_SSL_ROOT_CERT,
-        },
+DATABASES: dict[str, dict[str, Any]]
+
+if 'test' in sys.argv or 'pytest' in sys.modules or 'PYTEST_RUNNING' in os.environ:
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.sqlite3',
+            'NAME': ':memory:',
+        }
     }
-}
+else:
+    DATABASES= {
+        # "default": {
+        #     "ENGINE": "django.db.backends.sqlite3",
+        #     "NAME": BASE_DIR / "db.sqlite3",
+        # }
+        "default": {
+            "ENGINE": "django.db.backends.postgresql",
+            "NAME": project_settings.DB_NAME,
+            "USER": project_settings.DB_USER,
+            "PASSWORD": project_settings.DB_PASSWORD,
+            "HOST": project_settings.DB_HOST,
+            "PORT": project_settings.DB_PORT,
+            "OPTIONS": {
+                "sslmode": project_settings.DB_SSL_MODE,
+                "sslrootcert": project_settings.DB_SSL_ROOT_CERT,
+            },
+        }
+    }
 
 
 # Password validation
@@ -165,10 +177,24 @@ DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 CORS_ALLOW_ALL_ORIGINS = True
 CORS_ALLOWS_CREDENTIALS = True
 
-if 'test' in sys.argv:
-    DATABASES = {
-        'default': {
-            'ENGINE': 'django.db.backends.sqlite3',
-            'NAME': ':memory:',
-        }
-    }
+
+LOGGING = {
+    "version": 1,
+    "disable_existing_loggers": False,
+    "formatters": {
+        "verbose": {
+            "format": "{levelname} {asctime} {module} {message}",
+            "style": "{",
+        },
+    },
+    "handlers": {
+        "console": {
+            "class": "logging.StreamHandler",
+            "formatter": "verbose",
+        },
+    },
+    "root": {
+        "handlers": ["console"],
+        "level": "INFO",
+    },
+}
