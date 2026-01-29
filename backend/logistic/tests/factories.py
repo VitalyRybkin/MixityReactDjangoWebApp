@@ -60,13 +60,6 @@ class TruckTypeFactory(factory.django.DjangoModelFactory):
 class CarrierFactory(factory.django.DjangoModelFactory):
     class Meta:
         model = Carrier
-        django_get_or_create = (
-            "name",
-            "full_name",
-            "address",
-            "description",
-            "is_active",
-        )
 
     name = factory.Faker("company")
     full_name = factory.Faker("company")

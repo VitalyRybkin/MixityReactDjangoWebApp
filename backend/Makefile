@@ -17,7 +17,8 @@ write:
 # ---- TESTS ----
 
 test:
-	uv run --active python manage.py test -v 2
+	uv run pytest --ds=backend.settings -s -v
+
 
 coverage:
 	$(UV) pytest --cov
