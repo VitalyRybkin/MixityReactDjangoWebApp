@@ -37,7 +37,7 @@ class TruckTypeSerializer(serializers.ModelSerializer):
     :type truckType: str
     """
 
-    truckType = serializers.CharField(source="truck_type")
+    truckType = serializers.CharField(source="type")
 
     class Meta:
         model = TruckType

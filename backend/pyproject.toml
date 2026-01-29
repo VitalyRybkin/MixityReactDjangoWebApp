@@ -66,5 +66,8 @@ django_settings_module = "backend.settings"
 [dependency-groups]
 dev = [
     "django-stubs[compatible-mypy]>=5.2.8",
+    "djangorestframework>=3.16.1",
+    "djangorestframework-stubs>=3.16.7",
     "isort>=7.0.0",
+    "pydantic-settings>=2.10.1",
 ]

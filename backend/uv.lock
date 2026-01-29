@@ -74,7 +74,10 @@ dependencies = [
 [package.dev-dependencies]
 dev = [
     { name = "django-stubs", extra = ["compatible-mypy"] },
+    { name = "djangorestframework" },
+    { name = "djangorestframework-stubs" },
     { name = "isort" },
+    { name = "pydantic-settings" },
 ]
 
 [package.metadata]
@@ -107,7 +110,10 @@ requires-dist = [
 [package.metadata.requires-dev]
 dev = [
     { name = "django-stubs", extras = ["compatible-mypy"], specifier = ">=5.2.8" },
+    { name = "djangorestframework", specifier = ">=3.16.1" },
+    { name = "djangorestframework-stubs", specifier = ">=3.16.7" },
     { name = "isort", specifier = ">=7.0.0" },
+    { name = "pydantic-settings", specifier = ">=2.10.1" },
 ]
 
 [[package]]

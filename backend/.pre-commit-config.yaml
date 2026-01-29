@@ -31,6 +31,6 @@ repos:
     hooks:
       - id: mypy
         name: mypy (uv)
-        entry: uv run mypy --config-file=backend/pyproject.toml backend/catalog backend/logistic --pretty
+        entry: backend/.venv/bin/python -m mypy --config-file=backend/pyproject.toml backend/catalog backend/logistic
         language: system
         pass_filenames: false

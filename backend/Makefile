@@ -8,6 +8,9 @@ sync:
 	uv sync --all-groups
 	uv run pre-commit install
 
+doctor:
+	@bash ./scripts/arch-doctor.sh
+
 write:
 	$(UV) pip3 freeze > requirements.txt
 
@@ -123,4 +126,3 @@ bootstrap: env seeds seed
 
 bootstrap-no-bw: env-check seeds-check seed
 	@echo "Bootstrap complete (no Bitwarden)."
-
