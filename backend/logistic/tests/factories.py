@@ -44,9 +44,9 @@ class TruckFactory(factory.django.DjangoModelFactory):
 class TruckCapacityFactory(factory.django.DjangoModelFactory):
     class Meta:
         model = TruckCapacity
-        django_get_or_create = ("capacity",)
 
-    capacity = factory.Faker("random_int", min=1, max=1000)
+    capacity = factory.Faker("pydecimal", left_digits=1, right_digits=1, positive=True)
+    description = factory.Faker("text")
 
 
 class TruckTypeFactory(factory.django.DjangoModelFactory):
