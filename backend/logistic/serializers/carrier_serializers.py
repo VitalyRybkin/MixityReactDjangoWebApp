@@ -71,7 +71,7 @@ class CarrierSerializer(serializers.ModelSerializer):
 
     isActive = serializers.BooleanField(source="is_active")
     fullName = serializers.CharField(source="full_name")
-    carrier_trucks = TruckBaseSerializer(many=True)
+    carrier_trucks = TruckBaseSerializer(many=True, read_only=True)
 
     class Meta:
         model = Carrier

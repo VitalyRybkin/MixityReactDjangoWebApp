@@ -45,7 +45,7 @@ class BaseAPIMixin(APITestCase):
         self.url = reverse(self.url_name)
         self.obj = self.factory.create()
 
-    def test_list_logic(self) -> None:
+    def _get_list_logic(self) -> None:
         """
         Validates the logic of retrieving and comparing list data from the API.
 
@@ -69,3 +69,31 @@ class BaseAPIMixin(APITestCase):
             if t == Decimal:
                 val = Decimal(val)
             self.assertEqual(val, getattr(self.obj, mod_f))
+
+    def _create_logic(self, payload: Dict[str, Any]) -> None:
+        """
+        Executes the logic for posting data to the specified endpoint and
+        validates the response status code.
+
+        :param payload: The data to be posted to the endpoint as part of the
+            test.
+        :type payload: dict
+        :return: None
+        """
+        header = f"\033[1;34m>>> TESTING ENDPOINT: {self.url_name} | [{self._testMethodName}] <<<\033[0m"
+        logger.info(f"\n{header}")
+        response = self.client.post(self.url, data=payload)
+
+        self.assertEqual(response.status_code, 201)
+
+    def _str_method_logic(self, str_method_output: str) -> None:
+        """
+        Compares the string representation of an object to the expected output and logs the test result.
+
+        :param str_method_output: The expected string representation output of the object being tested.
+        :type str_method_output: str
+        :return: None
+        """
+        header = f"\033[1;34m>>> TESTING ENDPOINT: {self.url_name} | [{self._testMethodName}] <<<\033[0m"
+        logger.info(f"\n{header}")
+        self.assertEqual(str(self.obj), str_method_output)

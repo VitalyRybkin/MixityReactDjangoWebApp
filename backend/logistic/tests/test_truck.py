@@ -1,10 +1,10 @@
 import logging
+import uuid
 from decimal import Decimal
 
 from logistic.models import TruckCapacity, TruckType
+from logistic.tests.base_test_case import BaseAPIMixin
 from logistic.tests.factories import TruckCapacityFactory, TruckTypeFactory
-
-from .base_test_case import BaseAPIMixin
 
 logger = logging.getLogger(__name__)
 
@@ -39,11 +39,23 @@ class TestTruckTypeAPIList(BaseAPIMixin):
         "description": ("description", str),
     }
 
+    def test_post_item_logic(self) -> None:
+        temp_data = self.factory.build()
+
+        payload = {
+            "truckType": temp_data.type,
+            "description": temp_data.description,
+        }
+        payload["truckType"] += f"-{uuid.uuid4().hex[:4]}"
+
+        self._create_logic(payload)
+
     def test_get_list(self) -> None:
-        self.test_list_logic()
+        self._get_list_logic()
 
     def test_str_method(self) -> None:
-        self.assertEqual(str(self.obj), f"Тип ТС - {self.obj.type}")
+        str_method_output = f"Тип ТС - {self.obj.type}"
+        self._str_method_logic(str_method_output)
 
 
 class TestTruckCapacityAPIList(BaseAPIMixin):
@@ -76,8 +88,15 @@ class TestTruckCapacityAPIList(BaseAPIMixin):
         "description": ("description", str),
     }
 
+    def test_post_item_logic(self) -> None:
+        payload = {
+            "capacity": "1.0",
+        }
+        self._create_logic(payload)
+
     def test_get_list(self) -> None:
-        self.test_list_logic()
+        self._get_list_logic()
 
     def test_str_method(self) -> None:
-        self.assertEqual(str(self.obj), f"Грузоподъемность - {self.obj.capacity} т")
+        str_method_output = f"Грузоподъемность - {self.obj.capacity} т"
+        self._str_method_logic(str_method_output)

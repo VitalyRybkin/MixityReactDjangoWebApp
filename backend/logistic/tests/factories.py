@@ -53,7 +53,7 @@ class TruckTypeFactory(factory.django.DjangoModelFactory):
     class Meta:
         model = TruckType
 
-    type = factory.Faker("job")
+    type = factory.Sequence(lambda n: f"Truck type {n}")
     description = factory.Faker("text")
 
 

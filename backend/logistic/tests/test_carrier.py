@@ -1,7 +1,10 @@
+import logging
+
 from logistic.models import Carrier
+from logistic.tests.base_test_case import BaseAPIMixin
 from logistic.tests.factories import CarrierFactory
 
-from .base_test_case import BaseAPIMixin
+logger = logging.getLogger(__name__)
 
 
 class TestCarrierAPIList(BaseAPIMixin):
@@ -23,6 +26,8 @@ class TestCarrierAPIList(BaseAPIMixin):
     :type fields_map: dict[str, tuple[str, type]]
     """
 
+    __test__ = True
+
     model = Carrier
     factory = CarrierFactory
     url_name = "carrier_list_create"
@@ -35,8 +40,19 @@ class TestCarrierAPIList(BaseAPIMixin):
         "isActive": ("is_active", bool),
     }
 
+    def test_post_item_logic(self) -> None:
+        temp_data = self.factory.build()
+
+        payload = {
+            "name": temp_data.name,
+            "fullName": temp_data.full_name,
+        }
+
+        self._create_logic(payload)
+
     def test_get_list(self) -> None:
-        self.test_list_logic()
+        self._get_list_logic()
 
     def test_str_method(self) -> None:
-        self.assertEqual(str(self.obj), f"TK: {self.obj.name}")
+        str_method_output = f"TK: {self.obj.name}"
+        self._str_method_logic(str_method_output)
