@@ -1,4 +1,5 @@
 from rest_framework import serializers
+from rest_framework.validators import UniqueValidator
 
 from logistic.models import Carrier, Truck, TruckCapacity, TruckType
 
@@ -37,7 +38,9 @@ class TruckTypeSerializer(serializers.ModelSerializer):
     :type truckType: str
     """
 
-    truckType = serializers.CharField(source="type")
+    truckType = serializers.CharField(
+        source="type", validators=[UniqueValidator(queryset=TruckType.objects.all())]
+    )
 
     class Meta:
         model = TruckType

@@ -35,23 +35,21 @@ class TestTruckTypeAPIList(BaseAPIMixin):
     factory = TruckTypeFactory
     url_name = "truck_types_list_create"
     fields_map = {
-        "id": ("id", int, False),
-        "truckType": ("type", str, True),
-        "description": ("description", str, False),
+        "id": ("id", int, False, False),
+        "truckType": ("type", str, True, True),
+        "description": ("description", str, False, False),
     }
-
-    def test_post_item_logic(self) -> None:
-        payload = self.payload_generator()
-        payload["truckType"] += f"-{uuid.uuid4().hex[:4]}"
-
-        self._create_logic(payload)
 
     def test_get_list(self) -> None:
         self._get_list_logic()
 
-    def test_post_missing_fields(self) -> None:
+    def test_post_logic(self) -> None:
         payload = self.payload_generator()
+        payload["truckType"] += f"-{uuid.uuid4().hex[:4]}"
+
+        self._create_logic(payload)
         self._test_all_mandatory_fields(payload)
+        self._test_all_unique_fields(payload)
 
     def test_str_method(self) -> None:
         str_method_output = f"Тип ТС - {self.obj.type}"
@@ -97,17 +95,15 @@ class TestTruckCapacityAPIList(BaseAPIMixin):
         "description": ("description", str, False),
     }
 
-    def test_post_item_logic(self) -> None:
-        payload = self.payload_generator()
-        self._create_logic(payload)
-
     def test_get_list(self) -> None:
         self._get_list_logic()
 
-    def test_post_missing_fields(self) -> None:
+    def test_post_item_logic(self) -> None:
         payload = self.payload_generator()
 
+        self._create_logic(payload)
         self._test_all_mandatory_fields(payload)
+        self._test_all_unique_fields(payload)
 
     def test_str_method(self) -> None:
         str_method_output = f"Грузоподъемность - {self.obj.capacity} т"
