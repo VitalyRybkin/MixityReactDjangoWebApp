@@ -1,6 +1,7 @@
 import logging
 import uuid
 from decimal import Decimal
+from typing import Any, Dict
 
 from logistic.models import TruckCapacity, TruckType
 from logistic.tests.base_test_case import BaseAPIMixin
@@ -34,18 +35,13 @@ class TestTruckTypeAPIList(BaseAPIMixin):
     factory = TruckTypeFactory
     url_name = "truck_types_list_create"
     fields_map = {
-        "id": ("id", int),
-        "truckType": ("type", str),
-        "description": ("description", str),
+        "id": ("id", int, False),
+        "truckType": ("type", str, True),
+        "description": ("description", str, False),
     }
 
     def test_post_item_logic(self) -> None:
-        temp_data = self.factory.build()
-
-        payload = {
-            "truckType": temp_data.type,
-            "description": temp_data.description,
-        }
+        payload = self.payload_generator()
         payload["truckType"] += f"-{uuid.uuid4().hex[:4]}"
 
         self._create_logic(payload)
@@ -53,9 +49,22 @@ class TestTruckTypeAPIList(BaseAPIMixin):
     def test_get_list(self) -> None:
         self._get_list_logic()
 
+    def test_post_missing_fields(self) -> None:
+        payload = self.payload_generator()
+        self._test_all_mandatory_fields(payload)
+
     def test_str_method(self) -> None:
         str_method_output = f"Тип ТС - {self.obj.type}"
         self._str_method_logic(str_method_output)
+
+    def payload_generator(self) -> Dict[str, Any]:
+        temp_data = self.factory.build()
+
+        payload = {
+            "truckType": temp_data.type,
+            "description": temp_data.description,
+        }
+        return payload
 
 
 class TestTruckCapacityAPIList(BaseAPIMixin):
@@ -83,20 +92,32 @@ class TestTruckCapacityAPIList(BaseAPIMixin):
     factory = TruckCapacityFactory
     url_name = "truck_capacities_list_create"
     fields_map = {
-        "id": ("id", int),
-        "capacity": ("capacity", Decimal),
-        "description": ("description", str),
+        "id": ("id", int, False),
+        "capacity": ("capacity", Decimal, True),
+        "description": ("description", str, False),
     }
 
     def test_post_item_logic(self) -> None:
-        payload = {
-            "capacity": "1.0",
-        }
+        payload = self.payload_generator()
         self._create_logic(payload)
 
     def test_get_list(self) -> None:
         self._get_list_logic()
 
+    def test_post_missing_fields(self) -> None:
+        payload = self.payload_generator()
+
+        self._test_all_mandatory_fields(payload)
+
     def test_str_method(self) -> None:
         str_method_output = f"Грузоподъемность - {self.obj.capacity} т"
         self._str_method_logic(str_method_output)
+
+    def payload_generator(self) -> Dict[str, Any]:
+        temp_data = self.factory.build()
+
+        payload = {
+            "capacity": temp_data.capacity,
+            "description": temp_data.description,
+        }
+        return payload

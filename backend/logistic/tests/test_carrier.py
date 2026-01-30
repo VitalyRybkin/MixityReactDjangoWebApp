@@ -32,12 +32,12 @@ class TestCarrierAPIList(BaseAPIMixin):
     factory = CarrierFactory
     url_name = "carrier_list_create"
     fields_map = {
-        "id": ("id", int),
-        "name": ("name", str),
-        "fullName": ("full_name", str),
-        "address": ("address", str),
-        "description": ("description", str),
-        "isActive": ("is_active", bool),
+        "id": ("id", int, False),
+        "name": ("name", str, True),
+        "fullName": ("full_name", str, True),
+        "address": ("address", str, False),
+        "description": ("description", str, False),
+        "isActive": ("is_active", bool, False),
     }
 
     def test_post_item_logic(self) -> None:
@@ -52,6 +52,16 @@ class TestCarrierAPIList(BaseAPIMixin):
 
     def test_get_list(self) -> None:
         self._get_list_logic()
+
+    def test_post_missing_fields(self) -> None:
+        temp_data = self.factory.build()
+
+        payload = {
+            "name": temp_data.name,
+            "fullName": temp_data.full_name,
+        }
+
+        self._test_all_mandatory_fields(payload)
 
     def test_str_method(self) -> None:
         str_method_output = f"TK: {self.obj.name}"

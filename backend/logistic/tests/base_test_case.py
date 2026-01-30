@@ -64,7 +64,7 @@ class BaseAPIMixin(APITestCase):
         response = self.client.get(self.url)
         self.assertEqual(response.status_code, 200)
 
-        for api_f, (mod_f, t) in self.fields_map.items():
+        for api_f, (mod_f, t, *_) in self.fields_map.items():
             val = response.data[0][api_f]
             if t == Decimal:
                 val = Decimal(val)
@@ -97,3 +97,41 @@ class BaseAPIMixin(APITestCase):
         header = f"\033[1;34m>>> TESTING ENDPOINT: {self.url_name} | [{self._testMethodName}] <<<\033[0m"
         logger.info(f"\n{header}")
         self.assertEqual(str(self.obj), str_method_output)
+
+    def _validation_error_logic(self, field_name: str, payload: dict) -> None:
+
+        header = f"\033[1;31m>>> TESTING VALIDATION: {field_name} is required | [{self._testMethodName}] <<<\033[0m"
+        logger.info(f"\n{header}")
+
+        invalid_payload = payload.copy()
+        invalid_payload.pop(field_name, None)
+
+        response = self.client.post(self.url, data=invalid_payload)
+
+        self.assertEqual(
+            response.status_code,
+            400,
+            msg=f"API should return 400 if field '{field_name}' is missing",
+        )
+        self.assertIn(
+            field_name,
+            response.data,
+            msg=f"Response should contain an error for field '{field_name}'",
+        )
+
+    def _test_all_mandatory_fields(self, valid_payload: dict) -> None:
+        import uuid
+
+        for api_field, info in self.fields_map.items():
+            is_required = info[2] if len(info) > 2 else False
+
+            if not is_required:
+                continue
+
+            with self.subTest(field=api_field):
+                current_payload = valid_payload.copy()
+                for key, value in current_payload.items():
+                    if isinstance(value, str):
+                        current_payload[key] = f"{value}_{uuid.uuid4().hex[:4]}"
+
+                self._validation_error_logic(api_field, current_payload)
