@@ -17,7 +17,7 @@ write:
 # ---- TESTS ----
 
 test:
-	uv run pytest --ds=backend.settings -s -v
+	uv run pytest --ds=backend.settings -s
 
 
 coverage:
