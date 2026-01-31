@@ -8,8 +8,21 @@ if [[ -z "${BW_SESSION:-}" ]]; then
   exit 1
 fi
 
-# Fetch item once, with a timeout so it can't hang forever
-ITEM_JSON="$(gtimeout 15 bw get item "$ITEM")"
+# pick a timeout command if available
+if command -v gtimeout >/dev/null 2>&1; then
+  TIMEOUT="gtimeout"
+elif command -v timeout >/dev/null 2>&1; then
+  TIMEOUT="timeout"
+else
+  TIMEOUT=""
+fi
+
+# later, instead of: ITEM_JSON="$(gtimeout 15 bw get item "$ITEM")"
+if [ -n "$TIMEOUT" ]; then
+  ITEM_JSON="$($TIMEOUT 15 bw get item "$ITEM")"
+else
+  ITEM_JSON="$(bw get item "$ITEM")"
+fi
 
 get() {
   echo "$ITEM_JSON" | jq -r ".fields[]? | select(.name==\"$1\") | .value"
