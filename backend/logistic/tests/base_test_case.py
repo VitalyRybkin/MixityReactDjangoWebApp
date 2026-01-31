@@ -1,12 +1,45 @@
 import logging
-from decimal import Decimal
-from typing import Any, Dict, Optional
+from dataclasses import dataclass
+from typing import Any, Callable, Dict, Optional, Union
 from unittest import SkipTest
 
 from rest_framework.reverse import reverse
 from rest_framework.test import APITestCase
 
 logger = logging.getLogger(__name__)
+
+CastFn = Union[type, Callable[[Any], Any]]
+
+
+@dataclass(frozen=True, slots=True)
+class FieldSpec:
+    """
+    Describes specifications for a field, including constraints like required, unique, and type casting.
+
+    Defines and manages metadata for fields,
+    such as whether a field is required, unique, or should be subjected to type-casting.
+    Provides functionality to normalize a provided value based on defined specifications.
+
+    Attributes:
+        model_field: The field name as represented in the model.
+        cast: A callable function used to cast or transform the value. Optional.
+        required: A boolean indicating if the field is mandatory. Defaults to False.
+        unique: A boolean indicating if the field must be unique. Defaults to False.
+
+    Methods:
+        normalize:
+            Converts or transforms the input value using the defined cast function.
+    """
+
+    model_field: str
+    cast: Optional[CastFn] = None
+    required: bool = False
+    unique: bool = False
+
+    def normalize(self, value: Any) -> Any:
+        if value is None or self.cast is None:
+            return value
+        return self.cast(value)
 
 
 class BaseAPIMixin(APITestCase):
@@ -38,7 +71,7 @@ class BaseAPIMixin(APITestCase):
     model: Any = None
     factory: Any = None
     url_name: Optional[str] = None
-    fields_map: Dict[str, Any] = {}
+    fields_map: Dict[str, FieldSpec] = {}
 
     COLOR = {
         "HEAD": "\033[1;34m",
@@ -78,11 +111,10 @@ class BaseAPIMixin(APITestCase):
         response = self.client.get(self.url)
         self.assertEqual(response.status_code, 200)
 
-        for api_f, (mod_f, t, *_) in self.fields_map.items():
-            val = response.data[0][api_f]
-            if t == Decimal:
-                val = Decimal(val)
-            self.assertEqual(val, getattr(self.obj, mod_f))
+        for api_f, spec in self.fields_map.items():
+            actual = spec.normalize(response.data[0][api_f])
+            expected = spec.normalize(getattr(self.obj, spec.model_field))
+            self.assertEqual(actual, expected)
         print(
             f"    {self.COLOR['OK']}✓ List verified ({len(self.fields_map)} fields){self.COLOR['END']}"
         )
@@ -121,9 +153,8 @@ class BaseAPIMixin(APITestCase):
 
         self._log_header("VALIDATION: Mandatory fields", level=1)
 
-        for api_field, info in self.fields_map.items():
-            is_required = info[2] if len(info) > 2 else False
-            if not is_required:
+        for api_field, spec in self.fields_map.items():
+            if not spec.required:
                 continue
 
             with self.subTest(field=api_field):
@@ -140,18 +171,17 @@ class BaseAPIMixin(APITestCase):
         """Verify that all unique fields are unique."""
         self._log_header("VALIDATION: Unique constraints", level=1)
 
-        for api_field, info in self.fields_map.items():
-            is_unique = info[3] if len(info) > 3 else False
-            if not is_unique:
+        for api_field, spec in self.fields_map.items():
+            if not spec.unique:
                 continue
 
             with self.subTest(field=api_field):
-                model_field = info[0]
                 duplicate_payload = valid_payload.copy()
-                duplicate_payload[api_field] = getattr(self.obj, model_field)
+                duplicate_payload[api_field] = spec.normalize(
+                    getattr(self.obj, spec.model_field)
+                )
 
                 response = self.client.post(self.url, data=duplicate_payload)
-
                 self.assertEqual(
                     response.status_code,
                     400,

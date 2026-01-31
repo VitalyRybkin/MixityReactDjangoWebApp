@@ -1,7 +1,7 @@
 import logging
 
 from logistic.models import Carrier
-from logistic.tests.base_test_case import BaseAPIMixin
+from logistic.tests.base_test_case import BaseAPIMixin, FieldSpec
 from logistic.tests.factories import CarrierFactory
 
 logger = logging.getLogger(__name__)
@@ -32,12 +32,12 @@ class TestCarrierAPIList(BaseAPIMixin):
     factory = CarrierFactory
     url_name = "carrier_list_create"
     fields_map = {
-        "id": ("id", int, False, False),
-        "name": ("name", str, True, True),
-        "fullName": ("full_name", str, True, False),
-        "address": ("address", str, False, False),
-        "description": ("description", str, False, False),
-        "isActive": ("is_active", bool, False, False),
+        "id": FieldSpec("id", int),
+        "name": FieldSpec("name", str, required=True, unique=True),
+        "fullName": FieldSpec("full_name", str, required=True),
+        "address": FieldSpec("address", str),
+        "description": FieldSpec("description", str),
+        "isActive": FieldSpec("is_active", bool),
     }
 
     def test_get_list(self) -> None:

@@ -4,7 +4,7 @@ from decimal import Decimal
 from typing import Any, Dict
 
 from logistic.models import TruckCapacity, TruckType
-from logistic.tests.base_test_case import BaseAPIMixin
+from logistic.tests.base_test_case import BaseAPIMixin, FieldSpec
 from logistic.tests.factories import TruckCapacityFactory, TruckTypeFactory
 
 logger = logging.getLogger(__name__)
@@ -35,9 +35,9 @@ class TestTruckTypeAPIList(BaseAPIMixin):
     factory = TruckTypeFactory
     url_name = "truck_types_list_create"
     fields_map = {
-        "id": ("id", int, False, False),
-        "truckType": ("type", str, True, True),
-        "description": ("description", str, False, False),
+        "id": FieldSpec("id", int),
+        "truckType": FieldSpec("type", str, required=True, unique=True),
+        "description": FieldSpec("description", str),
     }
 
     def test_get_list(self) -> None:
@@ -90,9 +90,9 @@ class TestTruckCapacityAPIList(BaseAPIMixin):
     factory = TruckCapacityFactory
     url_name = "truck_capacities_list_create"
     fields_map = {
-        "id": ("id", int, False),
-        "capacity": ("capacity", Decimal, True),
-        "description": ("description", str, False),
+        "id": FieldSpec("id", int),
+        "capacity": FieldSpec("capacity", Decimal, required=True),
+        "description": FieldSpec("description", str),
     }
 
     def test_get_list(self) -> None:
