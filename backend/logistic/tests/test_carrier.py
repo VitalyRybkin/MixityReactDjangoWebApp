@@ -1,7 +1,9 @@
 import logging
+from typing import Any, Dict
 
+from core.tests.base_test_case import BaseAPIMixin
+from core.tests.utils import FieldSpec
 from logistic.models import Carrier
-from logistic.tests.base_test_case import BaseAPIMixin, FieldSpec
 from logistic.tests.factories import CarrierFactory
 
 logger = logging.getLogger(__name__)
@@ -43,18 +45,27 @@ class TestCarrierAPIList(BaseAPIMixin):
     def test_get_list(self) -> None:
         self._get_list_logic()
 
-    def test_post_logic(self) -> None:
+    def test_creating_item_logic(self) -> None:
+        payload = self.payload_generator()
+        self._create_logic(payload)
+
+    def test_item_unique_fields(self) -> None:
+        payload = self.payload_generator()
+        self._test_all_unique_fields(payload)
+
+    def test_item_mandatory_fields(self) -> None:
+        payload = self.payload_generator()
+        self._test_all_mandatory_fields(payload)
+
+    def test_str_method(self) -> None:
+        str_method_output = f"TK: {self.obj.name}"
+        self._str_method_logic(str_method_output)
+
+    def payload_generator(self) -> Dict[str, Any]:
         temp_data = self.factory.build()
 
         payload = {
             "name": temp_data.name,
             "fullName": temp_data.full_name,
         }
-
-        self._create_logic(payload)
-        self._test_all_mandatory_fields(payload)
-        self._test_all_unique_fields(payload)
-
-    def test_str_method(self) -> None:
-        str_method_output = f"TK: {self.obj.name}"
-        self._str_method_logic(str_method_output)
+        return payload

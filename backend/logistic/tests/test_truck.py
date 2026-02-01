@@ -3,8 +3,9 @@ import uuid
 from decimal import Decimal
 from typing import Any, Dict
 
+from core.tests.base_test_case import BaseAPIMixin
+from core.tests.utils import FieldSpec
 from logistic.models import TruckCapacity, TruckType
-from logistic.tests.base_test_case import BaseAPIMixin, FieldSpec
 from logistic.tests.factories import TruckCapacityFactory, TruckTypeFactory
 
 logger = logging.getLogger(__name__)
@@ -43,13 +44,19 @@ class TestTruckTypeAPIList(BaseAPIMixin):
     def test_get_list(self) -> None:
         self._get_list_logic()
 
-    def test_post_logic(self) -> None:
+    def test_creating_item_logic(self) -> None:
         payload = self.payload_generator()
         payload["truckType"] += f"-{uuid.uuid4().hex[:4]}"
 
         self._create_logic(payload)
-        self._test_all_mandatory_fields(payload)
+
+    def test_item_unique_fields(self) -> None:
+        payload = self.payload_generator()
         self._test_all_unique_fields(payload)
+
+    def test_item_mandatory_fields(self) -> None:
+        payload = self.payload_generator()
+        self._test_all_mandatory_fields(payload)
 
     def test_str_method(self) -> None:
         str_method_output = f"Тип ТС - {self.obj.type}"
@@ -98,12 +105,17 @@ class TestTruckCapacityAPIList(BaseAPIMixin):
     def test_get_list(self) -> None:
         self._get_list_logic()
 
-    def test_post_item_logic(self) -> None:
+    def test_creating_item_logic(self) -> None:
         payload = self.payload_generator()
-
         self._create_logic(payload)
-        self._test_all_mandatory_fields(payload)
+
+    def test_item_unique_fields(self) -> None:
+        payload = self.payload_generator()
         self._test_all_unique_fields(payload)
+
+    def test_item_mandatory_fields(self) -> None:
+        payload = self.payload_generator()
+        self._test_all_mandatory_fields(payload)
 
     def test_str_method(self) -> None:
         str_method_output = f"Грузоподъемность - {self.obj.capacity} т"
