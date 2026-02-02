@@ -5,8 +5,13 @@ from typing import Any, Dict
 
 from core.tests.base_test_case import BaseAPIMixin
 from core.tests.utils import FieldSpec
-from logistic.models import TruckCapacity, TruckType
-from logistic.tests.factories import TruckCapacityFactory, TruckTypeFactory
+from logistic.models import Carrier, Truck, TruckCapacity, TruckType
+from logistic.tests.factories import (
+    CarrierFactory,
+    TruckCapacityFactory,
+    TruckFactory,
+    TruckTypeFactory,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -192,3 +197,84 @@ class TestTruckCapacityRetrieveUpdate(TruckCapacityBaseTest, BaseAPIMixin):
 
     def test_not_found_error(self) -> None:
         self._retrieve_object_by_id_not_found()
+
+
+class TruckBaseTest:
+    """
+    Provides key configurations and mappings needed for creating and
+    testing Truck objects and their attributes. Designed to be a base
+    class for extending Truck-specific tests, facilitating standardized
+    tests by providing fields and metadata.
+
+    Attributes:
+        model (type): The model class associated with the test,
+            representing a Truck.
+        factory (type): The factory class used for creating Truck
+            instances during testing.
+        fields_map (dict): A dictionary mapping field names of the model
+            to their specifications, including type, required status,
+            and additional constraints.
+    """
+
+    model = Truck
+    factory = TruckFactory
+    fields_map = {
+        "id": FieldSpec("id", int),
+        "type": FieldSpec("type", TruckType, required=True),
+        "capacity": FieldSpec("capacity", TruckCapacity, required=True),
+        "carrier": FieldSpec("carrier", Carrier, required=True),
+        "licensePlate": FieldSpec("license_plate", str, unique=True, required=True),
+        "description": FieldSpec("description", str),
+    }
+
+
+class TestTruckAPIList(TruckBaseTest, BaseAPIMixin):
+    """
+    Tests the list and creation operations of the Truck API.
+    Encapsulates logic for verifying key functionalities like retrieving a list
+    of trucks, creating a new truck item, and testing unique and mandatory fields of
+    a truck item. Additionally, it validates the proper functioning of the string
+    representation method for trucks.
+
+    Attributes:
+        url_name (str): The endpoint name for trucks list and create operations.
+    """
+
+    url_name = "trucks_list_create"
+
+    __test__ = True
+
+    def test_get_list(self) -> None:
+        self._get_list_logic()
+
+    def test_creating_item_logic(self) -> None:
+        payload = self.payload_generator()
+        self._create_logic(payload)
+
+    def test_item_unique_fields(self) -> None:
+        payload = self.payload_generator()
+        self._test_all_unique_fields(payload)
+
+    def test_item_mandatory_fields(self) -> None:
+        payload = self.payload_generator()
+        self._test_all_mandatory_fields(payload)
+
+    def test_str_method(self) -> None:
+        truck = self.obj
+        expected = f"Авто: {truck.type}, {truck.capacity}, {truck.carrier}"
+        self._str_method_logic(expected)
+
+    def payload_generator(self) -> Dict[str, Any]:
+        carrier = CarrierFactory.create()
+        truck_type = TruckTypeFactory.create()
+        capacity = TruckCapacityFactory.create()
+
+        temp = self.factory.build()
+
+        return {
+            "licensePlate": temp.license_plate,
+            "description": temp.description,
+            "type": truck_type.pk,
+            "capacity": capacity.pk,
+            "carrier": carrier.pk,
+        }

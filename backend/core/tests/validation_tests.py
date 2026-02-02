@@ -1,15 +1,25 @@
-from typing import Dict, Any, TYPE_CHECKING
-from unittest import TestCase
+from decimal import Decimal
+from typing import Dict, Any
+from typing import TYPE_CHECKING
+from uuid import UUID
+
+from django.db import models
 
 from core.tests.utils import coerce_fieldspec
-
-from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
     from core.tests.type_stubs import BaseMixinProto as _Base
 else:
     _Base = object
 
+def _jsonable(value: Any) -> Any:
+    if isinstance(value, models.Model):
+        return value.pk
+    if isinstance(value, Decimal):
+        return str(value)
+    if isinstance(value, UUID):
+        return str(value)
+    return value
 
 class ValidationContractMixin(_Base):
     """
@@ -28,22 +38,22 @@ class ValidationContractMixin(_Base):
 
     def _validation_error_logic(self, field_name: str, payload: dict, msg: str = "required") -> None:
         """
-        Tests the behavior of the API when a specific required field is missing in the input payload.
+        Handles and verifies the logic of field validation errors in API payloads. This helper
+        method ensures that a specific field's absence results in the expected error response
+        and logs the outcome.
 
-        Parameters:
+        Arguments:
         field_name: str
-            The name of the field that is missing in the payload and is expected to
-            cause a validation error in the API response.
+            The name of the field to validate.
         payload: dict
-            The input payload to be sent to the API without the specified field.
-        msg: str
-            Optional. Custom message for assertion logs in case the validation error
-            logic is triggered. Defaults to "required".
+            The payload containing key-value pairs to be sent to the API.
+        msg: str, optional
+            The error message to be logged or tested against. Defaults to "required".
         """
-        invalid_payload = payload.copy()
+        invalid_payload = {k: _jsonable(v) for k, v in payload.items()}
         invalid_payload.pop(field_name, None)
 
-        response = self.client.post(self.url, data=invalid_payload)
+        response = self.client.post(self.url, data=invalid_payload, format="json")
 
         self.assertEqual(
             response.status_code,
@@ -59,18 +69,18 @@ class ValidationContractMixin(_Base):
 
     def _test_all_mandatory_fields(self, valid_payload: dict) -> None:
         """
-        Tests and validates the presence of all mandatory fields in the given payload.
+        Iterates over all fields marked as required in the field mapping,
+        removing the required fields one by one from the payload to ensure that the
+        appropriate validation errors are raised if a required field is missing.
 
-        Checks that all required fields, as specified in the `fields_map`,
-        are present in the provided payload. Ensures that payloads missing mandatory
-        fields are handled correctly by simulating a validation error. String fields in
-        the payload are modified during testing to prevent unique collisions, if applicable.
+        Parameters
+        ----------
+        valid_payload : dict
+            A dictionary containing the initial valid payload to be used for testing.
 
-        Parameters:
-            valid_payload (dict): A dictionary representing the payload to be validated. It must
-                include properly formatted values that can be tested for missing mandatory fields.
-        Returns:
-            None
+        Returns
+        -------
+        None
         """
         import uuid
 
@@ -82,9 +92,9 @@ class ValidationContractMixin(_Base):
                 continue
 
             with self.subTest(field=api_field):
-                current_payload = valid_payload.copy()
+                current_payload = {k: _jsonable(v) for k, v in valid_payload.items()}
 
-                for key, value in current_payload.items():
+                for key, value in list(current_payload.items()):
                     if isinstance(value, str):
                         current_payload[key] = f"{value}_{uuid.uuid4().hex[:4]}"
 
@@ -92,21 +102,15 @@ class ValidationContractMixin(_Base):
 
     def _test_all_unique_fields(self, valid_payload: dict) -> None:
         """
-        Tests that all fields with unique constraints cannot have duplicate values.
-        The method validates fields specified in the `fields_map` and ensures
-        that duplicate values for these fields result in a 400 status code from
-        the API. Checks fields with the uniqueness constraint and logs the
-        results for each failed validation.
+        Validates that all fields marked as unique in the given payload comply with unique constraints
+        by simulating the creation of a duplicate resource in the API.
 
         Parameters:
-        valid_payload: dict
-            The payload containing valid data for the test. It is used as a base to
-            create a copy with duplicate values for uniqueness validation.
+            valid_payload (dict): A valid dictionary payload containing data to test for uniqueness.
 
         Raises:
-        AssertionError
-            If the API does not return a 400 status code for a duplicate field or
-            if the expected field is not present in the response data.
+            AssertionError: If the API does not return a 400 status code for duplicate fields or
+            the expected error fields are not present in the response.
         """
         self._logger_header("VALIDATION: Unique constraints", level=1)
 
@@ -116,10 +120,11 @@ class ValidationContractMixin(_Base):
                 continue
 
             with self.subTest(field=api_field):
-                duplicate_payload = valid_payload.copy()
-                duplicate_payload[api_field] = getattr(self.obj, spec.model_field)
+                duplicate_payload = {k: _jsonable(v) for k, v in valid_payload.items()}
+                duplicate_payload[api_field] = _jsonable(getattr(self.obj, spec.model_field))
 
-                response = self.client.post(self.url, data=duplicate_payload)
+                response = self.client.post(self.url, data=duplicate_payload, format="json")
+
                 self.assertEqual(
                     response.status_code,
                     400,

@@ -32,7 +32,7 @@ class CrudContractMixin(_Base):
             The data to be sent in the POST request payload.
         """
         self._logger_header(f"ENDPOINT POST: {self.url_name}")
-        response = self.client.post(self.url, data=payload)
+        response = self.client.post(self.url, data=payload, format="json")
         self.assertEqual(response.status_code, expected_status, msg=f"API returned status code {response.status_code}",)
 
         is_created = self.model.objects.filter(pk=response.data["id"]).exists()
@@ -41,6 +41,13 @@ class CrudContractMixin(_Base):
         print(f"    {self.COLOR['OK']}✓ Object created successfully{self.COLOR['END']}")
 
     def _retrieve_object_by_id(self) -> None:
+        """
+        Logs an endpoint request to retrieve an object by its ID and validates the response.
+
+        Raises:
+            AssertionError: If the status code of the response does not equal
+                HTTP_200_OK or if the retrieved object's ID does not match the expected ID.
+        """
         self._logger_header(f"ENDPOINT GET: {self.detail_url_name if self.detail_url_name else '' + f'/{self.obj.id}'}")
 
         url = self.get_detail_url(self.obj.id)
@@ -52,6 +59,16 @@ class CrudContractMixin(_Base):
         print(f"    {self.COLOR['OK']}✓ Object successfully retrieved{self.COLOR['END']}")
 
     def _retrieve_object_by_id_not_found(self) -> None:
+        """
+        Sends a GET request to retrieve an object with an invalid ID and
+        validates that the server returns a 404 NOT FOUND status code. It ensures
+        that the API behaves as expected when attempting to access a nonexistent
+        object.
+
+        Raises:
+            AssertionError: If the API response status code does not match the
+            expected 404 NOT FOUND status.
+        """
         self._logger_header(f"ENDPOINT GET: {self.detail_url_name if self.detail_url_name else '' + f'/{self.obj.id}'}")
 
         url = self.get_detail_url(pk=9999)

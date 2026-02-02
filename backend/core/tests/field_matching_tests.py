@@ -1,8 +1,10 @@
 from decimal import Decimal
-from typing import Dict, Any, Tuple, Iterator
+from typing import Dict, Any, Iterator, Tuple
+from typing import TYPE_CHECKING
+
+from django.db import models
 
 from core.tests.utils import coerce_fieldspec, FieldSpec
-from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
     from core.tests.type_stubs import BaseMixinProto as _Base
@@ -28,7 +30,25 @@ class FieldContractMixin(_Base):
         for api_field, raw in self.fields_map.items():
             yield api_field, coerce_fieldspec(raw)
 
-    def _normalize_for_compare(self, spec: FieldSpec, api_value: Any, model_value: Any) -> Tuple[Any, Any]:
+    def _normalize_for_compare(
+            self,
+            spec: FieldSpec,
+            api_value: Any,
+            model_value: Any,
+    ) -> Tuple[Any, Any]:
+
+        def norm(v: Any) -> Any:
+            if isinstance(v, models.Model):
+                return v.pk
+
+            if isinstance(v, dict) and "id" in v:
+                return v["id"]
+
+            return v
+
+        api_value = norm(api_value)
+        model_value = norm(model_value)
+
         if spec.cast is Decimal:
             a = Decimal(api_value) if api_value is not None else None
             m = Decimal(model_value) if model_value is not None else None

@@ -75,6 +75,7 @@ class TestCarrierAPIList(CarrierBaseTest, BaseAPIMixin):
         payload = {
             "name": temp_data.name,
             "fullName": temp_data.full_name,
+            "isActive": temp_data.is_active,
         }
         return payload
 

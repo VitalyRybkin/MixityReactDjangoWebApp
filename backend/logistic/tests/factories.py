@@ -23,24 +23,6 @@ class DriverFactory(factory.django.DjangoModelFactory):
     passport_emitted_by = None
 
 
-class TruckFactory(factory.django.DjangoModelFactory):
-    class Meta:
-        model = Truck
-        django_get_or_create = (
-            "license_plate",
-            "carrier",
-            "type",
-            "capacity",
-            "description",
-        )
-
-    carrier = 1
-    type = 1
-    license_plate = factory.Faker("license_plate")
-    capacity = factory.Faker("random_int", min=1, max=1000)
-    description = None
-
-
 class TruckCapacityFactory(factory.django.DjangoModelFactory):
     class Meta:
         model = TruckCapacity
@@ -66,3 +48,21 @@ class CarrierFactory(factory.django.DjangoModelFactory):
     address = factory.Faker("address")
     description = factory.Faker("text")
     is_active = True
+
+
+class TruckFactory(factory.django.DjangoModelFactory):
+    class Meta:
+        model = Truck
+        django_get_or_create = (
+            "license_plate",
+            "carrier",
+            "type",
+            "capacity",
+            "description",
+        )
+
+    carrier = factory.SubFactory(CarrierFactory)
+    type = factory.SubFactory(TruckTypeFactory)
+    license_plate = factory.Faker("license_plate")
+    capacity = factory.SubFactory(TruckCapacityFactory)
+    description = factory.Faker("text")
