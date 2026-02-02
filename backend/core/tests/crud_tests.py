@@ -1,5 +1,8 @@
+from multiprocessing.util import is_exiting
 from typing import Dict, Any
 from typing import TYPE_CHECKING
+
+from rest_framework import status
 
 if TYPE_CHECKING:
     from core.tests.type_stubs import BaseMixinProto as _Base
@@ -18,7 +21,7 @@ class CrudContractMixin(_Base):
     need to be performed and verified.
 
     """
-    def _create_logic(self, payload: Dict[str, Any]) -> None:
+    def _create_logic(self, payload: Dict[str, Any], expected_status: int = status.HTTP_201_CREATED,) -> None:
         """
         Executes the logic for creating an object via a POST request and verifies the response status.
 
@@ -29,5 +32,9 @@ class CrudContractMixin(_Base):
         """
         self._logger_header(f"ENDPOINT POST: {self.url_name}")
         response = self.client.post(self.url, data=payload)
-        self.assertEqual(response.status_code, 201)
+        self.assertEqual(response.status_code, expected_status, msg=f"API returned status code {response.status_code}",)
+
+        is_created = self.model.objects.filter(pk=response.data["id"]).exists()
+        self.assertTrue(is_created, msg="Object was not created successfully")
+
         print(f"    {self.COLOR['OK']}✓ Object created successfully{self.COLOR['END']}")

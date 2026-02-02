@@ -69,4 +69,8 @@ class FieldContractMixin(_Base):
             api_norm, model_norm = self._normalize_for_compare(spec, api_val, model_val)
             self.assertEqual(api_norm, model_norm, msg=f"Mismatch for field '{api_field}'")
 
+            if api_field == "isActive":
+                self.assertEqual(api_val, True, msg=f"Mismatch for field '{api_field}'")
+
+
         print(f"    {self.COLOR['OK']}✓ List verified ({len(self.fields_map)} fields){self.COLOR['END']}")
