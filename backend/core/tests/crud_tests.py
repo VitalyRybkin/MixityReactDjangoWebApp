@@ -3,6 +3,7 @@ from typing import Dict, Any
 from typing import TYPE_CHECKING
 
 from rest_framework import status
+from rest_framework.reverse import reverse
 
 if TYPE_CHECKING:
     from core.tests.type_stubs import BaseMixinProto as _Base
@@ -38,3 +39,26 @@ class CrudContractMixin(_Base):
         self.assertTrue(is_created, msg="Object was not created successfully")
 
         print(f"    {self.COLOR['OK']}✓ Object created successfully{self.COLOR['END']}")
+
+    def _retrieve_object_by_id(self) -> None:
+        self._logger_header(f"ENDPOINT GET: {self.detail_url_name if self.detail_url_name else '' + f'/{self.obj.id}'}")
+
+        url = self.get_detail_url(self.obj.id)
+        response = self.client.get(url)
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data["id"], self.obj.id)
+
+        print(f"    {self.COLOR['OK']}✓ Object successfully retrieved{self.COLOR['END']}")
+
+    def _retrieve_object_by_id_not_found(self) -> None:
+        self._logger_header(f"ENDPOINT GET: {self.detail_url_name if self.detail_url_name else '' + f'/{self.obj.id}'}")
+
+        url = self.get_detail_url(pk=9999)
+        response = self.client.get(url)
+
+        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
+        print(f"    {self.COLOR['OK']}✓ Object not found successfully{self.COLOR['END']}")
+
+    def get_detail_url(self, pk: Any) -> str:
+        raise NotImplementedError

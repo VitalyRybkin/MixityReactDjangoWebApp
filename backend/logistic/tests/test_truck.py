@@ -11,35 +11,43 @@ from logistic.tests.factories import TruckCapacityFactory, TruckTypeFactory
 logger = logging.getLogger(__name__)
 
 
-class TestTruckTypeAPIList(BaseAPIMixin):
+class TruckTypeBaseTest:
     """
-    Represents the test case for API operations related to the TruckType model.
+    Defines the base structure for testing the TruckType model, associating
+    it with a factory and a mapped specification of its fields. It allows specific
+    validation of field attributes like type, uniqueness, and requirement.
 
-    Extends BaseTruckAPITestCase to provide specific tests for the
-    TruckType API. It uses the associated model, factory, and URLs to organize
-    and verify API functionality. This ensures the reliability of CRUD operations
-    and specific behaviors such as string representation.
-
-    :ivar model: Reference to the TruckType model being tested.
-    :type model: TruckType
-    :ivar factory:  Factory is associated with creating TruckType instances for testing.
-    :type factory: TruckTypeFactory
-    :ivar url_name: API endpoint name for listing and creating truck types.
-    :type url_name: str
-    :ivar fields_map: Mapping of API field names to model attributes and their respective types.
-    :type fields_map: dict[str, tuple[str, type]]
+    Attributes:
+        model: The model class associated with this test case.
+        factory: The factory class is used to generate test data for the model.
+        fields_map: A dictionary defining the specification for each field in the
+            model. Each entry associates the field name with its defined traits,
+            such as type, whether it is required or if it must be unique.
     """
-
-    __test__ = True
 
     model = TruckType
     factory = TruckTypeFactory
-    url_name = "truck_types_list_create"
     fields_map = {
         "id": FieldSpec("id", int),
         "truckType": FieldSpec("type", str, required=True, unique=True),
         "description": FieldSpec("description", str),
     }
+
+
+class TestTruckTypeAPIList(TruckTypeBaseTest, BaseAPIMixin):
+    """
+    Provides test cases to verify the behavior of list, create, and validation
+    operations on Truck Types via the Truck Types API. It ensures correctness of fetching,
+    creation, uniqueness constraints, mandatory fields validation, and string representation
+    of truck types.
+
+    Attributes:
+        url_name: URL name for the truck types API endpoint.
+    """
+
+    __test__ = True
+
+    url_name = "truck_types_list_create"
 
     def test_get_list(self) -> None:
         self._get_list_logic()
@@ -72,35 +80,67 @@ class TestTruckTypeAPIList(BaseAPIMixin):
         return payload
 
 
-class TestTruckCapacityAPIList(BaseAPIMixin):
+class TruckTypeTestRetrieveUpdate(TruckTypeBaseTest, BaseAPIMixin):
     """
-    Test case for TruckCapacity API.
+    Retrieves and updates functionalities for truck type details. Extends base
+    testing classes for reuse of common logic and API test functionalities.
+    These tests ensure proper behavior for retrieving and updating truck type details,
+    as well as handling cases where the requested truck type does not exist.
 
-    Validates the functionality and behavior of the
-    TruckCapacity API. It includes functionality for retrieving the list of
-    TruckCapacity objects and verifying the string representation of the model.
-
-    :ivar model: The model class being tested.
-    :type model: type[TruckCapacity]
-    :ivar factory: The factory class used for generating test instances of the model.
-    :type factory: type[TruckCapacityFactory]
-    :ivar url_name: The URL name associated with the list and create API endpoint.
-    :type url_name: str
-    :ivar fields_map: Mapping of fields in the model to their corresponding display
-                      names and types.
-    :type fields_map: dict[str, tuple[str, type]]
+    Attributes:
+        detail_url_name: The name of the URL used for accessing detailed truck
+        type information.
     """
 
     __test__ = True
 
+    detail_url_name = "truck_types_details"
+
+    def test_retrieve_update_logic(self) -> None:
+        self._retrieve_object_by_id()
+
+    def test_not_found_error(self) -> None:
+        self._retrieve_object_by_id_not_found()
+
+
+class TruckCapacityBaseTest:
+    """
+    Provides a standardized testing configuration for the
+    TruckCapacity model, including its associated factory for creating instances and
+    a mapping of its fields to their respective specifications. It ensures that the
+    fields are properly tested with respect to their types and requirements.
+
+    Attributes:
+        model: The model class under test, which is `TruckCapacity`.
+        factory: The corresponding factory class for creating test instances of `TruckCapacity`.
+        fields_map: A dictionary mapping internal model field names to `FieldSpec`
+            objects that define field properties such as type, required status,
+            and uniqueness constraints.
+    """
+
     model = TruckCapacity
     factory = TruckCapacityFactory
-    url_name = "truck_capacities_list_create"
     fields_map = {
         "id": FieldSpec("id", int),
         "capacity": FieldSpec("capacity", Decimal, required=True),
         "description": FieldSpec("description", str),
     }
+
+
+class TestTruckCapacityAPIList(TruckCapacityBaseTest, BaseAPIMixin):
+    """
+    Extends `TruckCapacityBaseTest` and `BaseAPIMixin`. Provides test cases
+    to validate the functionality of listing, creating, and handling unique and mandatory
+    fields for truck capacities. It also includes utility functionalities for generating
+    payloads and testing specific logic, such as the string representation of objects.
+
+    Attributes:
+        url_name (str): The name of the API endpoint for listing and creating truck capacities.
+    """
+
+    __test__ = True
+
+    url_name = "truck_capacities_list_create"
 
     def test_get_list(self) -> None:
         self._get_list_logic()
@@ -129,3 +169,26 @@ class TestTruckCapacityAPIList(BaseAPIMixin):
             "description": temp_data.description,
         }
         return payload
+
+
+class TruckCapacityRetrieveUpdate(TruckCapacityBaseTest, BaseAPIMixin):
+    """
+    Provides test cases to verify the functioning of the APIs
+    that allow retrieval and update of truck capacity information. Validates functionality such as
+    retrieving specific truck capacity data, checking API behavior on missing data,
+    and updating existing truck capacities.
+
+    Attributes:
+        detail_url_name: A string representing the name of the API endpoint
+            detail URL for accessing specific truck capacity records.
+    """
+
+    __test__ = True
+
+    detail_url_name = "truck_capacities_details"
+
+    def test_retrieve_update_logic(self) -> None:
+        self._retrieve_object_by_id()
+
+    def test_not_found_error(self) -> None:
+        self._retrieve_object_by_id_not_found()

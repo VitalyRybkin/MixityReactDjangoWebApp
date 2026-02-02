@@ -46,16 +46,32 @@ class BaseAPITestCase(
 
     model: Any = None
     factory: Any = None
-    url_name: Optional[str] = None
+    url_name: Optional[str | None] = None
+    detail_url_name: Optional[str | None] = None
 
     def setUp(self) -> None:
         logging.getLogger("django.request").setLevel(logging.ERROR)
 
-        if self.factory is None or not self.url_name:
-            raise SkipTest("No resource found for testing.")
+        if self.factory is None:
+            raise SkipTest(
+                f"{self.__class__.__name__}: No resource found for testing."
+            )
 
-        self.url = reverse(self.url_name)
         self.obj = self.factory.create()
 
+        if self.url_name is not None:
+            self.url = reverse(self.url_name)
+        elif self.detail_url_name is not None:
+            self.url = reverse(self.detail_url_name, kwargs={"pk": self.obj.id})
+        else:
+            raise SkipTest(
+                f"No url configured for '{self.__class__.__name__}'."
+            )
+
+    def get_detail_url(self, pk: Any) -> str:
+        name = self.detail_url_name or self.url_name
+        if not name:
+            raise SkipTest(f"No detail url configured for {self.__class__.__name__}.")
+        return reverse(name, kwargs={"pk": pk})
 
 BaseAPIMixin = BaseAPITestCase

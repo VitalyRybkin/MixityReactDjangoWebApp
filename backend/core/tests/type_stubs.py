@@ -33,6 +33,7 @@ class ApiRuntimeProto(Protocol):
     """
     url: Optional[str]
     url_name: Optional[str]
+    detail_url_name: Optional[str]
     obj: Any
     model: Any
 
