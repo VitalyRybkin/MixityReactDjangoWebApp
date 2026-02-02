@@ -9,30 +9,22 @@ from logistic.tests.factories import CarrierFactory
 logger = logging.getLogger(__name__)
 
 
-class TestCarrierAPIList(BaseAPIMixin):
+class CarrierBaseTest:
     """
-    Represents the test case for API operations related to the TruckType model.
+    Serves as a foundation for testing functionality, validation,
+    and behaviors of the Carrier model. It provides mappings for fields with
+    specifications that include attribute names, types, and constraints. The
+    class relies on a specified model and factory to facilitate testing processes.
 
-    Extends BaseTruckAPITestCase to provide specific tests for the
-    TruckType API. It uses the associated model, factory, and URLs to organize
-    and verify API functionality. This ensures the reliability of CRUD operations
-    and specific behaviors such as string representation.
-
-    :ivar model: Reference to the TruckType model being tested.
-    :type model: TruckType
-    :ivar factory:  Factory is associated with creating TruckType instances for testing.
-    :type factory: TruckTypeFactory
-    :ivar url_name: API endpoint name for listing and creating truck types.
-    :type url_name: str
-    :ivar fields_map: Mapping of API field names to model attributes and their respective types.
-    :type fields_map: dict[str, tuple[str, type]]
+    Attributes:
+        model: The model class associated with the test.
+        factory: The factory class utilized for creating model instances during tests.
+        fields_map: A dictionary mapping field names to FieldSpec objects, detailing
+            attributes such as name, type, and constraints of the model's fields.
     """
-
-    __test__ = True
 
     model = Carrier
     factory = CarrierFactory
-    url_name = "carrier_list_create"
     fields_map = {
         "id": FieldSpec("id", int),
         "name": FieldSpec("name", str, required=True, unique=True),
@@ -41,6 +33,22 @@ class TestCarrierAPIList(BaseAPIMixin):
         "description": FieldSpec("description", str),
         "isActive": FieldSpec("is_active", bool),
     }
+
+
+class TestCarrierAPIList(CarrierBaseTest, BaseAPIMixin):
+    """
+    Provides automated tests for API endpoints related to listing and
+    creating carrier items. Each method ensures specific functionality meets
+    expected behavior, including unique and mandatory fields validation and testing
+    string method formatting.
+
+    Attributes:
+        url_name: A string representing the name of the tested API URL.
+    """
+
+    __test__ = True
+
+    url_name = "carrier_list_create"
 
     def test_get_list(self) -> None:
         self._get_list_logic()
@@ -69,3 +77,25 @@ class TestCarrierAPIList(BaseAPIMixin):
             "fullName": temp_data.full_name,
         }
         return payload
+
+
+class TestCarrierRetrieveUpdate(CarrierBaseTest, BaseAPIMixin):
+    """
+    Provides automated tests for API endpoints related to retrieving and updating
+    carrier details. Each method ensures specific functionality meets expected
+    behavior, including unique and mandatory fields validation and testing
+    string method formatting.
+
+    Attributes:
+        url_name: A string representing the name of the tested API URL.
+    """
+
+    __test__ = True
+
+    detail_url_name = "carrier_details"
+
+    def test_retrieve_update_logic(self) -> None:
+        self._retrieve_object_by_id()
+
+    def test_not_found_error(self) -> None:
+        self._retrieve_object_by_id_not_found()

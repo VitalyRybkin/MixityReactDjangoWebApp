@@ -80,7 +80,7 @@ class TestTruckTypeAPIList(TruckTypeBaseTest, BaseAPIMixin):
         return payload
 
 
-class TruckTypeTestRetrieveUpdate(TruckTypeBaseTest, BaseAPIMixin):
+class TestTruckTypeRetrieveUpdate(TruckTypeBaseTest, BaseAPIMixin):
     """
     Retrieves and updates functionalities for truck type details. Extends base
     testing classes for reuse of common logic and API test functionalities.
@@ -171,7 +171,7 @@ class TestTruckCapacityAPIList(TruckCapacityBaseTest, BaseAPIMixin):
         return payload
 
 
-class TruckCapacityRetrieveUpdate(TruckCapacityBaseTest, BaseAPIMixin):
+class TestTruckCapacityRetrieveUpdate(TruckCapacityBaseTest, BaseAPIMixin):
     """
     Provides test cases to verify the functioning of the APIs
     that allow retrieval and update of truck capacity information. Validates functionality such as
