@@ -10,6 +10,8 @@ from core.tests.field_matching_tests import FieldContractMixin
 from core.tests.model_tests import ModelContractMixin
 from core.tests.utils import TestLoggingMixin
 from core.tests.validation_tests import ValidationContractMixin
+from core.tests.visibility_tests import ActiveVisibilityContractMixin, \
+    SoftDeleteContractMixin, ReadOnlyActiveFieldContractMixin
 
 logger = logging.getLogger(__name__)
 
@@ -32,13 +34,16 @@ class BaseAPITestCase(
     CrudContractMixin,
     ValidationContractMixin,
     ModelContractMixin,
+    ActiveVisibilityContractMixin,
+    SoftDeleteContractMixin,
+    ReadOnlyActiveFieldContractMixin,
     BaseTestCase,
 ):
     """
     BaseAPITestCase class that extends from BaseTestCase.
 
     Provides a base for API test cases, incorporating various
-    mixins for testing fields, CRUD operations, validation, and models.
+    mixins for testing fields, CRUD operations, validation, models, and active field updates.
     It ensures proper testing practices and handles requests, responses,
     and model interactions.
     """

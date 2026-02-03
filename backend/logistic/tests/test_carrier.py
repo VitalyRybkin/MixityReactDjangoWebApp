@@ -69,6 +69,9 @@ class TestCarrierAPIList(CarrierBaseTest, BaseAPIMixin):
         str_method_output = f"TK: {self.obj.name}"
         self._str_method_logic(str_method_output)
 
+    def test_active_carrier(self) -> None:
+        self._assert_active_only_in_list()
+
     def payload_generator(self) -> Dict[str, Any]:
         temp_data = self.factory.build()
 
@@ -100,3 +103,14 @@ class TestCarrierRetrieveUpdate(CarrierBaseTest, BaseAPIMixin):
 
     def test_not_found_error(self) -> None:
         self._retrieve_object_by_id_not_found()
+
+    def test_active_carrier_update(self) -> None:
+        self._assert_soft_delete_via_delete()
+
+    def test_active_carrier_is_read_only(self) -> None:
+        self._assert_is_active_is_read_only()
+
+    def test_str_method(self) -> None:
+        carrier = self.obj
+        expected = f"TK: {carrier.name}"
+        self._str_method_logic(expected)

@@ -62,14 +62,18 @@ class CarrierSerializer(serializers.ModelSerializer):
     ----------
     isActive : bool
         Indicates whether the carrier is active. This is sourced from the 'is_active'
-        field on the Carrier model.
+        field on the Carrier model. The field is read-only to prevent accidental updates.
+
+    fullName : str
+        The full name of the carrier. This is sourced from the 'full_name' field on
+        the Carrier model.
 
     carrier_trucks : TruckNestedSerializer
         A nested serializer for representing related Truck instances. Handles multiple
         truck objects associated with a carrier.
     """
 
-    isActive = serializers.BooleanField(source="is_active")
+    isActive = serializers.BooleanField(source="is_active", read_only=True)
     fullName = serializers.CharField(source="full_name")
     carrier_trucks = TruckBaseSerializer(many=True, read_only=True)
 

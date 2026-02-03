@@ -1,6 +1,11 @@
 from django.db import models
 
 
+class ActiveQuerySet(models.QuerySet):
+    def active(self) -> "ActiveQuerySet":
+        return self.filter(is_active=True)
+
+
 class Carrier(models.Model):
     """
     Represents a carrier, typically a transportation company.
@@ -11,6 +16,8 @@ class Carrier(models.Model):
 
     :ivar name: The name of the carrier.
     :type name: str
+    :ivar full_name: The full name of the carrier. This field is optional
+    :type full_name: str or None
     :ivar address: The address of the carrier's headquarters. This field is optional
     :type address: str or None
     :ivar description: A description of the carrier, its services, or any
@@ -27,6 +34,9 @@ class Carrier(models.Model):
     address = models.CharField(max_length=255, null=True, blank=True)
     description = models.TextField(null=True, blank=True)
     is_active = models.BooleanField(default=True)
+
+    objects = ActiveQuerySet.as_manager()
+    all_objects = models.Manager()
 
     class Meta:
         indexes = [models.Index(fields=["is_active", "name"])]

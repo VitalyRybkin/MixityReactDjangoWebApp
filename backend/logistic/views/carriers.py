@@ -37,8 +37,8 @@ class CarrierBaseAPIView(GenericAPIView):
 
     def get_queryset(self) -> QuerySet[Carrier]:
         _trucks_qs = Truck.objects.select_related("type", "capacity")
-        return Carrier.objects.filter(is_active=True).prefetch_related(
-            Prefetch("carrier_trucks", queryset=_trucks_qs)
+        return Carrier.objects.active().prefetch_related(
+            Prefetch("carrier_trucks", queryset=_trucks_qs),
         )
 
 
