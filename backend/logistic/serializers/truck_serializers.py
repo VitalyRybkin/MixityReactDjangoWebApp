@@ -39,7 +39,7 @@ class TruckTypeSerializer(serializers.ModelSerializer):
     """
 
     truckType = serializers.CharField(
-        source="type", validators=[UniqueValidator(queryset=TruckType.objects.all())]
+        source="name", validators=[UniqueValidator(queryset=TruckType.objects.all())]
     )
 
     class Meta:
@@ -81,7 +81,7 @@ class TruckBaseSerializer(serializers.ModelSerializer):
     Attributes:
         licensePlate: A CharField that serializes the `license_plate`
             field in the Truck model and validates its uniqueness.
-        type: A PrimaryKeyRelatedField validating and referencing the
+        truckType: A PrimaryKeyRelatedField validating and referencing the
             `TruckType` model.
         capacity: A PrimaryKeyRelatedField validating and referencing the
             `TruckCapacity` model.
@@ -102,16 +102,18 @@ class TruckBaseSerializer(serializers.ModelSerializer):
         source="license_plate",
         validators=[UniqueValidator(queryset=Truck.objects.all())],
     )
-    type = serializers.PrimaryKeyRelatedField(queryset=TruckType.objects.all())
+    truckType = serializers.PrimaryKeyRelatedField(
+        source="truck_type", queryset=TruckType.objects.all()
+    )
     capacity = serializers.PrimaryKeyRelatedField(queryset=TruckCapacity.objects.all())
 
     class Meta:
         model = Truck
-        fields = ["id", "type", "capacity", "licensePlate", "description"]
+        fields = ["id", "truckType", "capacity", "licensePlate", "description"]
 
     def to_representation(self, instance: Truck) -> dict:
         ret = super().to_representation(instance)
-        ret["type"] = TruckTypeSerializer(instance.type).data
+        ret["truck_type"] = TruckTypeSerializer(instance.truck_type).data
         ret["capacity"] = TruckCapacitySerializer(instance.capacity).data
         return ret
 

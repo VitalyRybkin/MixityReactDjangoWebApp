@@ -34,14 +34,14 @@ class TruckTypeBaseTest:
     factory = TruckTypeFactory
     fields_map = {
         "id": FieldSpec("id", int),
-        "truckType": FieldSpec("type", str, required=True, unique=True),
+        "truckType": FieldSpec("name", str, required=True, unique=True),
         "description": FieldSpec("description", str),
     }
 
 
 class TestTruckTypeAPIList(TruckTypeBaseTest, BaseAPIMixin):
     """
-    Provides test cases to verify the behavior of list, create, and validation
+    Provides test cases to verify the behavior of the list, create, and validation
     operations on Truck Types via the Truck Types API. It ensures correctness of fetching,
     creation, uniqueness constraints, mandatory fields validation, and string representation
     of truck types.
@@ -72,14 +72,14 @@ class TestTruckTypeAPIList(TruckTypeBaseTest, BaseAPIMixin):
         self._test_all_mandatory_fields(payload)
 
     def test_str_method(self) -> None:
-        str_method_output = f"Тип ТС - {self.obj.type}"
+        str_method_output = f"Тип ТС - {self.obj.name}"
         self._str_method_logic(str_method_output)
 
     def payload_generator(self) -> Dict[str, Any]:
         temp_data = self.factory.build()
 
         payload = {
-            "truckType": temp_data.type,
+            "truckType": temp_data.name,
             "description": temp_data.description,
         }
         return payload
@@ -220,7 +220,7 @@ class TruckBaseTest:
     factory = TruckFactory
     fields_map = {
         "id": FieldSpec("id", int),
-        "type": FieldSpec("type", TruckType, required=True),
+        "truckType": FieldSpec("truck_type", TruckType, required=True),
         "capacity": FieldSpec("capacity", TruckCapacity, required=True),
         "carrier": FieldSpec("carrier", Carrier, required=True),
         "licensePlate": FieldSpec("license_plate", str, unique=True, required=True),
@@ -261,7 +261,7 @@ class TestTruckAPIList(TruckBaseTest, BaseAPIMixin):
 
     def test_str_method(self) -> None:
         truck = self.obj
-        expected = f"Авто: {truck.type}, {truck.capacity}, {truck.carrier}"
+        expected = f"Авто: {truck.truck_type}, {truck.capacity}, {truck.carrier}"
         self._str_method_logic(expected)
 
     def payload_generator(self) -> Dict[str, Any]:
@@ -274,7 +274,7 @@ class TestTruckAPIList(TruckBaseTest, BaseAPIMixin):
         return {
             "licensePlate": temp.license_plate,
             "description": temp.description,
-            "type": truck_type.pk,
+            "truckType": truck_type.pk,
             "capacity": capacity.pk,
             "carrier": carrier.pk,
         }

@@ -12,8 +12,8 @@ class Truck(models.Model):
     and associated carriers. It serves as a representation of vehicles used
     for transportation purposes in the system.
 
-    :ivar type: The type of the truck, linked to the TruckType model.
-    :type type: ForeignKey
+    :ivar truck_type: The type of the truck, linked to the TruckType model.
+    :type truck_type: ForeignKey
     :ivar capacity: The capacity of the truck, linked to the TruckCapacity model.
     :type capacity: ForeignKey
     :ivar description: Optional description providing additional details about the truck.
@@ -30,19 +30,19 @@ class Truck(models.Model):
     carrier = models.ForeignKey(
         "logistic.Carrier",
         on_delete=models.PROTECT,
-        related_name="carrier_trucks",
+        related_name="trucks",
     )
 
-    type = models.ForeignKey(
+    truck_type = models.ForeignKey(
         "logistic.TruckType",
         on_delete=models.PROTECT,
-        related_name="truck_type",
+        related_name="trucks",
     )
 
     capacity = models.ForeignKey(
         "logistic.TruckCapacity",
         on_delete=models.PROTECT,
-        related_name="truck_capacity",
+        related_name="trucks",
     )
 
     license_plate = models.CharField(
@@ -66,4 +66,4 @@ class Truck(models.Model):
         super().save(*args, **kwargs)
 
     def __str__(self) -> str:
-        return f"Авто: {self.type}, {self.capacity}, {self.carrier}"
+        return f"Авто: {self.truck_type}, {self.capacity}, {self.carrier}"

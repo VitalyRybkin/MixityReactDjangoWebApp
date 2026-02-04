@@ -109,9 +109,7 @@ class CarrierResourcesSerializer(serializers.Serializer):
             trucks = instance.get("trucks", [])
             drivers = instance.get("drivers", [])
         else:
-            trucks = (
-                instance.carrier_trucks.all() if hasattr(instance, "trucks") else []
-            )
+            trucks = instance.trucks.all() if hasattr(instance, "trucks") else []
             drivers = instance.drivers.all() if hasattr(instance, "drivers") else []
 
         return {

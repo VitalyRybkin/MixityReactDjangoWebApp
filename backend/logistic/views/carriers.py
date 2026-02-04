@@ -36,9 +36,9 @@ class CarrierBaseAPIView(GenericAPIView):
     permission_classes = [AllowAny]
 
     def get_queryset(self) -> QuerySet[Carrier]:
-        _trucks_qs = Truck.objects.select_related("type", "capacity")
+        _trucks_qs = Truck.objects.select_related("truck_type", "capacity")
         return Carrier.objects.active().prefetch_related(
-            Prefetch("carrier_trucks", queryset=_trucks_qs),
+            Prefetch("trucks", queryset=_trucks_qs),
         )
 
 

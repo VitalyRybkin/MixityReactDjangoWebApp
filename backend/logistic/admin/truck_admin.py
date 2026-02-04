@@ -7,7 +7,7 @@ from logistic.models import Truck, TruckCapacity, TruckType
 class TruckAdmin(admin.ModelAdmin):
     list_display = [
         "carrier",
-        "type",
+        "truck_type",
         "capacity",
         "license_plate",
         "description",
@@ -18,9 +18,9 @@ class TruckAdmin(admin.ModelAdmin):
 
 @admin.register(TruckType)
 class TruckTypeAdmin(admin.ModelAdmin):
-    list_display = ["type", "description"]
-    list_display_links = ["type"]
-    ordering = ["type"]
+    list_display = ["name", "description"]
+    list_display_links = ["name"]
+    ordering = ["name"]
     verbose_name = "Truck Type"
     verbose_name_plural = "Truck Types"
 

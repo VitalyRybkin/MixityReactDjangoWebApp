@@ -35,7 +35,7 @@ class TruckTypeFactory(factory.django.DjangoModelFactory):
     class Meta:
         model = TruckType
 
-    type = factory.Sequence(lambda n: f"Truck type {n}")
+    name = factory.Sequence(lambda n: f"Truck type {n}")
     description = factory.Faker("text")
 
 
@@ -53,16 +53,9 @@ class CarrierFactory(factory.django.DjangoModelFactory):
 class TruckFactory(factory.django.DjangoModelFactory):
     class Meta:
         model = Truck
-        django_get_or_create = (
-            "license_plate",
-            "carrier",
-            "type",
-            "capacity",
-            "description",
-        )
 
     carrier = factory.SubFactory(CarrierFactory)
-    type = factory.SubFactory(TruckTypeFactory)
+    truck_type = factory.SubFactory(TruckTypeFactory)
     license_plate = factory.Faker("license_plate")
     capacity = factory.SubFactory(TruckCapacityFactory)
     description = factory.Faker("text")
