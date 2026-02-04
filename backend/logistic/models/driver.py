@@ -61,7 +61,9 @@ class Driver(models.Model):
     )
 
     passport_issue_date = models.DateField(
-        null=True, blank=True, help_text="Passport issue date"
+        null=True,
+        blank=True,
+        help_text="Passport issue date",
     )
 
     passport_emitted_by = models.CharField(

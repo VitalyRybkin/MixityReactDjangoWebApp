@@ -44,11 +44,7 @@ class TruckTypeSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = TruckType
-        fields = [
-            "id",
-            "truckType",
-            "description",
-        ]
+        fields = ["id", "truckType", "description"]
 
 
 class TruckCapacitySerializer(serializers.ModelSerializer):

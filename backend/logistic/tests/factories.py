@@ -3,26 +3,6 @@ import factory
 from logistic.models import Carrier, Driver, Truck, TruckCapacity, TruckType
 
 
-class DriverFactory(factory.django.DjangoModelFactory):
-    class Meta:
-        model = Driver
-        django_get_or_create = (
-            "full_name",
-            "carrier",
-            "phone",
-            "passport_number",
-            "passport_issue_date",
-            "passport_emitted_by",
-        )
-
-    carrier = 1
-    phone = "+79991234567"
-    full_name = factory.Faker("name")
-    passport_number = "1234 567890"
-    passport_issue_date = None
-    passport_emitted_by = None
-
-
 class TruckCapacityFactory(factory.django.DjangoModelFactory):
     class Meta:
         model = TruckCapacity
@@ -59,3 +39,15 @@ class TruckFactory(factory.django.DjangoModelFactory):
     license_plate = factory.Faker("license_plate")
     capacity = factory.SubFactory(TruckCapacityFactory)
     description = factory.Faker("text")
+
+
+class DriverFactory(factory.django.DjangoModelFactory):
+    class Meta:
+        model = Driver
+
+    carrier = factory.SubFactory(CarrierFactory)
+    phone = "+79991234567"
+    full_name = factory.Faker("name")
+    passport_number = "1234 567890"
+    passport_issue_date = factory.Faker("date")
+    passport_emitted_by = factory.Faker("company")
