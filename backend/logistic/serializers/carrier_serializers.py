@@ -1,6 +1,6 @@
 from rest_framework import serializers
 
-from logistic.models import Carrier, Truck
+from logistic.models import Carrier, Driver, Truck
 from logistic.serializers.driver_serializers import DriverSerializer
 from logistic.serializers.truck_serializers import (
     TruckBaseSerializer,
@@ -99,5 +99,22 @@ class CarrierResourcesSerializer(serializers.Serializer):
     endpoints that require detailed carrier resource information.
     """
 
-    trucks = TruckBaseSerializer(many=True)
-    drivers = DriverSerializer(many=True)
+    trucks = serializers.PrimaryKeyRelatedField(many=True, queryset=Truck.objects.all())
+    drivers = serializers.PrimaryKeyRelatedField(
+        many=True, queryset=Driver.objects.all()
+    )
+
+    def to_representation(self, instance: Carrier | dict) -> dict:
+        if isinstance(instance, dict):
+            trucks = instance.get("trucks", [])
+            drivers = instance.get("drivers", [])
+        else:
+            trucks = (
+                instance.carrier_trucks.all() if hasattr(instance, "trucks") else []
+            )
+            drivers = instance.drivers.all() if hasattr(instance, "drivers") else []
+
+        return {
+            "trucks": TruckBaseSerializer(trucks, many=True, context=self.context).data,
+            "drivers": DriverSerializer(drivers, many=True, context=self.context).data,
+        }

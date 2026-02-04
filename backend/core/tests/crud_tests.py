@@ -40,21 +40,16 @@ class CrudContractMixin(_Base):
 
         print(f"    {self.COLOR['OK']}✓ Object created successfully{self.COLOR['END']}")
 
-    def _retrieve_object_by_id(self) -> None:
-        """
-        Logs an endpoint request to retrieve an object by its ID and validates the response.
+    def _retrieve_object_by_id(self, obj: Any =None) -> None:
+        obj = obj or self.obj
 
-        Raises:
-            AssertionError: If the status code of the response does not equal
-                HTTP_200_OK or if the retrieved object's ID does not match the expected ID.
-        """
-        self._logger_header(f"ENDPOINT GET: {self.detail_url_name if self.detail_url_name else '' + f'/{self.obj.id}'}")
+        self._logger_header(f"ENDPOINT GET: {self.detail_url_name}/{obj.id}")
 
-        url = self.get_detail_url(self.obj.id)
+        url = self.get_detail_url(obj.id)
         response = self.client.get(url)
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(response.data["id"], self.obj.id)
+        self.assertEqual(response.data["id"], obj.id)
 
         print(f"    {self.COLOR['OK']}✓ Object successfully retrieved{self.COLOR['END']}")
 
@@ -77,5 +72,64 @@ class CrudContractMixin(_Base):
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
         print(f"    {self.COLOR['OK']}✓ Object not found successfully{self.COLOR['END']}")
 
-    def get_detail_url(self, pk: Any) -> str:
-        raise NotImplementedError
+
+    def _get_resources_logic(
+            self,
+            obj: Any=None,
+            *,
+            expected_trucks: int | None = None,
+            expected_drivers: int | None = None,
+    ) -> None:
+        """
+        Handles the logic for fetching and validating resources associated with an object.
+
+        The method retrieves resource data for the given object through a GET request,
+        validates the response structure, and optionally asserts the expected number of
+        trucks and drivers available in the response.
+
+        Args:
+            obj (Optional[Any]): The object for which resources are being fetched. Defaults to None.
+            expected_trucks (Optional[int]): The expected number of trucks in the response. Defaults to None.
+            expected_drivers (Optional[int]): The expected number of drivers in the response. Defaults to None.
+
+        Returns:
+            None
+        """
+        obj = obj or self.obj
+
+        self._logger_header(f"ENDPOINT GET: {self.detail_url_name}/{obj.id}")
+
+        url = self.get_detail_url(obj.id)
+        response = self.client.get(url)
+
+        assert response.status_code == status.HTTP_200_OK
+        assert isinstance(response.data, dict)
+
+        assert "trucks" in response.data
+        assert "drivers" in response.data
+
+        assert isinstance(response.data["trucks"], list)
+        assert isinstance(response.data["drivers"], list)
+
+        if expected_trucks is not None:
+            assert len(response.data["trucks"]) == expected_trucks
+
+        if expected_drivers is not None:
+            assert len(response.data["drivers"]) == expected_drivers
+
+        if response.data["trucks"]:
+            assert isinstance(response.data["trucks"][0], dict)
+            assert "id" in response.data["trucks"][0]
+
+        if response.data["drivers"]:
+            assert isinstance(response.data["drivers"][0], dict)
+
+        print(
+            f"    {self.COLOR['OK']}✓ Resources verified "
+            f"(trucks={len(response.data['trucks'])}, drivers={len(response.data['drivers'])})"
+            f"{self.COLOR['END']}"
+        )
+
+    def get_detail_url(self, pk: int) -> str:
+        assert self.detail_url_name is not None, "detail_url_name must be set for detail endpoints"
+        return reverse(self.detail_url_name, kwargs={"pk": pk})

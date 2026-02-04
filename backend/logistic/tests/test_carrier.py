@@ -1,10 +1,12 @@
 import logging
 from typing import Any, Dict
 
+import pytest
+
 from core.tests.base_test_case import BaseAPIMixin
 from core.tests.utils import FieldSpec
 from logistic.models import Carrier
-from logistic.tests.factories import CarrierFactory
+from logistic.tests.factories import CarrierFactory, DriverFactory, TruckFactory
 
 logger = logging.getLogger(__name__)
 
@@ -114,3 +116,28 @@ class TestCarrierRetrieveUpdate(CarrierBaseTest, BaseAPIMixin):
         carrier = self.obj
         expected = f"TK: {carrier.name}"
         self._str_method_logic(expected)
+
+
+@pytest.mark.django_db
+class TestCarrierResources(BaseAPIMixin):
+    """
+    Retrieves carrier-related resources, such as trucks and drivers, and ensure that the implemented logic meets
+    the expected outcomes. It is built on top of Django's database testing framework, leveraging
+    factories to generate test data.
+
+    Attributes:
+        detail_url_name: str
+            The name of the detail resource URL to be used within the test.
+        factory: FactorySubClass
+            The factory class responsible for creating carrier test instances.
+    """
+
+    __test__ = True
+    detail_url_name = "carrier_resources"
+    factory = CarrierFactory
+
+    def test_retrieve_resources(self) -> None:
+        TruckFactory.create_batch(3, carrier=self.obj)
+        DriverFactory.create_batch(2, carrier=self.obj)
+
+        self._get_resources_logic(expected_trucks=3, expected_drivers=2)
