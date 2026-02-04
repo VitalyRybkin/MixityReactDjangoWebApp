@@ -113,8 +113,12 @@ class TruckBaseSerializer(serializers.ModelSerializer):
 
     def to_representation(self, instance: Truck) -> dict:
         ret = super().to_representation(instance)
-        ret["truck_type"] = TruckTypeSerializer(instance.truck_type).data
-        ret["capacity"] = TruckCapacitySerializer(instance.capacity).data
+        ret["truckType"] = TruckTypeSerializer(
+            instance.truck_type, context=self.context
+        ).data
+        ret["capacity"] = TruckCapacitySerializer(
+            instance.capacity, context=self.context
+        ).data
         return ret
 
 

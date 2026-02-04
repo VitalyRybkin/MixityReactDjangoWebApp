@@ -1,5 +1,4 @@
 from django.db import models
-from rest_framework.reverse import reverse
 
 
 class TruckType(models.Model):
@@ -22,9 +21,6 @@ class TruckType(models.Model):
         indexes = [models.Index(fields=["name"])]
         verbose_name = "Truck Type"
         verbose_name_plural = "Truck Types"
-
-    def get_absolute_url(self) -> str:
-        return reverse("truck_types_details", kwargs={"pk": self.pk})
 
     def __str__(self) -> str:
         return f"Тип ТС - {self.name}"
