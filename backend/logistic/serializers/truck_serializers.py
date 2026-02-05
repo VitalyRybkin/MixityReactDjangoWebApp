@@ -27,15 +27,17 @@ class CarrierNestedSerializer(serializers.ModelSerializer):
 
 class TruckTypeSerializer(serializers.ModelSerializer):
     """
-    Serializer class for the TruckType model.
+    Serializer for handling TruckType model.
 
-    Serializing and deserializing the TruckType model
-    data into appropriate formats, allowing for easy data transmission and validation
-    when interacting with API endpoints.
+    This serializer converts TruckType model instances to JSON representations
+    and vice versa, facilitating data transfer and validation for the TruckType
+    resource. It is built on Django Rest Framework's ModelSerializer and provides
+    custom handling for truckType field mapping and uniqueness validation.
 
-    :ivar truckType: A string representation of the truck type. This is sourced
-                     from the `truck_type` field of the TruckType model.
-    :type truckType: str
+    Attributes
+    ----------
+    truckType: A string representation of the truck type. This is sourced
+               from the `name` field of the TruckType model.
     """
 
     truckType = serializers.CharField(
@@ -50,48 +52,40 @@ class TruckTypeSerializer(serializers.ModelSerializer):
 class TruckCapacitySerializer(serializers.ModelSerializer):
     """
     Serializer for representing and validating data related to truck capacity.
-
-    Used for serializing and deserializing `TruckCapacity` model instances.
-    It leverages Django REST Framework's `ModelSerializer` to automatically generate
-    fields and validation logic based on the defined model. The primary purpose of this
-    serializer is to facilitate seamless data exchange between the application and
-    external clients.
-
-    :ivar Meta.model: Specifies the model (`TruckCapacity`) associated with this serializer.
-    :type Meta.model: type
-    :ivar Meta.fields: Defines the fields of the model to be included in the serializer.
-                       In this case, all fields of the `TruckCapacity` model are included.
-    :type Meta.fields: str
     """
+
+    capacity = serializers.DecimalField(
+        max_digits=2,
+        decimal_places=1,
+        help_text="Truck capacity in tons",
+    )
 
     class Meta:
         model = TruckCapacity
-        fields = "__all__"
+        fields = [
+            "id",
+            "capacity",
+            "description",
+        ]
 
 
 class TruckBaseSerializer(serializers.ModelSerializer):
     """
-    Serializing and deserializing the Truck model objects, ensuring that the data conforms to the
-    expected format and includes the necessary validations where applicable.
+    Serializes and validates Truck model data for input and output operations.
 
-    Attributes:
-        licensePlate: A CharField that serializes the `license_plate`
-            field in the Truck model and validates its uniqueness.
-        truckType: A PrimaryKeyRelatedField validating and referencing the
-            `TruckType` model.
-        capacity: A PrimaryKeyRelatedField validating and referencing the
-            `TruckCapacity` model.
-
-    Methods:
-        to_representation: Overrides the default method to provide a
-            custom serialization format for the `type` and `capacity`
-            fields by including their full serialized details.
+    Attributes
+        licensePlate : CharField
+            Represents the serialized Truck model's `license_plate` field. A unique
+            validator ensures that duplicate values are rejected.
+        truckType : PrimaryKeyRelatedField
+            Maps the serialized `truck_type` field from the Truck model to its
+            corresponding primary key representation.
+        capacity : PrimaryKeyRelatedField
+            Maps the serialized `capacity` field for storing the truck capacity
+            as a primary key from the TruckCapacity model.
 
     Meta:
-        model: The Truck model to serialize.
-        fields: Defines the fields to include in the serialization process,
-            specifically ["id", "type", "capacity", "licensePlate",
-            "description"].
+        fields: Specifies the list of fields to be included in the serialized data.
     """
 
     licensePlate = serializers.CharField(
@@ -107,31 +101,19 @@ class TruckBaseSerializer(serializers.ModelSerializer):
         model = Truck
         fields = ["id", "truckType", "capacity", "licensePlate", "description"]
 
-    def to_representation(self, instance: Truck) -> dict:
-        ret = super().to_representation(instance)
-        ret["truckType"] = TruckTypeSerializer(
-            instance.truck_type, context=self.context
-        ).data
-        ret["capacity"] = TruckCapacitySerializer(
-            instance.capacity, context=self.context
-        ).data
-        return ret
-
 
 class TruckSerializer(TruckBaseSerializer):
     """
-    An extension of the TruckBaseSerializer and is designed to handle
-    serialization and deserialization of Truck objects, specifically their relationship
-    with Carrier objects. The `to_representation` method ensures that the `carrier`
-    field is represented using a nested serializer for detailed output.
+    Serializer for the Truck model that inherits common functionality and fields from
+    TruckBaseSerializer.
 
     Attributes:
-        carrier: A PrimaryKeyRelatedField linking the Truck to a Carrier object
-            using its primary key.
+        carrier: A PrimaryKeyRelatedField that references Carrier instances, typically
+            used for managing the relationship between a Truck and its associated Carrier.
 
-    Methods:
-        to_representation(instance): Overridden method to customize the representation
-            of the carrier field using a nested serializer.
+    Meta:
+        fields: Includes all fields from TruckBaseSerializer.Meta.fields along with
+            the additional `carrier` field.
     """
 
     carrier = serializers.PrimaryKeyRelatedField(queryset=Carrier.objects.all())
@@ -139,7 +121,53 @@ class TruckSerializer(TruckBaseSerializer):
     class Meta(TruckBaseSerializer.Meta):
         fields = TruckBaseSerializer.Meta.fields + ["carrier"]
 
-    def to_representation(self, instance: Truck) -> dict:
-        ret = super().to_representation(instance)
-        ret["carrier"] = CarrierNestedSerializer(instance.carrier).data
-        return ret
+
+class TruckBaseReadSerializer(serializers.ModelSerializer):
+    """
+    Serializer for reading TruckBase details.
+
+    This serializer is designed to convert Truck model instances into a readable
+    format specifically for data retrieval operations. It facilitates the
+    serialization of essential attributes of the Truck model, supporting nested
+    serialization for related models like truckType and capacity. Each field is
+    read-only to ensure data integrity during read operations.
+
+    Attributes:
+        licensePlate: A read-only field corresponding to the license_plate
+            attribute of the Truck model.
+        truckType: A nested serializer for retrieving details from the
+            TruckType model.
+        capacity: A nested serializer for retrieving details from the TruckCapacity
+            model.
+
+    Meta:
+        model: Defines the Truck model to be serialized.
+        fields: Specifies the list of fields to be included in the serialized data.
+    """
+
+    licensePlate = serializers.CharField(source="license_plate", read_only=True)
+
+    truckType = TruckTypeSerializer(source="truck_type", read_only=True)
+    capacity = TruckCapacitySerializer(read_only=True)
+
+    class Meta:
+        model = Truck
+        fields = ["id", "truckType", "capacity", "licensePlate", "description"]
+
+
+class TruckReadSerializer(TruckBaseReadSerializer):
+    """
+    Handles serialization for reading Truck objects.
+
+    Attributes:
+        carrier (CarrierNestedSerializer): A nested serializer providing read-only
+                                           access to the associated carrier details.
+
+    Meta:
+        fields: Specifies the list of fields to be included in the serialized data.
+    """
+
+    carrier = CarrierNestedSerializer(read_only=True)
+
+    class Meta(TruckBaseReadSerializer.Meta):
+        fields = TruckBaseReadSerializer.Meta.fields + ["carrier"]

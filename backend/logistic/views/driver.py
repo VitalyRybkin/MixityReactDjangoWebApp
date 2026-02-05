@@ -12,16 +12,12 @@ from logistic.serializers.driver_serializers import DriverSerializer
 @driver_list_create_schema
 class DriverListCreateAPIView(generics.ListCreateAPIView):
     """
-    Handles listing and creating driver instances.
+    API view for listing and creating Driver objects.
 
-    :ivar queryset: Queryset containing all driver objects.
-    :type queryset: QuerySet
-    :ivar serializer_class: Serializer class used to serialize and deserialize
-        driver data.
-    :type serializer_class: type
-    :ivar permission_classes: List of permission classes specifying access rules
-        for the view.
-    :type permission_classes: list
+    Attributes:
+        queryset: A Django queryset representing all Driver objects in the database.
+        serializer_class: The serializer used to validate and serialize Driver data.
+        permission_classes: A list of permission classes specifying access control.
     """
 
     queryset = Driver.objects.all()
@@ -32,17 +28,12 @@ class DriverListCreateAPIView(generics.ListCreateAPIView):
 @driver_retrieve_update_destroy_schema
 class DriverRetrieveUpdateDestroyAPIView(generics.RetrieveUpdateDestroyAPIView):
     """
-    Defines a view for retrieving, updating, or deleting a Driver instance.
+    Provides detailed functionality for retrieving, updating, or deleting a Driver instance.
 
-    :ivar queryset: A queryset of Driver instances available for retrieval,
-        updates, or deletions.
-    :type queryset: QuerySet
-    :ivar serializer_class: The serializer class used to validate and transform
-        Driver instances.
-    :type serializer_class: type
-    :ivar permission_classes: The list of permission classes that determine
-        access control for this view.
-    :type permission_classes: list
+    Attributes:
+        queryset: Queryset of all Driver objects to retrieve from the database.
+        serializer_class: Serializer class used for handling Driver data.
+        permission_classes: List of permission classes governing API access.
     """
 
     queryset = Driver.objects.all()

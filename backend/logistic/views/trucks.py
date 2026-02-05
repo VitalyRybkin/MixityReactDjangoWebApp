@@ -1,5 +1,9 @@
-from rest_framework import generics
+from typing import Any
+
+from rest_framework import generics, status
 from rest_framework.permissions import AllowAny
+from rest_framework.request import Request
+from rest_framework.response import Response
 
 from logistic.models import Truck, TruckCapacity, TruckType
 from logistic.schemas.schema_trucks import (
@@ -12,6 +16,7 @@ from logistic.schemas.schema_trucks import (
 )
 from logistic.serializers.truck_serializers import (
     TruckCapacitySerializer,
+    TruckReadSerializer,
     TruckSerializer,
     TruckTypeSerializer,
 )
@@ -20,65 +25,80 @@ from logistic.serializers.truck_serializers import (
 @truck_list_create_schema
 class TruckListCreateAPIView(generics.ListCreateAPIView):
     """
-    Handles listing and creating `Truck` objects.
+    View responsible for listing and creating Truck objects.
 
-    Provides functionality to list all existing `Truck`
-    objects and create new `Truck` objects. Uses Django REST Framework's
-    `ListCreateAPIView` to combine both of these actions into a single view.
-    Data serialization is handled through the specified serializer class, and
-    access control is managed through the assigned permission classes.
-
-    :ivar queryset: The queryset which retrieves all `Truck` objects from the
-        database.
-    :type queryset: QuerySet
-    :ivar serializer_class: The serializer class used to handle serialization
-        and deserialization of `Truck` instances.
-    :type serializer_class: Type[Serializer]
-    :ivar permission_classes: The list of permission classes used to define
-        access control for this view.
-    :type permission_classes: list
+    Attributes:
+        queryset: A QuerySet of Truck objects with related fields `truck_type`,
+        `capacity`, and `carrier` preloaded for efficient data retrieval.
     """
 
-    queryset = Truck.objects.all()
-    serializer_class = TruckSerializer
+    queryset = Truck.objects.select_related("truck_type", "capacity", "carrier")
     permission_classes = [AllowAny]
+
+    def get_serializer_class(self) -> type[TruckReadSerializer | TruckSerializer]:
+        if self.request.method == "GET":
+            return TruckReadSerializer
+        return TruckSerializer
+
+    def create(self, request: Request, *args: Any, **kwargs: Any) -> Response:
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        obj = serializer.save()
+
+        data = TruckReadSerializer(obj, context={"request": request}).data
+        return Response(data, status=status.HTTP_201_CREATED)
 
 
 @truck_retrieve_update_destroy_schema
 class TruckRetrieveUpdateDestroyAPIView(generics.RetrieveUpdateDestroyAPIView):
     """
-    Handles retrieving, updating, or deleting a `Truck` object.
+    Handles retrieval, updating, and deletion of Truck objects.
 
-    :ivar queryset: Queryset containing all Truck objects available for
-        retrieval, update, or deletion.
-    :type queryset: QuerySet[Truck]
-
-    :ivar permission_classes: List of permission classes for the view. This
-        determines who can interact with the API endpoint.
-    :type permission_classes: list
-
-    :ivar serializer_class: Serializer class used for serializing and
-        deserializing Truck objects.
-    :type serializer_class: Serializer
+    Attributes:
+        queryset: A queryset that prefetches related fields for optimized
+                  database queries. Specifically includes related truck_type,
+                  capacity, and carrier for each Truck instance.
     """
 
-    queryset = Truck.objects.all()
+    queryset = Truck.objects.select_related("truck_type", "capacity", "carrier")
     permission_classes = [AllowAny]
-    serializer_class = TruckSerializer
+
+    def get_serializer_class(self) -> type[TruckReadSerializer | TruckSerializer]:
+        if self.request.method == "GET":
+            return TruckReadSerializer
+        return TruckSerializer
+
+    def update(self, request: Request, *args: Any, **kwargs: Any) -> Response:
+        partial = kwargs.pop("partial", False)
+        instance = self.get_object()
+
+        serializer = self.get_serializer(instance, data=request.data, partial=partial)
+        serializer.is_valid(raise_exception=True)
+        obj = serializer.save()
+
+        data = TruckReadSerializer(obj, context={"request": request}).data
+        return Response(data, status=status.HTTP_200_OK)
+
+    def destroy(self, request: Request, *args: Any, **kwargs: Any) -> Response:
+        instance = self.get_object()
+        self.perform_destroy(instance)
+
+        data = TruckReadSerializer(instance, context={"request": request}).data
+        return Response(data, status=status.HTTP_200_OK)
 
 
 @truck_capacity_list_create_schema
 class TruckCapacitiesListCreateAPIView(generics.ListCreateAPIView):
     """
-    Handles listing and creating `TruckCapacity` objects.
+    Handling the listing and creation of truck capacity records.
 
-    :ivar queryset: The queryset representing all truck capacity objects.
-    :type queryset: QuerySet[TruckCapacity]
-    :ivar serializer_class: The serializer class used for validation and serialization of
-        truck capacity data.
-    :type serializer_class: Serializer
-    :ivar permission_classes: List of permission classes that define access control for the view.
-    :type permission_classes: list
+    Attributes:
+        queryset: Specifies the model queryset for retrieving truck capacity
+        objects.
+        serializer_class: Defines the serializer to be used to validate and
+        transform truck capacity data.
+        permission_classes: Lists the permissions required to access the API,
+        allowing unrestricted access in this case.
     """
 
     queryset = TruckCapacity.objects.all()
@@ -93,15 +113,13 @@ class TruckCapacitiesRetrieveUpdateDestroyAPIView(
     """
     Handles retrieving, updating, or deleting a `TruckCapacity` object.
 
-    :ivar queryset: Queryset containing all instances of the `TruckCapacity` model.
-        Used to fetch, update, or delete records.
-    :type queryset: QuerySet[TruckCapacity]
-    :ivar permission_classes: List of permission classes that define access control
-        for the view. Allows unrestricted access in this implementation.
-    :type permission_classes: list
-    :ivar serializer_class: Serializer class used to validate, serialize, and deserialize
-        data sent to or received from the `TruckCapacity` model.
-    :type serializer_class: type
+    Attributes:
+        queryset: Specifies the model queryset for retrieving truck capacity
+        objects.
+        serializer_class: Defines the serializer to be used to validate and
+        transform truck capacity data.
+        permission_classes: Lists the permissions required to access the API,
+        allowing unrestricted access in this case.
     """
 
     queryset = TruckCapacity.objects.all()
@@ -114,14 +132,13 @@ class TruckTypesListCreateAPIView(generics.ListCreateAPIView):
     """
     Handles listing and creating `TruckType` objects.
 
-    :ivar queryset: A queryset containing all truck type objects in the system.
-    :type queryset: QuerySet[TruckType]
-    :ivar serializer_class: The serializer class used for truck type input
-        validation and representation.
-    :type serializer_class: type
-    :ivar permission_classes: A list of permission classes applied to this
-        view. This permits unrestricted access to the endpoint.
-    :type permission_classes: list
+    Attributes:
+        queryset: Specifies the model queryset for retrieving truck type
+        objects.
+        serializer_class: Defines the serializer to be used to validate and
+        transform truck type data.
+        permission_classes: Lists the permissions required to access the API,
+        allowing unrestricted access in this case.
     """
 
     queryset = TruckType.objects.all()
@@ -132,21 +149,15 @@ class TruckTypesListCreateAPIView(generics.ListCreateAPIView):
 @truck_type_retrieve_update_destroy_schema
 class TruckTypeRetrieveUpdateDestroyAPIView(generics.RetrieveUpdateDestroyAPIView):
     """
-    Handles retrieval, update, and deletion of a specific `TruckType` instance.
+    Handles retrieving, updating, or deleting a `TruckType` object.
 
-    :ivar queryset: A QuerySet containing all instances of the TruckType model.
-                    Used to determine which TruckType instances can be managed
-                    by this view.
-    :type queryset: QuerySet[TruckType]
-    :ivar permission_classes: A list of permissions that determines whether a
-                              request is allowed to interact with this view.
-                              By default, it uses AllowAny, meaning all requests
-                              are permitted.
-    :type permission_classes: list
-    :ivar serializer_class: The serializer class responsible for transforming
-                            TruckType model instances into JSON representations
-                            and validating incoming data.
-    :type serializer_class: type
+    Attributes:
+        queryset: Specifies the model queryset for retrieving truck type
+        objects.
+        serializer_class: Defines the serializer to be used to validate and
+        transform truck type data.
+        permission_classes: Lists the permissions required to access the API,
+        allowing unrestricted access in this case.
     """
 
     queryset = TruckType.objects.all()

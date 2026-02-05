@@ -1,76 +1,32 @@
 from rest_framework import serializers
 
-from logistic.models import Carrier, Truck
+from logistic.models import Carrier
 from logistic.serializers.driver_serializers import DriverSerializer
 from logistic.serializers.truck_serializers import (
+    TruckBaseReadSerializer,
     TruckBaseSerializer,
-    TruckCapacitySerializer,
-    TruckTypeSerializer,
 )
-
-
-class TruckNestedSerializer(serializers.ModelSerializer):
-    """
-    Serializer for representing nested Truck objects.
-
-    Serves the purpose of converting Truck model instances into
-    nested JSON representations and vice versa. It includes related fields, such
-    as the truck type and capacity, which are serialized using their respective
-    serializers. Additionally, it maps the `license_plate` field from the model
-    to `licensePlate` in the serialized output.
-
-    Attributes:
-        licensePlate (str): The license plate of the truck, mapped from the
-            `license_plate` field in the model.
-        type (TruckTypeSerializer): Nested serializer representing the truck's
-            type details.
-        capacity (TruckCapacitySerializer): Nested serializer representing the
-            truck's capacity details.
-
-    Meta:
-        model: Defines the Truck model as the source of the data for the serializer.
-        fields: Specifies the fields to be included in the serialized representation,
-            which are "id", "type", "capacity", "licensePlate", and "description".
-    """
-
-    licensePlate = serializers.CharField(source="license_plate")
-    type = TruckTypeSerializer()
-    capacity = TruckCapacitySerializer()
-
-    class Meta:
-        model = Truck
-        fields = [
-            "id",
-            "type",
-            "capacity",
-            "licensePlate",
-            "description",
-        ]
 
 
 class CarrierSerializer(serializers.ModelSerializer):
     """
-    Serializer for representing the Carrier model and its related data.
+    Serializer for the Carrier model.
 
-    Used to serialize and deserialize the Carrier model
-    data. It includes fields relevant for transferring data via API endpoints,
-    along with nested serialization for related models, such as trucks. This
-    serializer provides a structured way to transform Carrier model instances into JSON
-    and validate incoming data.
+    Attributes:
+        isActive (serializers.BooleanField): Represents the 'is_active' status of
+            the Carrier model, mapped and exposed as 'isActive' in the serialized
+            data. This field is read-only.
+        fullName (serializers.CharField): Represents the 'full_name' field of the
+            Carrier model, exposed as 'fullName' in the serialized data. Used to
+            display full carrier names.
+        carrier_trucks (TruckBaseSerializer): A nested read-only serializer for
+            displaying related Truck instances in association with the carrier.
 
-    Attributes
-    ----------
-    isActive : bool
-        Indicates whether the carrier is active. This is sourced from the 'is_active'
-        field on the Carrier model. The field is read-only to prevent accidental updates.
-
-    fullName : str
-        The full name of the carrier. This is sourced from the 'full_name' field on
-        the Carrier model.
-
-    carrier_trucks : TruckNestedSerializer
-        A nested serializer for representing related Truck instances. Handles multiple
-        truck objects associated with a carrier.
+    Meta:
+        model (Carrier): Specifies the Carrier model for serialization.
+        fields (list): Defines the fields to be included in the serialization
+            process: 'id', 'name', 'fullName', 'address', 'description',
+            'isActive', and 'carrier_trucks'.
     """
 
     isActive = serializers.BooleanField(source="is_active", read_only=True)
@@ -94,16 +50,10 @@ class CarrierResourcesSerializer(serializers.Serializer):
     """
     Serializer for representing carrier resources data.
 
-    Serialize and deserialize carrier resources data, including
-    associated truck information. This serializer is designed for API
-    endpoints that require detailed carrier resource information.
+    Attributes:
+        trucks (TruckBaseReadSerializer): Serializer for displaying related Truck instances.
+        drivers (DriverSerializer): Serializer for displaying related Driver instances.
     """
 
-    def to_representation(self, instance: dict) -> dict:
-        trucks = instance["trucks"]
-        drivers = instance["drivers"]
-
-        return {
-            "trucks": TruckBaseSerializer(trucks, many=True, context=self.context).data,
-            "drivers": DriverSerializer(drivers, many=True, context=self.context).data,
-        }
+    trucks = TruckBaseReadSerializer(many=True, read_only=True)
+    drivers = DriverSerializer(many=True, read_only=True)

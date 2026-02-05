@@ -14,8 +14,7 @@ driver_list_create_schema = extend_schema_view(
         summary="List drivers",
         tags=["Diver"],
         responses={200: DriverSerializer(many=True), **ERRORS_READ},
-        description="""
-        Handles listing `Diver` objects. Provides functionality to list all existing `Diver` objects.
+        description="""Handles listing `Diver` objects. Provides functionality to list all existing `Diver` objects.
         """,
     ),
     post=extend_schema(
@@ -23,8 +22,7 @@ driver_list_create_schema = extend_schema_view(
         summary="Create a new driver",
         tags=["Diver"],
         responses={201: DriverSerializer, **ERRORS_WRITE},
-        description="""
-        Handles creating `Diver` objects. Provides functionality to create new `Diver` object.
+        description="""Handles creating `Diver` objects. Provides functionality to create new `Diver` object.
         """,
     ),
 )
@@ -35,8 +33,8 @@ driver_retrieve_update_destroy_schema = extend_schema_view(
         summary="Retrieve a driver",
         tags=["Diver"],
         responses={200: OpenApiResponse(response=DriverSerializer), **ERRORS_DETAIL},
-        description="""
-        Handles retrieving a single Diverk` object. Provides functionality to retrieve a single `Diver` object by ID.
+        description="""Handles retrieving a single `Driver` object.
+        Provides functionality to retrieve a single `Diver` object by ID.
         """,
     ),
     patch=extend_schema(
@@ -47,9 +45,8 @@ driver_retrieve_update_destroy_schema = extend_schema_view(
             200: OpenApiResponse(response=DriverSerializer),
             **ERRORS_DETAIL_WRITE,
         },
-        description="""
-        Handles updating a single `Diver` object.
-        Provides functionality to update a single `Diver` object by ID.
+        description="""Handles partially updating a single `Driver` object.
+        Provides functionality to partially update a single `Diver` object by ID.
         """,
     ),
     put=extend_schema(exclude=True),
@@ -58,8 +55,7 @@ driver_retrieve_update_destroy_schema = extend_schema_view(
         summary="Deactivate (soft delete) a driver",
         tags=["Diver"],
         responses={200: OpenApiResponse(response=DriverSerializer), **ERRORS_DETAIL},
-        description="""
-        Handles deleting a single `Diver` object.
+        description="""Handles deleting a single `Diver` object.
         Provides functionality to delete a single `Diver` object by ID.
         """,
     ),

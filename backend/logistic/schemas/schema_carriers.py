@@ -21,8 +21,8 @@ carrier_list_create_schema = extend_schema_view(
         summary="List carriers",
         tags=["Carrier"],
         responses={200: CarrierSerializer(many=True), **ERRORS_READ},
-        description="""
-        Handles listing `Carrier` objects. Provides functionality to list all active `Carrier` objects.
+        description="""Handles listing `Carrier` objects.
+        Provides functionality to list all active `Carrier` objects.
         """,
     ),
     post=extend_schema(
@@ -30,8 +30,7 @@ carrier_list_create_schema = extend_schema_view(
         summary="Create a new carrier",
         tags=["Carrier"],
         responses={201: CarrierSerializer, **ERRORS_WRITE},
-        description="""
-        Handles creating a new `Carrier` object.
+        description="""Handles creating a new `Carrier` object.
         Provides functionality to create a new `Carrier` object with specified data.
         """,
     ),
@@ -46,8 +45,8 @@ carrier_resources_schema = extend_schema_view(
             200: CarrierResourcesSerializer,
             **ERRORS_READ,
         },
-        description="""
-        Handles listing `Carrier` resources. Provides functionality to list all active `Carrier` resources.
+        description="""Handles listing `Carrier` resources.
+        Provides functionality to list all active `Carrier` resources.
         """,
     ),
 )
@@ -58,8 +57,7 @@ carrier_retrieve_update_destroy_schema = extend_schema_view(
         summary="Retrieve a carrier",
         tags=["Carrier"],
         responses={200: OpenApiResponse(response=CarrierSerializer), **ERRORS_DETAIL},
-        description="""
-        Handles retrieving a single `Carrier` object.
+        description="""Handles retrieving a single `Carrier` object.
         Provides functionality to retrieve a single `Carrier` object by ID.
         Returns a `CarrierSerializer` instance representing the requested `Carrier` object.
         """,
@@ -72,8 +70,7 @@ carrier_retrieve_update_destroy_schema = extend_schema_view(
             200: OpenApiResponse(response=CarrierSerializer),
             **ERRORS_DETAIL_WRITE,
         },
-        description="""
-        Handles partially updating a single `Carrier` object.
+        description="""Handles partially updating a single `Carrier` object.
         Provides functionality to partially update a single `Carrier` object by ID.
         """,
     ),
@@ -83,8 +80,7 @@ carrier_retrieve_update_destroy_schema = extend_schema_view(
         summary="Deactivate (soft delete) a carrier",
         tags=["Carrier"],
         responses={200: OpenApiResponse(response=CarrierSerializer), **ERRORS_DETAIL},
-        description="""
-        Handles deactivating (soft deleting) a single `Carrier` object.
+        description="""Handles deactivating (soft deleting) a single `Carrier` object.
         Provides functionality to deactivate a single `Carrier` object by ID.
         """,
     ),
