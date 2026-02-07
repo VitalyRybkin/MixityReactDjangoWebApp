@@ -38,6 +38,9 @@ truck_list_create_schema = extend_schema_view(
         summary="List trucks",
         tags=["Truck"],
         responses={200: TruckReadSerializer(many=True), **ERRORS_READ},
+        description="""Handles listing `Truck` objects.
+        Provides functionality to list all existing `Trucks`.
+        """,
     ),
     post=extend_schema(
         operation_id="createTruck",
@@ -45,8 +48,8 @@ truck_list_create_schema = extend_schema_view(
         tags=["Truck"],
         request=TruckSerializer,
         responses={201: TruckReadSerializer, **ERRORS_WRITE},
-        description="""Handles creating a new truck.
-        Provides functionality to create a new truck with specified data.
+        description="""Handles creating a new `Truck` object.
+        Provides functionality to create a new `Truck` with specified data.
         """,
     ),
 )
@@ -57,6 +60,9 @@ truck_retrieve_update_destroy_schema = extend_schema_view(
         summary="Retrieve a truck",
         tags=["Truck"],
         responses={200: OpenApiResponse(response=TruckReadSerializer), **ERRORS_DETAIL},
+        description="""Handles retrieving a single `Truck` object.
+        Provides functionality to retrieve details of a specific `Truck`.
+        """,
     ),
     patch=extend_schema(
         operation_id="patchTruck",
@@ -67,8 +73,8 @@ truck_retrieve_update_destroy_schema = extend_schema_view(
             200: OpenApiResponse(response=TruckReadSerializer),
             **ERRORS_DETAIL_WRITE,
         },
-        description="""Handles partially updating a single truck.
-        Provides functionality to partially update a single truck by ID.
+        description="""Handles partially updating a single `Truck` object.
+        Provides functionality to partially update a single `Truck`  by ID.
         """,
     ),
     put=extend_schema(exclude=True),
@@ -77,8 +83,8 @@ truck_retrieve_update_destroy_schema = extend_schema_view(
         summary="Deactivate (soft delete) a truck",
         tags=["Truck"],
         responses={200: OpenApiResponse(response=TruckReadSerializer), **ERRORS_DETAIL},
-        description="""Handles deactivating a single truck.
-        Provides functionality to deactivate a single truck by ID.
+        description="""Handles deactivating a single `Truck` object.
+        Provides functionality to deactivate a single `Truck` by ID.
         """,
     ),
 )
