@@ -4,7 +4,6 @@ from logistic.models import Carrier
 from logistic.serializers.driver_serializers import DriverSerializer
 from logistic.serializers.truck_serializers import (
     TruckBaseReadSerializer,
-    TruckBaseSerializer,
 )
 
 
@@ -19,7 +18,7 @@ class CarrierSerializer(serializers.ModelSerializer):
         fullName (serializers.CharField): Represents the 'full_name' field of the
             Carrier model, exposed as 'fullName' in the serialized data. Used to
             display full carrier names.
-        carrier_trucks (TruckBaseSerializer): A nested read-only serializer for
+        trucks (TruckBaseSerializer): A nested read-only serializer for
             displaying related Truck instances in association with the carrier.
 
     Meta:
@@ -31,7 +30,7 @@ class CarrierSerializer(serializers.ModelSerializer):
 
     isActive = serializers.BooleanField(source="is_active", read_only=True)
     fullName = serializers.CharField(source="full_name")
-    carrier_trucks = TruckBaseSerializer(many=True, read_only=True)
+    trucks = TruckBaseReadSerializer(many=True, read_only=True)
 
     class Meta:
         model = Carrier
@@ -42,7 +41,7 @@ class CarrierSerializer(serializers.ModelSerializer):
             "address",
             "description",
             "isActive",
-            "carrier_trucks",
+            "trucks",
         ]
 
 

@@ -16,7 +16,8 @@ from logistic.schemas.schema_errors import (
     ERRORS_WRITE,
 )
 from logistic.serializers.truck_serializers import (
-    TruckCapacitySerializer,
+    TruckCapacityReadSerializer,
+    TruckCapacityWriteSerializer,
     TruckReadSerializer,
     TruckSerializer,
     TruckTypeSerializer,
@@ -94,7 +95,7 @@ truck_capacity_list_create_schema = extend_schema_view(
         operation_id="listTruckCapacities",
         summary="List truck capacities",
         tags=["TruckCapacity"],
-        responses={200: TruckCapacitySerializer(many=True), **ERRORS_READ},
+        responses={200: TruckCapacityReadSerializer(many=True), **ERRORS_READ},
         description="""Handles listing `TruckCapacity` objects.
         Provides functionality to list all existing `TruckCapacity` objects.
         """,
@@ -103,7 +104,7 @@ truck_capacity_list_create_schema = extend_schema_view(
         operation_id="createTruckCapacity",
         summary="Create a new truck capacity",
         tags=["TruckCapacity"],
-        responses={201: TruckCapacitySerializer, **ERRORS_WRITE},
+        responses={201: TruckCapacityWriteSerializer, **ERRORS_WRITE},
         description="""Handles creating a new `TruckCapacity` object.
         Provides functionality to create a new `TruckCapacity` object with specified data.
         """,
@@ -116,7 +117,7 @@ truck_capacity_retrieve_update_destroy_schema = extend_schema_view(
         summary="Retrieve a truck capacity",
         tags=["TruckCapacity"],
         responses={
-            200: OpenApiResponse(response=TruckCapacitySerializer),
+            200: OpenApiResponse(response=TruckCapacityReadSerializer),
             **ERRORS_DETAIL,
         },
         description="""Handles retrieving a single `TruckCapacity` object.
@@ -128,7 +129,7 @@ truck_capacity_retrieve_update_destroy_schema = extend_schema_view(
         summary="Partially update a truck capacity",
         tags=["TruckCapacity"],
         responses={
-            200: OpenApiResponse(response=TruckCapacitySerializer),
+            200: OpenApiResponse(response=TruckCapacityWriteSerializer),
             **ERRORS_DETAIL_WRITE,
         },
         description="""Handles partially updating a single `TruckCapacity` object.
@@ -141,7 +142,7 @@ truck_capacity_retrieve_update_destroy_schema = extend_schema_view(
         summary="Deactivate (soft delete) a truck capacity",
         tags=["TruckCapacity"],
         responses={
-            200: OpenApiResponse(response=TruckCapacitySerializer),
+            200: OpenApiResponse(response=TruckCapacityWriteSerializer),
             **ERRORS_DETAIL,
         },
         description="""Handles deactivating a single `TruckCapacity` object.

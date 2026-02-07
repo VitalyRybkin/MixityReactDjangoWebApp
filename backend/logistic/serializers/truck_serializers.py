@@ -1,3 +1,4 @@
+from drf_spectacular.utils import extend_schema_field
 from rest_framework import serializers
 from rest_framework.validators import UniqueValidator
 
@@ -8,14 +9,13 @@ class CarrierNestedSerializer(serializers.ModelSerializer):
     """
     Serializer class for representing a carrier with nested serialization fields.
 
-    Transforms and validates data related to the `Carrier` model
-    when performing serialization and deserialization in the context of APIs. It
-    maps specific model fields to serializer fields and allows exposing a boolean
-    representation of the carrier's active status.
+    Attributes:
+        isActive: Indicates whether the carrier is active. This is mapped
+            to the `is_active` field in the `Carrier` model.
 
-    :ivar isActive: Indicates whether the carrier is active. This is mapped
-        to the `is_active` field in the `Carrier` model.
-    :type isActive: bool
+    Meta:
+        fields: Defines the list of fields to be included in the serialized data.
+        model: Defines the model class `Carrier` to be serialized.
     """
 
     isActive = serializers.BooleanField(source="is_active")
@@ -27,15 +27,9 @@ class CarrierNestedSerializer(serializers.ModelSerializer):
 
 class TruckTypeSerializer(serializers.ModelSerializer):
     """
-    Serializer for handling TruckType model.
-
-    This serializer converts TruckType model instances to JSON representations
-    and vice versa, facilitating data transfer and validation for the TruckType
-    resource. It is built on Django Rest Framework's ModelSerializer and provides
-    custom handling for truckType field mapping and uniqueness validation.
+    Serializer for handling `TruckType` model.
 
     Attributes
-    ----------
     truckType: A string representation of the truck type. This is sourced
                from the `name` field of the TruckType model.
     """
@@ -49,29 +43,52 @@ class TruckTypeSerializer(serializers.ModelSerializer):
         fields = ["id", "truckType", "description"]
 
 
-class TruckCapacitySerializer(serializers.ModelSerializer):
+class TruckCapacityReadSerializer(serializers.ModelSerializer):
     """
-    Serializer for representing and validating data related to truck capacity.
+    Serializer for handling read `TruckCapacity` data.
+
+    Attributes
+    capacity : SerializerMethodField
+        A computed field that retrieves and formats the capacity value as a string.
+
+    Meta:
+        fields: Defines the list of fields to be included in the serialized data.
+        model: Defines the model class `TruckCapacity` to be serialized.
     """
 
-    capacity = serializers.DecimalField(
-        max_digits=2,
-        decimal_places=1,
-        help_text="Truck capacity in tons",
-    )
+    capacity = serializers.SerializerMethodField()
+
+    @extend_schema_field({"type": "string", "example": "2.5"})
+    def get_capacity(self, obj: TruckCapacity) -> str:
+        return str(obj.capacity)
 
     class Meta:
         model = TruckCapacity
-        fields = [
-            "id",
-            "capacity",
-            "description",
-        ]
+        fields = ["id", "capacity", "description"]
+
+
+class TruckCapacityWriteSerializer(serializers.ModelSerializer):
+    """
+    Serializer for handling write `TruckCapacity` data.
+
+    Attributes:
+        capacity : DecimalField
+
+    Meta:
+        fields: Defines the list of fields to be included in the serialized data.
+        model: Defines the model class `TruckCapacity` to be serialized.
+    """
+
+    capacity = serializers.DecimalField(max_digits=2, decimal_places=1)
+
+    class Meta:
+        model = TruckCapacity
+        fields = ["id", "capacity", "description"]
 
 
 class TruckBaseSerializer(serializers.ModelSerializer):
     """
-    Serializes and validates Truck model data for input and output operations.
+    Serializes and validates `Truck` model data for input and output operations.
 
     Attributes
         licensePlate : CharField
@@ -86,6 +103,7 @@ class TruckBaseSerializer(serializers.ModelSerializer):
 
     Meta:
         fields: Specifies the list of fields to be included in the serialized data.
+        model: Defines the model class `Truck` to be serialized.
     """
 
     licensePlate = serializers.CharField(
@@ -104,7 +122,7 @@ class TruckBaseSerializer(serializers.ModelSerializer):
 
 class TruckSerializer(TruckBaseSerializer):
     """
-    Serializer for the Truck model that inherits common functionality and fields from
+    Serializer for the `Truck` model that inherits common functionality and fields from
     TruckBaseSerializer.
 
     Attributes:
@@ -124,13 +142,7 @@ class TruckSerializer(TruckBaseSerializer):
 
 class TruckBaseReadSerializer(serializers.ModelSerializer):
     """
-    Serializer for reading TruckBase details.
-
-    This serializer is designed to convert Truck model instances into a readable
-    format specifically for data retrieval operations. It facilitates the
-    serialization of essential attributes of the Truck model, supporting nested
-    serialization for related models like truckType and capacity. Each field is
-    read-only to ensure data integrity during read operations.
+    Serializer for reading `TruckBase` details.
 
     Attributes:
         licensePlate: A read-only field corresponding to the license_plate
@@ -141,14 +153,14 @@ class TruckBaseReadSerializer(serializers.ModelSerializer):
             model.
 
     Meta:
-        model: Defines the Truck model to be serialized.
+        model: Defines the `Truck` model to be serialized.
         fields: Specifies the list of fields to be included in the serialized data.
     """
 
     licensePlate = serializers.CharField(source="license_plate", read_only=True)
 
     truckType = TruckTypeSerializer(source="truck_type", read_only=True)
-    capacity = TruckCapacitySerializer(read_only=True)
+    capacity = TruckCapacityReadSerializer(read_only=True)
 
     class Meta:
         model = Truck

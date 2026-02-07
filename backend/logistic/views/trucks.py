@@ -15,7 +15,8 @@ from logistic.schemas.schema_trucks import (
     truck_type_retrieve_update_destroy_schema,
 )
 from logistic.serializers.truck_serializers import (
-    TruckCapacitySerializer,
+    TruckCapacityReadSerializer,
+    TruckCapacityWriteSerializer,
     TruckReadSerializer,
     TruckSerializer,
     TruckTypeSerializer,
@@ -102,8 +103,14 @@ class TruckCapacitiesListCreateAPIView(generics.ListCreateAPIView):
     """
 
     queryset = TruckCapacity.objects.all()
-    serializer_class = TruckCapacitySerializer
     permission_classes = [AllowAny]
+
+    def get_serializer_class(
+        self,
+    ) -> type[TruckCapacityReadSerializer | TruckCapacityWriteSerializer]:
+        if self.request.method == "GET":
+            return TruckCapacityReadSerializer
+        return TruckCapacityWriteSerializer
 
 
 @truck_capacity_retrieve_update_destroy_schema
@@ -124,7 +131,7 @@ class TruckCapacitiesRetrieveUpdateDestroyAPIView(
 
     queryset = TruckCapacity.objects.all()
     permission_classes = [AllowAny]
-    serializer_class = TruckCapacitySerializer
+    serializer_class = TruckCapacityWriteSerializer
 
 
 @truck_type_list_create_schema
