@@ -12,14 +12,44 @@ urlpatterns = [
     path("api/", include("logistic.urls")),
     path("api/", include("catalog.api.urls")),
     path("", include("catalog.web.urls")),
+
+    # Global
+    path("api/schema/", SpectacularAPIView.as_view(permission_classes=[AllowAny]), name="schema"),
+    path("docs/", SpectacularSwaggerView.as_view(url_name="schema", permission_classes=[AllowAny]), name="swagger-ui"),
+
+    # Catalog-only OpenAPI
     path(
-      "api/schema/",
-      SpectacularAPIView.as_view(permission_classes=[AllowAny]),
-      name="schema",
+        "api/schema/catalog/",
+        SpectacularAPIView.as_view(
+            permission_classes=[AllowAny],
+            urlconf="catalog.api.schema_urls",
+        ),
+        name="schema-catalog",
     ),
     path(
-      "docs/",
-      SpectacularSwaggerView.as_view(url_name="schema", permission_classes=[AllowAny]),
-      name="swagger-ui",
+        "api/docs/catalog/",
+        SpectacularSwaggerView.as_view(
+            url_name="schema-catalog",
+            permission_classes=[AllowAny],
+        ),
+        name="swagger-catalog",
     ),
-    ]
+
+    # Logistic-only OpenAPI
+    path(
+        "api/schema/logistic/",
+        SpectacularAPIView.as_view(
+            permission_classes=[AllowAny],
+            urlconf="logistic.schema_urls",
+        ),
+        name="schema-logistic",
+    ),
+    path(
+        "api/docs/logistic/",
+        SpectacularSwaggerView.as_view(
+            url_name="schema-logistic",
+            permission_classes=[AllowAny],
+        ),
+        name="swagger-logistic",
+    ),
+]
