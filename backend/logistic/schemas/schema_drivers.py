@@ -1,6 +1,6 @@
 from drf_spectacular.utils import OpenApiResponse, extend_schema, extend_schema_view
 
-from logistic.schemas.schema_errors import (
+from core.openapi.errors import (
     ERRORS_DETAIL,
     ERRORS_DETAIL_WRITE,
     ERRORS_READ,
