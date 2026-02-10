@@ -30,19 +30,18 @@ class AppUnit(models.Model):
             units like "piece", "pallet" are violated.
     """
 
-    TITLE_CHOICES = [
-        ("piece", "шт"),
-        ("kilogram", "кг"),
-        ("ton", "т"),
-        ("pallet", "пал"),
-        ("%", "%"),
-        ("millimeter", "мм"),
-        ("megapascal", "МПа"),
-        ("litre", "л"),
-        ("kg/m3", "кг/м3"),
-    ]
+    class TitleChoices(models.TextChoices):
+        PIECE = "piece", "шт"
+        KILOGRAM = "kilogram", "кг"
+        TON = "ton", "т"
+        PALLET = "pallet", "пал"
+        PERCENT = "%", "%"
+        MILLIMETER = "millimeter", "мм"
+        MEGAPASCAL = "megapascal", "МПа"
+        LITRE = "litre", "л"
+        KG_PER_M3 = "kg/m3", "кг/м3"
 
-    title = models.CharField(max_length=20, choices=TITLE_CHOICES, unique=True)
+    title = models.CharField(max_length=20, choices=TitleChoices.choices, unique=True)
     is_weight_based = models.BooleanField(default=False)
     to_kg_factor = models.SmallIntegerField(default=1)
 
@@ -70,7 +69,7 @@ class AppUnit(models.Model):
                 )
 
         # non-weight units should not define global factors
-        if self.title in {"piece", "pallet"}:
+        if self.title in {"%", "pallet", "millimeter", "megapascal", "litre", "kg/m3"}:
             if self.is_weight_based:
                 raise ValidationError(
                     {"is_weight_based": f"{self.title} must NOT be weight-based"}
