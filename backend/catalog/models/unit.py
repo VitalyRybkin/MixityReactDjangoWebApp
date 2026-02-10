@@ -16,8 +16,7 @@ class AppUnit(models.Model):
     saving the instance in the database.
 
     Attributes:
-        TITLE_CHOICES: List of tuples containing the predefined choices for
-            unit titles and their corresponding labels.
+        class TitleChoices: A class containing predefined title choices for units.
         title: A string field representing the title of the unit, limited to 20
             characters and unique within the database.
         is_weight_based: A boolean field denoting if the unit is weight-based.
@@ -41,7 +40,7 @@ class AppUnit(models.Model):
         LITRE = "litre", "л"
         KG_PER_M3 = "kg/m3", "кг/м3"
 
-    title = models.CharField(max_length=20, choices=TitleChoices.choices, unique=True)
+    title = models.CharField(max_length=20, choices=TitleChoices.choices)
     is_weight_based = models.BooleanField(default=False)
     to_kg_factor = models.SmallIntegerField(default=1)
 
@@ -69,7 +68,15 @@ class AppUnit(models.Model):
                 )
 
         # non-weight units should not define global factors
-        if self.title in {"%", "pallet", "millimeter", "megapascal", "litre", "kg/m3"}:
+        if self.title in {
+            "%",
+            "pallet",
+            "millimeter",
+            "megapascal",
+            "litre",
+            "kg/m3",
+            "piece",
+        }:
             if self.is_weight_based:
                 raise ValidationError(
                     {"is_weight_based": f"{self.title} must NOT be weight-based"}
