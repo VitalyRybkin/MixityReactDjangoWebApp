@@ -8,6 +8,23 @@ from .product_unit import ProductUnit
 
 
 class Product(models.Model):
+    """
+    Represents a product in the catalog with attributes and functionalities related to its storage,
+    conversion, and representation.
+
+    Allows for detailed configuration of a product, including establishing relationships with descriptions and units.
+    Incorporates methods for calculating product-specific weights,
+    as well as converting quantities between different units of measure.
+
+    Attributes:
+        name: The name of the product.
+        title: The title or display name of the product.
+        bags_per_pallet: The number of bags per pallet for the product.
+        description: Many-to-many relationship with DescriptionItem through ProductDescription.
+        product_unit: Many-to-many relationship with AppUnit through ProductUnit.
+        product_image: ImageField for product images.
+    """
+
     name = models.CharField(max_length=100)
     title = models.CharField(max_length=255)
     bags_per_pallet = models.PositiveSmallIntegerField(null=True)
@@ -16,10 +33,10 @@ class Product(models.Model):
         related_name="product",
         through="catalog.ProductDescription",
     )
-
     product_unit = models.ManyToManyField(
         "catalog.AppUnit", through="catalog.ProductUnit"
     )
+    product_image = models.ImageField(upload_to="product_images", null=True, blank=True)
 
     def _bag_kg(self) -> Decimal:
         """

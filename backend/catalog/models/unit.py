@@ -5,6 +5,31 @@ from django.db import models
 
 
 class AppUnit(models.Model):
+    """
+    Represents a measurement unit for cataloging purposes.
+
+    Defines various title choices for different unit types, provides
+    validation rules for weight-based and non-weight-based units, and manages
+    their consistency through the database. Weight-based units, such as kilogram
+    or ton, must adhere to predefined rules like fixed conversion factors. Non-weight
+    units, such as piece or pallet, have separate constraints. Ensures the correctness of unit data before
+    saving the instance in the database.
+
+    Attributes:
+        TITLE_CHOICES: List of tuples containing the predefined choices for
+            unit titles and their corresponding labels.
+        title: A string field representing the title of the unit, limited to 20
+            characters and unique within the database.
+        is_weight_based: A boolean field denoting if the unit is weight-based.
+        to_kg_factor: An integer field specifying the conversion factor of the
+            chosen unit to kilograms.
+
+    Raises:
+        ValidationError: Raised during the `clean` method if the weight-based
+            rules for specific units like "kilogram", "ton", or non-weight-based
+            units like "piece", "pallet" are violated.
+    """
+
     TITLE_CHOICES = [
         ("piece", "шт"),
         ("kilogram", "кг"),
@@ -22,7 +47,7 @@ class AppUnit(models.Model):
     to_kg_factor = models.SmallIntegerField(default=1)
 
     class Meta:
-        db_table = "catalog_app_unit"
+        db_table = "catalog_unit"
 
     def clean(self) -> None:
         # weight-based units must have fixed factors
