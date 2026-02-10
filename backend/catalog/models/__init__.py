@@ -1,11 +1,13 @@
 from .description_item import DescriptionItem
-from .product_group import ProductGroup
+from .price_history import PriceHistory
 from .product import Product
 from .product_description import ProductDescription
+from .product_group import ProductGroup
 from .product_specification import ProductSpecification
 from .product_unit import ProductUnit
 from .specification_group import SpecificationGroup
 from .unit import AppUnit
+from .warehouse import Warehouse
 
 __all__ = [
     "DescriptionItem",
@@ -16,4 +18,6 @@ __all__ = [
     "ProductSpecification",
     "AppUnit",
     "ProductGroup",
+    "PriceHistory",
+    "Warehouse",
 ]

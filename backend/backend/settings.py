@@ -197,3 +197,7 @@ if 'test' in sys.argv or 'pytest' in sys.argv:
             },
         },
     }
+
+MEDIA_URL = '/media/'
+
+MEDIA_ROOT = os.path.join(BASE_DIR, 'media')

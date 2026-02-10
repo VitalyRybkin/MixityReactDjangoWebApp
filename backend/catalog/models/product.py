@@ -23,6 +23,7 @@ class Product(models.Model):
         description: Many-to-many relationship with DescriptionItem through ProductDescription.
         product_unit: Many-to-many relationship with AppUnit through ProductUnit.
         product_image: ImageField for product images.
+        for_web: Boolean field indicating if the product is intended for web display.
     """
 
     name = models.CharField(max_length=100)
@@ -37,6 +38,7 @@ class Product(models.Model):
         "catalog.AppUnit", through="catalog.ProductUnit"
     )
     product_image = models.ImageField(upload_to="product_images", null=True, blank=True)
+    for_web = models.BooleanField(default=False)
 
     def _bag_kg(self) -> Decimal:
         """
