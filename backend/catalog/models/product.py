@@ -3,9 +3,11 @@ from typing import Any
 
 from django.core.exceptions import ValidationError
 from django.db import models
+from django.db.models import QuerySet
 
 from .product_pallet import ProductPallet
 from .product_unit import ProductUnit
+from .unit import AppUnit
 from .warehouse import Warehouse
 
 
@@ -32,6 +34,15 @@ class Product(models.Model):
     product_image = models.ImageField(upload_to="product_images", null=True, blank=True)
     for_web = models.BooleanField(default=False)
     is_piece_based = models.BooleanField(default=False)
+
+    def allowed_order_unit_titles(self) -> list[str]:
+        if self.is_piece_based:
+            return ["piece"]
+        return ["kilogram", "ton"]
+
+    def allowed_order_units(self) -> QuerySet["AppUnit"]:
+        titles = self.allowed_order_unit_titles()
+        return AppUnit.objects.filter(title__in=titles)
 
     def _bag_kg(self) -> Decimal:
         """
