@@ -12,9 +12,11 @@ class DescriptionItem(models.Model):
 
     Attributes:
         title (str): The title of the description item.
+        order (int): The order of the description item within its category.
     """
 
     title = models.CharField(max_length=255)
+    order = models.PositiveSmallIntegerField(default=0)
 
     class Meta:
         db_table = "catalog_description_item"

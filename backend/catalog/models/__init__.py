@@ -3,6 +3,7 @@ from .price_history import PriceHistory
 from .product import Product
 from .product_description import ProductDescription
 from .product_group import ProductGroup
+from .product_pallet import ProductPallet
 from .product_specification import ProductSpecification
 from .product_unit import ProductUnit
 from .specification_group import SpecificationGroup
@@ -20,4 +21,5 @@ __all__ = [
     "ProductGroup",
     "PriceHistory",
     "Warehouse",
+    "ProductPallet",
 ]

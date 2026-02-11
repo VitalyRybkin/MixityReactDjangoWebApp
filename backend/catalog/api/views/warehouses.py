@@ -8,6 +8,7 @@ from core.openapi.base_views import (
     BaseRetrieveUpdateDestroyAPIView,
 )
 
+
 class BaseWarehouseGenericAPIView(generics.GenericAPIView):
     queryset = Warehouse.objects.all()
     permission_classes = [AllowAny]
@@ -21,9 +22,10 @@ class WarehouseListCreateAPIView(BaseListCreateAPIView, BaseWarehouseGenericAPIV
     write_serializer_class = WarehouseListCreateSerializer
 
 
-class WarehouseRetrieveUpdateDestroyAPIView(BaseRetrieveUpdateDestroyAPIView, BaseWarehouseGenericAPIView):
+class WarehouseRetrieveUpdateDestroyAPIView(
+    BaseRetrieveUpdateDestroyAPIView, BaseWarehouseGenericAPIView
+):
     resource_name = "warehouse"
     schema_tags = ["Warehouse"]
     read_serializer_class = WarehouseListCreateSerializer
     request_serializer_class = WarehouseListCreateSerializer
-

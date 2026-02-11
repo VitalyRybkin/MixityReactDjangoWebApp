@@ -6,27 +6,16 @@ from django.db import models
 
 class AppUnit(models.Model):
     """
-    Represents a measurement unit for cataloging purposes.
-
-    Defines various title choices for different unit types, provides
-    validation rules for weight-based and non-weight-based units, and manages
-    their consistency through the database. Weight-based units, such as kilogram
-    or ton, must adhere to predefined rules like fixed conversion factors. Non-weight
-    units, such as piece or pallet, have separate constraints. Ensures the correctness of unit data before
-    saving the instance in the database.
+    Represents a unit of measurement used in the catalog with various configurations such as weight-based and
+    non-weight-based units.
 
     Attributes:
-        class TitleChoices: A class containing predefined title choices for units.
-        title: A string field representing the title of the unit, limited to 20
-            characters and unique within the database.
-        is_weight_based: A boolean field denoting if the unit is weight-based.
-        to_kg_factor: An integer field specifying the conversion factor of the
-            chosen unit to kilograms.
+        title (str): The name of the unit of measurement. Must be one of the predefined choices from TitleChoices.
+        is_weight_based (bool): Determines whether the unit is weight-based. Defaults to False.
+        to_kg_factor (int): The conversion factor to kilograms, applicable for weight-based units. Defaults to 1.
 
-    Raises:
-        ValidationError: Raised during the `clean` method if the weight-based
-            rules for specific units like "kilogram", "ton", or non-weight-based
-            units like "piece", "pallet" are violated.
+    Meta:
+        db_table: Specifies the name of the database table as "catalog_unit".
     """
 
     class TitleChoices(models.TextChoices):
@@ -40,15 +29,29 @@ class AppUnit(models.Model):
         LITRE = "litre", "л"
         KG_PER_M3 = "kg/m3", "кг/м3"
 
-    title = models.CharField(max_length=20, choices=TitleChoices)
+    title = models.CharField(max_length=20, choices=TitleChoices, unique=True)
     is_weight_based = models.BooleanField(default=False)
-    to_kg_factor = models.SmallIntegerField(default=1)
+    to_kg_factor = models.PositiveIntegerField(default=1)
 
     class Meta:
         db_table = "catalog_unit"
 
     def clean(self) -> None:
-        # weight-based units must have fixed factors
+        """
+        Validates consistency of unit attributes based on predefined business rules for
+        specific units. The validation ensures that the unit's attributes meet the
+        required conditions to prevent inconsistent or invalid configurations.
+
+        Raises
+        ------
+        ValidationError
+            If the unit's attributes do not satisfy the predefined rules for the
+            respective unit type. Specific conditions include:
+            - "kilogram" must be weight-based and have a `to_kg_factor` of 1.
+            - "ton" must be weight-based and have a `to_kg_factor` of 1000.
+            - Units such as "piece", "pallet", "%", "millimeter", "megapascal", "litre",
+              "kg/m3" must NOT be weight-based and must have a `to_kg_factor` of 1.
+        """
         if self.title == "kilogram":
             if not self.is_weight_based:
                 raise ValidationError(
@@ -67,15 +70,14 @@ class AppUnit(models.Model):
                     {"to_kg_factor": "ton must have to_kg_factor=1000"}
                 )
 
-        # non-weight units should not define global factors
         if self.title in {
-            "%",
+            "piece",
             "pallet",
+            "%",
             "millimeter",
             "megapascal",
             "litre",
             "kg/m3",
-            "piece",
         }:
             if self.is_weight_based:
                 raise ValidationError(
@@ -84,8 +86,7 @@ class AppUnit(models.Model):
             if self.to_kg_factor != 1:
                 raise ValidationError(
                     {
-                        "to_kg_factor": f"{self.title} must keep to_kg_factor=1 "
-                        f"(per-product values live in ProductUnit)"
+                        "to_kg_factor": f"{self.title} must keep to_kg_factor=1 (non-weight unit)"
                     }
                 )
 

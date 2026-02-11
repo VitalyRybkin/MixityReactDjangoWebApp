@@ -6,65 +6,56 @@ from django.db import models
 
 class ProductUnit(models.Model):
     """
-    Represents a ProductUnit relation that defines the weight per unit for specific products
-    and their corresponding units.
-
-    Defines how a product can be measured in different unit types, and
-    enforces validations for specific business rules, including allowed bag weights and
-    restrictions on certain types of units. It relies on database constraints for ensuring
-    uniqueness and supports custom validation logic.
+    Represents a configurable unit for a product with specific weight constraints.
 
     Attributes:
-        ALLOWED_BAG_WEIGHTS: A set of integers representing the allowed weights
-            in kilograms for units of type "piece".
-        product: A foreign key linking to the catalog.Product model, representing
-            the product this unit is associated with.
-        units: A foreign key linking to the catalog.AppUnit model, representing
-            the unit type for this product.
-        kg_per_unit: An integer field representing the weight in kilograms per unit.
-            Defaults to 1.
-
-    Meta:
-        constraints: Enforces the uniqueness of the combination of product and unit
-            across all instances.
-
-    Methods:
-        clean:
-            Validates instance data before saving, ensuring that the kg_per_unit is
-            valid for units of type "piece" and restricting certain global weight-based units.
-
-        save:
-            Cleans the object data before persisting it to the database.
+        product: The product associated with this unit configuration.
+        unit: The unit of measure restricted to "piece" type for this configuration.
+        kg_per_unit: The weight of the unit in kilograms, constrained to specific values.
     """
 
     ALLOWED_BAG_WEIGHTS = {15, 20, 25, 30}
 
-    product = models.ForeignKey("catalog.Product", on_delete=models.CASCADE)
-    units = models.ForeignKey("catalog.AppUnit", on_delete=models.CASCADE)
-
-    kg_per_unit = models.SmallIntegerField(default=1)
+    product = models.OneToOneField(
+        "catalog.Product",
+        on_delete=models.CASCADE,
+        related_name="piece_config",
+    )
+    unit = models.ForeignKey(
+        "catalog.AppUnit",
+        on_delete=models.PROTECT,
+        limit_choices_to={"title": "piece"},
+    )
+    kg_per_unit = models.PositiveSmallIntegerField()
 
     class Meta:
+        db_table = "catalog_product_units"
         constraints = [
-            models.UniqueConstraint(
-                fields=["product", "units"], name="uniq_product_unit"
+            models.CheckConstraint(
+                check=models.Q(kg_per_unit__in=[15, 20, 25, 30]),
+                name="chk_piece_kg_allowed",
             )
         ]
-        db_table = "catalog_product_units"
 
     def clean(self) -> None:
-        if self.units.title == "piece":
-            if self.kg_per_unit not in self.ALLOWED_BAG_WEIGHTS:
-                raise ValidationError(
-                    {
-                        "kg_per_unit": f"Bag weight must be one of {sorted(self.ALLOWED_BAG_WEIGHTS)} kg"
-                    }
-                )
+        """
+        Validates the attributes of the object to ensure they meet specific conditions.
 
-        if self.units.title in {"kilogram", "ton", "pallet"}:
+        Ensures the `unit.title` attribute is set to "piece" and validates that
+        the `kg_per_unit` attribute corresponds to an allowed bag weight. If any
+        of the conditions are violated, a `ValidationError` is raised.
+
+        Raises:
+            ValidationError: If the `unit.title` is not "piece" or if
+            `kg_per_unit` is not in the allowed bag weights.
+        """
+        if self.unit.title != "piece":
+            raise ValidationError({"unit": "ProductUnit is only for 'piece'."})
+
+        if self.kg_per_unit not in self.ALLOWED_BAG_WEIGHTS:
             raise ValidationError(
                 {
-                    "units": "Do not create ProductUnit for kilogram/ton/pallet (they are global weight-based units)."
+                    "kg_per_unit": f"Bag weight must be one of {sorted(self.ALLOWED_BAG_WEIGHTS)} kg"
                 }
             )
 
@@ -73,4 +64,4 @@ class ProductUnit(models.Model):
         return super().save(*args, **kwargs)
 
     def __str__(self) -> str:
-        return f"{self.product} ({self.units}) - {self.kg_per_unit} kg"
+        return f"{self.product} ({self.unit}) - {self.kg_per_unit} kg"

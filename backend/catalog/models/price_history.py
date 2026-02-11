@@ -12,7 +12,7 @@ class PriceHistory(models.Model):
     Attributes:
         date (datetime.date): The date when the price record was created. Automatically set
             to the current date on creation.
-        price (Decimal): The price of the product on the given date.
+        purchase_price (Decimal): The purchase price of the product in the specified warehouse.
         product (catalog.Product): The product to which the price history is linked.
         warehouse (catalog.Warehouse): The warehouse associated with the price record.
 
@@ -24,7 +24,7 @@ class PriceHistory(models.Model):
     """
 
     date = models.DateField(auto_now_add=True)
-    price = models.DecimalField(max_digits=5, decimal_places=2)
+    purchase_price = models.DecimalField(max_digits=5, decimal_places=2)
     product = models.ForeignKey(
         "catalog.Product", on_delete=models.CASCADE, related_name="price"
     )

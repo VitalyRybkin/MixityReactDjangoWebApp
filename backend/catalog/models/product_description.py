@@ -14,10 +14,10 @@ class ProductDescription(models.Model):
     Attributes:
         product: A ForeignKey linking this model to the "catalog.Product" model.
             Identifies the product to which the description is related.
-        description_item: A ForeignKey linking this model to the
+        item: A ForeignKey linking this model to the
             "catalog.DescriptionItem" model. Identifies the description item for
             the product.
-        description: A TextField holding the specific description details.
+        text: A TextField holding the specific description details.
 
     Meta:
         constraints: List of unique constraints to ensure uniqueness of the
@@ -27,19 +27,20 @@ class ProductDescription(models.Model):
     product = models.ForeignKey(
         "catalog.Product",
         on_delete=models.CASCADE,
-        related_name="description_items",
+        related_name="descriptions",
     )
-    description_item = models.ForeignKey(
+    item = models.ForeignKey(
         "catalog.DescriptionItem",
-        on_delete=models.CASCADE,
-        related_name="description_items",
+        on_delete=models.PROTECT,
+        related_name="product_descriptions",
     )
-    description = models.TextField()
+    text = models.TextField()
+    order = models.PositiveSmallIntegerField(default=0)
 
     class Meta:
         constraints = [
             models.UniqueConstraint(
-                fields=["product", "description_item"],
+                fields=["product", "item"],
                 name="uniq_product_description",
             )
         ]
@@ -48,4 +49,4 @@ class ProductDescription(models.Model):
         verbose_name_plural = "Product Descriptions"
 
     def __str__(self) -> str:
-        return f"{self.product} - {self.description_item}"
+        return f"{self.product} - {self.item}"

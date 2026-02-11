@@ -12,9 +12,12 @@ class SpecificationGroup(models.Model):
     Attributes:
         name: CharField
             The name of the specification group.
+        order: PositiveSmallIntegerField
+            The order of the specification group within the catalog.
     """
 
     name = models.CharField(max_length=255)
+    order = models.PositiveSmallIntegerField(default=0)
 
     class Meta:
         db_table = "catalog_specification_group"

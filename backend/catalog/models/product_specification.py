@@ -22,27 +22,31 @@ class ProductSpecification(models.Model):
     product = models.ForeignKey(
         "catalog.Product",
         on_delete=models.CASCADE,
-        related_name="spec_items",
+        related_name="specs",
     )
     group = models.ForeignKey(
         "catalog.SpecificationGroup",
         on_delete=models.PROTECT,
-        related_name="spec_items",
+        related_name="product_specs",
     )
-    value = models.CharField(max_length=10)
+    name = models.CharField(max_length=128)
+    value = models.CharField(max_length=128)
     unit = models.ForeignKey(
         "catalog.AppUnit",
         null=True,
         blank=True,
         on_delete=models.PROTECT,
-        related_name="spec_items",
     )
 
+    order = models.PositiveSmallIntegerField(default=0)
+
     class Meta:
+        ordering = ("group__order", "order", "id")
+        indexes = [models.Index(fields=("product", "group", "order"))]
         constraints = [
             models.UniqueConstraint(
-                fields=["product", "group"],
-                name="uniq_product_spec_group",
+                fields=("product", "group", "name"),
+                name="uniq_product_spec_row_in_group",
             )
         ]
         db_table = "catalog_specification"
