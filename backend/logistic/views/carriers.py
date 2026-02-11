@@ -1,18 +1,18 @@
 from typing import Any
 
 from django.db.models import Prefetch, QuerySet
-from rest_framework import generics, status
+from rest_framework import status
 from rest_framework.generics import GenericAPIView, get_object_or_404
 from rest_framework.permissions import AllowAny
 from rest_framework.request import Request
 from rest_framework.response import Response
 
-from logistic.models import Carrier, Driver, Truck
-from logistic.schemas.schema_carriers import (
-    carrier_list_create_schema,
-    carrier_resources_schema,
-    carrier_retrieve_update_destroy_schema,
+from core.openapi.base_views import (
+    BaseGenericAPIView,
+    BaseListCreateAPIView,
+    BaseRetrieveUpdateDestroyAPIView,
 )
+from logistic.models import Carrier, Driver, Truck
 from logistic.serializers.carrier_serializers import (
     CarrierResourcesSerializer,
     CarrierSerializer,
@@ -23,13 +23,11 @@ class CarrierBaseAPIView(GenericAPIView):
     """
     Handles listing and creating `Carrier` objects.
 
-    :ivar serializer_class: The serializer class is used for handling serialization
-        and deserialization of Carrier objects.
-    :type serializer_class: type
-
-    :ivar permission_classes: List of permission classes required to access the
-        view. Defaults to allowing any user.
-    :type permission_classes: list
+    Attributes:
+        serializer_class: The serializer class is used for handling serialization
+            and deserialization of Carrier objects.
+        permission_classes: List of permission classes required to access the
+            view. Defaults to allowing any user.
     """
 
     serializer_class = CarrierSerializer
@@ -42,27 +40,40 @@ class CarrierBaseAPIView(GenericAPIView):
         )
 
 
-@carrier_list_create_schema
-class CarrierListCreateAPIView(CarrierBaseAPIView, generics.ListCreateAPIView):
+class CarrierListCreateAPIView(CarrierBaseAPIView, BaseListCreateAPIView):
     """
     Handles the creation and retrieval of `Carrier` objects.
+
+    Attributes:
+        resource_name: Name of the resource for API documentation purposes.
+        schema_tags: Tags for API documentation.
+        read_serializer_class: Serializer class used for reading Carrier data.
+        write_serializer_class: Serializer class used for writing Carrier data.
     """
 
-    pass
+    resource_name = "Carrier"
+    schema_tags = ["Carrier"]
+    read_serializer_class = CarrierSerializer
+    write_serializer_class = CarrierSerializer
 
 
-@carrier_retrieve_update_destroy_schema
 class CarrierRetrieveUpdateDestroyAPIView(
-    CarrierBaseAPIView, generics.RetrieveUpdateDestroyAPIView
+    CarrierBaseAPIView, BaseRetrieveUpdateDestroyAPIView
 ):
     """
     Handles retrieving, updating, or deleting a `Carrier` object.
 
-    :ivar serializer_class: Serializer class to be used for the Carrier instances.
-    :type serializer_class: class
-    :ivar queryset: Queryset defining the Carrier objects to be managed by this view.
-    :type queryset: QuerySet
+    Attributes:
+        resource_name: Name of the resource for API documentation purposes.
+        schema_tags: Tags for API documentation.
+        read_serializer_class: Serializer class used for reading Carrier data.
+        request_serializer_class: Serializer class used for writing Carrier data.
     """
+
+    resource_name = "Carrier"
+    schema_tags = ["Carrier"]
+    read_serializer_class = CarrierSerializer
+    request_serializer_class = CarrierSerializer
 
     def perform_destroy(self, instance: Carrier) -> None:
         instance.is_active = False
@@ -75,8 +86,7 @@ class CarrierRetrieveUpdateDestroyAPIView(
         return Response(serializer.data, status=status.HTTP_200_OK)
 
 
-@carrier_resources_schema
-class CarrierResourcesAPIView(generics.GenericAPIView):
+class CarrierResourcesAPIView(BaseGenericAPIView):
     """
     Handles APIs related to carrier resources.
 
@@ -84,14 +94,17 @@ class CarrierResourcesAPIView(generics.GenericAPIView):
     resources, such as trucks. The view implements a GET request for retrieving
     the data and returns serialized results for specified resources.
 
-    :ivar permission_classes: Indicates the permission classes applied to the API
-        view. Specifies the permissions required for accessing the endpoint.
-    :type permission_classes: list
+    Attributes:
+        resource_name: Name of the resource for API documentation purposes.
+        schema_tags: Tags for API documentation.
+        read_serializer_class: Serializer class used for reading Carrier data.
+        serializer_class: Serializer class used for handling incoming request data.
 
-    :ivar serializer_class: The serializer class used for serializing the carrier
-        resources data.
-    :type serializer_class: type
     """
+
+    resource_name = "Carrier"
+    schema_tags = ["Carrier"]
+    read_serializer_class = CarrierResourcesSerializer
 
     permission_classes = [AllowAny]
     serializer_class = CarrierResourcesSerializer

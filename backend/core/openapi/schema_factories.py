@@ -162,3 +162,30 @@ def retrieve_update_destroy_schema(
             description=delete_description,
         ),
     )
+
+def resources_schema(
+    *,
+    resource: str,
+    tags: list[str],
+    read_serializer: Any,
+    errors_read: Dict[int, Any] = ERRORS_READ,
+    get_operation_id: Optional[str] = None,
+    get_summary: Optional[str] = None,
+    get_description: Optional[str] = None,
+) -> Any:
+
+    get_operation_id = get_operation_id or f"list{resource}s"
+    get_summary = get_summary or f"List {resource}s"
+    get_description = get_description or (
+        f"Handles listing `{resource}` resources - list all active `{resource}` resources."
+    )
+
+    return extend_schema_view(
+        get=extend_schema(
+            operation_id=get_operation_id,
+            summary=get_summary,
+            tags=tags,
+            responses={200: read_serializer(many=True), **errors_read},
+            description=get_description,
+        ),
+    )
