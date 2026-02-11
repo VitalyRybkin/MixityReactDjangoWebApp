@@ -4,13 +4,16 @@ from rest_framework import generics, status
 from rest_framework.permissions import AllowAny
 from rest_framework.request import Request
 from rest_framework.response import Response
+from rest_framework.serializers import BaseSerializer
 
+from core.openapi.base_views import (
+    BaseListCreateAPIView,
+    BaseRetrieveUpdateDestroyAPIView,
+)
 from logistic.models import Truck, TruckCapacity, TruckType
 from logistic.schemas.schema_trucks import (
     truck_capacity_list_create_schema,
     truck_capacity_retrieve_update_destroy_schema,
-    truck_list_create_schema,
-    truck_retrieve_update_destroy_schema,
     truck_type_list_create_schema,
     truck_type_retrieve_update_destroy_schema,
 )
@@ -23,8 +26,7 @@ from logistic.serializers.truck_serializers import (
 )
 
 
-@truck_list_create_schema
-class TruckListCreateAPIView(generics.ListCreateAPIView):
+class TruckListCreateAPIView(BaseListCreateAPIView):
     """
     View responsible for listing and creating Truck objects.
 
@@ -33,13 +35,18 @@ class TruckListCreateAPIView(generics.ListCreateAPIView):
         `capacity`, and `carrier` preloaded for efficient data retrieval.
     """
 
+    read_serializer_class = TruckReadSerializer
+    write_serializer_class = TruckSerializer
+    resource_name = "Truck"
+    schema_tags = ["Truck"]
+
     queryset = Truck.objects.select_related("truck_type", "capacity", "carrier")
     permission_classes = [AllowAny]
 
-    def get_serializer_class(self) -> type[TruckReadSerializer | TruckSerializer]:
+    def get_serializer_class(self) -> type[BaseSerializer]:
         if self.request.method == "GET":
-            return TruckReadSerializer
-        return TruckSerializer
+            return self.read_serializer_class
+        return self.write_serializer_class
 
     def create(self, request: Request, *args: Any, **kwargs: Any) -> Response:
         serializer = self.get_serializer(data=request.data)
@@ -50,8 +57,7 @@ class TruckListCreateAPIView(generics.ListCreateAPIView):
         return Response(data, status=status.HTTP_201_CREATED)
 
 
-@truck_retrieve_update_destroy_schema
-class TruckRetrieveUpdateDestroyAPIView(generics.RetrieveUpdateDestroyAPIView):
+class TruckRetrieveUpdateDestroyAPIView(BaseRetrieveUpdateDestroyAPIView):
     """
     Handles retrieval, updating, and deletion of Truck objects.
 
@@ -61,13 +67,18 @@ class TruckRetrieveUpdateDestroyAPIView(generics.RetrieveUpdateDestroyAPIView):
                   capacity, and carrier for each Truck instance.
     """
 
+    resource_name = "Truck"
+    schema_tags = ["Truck"]
+    read_serializer_class = TruckReadSerializer
+    request_serializer_class = TruckSerializer
+
     queryset = Truck.objects.select_related("truck_type", "capacity", "carrier")
     permission_classes = [AllowAny]
 
-    def get_serializer_class(self) -> type[TruckReadSerializer | TruckSerializer]:
-        if self.request.method == "GET":
-            return TruckReadSerializer
-        return TruckSerializer
+    def get_serializer_class(self) -> type[BaseSerializer]:
+        if self.request.method in ("PATCH", "POST"):
+            return self.read_serializer_class
+        return self.request_serializer_class
 
     def update(self, request: Request, *args: Any, **kwargs: Any) -> Response:
         partial = kwargs.pop("partial", False)
@@ -77,7 +88,7 @@ class TruckRetrieveUpdateDestroyAPIView(generics.RetrieveUpdateDestroyAPIView):
         serializer.is_valid(raise_exception=True)
         obj = serializer.save()
 
-        data = TruckReadSerializer(obj, context={"request": request}).data
+        data = self.read_serializer_class(obj, context={"request": request}).data
         return Response(data, status=status.HTTP_200_OK)
 
     def destroy(self, request: Request, *args: Any, **kwargs: Any) -> Response:
