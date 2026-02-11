@@ -40,7 +40,7 @@ class AppUnit(models.Model):
         LITRE = "litre", "л"
         KG_PER_M3 = "kg/m3", "кг/м3"
 
-    title = models.CharField(max_length=20, choices=TitleChoices.choices)
+    title = models.CharField(max_length=20, choices=TitleChoices)
     is_weight_based = models.BooleanField(default=False)
     to_kg_factor = models.SmallIntegerField(default=1)
 

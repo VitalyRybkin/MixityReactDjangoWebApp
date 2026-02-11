@@ -5,7 +5,7 @@ from rest_framework import serializers
 from catalog.models import AppUnit
 
 
-class UnitBaseSerializer(serializers.ModelSerializer):
+class UnitSerializer(serializers.ModelSerializer):
     """
     Handles serialization of the AppUnit model.
 
@@ -18,7 +18,7 @@ class UnitBaseSerializer(serializers.ModelSerializer):
 
     isWeightBased = serializers.BooleanField(source="is_weight_based")
     toKgFactor = serializers.FloatField(source="to_kg_factor")
-    title = serializers.ChoiceField(choices=AppUnit.TitleChoices.choices)
+    title = serializers.ChoiceField(choices=AppUnit.TitleChoices)  # type: ignore
 
     class Meta:
         model = AppUnit
@@ -28,11 +28,3 @@ class UnitBaseSerializer(serializers.ModelSerializer):
         representation = super().to_representation(instance)
         representation["title"] = instance.get_title_display()
         return representation
-
-
-class UnitListCreateSerializer(UnitBaseSerializer):
-    pass
-
-
-class UnitRetrieveUpdateDestroySerializer(UnitBaseSerializer):
-    pass
