@@ -1,6 +1,6 @@
 from typing import Any
 
-from rest_framework import generics, status
+from rest_framework import status
 from rest_framework.permissions import AllowAny
 from rest_framework.request import Request
 from rest_framework.response import Response
@@ -11,12 +11,6 @@ from core.openapi.base_views import (
     BaseRetrieveUpdateDestroyAPIView,
 )
 from logistic.models import Truck, TruckCapacity, TruckType
-from logistic.schemas.schema_trucks import (
-    truck_capacity_list_create_schema,
-    truck_capacity_retrieve_update_destroy_schema,
-    truck_type_list_create_schema,
-    truck_type_retrieve_update_destroy_schema,
-)
 from logistic.serializers.truck_serializers import (
     TruckCapacityReadSerializer,
     TruckCapacityWriteSerializer,
@@ -33,6 +27,10 @@ class TruckListCreateAPIView(BaseListCreateAPIView):
     Attributes:
         queryset: A QuerySet of Truck objects with related fields `truck_type`,
         `capacity`, and `carrier` preloaded for efficient data retrieval.
+        read_serializer_class: Defines the serializer to be used for reading
+        write_serializer_class: Defines the serializer to be used for writing
+        resource_name: Name of the resource for API documentation
+        schema_tags: Tags for API documentation
     """
 
     read_serializer_class = TruckReadSerializer
@@ -43,7 +41,7 @@ class TruckListCreateAPIView(BaseListCreateAPIView):
     queryset = Truck.objects.select_related("truck_type", "capacity", "carrier")
     permission_classes = [AllowAny]
 
-    def get_serializer_class(self) -> type[BaseSerializer]:
+    def get_serializer_class(self) -> type[TruckReadSerializer | TruckSerializer]:
         if self.request.method == "GET":
             return self.read_serializer_class
         return self.write_serializer_class
@@ -65,6 +63,10 @@ class TruckRetrieveUpdateDestroyAPIView(BaseRetrieveUpdateDestroyAPIView):
         queryset: A queryset that prefetches related fields for optimized
                   database queries. Specifically includes related truck_type,
                   capacity, and carrier for each Truck instance.
+        read_serializer_class: Defines the serializer to be used for reading
+        request_serializer_class: Defines the serializer to be used for writing
+        resource_name: Name of the resource for API documentation
+        schema_tags: Tags for API documentation
     """
 
     resource_name = "Truck"
@@ -99,8 +101,7 @@ class TruckRetrieveUpdateDestroyAPIView(BaseRetrieveUpdateDestroyAPIView):
         return Response(data, status=status.HTTP_200_OK)
 
 
-@truck_capacity_list_create_schema
-class TruckCapacitiesListCreateAPIView(generics.ListCreateAPIView):
+class TruckCapacitiesListCreateAPIView(BaseListCreateAPIView):
     """
     Handling the listing and creation of truck capacity records.
 
@@ -113,6 +114,10 @@ class TruckCapacitiesListCreateAPIView(generics.ListCreateAPIView):
         allowing unrestricted access in this case.
     """
 
+    read_serializer_class = TruckCapacityReadSerializer
+    write_serializer_class = TruckCapacityWriteSerializer
+    resource_name = "TruckCapacity"
+    schema_tags = ["TruckCapacity"]
     queryset = TruckCapacity.objects.all()
     permission_classes = [AllowAny]
 
@@ -120,14 +125,11 @@ class TruckCapacitiesListCreateAPIView(generics.ListCreateAPIView):
         self,
     ) -> type[TruckCapacityReadSerializer | TruckCapacityWriteSerializer]:
         if self.request.method == "GET":
-            return TruckCapacityReadSerializer
-        return TruckCapacityWriteSerializer
+            return self.read_serializer_class
+        return self.write_serializer_class
 
 
-@truck_capacity_retrieve_update_destroy_schema
-class TruckCapacitiesRetrieveUpdateDestroyAPIView(
-    generics.RetrieveUpdateDestroyAPIView
-):
+class TruckCapacitiesRetrieveUpdateDestroyAPIView(BaseRetrieveUpdateDestroyAPIView):
     """
     Handles retrieving, updating, or deleting a `TruckCapacity` object.
 
@@ -138,15 +140,23 @@ class TruckCapacitiesRetrieveUpdateDestroyAPIView(
         transform truck capacity data.
         permission_classes: Lists the permissions required to access the API,
         allowing unrestricted access in this case.
+        resource_name: Name of the resource for API documentation
+        schema_tags: Tags for API documentation
+        request_serializer_class: Defines the serializer to be used for writing
+        read_serializer_class: Defines the serializer to be used for reading
     """
+
+    resource_name = "TruckCapacity"
+    schema_tags = ["TruckCapacity"]
+    read_serializer_class = TruckCapacityReadSerializer
+    request_serializer_class = TruckCapacityWriteSerializer
 
     queryset = TruckCapacity.objects.all()
     permission_classes = [AllowAny]
-    serializer_class = TruckCapacityWriteSerializer
+    serializer_class = request_serializer_class
 
 
-@truck_type_list_create_schema
-class TruckTypesListCreateAPIView(generics.ListCreateAPIView):
+class TruckTypesListCreateAPIView(BaseListCreateAPIView):
     """
     Handles listing and creating `TruckType` objects.
 
@@ -157,15 +167,23 @@ class TruckTypesListCreateAPIView(generics.ListCreateAPIView):
         transform truck type data.
         permission_classes: Lists the permissions required to access the API,
         allowing unrestricted access in this case.
+        read_serializer_class: Defines the serializer to be used for reading
+        write_serializer_class: Defines the serializer to be used for writing
+        resource_name: Name of the resource for API documentation
+        schema_tags: Tags for API documentation
     """
 
+    read_serializer_class = TruckTypeSerializer
+    write_serializer_class = TruckTypeSerializer
+    resource_name = "TruckType"
+    schema_tags = ["TruckType"]
+
     queryset = TruckType.objects.all()
-    serializer_class = TruckTypeSerializer
+    serializer_class = read_serializer_class
     permission_classes = [AllowAny]
 
 
-@truck_type_retrieve_update_destroy_schema
-class TruckTypeRetrieveUpdateDestroyAPIView(generics.RetrieveUpdateDestroyAPIView):
+class TruckTypeRetrieveUpdateDestroyAPIView(BaseRetrieveUpdateDestroyAPIView):
     """
     Handles retrieving, updating, or deleting a `TruckType` object.
 
@@ -177,6 +195,11 @@ class TruckTypeRetrieveUpdateDestroyAPIView(generics.RetrieveUpdateDestroyAPIVie
         permission_classes: Lists the permissions required to access the API,
         allowing unrestricted access in this case.
     """
+
+    resource_name = "TruckType"
+    schema_tags = ["TruckType"]
+    read_serializer_class = TruckTypeSerializer
+    request_serializer_class = TruckTypeSerializer
 
     queryset = TruckType.objects.all()
     permission_classes = [AllowAny]
