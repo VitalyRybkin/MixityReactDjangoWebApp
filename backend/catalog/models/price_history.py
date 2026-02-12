@@ -1,7 +1,7 @@
 from django.db import models
 
 
-class PriceHistory(models.Model):
+class PurchasePriceHistory(models.Model):
     """
     Represents a historical record of product prices with associated product and warehouse information.
 
@@ -34,9 +34,9 @@ class PriceHistory(models.Model):
 
     class Meta:
         ordering = ["-date"]
-        db_table = "catalog_price_history"
-        verbose_name = "Price History"
-        verbose_name_plural = "Price History"
+        db_table = "catalog_purchase_price_history"
+        verbose_name = "Purchase Price History"
+        verbose_name_plural = "Purchase Price History"
         unique_together = ("product", "warehouse", "date")
         get_latest_by = "date"
 

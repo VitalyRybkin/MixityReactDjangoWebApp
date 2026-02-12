@@ -33,7 +33,7 @@ class Product(models.Model):
     title = models.CharField(max_length=255)
     product_image = models.ImageField(upload_to="product_images", null=True, blank=True)
     for_web = models.BooleanField(default=False)
-    is_piece_based = models.BooleanField(default=False)
+    is_piece_based = models.BooleanField(default=True)
 
     def allowed_order_unit_titles(self) -> list[str]:
         if self.is_piece_based:
