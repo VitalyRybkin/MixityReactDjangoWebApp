@@ -81,12 +81,14 @@ class AppUnit(models.Model):
         }:
             if self.is_weight_based:
                 raise ValidationError(
-                    {"is_weight_based": f"{self.title} must NOT be weight-based"}
+                    {
+                        "is_weight_based": f"'{self.title.capitalize()}' must NOT be weight-based"
+                    }
                 )
             if self.to_kg_factor != 1:
                 raise ValidationError(
                     {
-                        "to_kg_factor": f"{self.title} must keep to_kg_factor=1 (non-weight unit)"
+                        "to_kg_factor": f"'{self.title.capitalize()}' must keep to_kg_factor=1 (non-weight unit)"
                     }
                 )
 
