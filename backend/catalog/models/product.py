@@ -32,8 +32,20 @@ class Product(models.Model):
     name = models.CharField(max_length=100)
     title = models.CharField(max_length=255)
     product_image = models.ImageField(upload_to="product_images", null=True, blank=True)
+    product_group = models.ForeignKey(
+        "catalog.ProductGroup", on_delete=models.PROTECT, related_name="product_groups"
+    )
     for_web = models.BooleanField(default=False)
     is_piece_based = models.BooleanField(default=True)
+
+    class Meta:
+        ordering = ["name"]
+        constraints = [
+            models.UniqueConstraint(fields=["name"], name="uniq_product_name"),
+            models.UniqueConstraint(
+                fields=["product_group", "name"], name="uniq_product_group_name"
+            ),
+        ]
 
     def allowed_order_unit_titles(self) -> list[str]:
         if self.is_piece_based:

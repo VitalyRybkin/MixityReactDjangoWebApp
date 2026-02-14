@@ -35,9 +35,9 @@ class ProductDescription(models.Model):
         related_name="product_descriptions",
     )
     text = models.TextField()
-    order = models.PositiveSmallIntegerField(default=0)
 
     class Meta:
+        ordering = ("item__order",)
         constraints = [
             models.UniqueConstraint(
                 fields=["product", "item"],

@@ -19,6 +19,7 @@ class DescriptionItem(models.Model):
     order = models.PositiveSmallIntegerField(default=0)
 
     class Meta:
+        ordering = ("order",)
         db_table = "catalog_description_item"
         verbose_name = "Description Item"
         verbose_name_plural = "Description Items"

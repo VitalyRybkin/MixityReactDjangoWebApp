@@ -11,7 +11,7 @@ class ProductSpecification(models.Model):
 
     Attributes:
         product: The product for which the specification applies.
-        group: The group to which this specification belongs.
+        name: The name of the specification.
         value: The value associated with the specification.
         unit: The unit of measurement for the specification value, if applicable.
 
@@ -24,12 +24,11 @@ class ProductSpecification(models.Model):
         on_delete=models.CASCADE,
         related_name="specs",
     )
-    group = models.ForeignKey(
-        "catalog.SpecificationGroup",
+    name = models.ForeignKey(
+        "catalog.ProductSpecName",
         on_delete=models.PROTECT,
-        related_name="product_specs",
+        related_name="spec_names",
     )
-    name = models.CharField(max_length=128)
     value = models.CharField(max_length=128)
     unit = models.ForeignKey(
         "catalog.AppUnit",
@@ -38,15 +37,13 @@ class ProductSpecification(models.Model):
         on_delete=models.PROTECT,
     )
 
-    order = models.PositiveSmallIntegerField(default=0)
-
     class Meta:
-        ordering = ("group__order", "order", "id")
-        indexes = [models.Index(fields=("product", "group", "order"))]
+        ordering = ("name__group__order", "name__order", "pk")
+        indexes = [models.Index(fields=("product",))]
         constraints = [
             models.UniqueConstraint(
-                fields=("product", "group", "name"),
-                name="uniq_product_spec_row_in_group",
+                fields=("product", "name"),
+                name="uniq_product_spec_row",
             )
         ]
         db_table = "catalog_specification"
@@ -54,4 +51,4 @@ class ProductSpecification(models.Model):
         verbose_name_plural = "Product Specifications"
 
     def __str__(self) -> str:
-        return f"{self.group}"
+        return f"{self.name} ({self.product.name})"
