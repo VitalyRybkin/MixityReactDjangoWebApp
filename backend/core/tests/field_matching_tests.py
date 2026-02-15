@@ -84,7 +84,12 @@ class FieldContractMixin(_Base):
 
         for api_field, spec in self._iter_specs():
             api_val = item.get(api_field)
-            model_val = getattr(self.obj, spec.model_field)
+
+            display_method_name = f"get_{spec.model_field}_display"
+            if hasattr(self.obj, display_method_name):
+                model_val = getattr(self.obj, display_method_name)()
+            else:
+                model_val = getattr(self.obj, spec.model_field)
 
             api_norm, model_norm = self._normalize_for_compare(spec, api_val, model_val)
             self.assertEqual(api_norm, model_norm, msg=f"Mismatch for field '{api_field}'")

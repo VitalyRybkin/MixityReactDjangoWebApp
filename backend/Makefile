@@ -17,7 +17,7 @@ write:
 # ---- TESTS ----
 
 test:
-	uv run pytest --ds=backend.settings -rs
+	uv run pytest --ds=backend.settings -rs $(if $(app),$(app),)
 
 
 coverage:
