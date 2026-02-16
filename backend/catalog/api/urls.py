@@ -22,7 +22,7 @@ urlpatterns = [
     path(
         "unit/<int:pk>/",
         UnitRetrieveUpdateDestroyAPIView.as_view(),
-        name="unit_retrieve_update_destroy",
+        name="unit_details",
     ),
     path(
         "product/",
@@ -32,7 +32,7 @@ urlpatterns = [
     path(
         "product/<int:pk>/",
         ProductRetrieveUpdateDestroyAPIView.as_view(),
-        name="product_retrieve_update_destroy",
+        name="product_details",
     ),
     path(
         "warehouse/",
@@ -42,6 +42,6 @@ urlpatterns = [
     path(
         "warehouse/<int:pk>/",
         WarehouseRetrieveUpdateDestroyAPIView.as_view(),
-        name="warehouse_retrieve_update_destroy",
+        name="warehouse_details",
     ),
 ]

@@ -34,8 +34,8 @@ class CrudContractMixin(_Base):
         self._logger_header(f"ENDPOINT POST: {self.url_name}")
         response = self.client.post(self.url, data=payload, format="json")
         if response.status_code != expected_status:
-            print("PAYLOAD:", payload)
-            print("ERRORS:", response.data)
+            print(f"\n{self.COLOR['ERR']}FAILED PAYLOAD:{self.COLOR['END']}", payload)
+            print(f"{self.COLOR['ERR']}API ERRORS:{self.COLOR['END']}", response.data)
         self.assertEqual(response.status_code, expected_status, msg=f"API returned status code {response.status_code}",)
 
         is_created = self.model.objects.filter(pk=response.data["id"]).exists()

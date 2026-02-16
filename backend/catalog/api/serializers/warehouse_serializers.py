@@ -4,9 +4,8 @@ from catalog.models import Warehouse
 
 
 class WarehouseListCreateSerializer(serializers.ModelSerializer):
-    phoneNumber = serializers.CharField(
-        source="phone_number", max_length=15, validators=[]
-    )
+    phoneNumber = serializers.CharField(source="phone_number")
+    directions = serializers.ImageField(required=False, allow_null=True)
 
     class Meta:
         model = Warehouse
