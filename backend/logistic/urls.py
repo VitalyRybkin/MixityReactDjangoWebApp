@@ -18,6 +18,8 @@ from logistic.views.trucks import (
     TruckTypesListCreateAPIView,
 )
 
+app_name = "logistic"
+
 urlpatterns = [
     path(
         "carriers/",

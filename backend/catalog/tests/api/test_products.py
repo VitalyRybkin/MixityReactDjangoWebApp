@@ -6,7 +6,7 @@ from core.tests.utils import FieldSpec
 
 class TestProductAPIList(BaseAPIMixin):
     __test__ = True
-    url_name = "product_list_create"
+    url_name = "catalog:product_list_create"
     model = Product
     factory = ProductFactory
     fields_map = {

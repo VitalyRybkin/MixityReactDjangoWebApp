@@ -1,5 +1,5 @@
 from django.urls import include, path
 
 urlpatterns = [
-    path("api/catalog/", include("catalog.api.urls")),
+    path("api/stock/", include("stock.urls")),
 ]

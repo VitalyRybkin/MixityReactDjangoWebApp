@@ -44,7 +44,7 @@ class TestUnitAPIList(UnitBaseTest, BaseAPIMixin):
 
     __test__ = True
 
-    url_name = "unit_list_create"
+    url_name = "catalog:unit_list_create"
 
     def test_get_list(self) -> None:
         """Test the logic for retrieving a list of units."""
@@ -83,7 +83,7 @@ class TestUnitAPIList(UnitBaseTest, BaseAPIMixin):
 
 class TestUnitRetrieveUpdate(UnitBaseTest, BaseAPIMixin):
     """
-    Performs and validatse the operations related to
+    Performs and validatses the operations related to
     retrieving and updating a unit's details. Includes test cases to ensure
     proper logic execution and error handling for unit retrieval and updates.
 
@@ -93,7 +93,7 @@ class TestUnitRetrieveUpdate(UnitBaseTest, BaseAPIMixin):
     """
 
     __test__ = True
-    detail_url_name = "unit_details"
+    detail_url_name = "catalog:unit_details"
 
     def test_retrieve_update_logic(self) -> None:
         """Test the logic for retrieving and updating a unit."""

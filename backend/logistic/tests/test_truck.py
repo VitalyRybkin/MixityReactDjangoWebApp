@@ -52,7 +52,7 @@ class TestTruckTypeAPIList(TruckTypeBaseTest, BaseAPIMixin):
 
     __test__ = True
 
-    url_name = "truck_types_list_create"
+    url_name = "logistic:truck_types_list_create"
 
     def test_get_list(self) -> None:
         self._get_list_logic()
@@ -99,7 +99,7 @@ class TestTruckTypeRetrieveUpdate(TruckTypeBaseTest, BaseAPIMixin):
 
     __test__ = True
 
-    detail_url_name = "truck_types_details"
+    detail_url_name = "logistic:truck_types_details"
 
     def test_retrieve_update_logic(self) -> None:
         self._retrieve_object_by_id()
@@ -145,7 +145,7 @@ class TestTruckCapacityAPIList(TruckCapacityBaseTest, BaseAPIMixin):
 
     __test__ = True
 
-    url_name = "truck_capacities_list_create"
+    url_name = "logistic:truck_capacities_list_create"
 
     def test_get_list(self) -> None:
         self._get_list_logic()
@@ -190,7 +190,7 @@ class TestTruckCapacityRetrieveUpdate(TruckCapacityBaseTest, BaseAPIMixin):
 
     __test__ = True
 
-    detail_url_name = "truck_capacities_details"
+    detail_url_name = "logistic:truck_capacities_details"
 
     def test_retrieve_update_logic(self) -> None:
         self._retrieve_object_by_id()
@@ -240,7 +240,7 @@ class TestTruckAPIList(TruckBaseTest, BaseAPIMixin):
         url_name (str): The endpoint name for trucks list and create operations.
     """
 
-    url_name = "trucks_list_create"
+    url_name = "logistic:trucks_list_create"
 
     __test__ = True
 

@@ -8,10 +8,8 @@ from catalog.api.views.units import (
     UnitListCreateAPIView,
     UnitRetrieveUpdateDestroyAPIView,
 )
-from catalog.api.views.warehouses import (
-    WarehouseListCreateAPIView,
-    WarehouseRetrieveUpdateDestroyAPIView,
-)
+
+app_name = "catalog"
 
 urlpatterns = [
     path(
@@ -33,15 +31,5 @@ urlpatterns = [
         "product/<int:pk>/",
         ProductRetrieveUpdateDestroyAPIView.as_view(),
         name="product_details",
-    ),
-    path(
-        "warehouse/",
-        WarehouseListCreateAPIView.as_view(),
-        name="warehouse_list_create",
-    ),
-    path(
-        "warehouse/<int:pk>/",
-        WarehouseRetrieveUpdateDestroyAPIView.as_view(),
-        name="warehouse_details",
     ),
 ]

@@ -11,8 +11,9 @@ urlpatterns = [
     path("auth/token/", TokenObtainPairView.as_view(), name="token_obtain_pair"),
     path("auth/token/refresh/", TokenRefreshView.as_view(), name="token_refresh"),
     path("auth/auth/", include("rest_framework.urls")),
-    path("api/", include("logistic.urls")),
-    path("api/", include("catalog.api.urls")),
+    path("api/logistic/", include("logistic.urls")),
+    path("api/catalog/", include("catalog.api.urls")),
+    path("api/stock/", include("stock.urls")),
     path("", include("catalog.web.urls")),
 
     # Global
@@ -54,4 +55,22 @@ urlpatterns = [
         ),
         name="swagger-logistic",
     ),
+
+  # Stock-only OpenAPI
+  path(
+      "api/schema/stock/",
+      SpectacularAPIView.as_view(
+          permission_classes=[AllowAny],
+          urlconf="stock.schema_urls",
+      ),
+      name="schema-stock",
+  ),
+  path(
+      "api/docs/stock/",
+      SpectacularSwaggerView.as_view(
+          url_name="schema-stock",
+          permission_classes=[AllowAny],
+      ),
+      name="swagger-stock",
+  ),
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

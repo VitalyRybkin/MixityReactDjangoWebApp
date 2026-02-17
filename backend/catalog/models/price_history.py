@@ -29,7 +29,7 @@ class PurchasePriceHistory(models.Model):
         "catalog.Product", on_delete=models.CASCADE, related_name="price"
     )
     warehouse = models.ForeignKey(
-        "catalog.Warehouse", on_delete=models.CASCADE, related_name="price"
+        "stock.Warehouse", on_delete=models.CASCADE, related_name="price"
     )
 
     class Meta:

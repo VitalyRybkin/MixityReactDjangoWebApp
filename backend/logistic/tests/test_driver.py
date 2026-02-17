@@ -35,7 +35,7 @@ class DriverBaseTest:
 
 
 class TestDriverAPIList(DriverBaseTest, BaseAPIMixin):
-    url_name = "driver_list_create"
+    url_name = "logistic:driver_list_create"
 
     __test__ = True
 

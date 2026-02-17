@@ -50,7 +50,7 @@ class TestCarrierAPIList(CarrierBaseTest, BaseAPIMixin):
 
     __test__ = True
 
-    url_name = "carrier_list_create"
+    url_name = "logistic:carrier_list_create"
 
     def test_get_list(self) -> None:
         self._get_list_logic()
@@ -98,7 +98,7 @@ class TestCarrierRetrieveUpdate(CarrierBaseTest, BaseAPIMixin):
 
     __test__ = True
 
-    detail_url_name = "carrier_details"
+    detail_url_name = "logistic:carrier_details"
 
     def test_retrieve_update_logic(self) -> None:
         self._retrieve_object_by_id()
@@ -133,7 +133,7 @@ class TestCarrierResources(BaseAPIMixin):
     """
 
     __test__ = True
-    detail_url_name = "carrier_resources"
+    detail_url_name = "logistic:carrier_resources"
     factory = CarrierFactory
 
     def test_retrieve_resources(self) -> None:

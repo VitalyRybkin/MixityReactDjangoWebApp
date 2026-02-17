@@ -22,5 +22,8 @@ class Warehouse(models.Model):
     phone_number = models.CharField(max_length=20, blank=True, null=True)
     directions = models.ImageField(upload_to="maps", null=True, blank=True)
 
+    class Meta:
+        db_table = "catalog_warehouse"
+
     def __str__(self) -> str:
         return f"{self.name} - {self.address}"

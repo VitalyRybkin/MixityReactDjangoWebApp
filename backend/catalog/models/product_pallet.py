@@ -3,10 +3,10 @@ from django.db import models
 
 class ProductPallet(models.Model):
     product = models.ForeignKey(
-        "Product", on_delete=models.CASCADE, related_name="product_pallets"
+        "catalog.Product", on_delete=models.CASCADE, related_name="product_pallets"
     )
     warehouse = models.ForeignKey(
-        "Warehouse", on_delete=models.CASCADE, related_name="warehouse_pallets"
+        "stock.Warehouse", on_delete=models.CASCADE, related_name="warehouse_pallets"
     )
     items_per_pallet = models.PositiveIntegerField()
 

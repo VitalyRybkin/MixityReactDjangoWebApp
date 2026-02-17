@@ -58,11 +58,12 @@ INSTALLED_APPS = [
     "django.contrib.staticfiles",
     "rest_framework",
     "corsheaders",
+    "stock.apps.StockConfig",
     "catalog.apps.ApiConfig",
     "logistic.apps.LogisticConfig",
+    "core.apps.CoreConfig",
     "drf_spectacular",
     "drf_spectacular_sidecar",
-    "core.apps.CoreConfig",
 ]
 
 MIDDLEWARE = [

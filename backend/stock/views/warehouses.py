@@ -1,8 +1,8 @@
 from rest_framework import generics
 from rest_framework.permissions import AllowAny
 
-from catalog.api.serializers.warehouse_serializers import WarehouseListCreateSerializer
-from catalog.models import Warehouse
+from stock.warehouse_serializers import WarehouseListCreateSerializer
+from stock.models import Warehouse
 from core.openapi.base_views import (
     BaseListCreateAPIView,
     BaseRetrieveUpdateDestroyAPIView,

@@ -1,6 +1,5 @@
 __all__ = [
     "UnitAdmin",
-    "WarehouseAdmin",
     "ProductAdmin",
     "ProductSpecificationAdmin",
     "ProductGroupAdmin",
@@ -9,7 +8,7 @@ __all__ = [
     "ProductSpecNameAdmin",
 ]
 
-from .admins import UnitAdmin, WarehouseAdmin
+from .admins import UnitAdmin
 from .product_admin import (
     DescriptionItemAdmin,
     ProductAdmin,

@@ -1,6 +1,6 @@
 from rest_framework import serializers
 
-from catalog.models import Warehouse
+from stock.models import Warehouse
 
 
 class WarehouseListCreateSerializer(serializers.ModelSerializer):

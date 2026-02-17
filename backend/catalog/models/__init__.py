@@ -9,7 +9,6 @@ from .product_specification import ProductSpecification
 from .product_unit import ProductUnit
 from .specification_group import SpecificationGroup
 from .unit import AppUnit
-from .warehouse import Warehouse
 
 __all__ = [
     "DescriptionItem",
@@ -21,7 +20,6 @@ __all__ = [
     "AppUnit",
     "ProductGroup",
     "PurchasePriceHistory",
-    "Warehouse",
     "ProductPallet",
     "ProductSpecName",
 ]

@@ -5,10 +5,11 @@ from django.core.exceptions import ValidationError
 from django.db import models
 from django.db.models import QuerySet
 
+from stock.models.warehouse import Warehouse
+
 from .product_pallet import ProductPallet
 from .product_unit import ProductUnit
 from .unit import AppUnit
-from .warehouse import Warehouse
 
 
 class Product(models.Model):

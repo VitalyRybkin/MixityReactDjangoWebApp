@@ -1,9 +1,9 @@
 from typing import Any, Dict
 
-from catalog.models import Warehouse
-from catalog.tests.api.factories import WarehouseFactory
+from stock.models import Warehouse
 from core.tests.base_test_case import BaseAPIMixin
 from core.tests.utils import FieldSpec
+from stock.tests.factories import WarehouseFactory
 
 
 class WarehouseBaseTest:
@@ -41,7 +41,7 @@ class TestWarehouseAPIList(WarehouseBaseTest, BaseAPIMixin):
 
     __test__ = True
 
-    url_name = "warehouse_list_create"
+    url_name = "stock:warehouse_list_create"
 
     def test_get_list(self) -> None:
         """Test the logic for retrieving a list of warehouses."""
@@ -91,7 +91,7 @@ class TestWarehouseRetrieveUpdate(WarehouseBaseTest, BaseAPIMixin):
     """
 
     __test__ = True
-    detail_url_name = "warehouse_details"
+    detail_url_name = "stock:warehouse_details"
 
     def test_retrieve_update_logic(self) -> None:
         """Test the logic for retrieving and updating warehouse details."""
