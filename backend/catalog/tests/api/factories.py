@@ -31,13 +31,12 @@ class WarehouseFactory(factory.django.DjangoModelFactory):
     directions = None
 
 
-class ProductUnitFactory(factory.django.DjangoModelFactory):
+class ProductGroupFactory(factory.django.DjangoModelFactory):
     class Meta:
-        model = "catalog.ProductUnit"
+        model = "catalog.ProductGroup"
 
-    product = None
-    unit = None
-    kg_per_unit = factory.fuzzy.FuzzyInteger(0, 100)
+    name = factory.Faker("word")
+    order = factory.Sequence(lambda n: n)
 
 
 class ProductFactory(factory.django.DjangoModelFactory):
@@ -46,7 +45,7 @@ class ProductFactory(factory.django.DjangoModelFactory):
 
     name = factory.Faker("word")
     title = factory.Faker("word")
-    product_group = None
+    product_group = factory.SubFactory(ProductGroupFactory)
     product_image = None
     for_web = True
     is_piece_based = True
