@@ -1,8 +1,8 @@
 from typing import Any, Dict
 
-from stock.models import Warehouse
 from core.tests.base_test_case import BaseAPIMixin
 from core.tests.utils import FieldSpec
+from stock.models import Warehouse
 from stock.tests.factories import WarehouseFactory
 
 

@@ -18,6 +18,7 @@ class WarehouseListCreateSerializer(serializers.ModelSerializer):
             "directions",
         ]
 
+
 class WarehouseMapSerializer(serializers.ModelSerializer):
 
     directions = serializers.ImageField(required=True, use_url=False)

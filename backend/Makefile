@@ -1,6 +1,6 @@
 UV := uv run --active python
 DJ := $(UV) manage.py
-CATS := catalog logistic
+CATS := catalog logistic stock
 
 # ---- VIRTUALENV & SETUP ----
 sync:

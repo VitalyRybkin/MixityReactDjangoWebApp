@@ -1,6 +1,10 @@
 from django.urls import path
 
-from stock.views.warehouses import WarehouseListCreateAPIView, WarehouseRetrieveUpdateDestroyAPIView, WarehouseUploadMapAPIView
+from stock.views.warehouses import (
+    WarehouseListCreateAPIView,
+    WarehouseRetrieveUpdateDestroyAPIView,
+    WarehouseUploadMapAPIView,
+)
 
 app_name = "stock"
 

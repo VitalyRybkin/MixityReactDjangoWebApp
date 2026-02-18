@@ -189,3 +189,14 @@ def resources_schema(
             description=get_description,
         ),
     )
+
+def update_patch_schema(*, resource: str, tags: list[str], serializer: Any, errors_read: dict[int, object],) -> Any:
+    return extend_schema_view(
+        patch=extend_schema(
+            operation_id=f"{resource}_update",
+            summary=f"Update {resource}",
+            tags=tags,
+            request=serializer,
+            responses={200: serializer, **errors_read},
+        ),
+    )
