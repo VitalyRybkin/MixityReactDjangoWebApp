@@ -19,6 +19,8 @@ write:
 test:
 	uv run pytest --ds=backend.settings -rs $(if $(app),$(app),)
 
+test-cov:
+	uv run pytest --ds=backend.settings -rs --cov=$(if $(app),$(app),) $(if $(app),$(app),)/ --cov-report=term-missing
 
 coverage:
 	$(UV) pytest --cov

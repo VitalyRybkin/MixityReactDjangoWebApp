@@ -1,8 +1,7 @@
 from typing import Any, Dict
 
 from core.tests.base_test_case import BaseAPIMixin
-from core.tests.contracts import UploadSpec
-from core.tests.utils import FieldSpec
+from core.tests.utils import FieldSpec, UploadSpec
 from stock.models import Warehouse
 from stock.tests.factories import WarehouseFactory, WarehouseMapFactory
 

@@ -4,7 +4,7 @@ import pytest
 from rest_framework import status
 from rest_framework.reverse import reverse
 
-from .contracts import UploadSpec
+from .utils import UploadSpec
 
 if TYPE_CHECKING:
     from core.tests.type_stubs import BaseMixinProto as _Base
