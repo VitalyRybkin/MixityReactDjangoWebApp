@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import Any, Optional, Protocol, ContextManager
+from typing import Any, ContextManager, Optional, Protocol
 
 
 class TestLoggerProto(Protocol):
@@ -14,6 +14,7 @@ class TestLoggerProto(Protocol):
     Attributes:
         COLOR (dict[str, str]): A mapping of log levels to their respective colors.
     """
+
     COLOR: dict[str, str]
 
     def _logger_header(self, title: str, level: int = 0) -> None: ...
@@ -31,6 +32,7 @@ class ApiRuntimeProto(Protocol):
         model (Any): The model associated with the object being tested.
         client (Any): The API client for making requests.
     """
+
     url: Optional[str]
     url_name: Optional[str]
     detail_url_name: Optional[str]
@@ -44,9 +46,14 @@ class ApiRuntimeProto(Protocol):
     def assertTrue(self, expr: Any, msg: str | None = None) -> None: ...
     def assertFalse(self, expr: Any, msg: str | None = None) -> None: ...
     def assertIn(self, member: Any, container: Any, msg: str | None = None) -> None: ...
-    def assertNotIn(self, member: Any, container: Any, msg: str | None = None) -> None: ...
 
-    def subTest(self, msg: object | None = ..., **params: Any) -> ContextManager[None]: ...
+    def assertNotIn(
+        self, member: Any, container: Any, msg: str | None = None
+    ) -> None: ...
+
+    def subTest(
+        self, msg: object | None = ..., **params: Any
+    ) -> ContextManager[None]: ...
 
 
 class BaseMixinProto(TestLoggerProto, ApiRuntimeProto, Protocol):
@@ -58,4 +65,5 @@ class BaseMixinProto(TestLoggerProto, ApiRuntimeProto, Protocol):
     for other mixin implementations. It inherits required features and acts as a
     unifier for utilizing combined behaviors of its parent classes.
     """
+
     pass

@@ -1,5 +1,5 @@
 from dataclasses import dataclass
-from typing import Union, Callable, Any, Optional, TYPE_CHECKING
+from typing import TYPE_CHECKING, Any, Callable, Optional, Union
 
 if TYPE_CHECKING:
     from core.tests.type_stubs import BaseMixinProto as _Base
@@ -7,6 +7,7 @@ else:
     _Base = object
 
 CastFn = Union[type, Callable[[Any], Any]]
+
 
 @dataclass(frozen=True, slots=True)
 class FieldSpec:
@@ -33,6 +34,7 @@ class FieldSpec:
             if provided. If no cast function is set or the input value is None,
             it returns the value unchanged.
     """
+
     model_field: str
     cast: Optional[CastFn] = None
     required: bool = False
@@ -68,7 +70,9 @@ def coerce_fieldspec(raw: Any) -> FieldSpec:
         cast = raw[1]
         required = bool(raw[2]) if len(raw) > 2 else False
         unique = bool(raw[3]) if len(raw) > 3 else False
-        return FieldSpec(model_field=model_field, cast=cast, required=required, unique=unique)
+        return FieldSpec(
+            model_field=model_field, cast=cast, required=required, unique=unique
+        )
 
     raise TypeError(f"Invalid fields_map entry: {raw!r}")
 
@@ -85,6 +89,7 @@ class TestLoggingMixin(_Base):
         COLOR (dict): A dictionary defining ANSI color codes for different logging
         levels and message types.
     """
+
     COLOR = {
         "HEAD": "\033[1;34m",
         "SUB": "\033[1;36m",

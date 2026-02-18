@@ -5,6 +5,7 @@ if TYPE_CHECKING:
 else:
     _Base = object
 
+
 class ModelContractMixin(_Base):
     """
     Provides a mixin class to test the string representation of a model.
@@ -14,6 +15,7 @@ class ModelContractMixin(_Base):
     unit testing frameworks where asserting the correctness of model string outputs
     is required.
     """
+
     def _str_method_logic(self, expected_output: str) -> None:
         """
         Executes the logic for testing the __str__ method of an object against
@@ -26,4 +28,6 @@ class ModelContractMixin(_Base):
         """
         self._logger_header(f"METHOD: __str__ for {self.model.__name__}")
         self.assertEqual(str(self.obj), expected_output)
-        print(f"    {self.COLOR['OK']}✓ String matches: {expected_output}{self.COLOR['END']}")
+        print(
+            f"    {self.COLOR['OK']}✓ String matches: {expected_output}{self.COLOR['END']}"
+        )

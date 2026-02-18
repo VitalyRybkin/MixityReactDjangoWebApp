@@ -1,10 +1,9 @@
 from decimal import Decimal
-from typing import Dict, Any, Iterator, Tuple
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any, Dict, Iterator, Tuple
 
 from django.db import models
 
-from core.tests.utils import coerce_fieldspec, FieldSpec
+from core.tests.utils import FieldSpec, coerce_fieldspec
 
 if TYPE_CHECKING:
     from core.tests.type_stubs import BaseMixinProto as _Base
@@ -24,6 +23,7 @@ class FieldContractMixin(_Base):
     Attributes:
         fields_map: A dictionary mapping API field names to their specifications.
     """
+
     fields_map: Dict[str, Any] = {}
 
     def _iter_specs(self) -> Iterator[tuple[str, Any]]:
@@ -31,10 +31,10 @@ class FieldContractMixin(_Base):
             yield api_field, coerce_fieldspec(raw)
 
     def _normalize_for_compare(
-            self,
-            spec: FieldSpec,
-            api_value: Any,
-            model_value: Any,
+        self,
+        spec: FieldSpec,
+        api_value: Any,
+        model_value: Any,
     ) -> Tuple[Any, Any]:
 
         def norm(v: Any) -> Any:
@@ -61,8 +61,8 @@ class FieldContractMixin(_Base):
 
     def _get_list_logic(self) -> None:
         """
-        Asserts the correctness of the GET method for an endpoint, ensuring that the returned data is correctly formatted
-        and matches the expected model values defined by specifications.
+        Asserts the correctness of the GET method for an endpoint, ensuring that the returned data
+        is correctly formatted and matches the expected model values defined by specifications.
 
         Raises
         ------
@@ -92,10 +92,13 @@ class FieldContractMixin(_Base):
                 model_val = getattr(self.obj, spec.model_field)
 
             api_norm, model_norm = self._normalize_for_compare(spec, api_val, model_val)
-            self.assertEqual(api_norm, model_norm, msg=f"Mismatch for field '{api_field}'")
+            self.assertEqual(
+                api_norm, model_norm, msg=f"Mismatch for field '{api_field}'"
+            )
 
             if api_field == "isActive":
                 self.assertEqual(api_val, True, msg=f"Mismatch for field '{api_field}'")
 
-
-        print(f"    {self.COLOR['OK']}✓ List verified ({len(self.fields_map)} fields){self.COLOR['END']}")
+        print(
+            f"    {self.COLOR['OK']}✓ List verified ({len(self.fields_map)} fields){self.COLOR['END']}"
+        )

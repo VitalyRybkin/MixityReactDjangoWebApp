@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import Any, TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 
 from rest_framework.reverse import reverse
 
@@ -8,6 +8,7 @@ if TYPE_CHECKING:
     from core.tests.type_stubs import BaseMixinProto as _Base
 else:
     _Base = object
+
 
 class ActiveVisibilityContractMixin(_Base):
     """
@@ -35,15 +36,19 @@ class ActiveVisibilityContractMixin(_Base):
         self.assertEqual(response.status_code, 200)
 
         data = response.data
-        items = data["results"] if isinstance(data, dict) and "results" in data else data
+        items = (
+            data["results"] if isinstance(data, dict) and "results" in data else data
+        )
         ids = {item["id"] for item in items}
 
         self.assertIn(active.id, ids, msg="Active object missing from list response")
-        self.assertNotIn(inactive.id, ids, msg="Inactive object leaked into list response")
+        self.assertNotIn(
+            inactive.id, ids, msg="Inactive object leaked into list response"
+        )
 
-        print(f"    {self.COLOR['OK']}✓ Active-only visibility verified{self.COLOR['END']}")
-
-
+        print(
+            f"    {self.COLOR['OK']}✓ Active-only visibility verified{self.COLOR['END']}"
+        )
 
 
 class SoftDeleteContractMixin(_Base):
@@ -90,6 +95,7 @@ class ReadOnlyActiveFieldContractMixin(_Base):
         detail_url_name: The name of the URL pattern for the detail endpoint. It is used
             to construct the URL for accessing an individual resource based on its primary key.
     """
+
     detail_url_name: str | None = None
 
     def get_detail_url(self, pk: Any) -> str:
@@ -107,7 +113,9 @@ class ReadOnlyActiveFieldContractMixin(_Base):
             the expected behavior.
         """
         assert self.detail_url_name is not None
-        self._logger_header(f"ENDPOINT PATCH: {self.detail_url_name} (isActive read-only)")
+        self._logger_header(
+            f"ENDPOINT PATCH: {self.detail_url_name} (isActive read-only)"
+        )
 
         obj = self.factory.create(is_active=True)
         url = self.get_detail_url(obj.id)
@@ -116,8 +124,12 @@ class ReadOnlyActiveFieldContractMixin(_Base):
         self.assertEqual(resp.status_code, 200)
 
         obj.refresh_from_db()
-        self.assertTrue(obj.is_active, msg="is_active changed via PATCH but should be read-only")
+        self.assertTrue(
+            obj.is_active, msg="is_active changed via PATCH but should be read-only"
+        )
 
         self.assertEqual(resp.data["isActive"], True)
 
-        print(f"    {self.COLOR['OK']}✓ isActive is read-only via API{self.COLOR['END']}")
+        print(
+            f"    {self.COLOR['OK']}✓ isActive is read-only via API{self.COLOR['END']}"
+        )

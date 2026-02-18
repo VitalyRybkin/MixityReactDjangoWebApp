@@ -1,3 +1,5 @@
+from typing import Any
+
 from rest_framework import serializers
 
 from stock.models import Warehouse
@@ -26,3 +28,8 @@ class WarehouseMapSerializer(serializers.ModelSerializer):
     class Meta:
         model = Warehouse
         fields = ("directions",)
+
+    def validate(self, attrs: Any) -> Any:
+        if self.instance and self.partial and "directions" not in attrs:
+            raise serializers.ValidationError({"directions": "This field is required."})
+        return attrs

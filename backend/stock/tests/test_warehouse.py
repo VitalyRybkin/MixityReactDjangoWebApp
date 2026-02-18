@@ -1,9 +1,10 @@
 from typing import Any, Dict
 
 from core.tests.base_test_case import BaseAPIMixin
+from core.tests.contracts import UploadSpec
 from core.tests.utils import FieldSpec
 from stock.models import Warehouse
-from stock.tests.factories import WarehouseFactory
+from stock.tests.factories import WarehouseFactory, WarehouseMapFactory
 
 
 class WarehouseBaseTest:
@@ -100,3 +101,25 @@ class TestWarehouseRetrieveUpdate(WarehouseBaseTest, BaseAPIMixin):
     def test_not_found_error(self) -> None:
         """Test the error handling logic for retrieving a nonexistent warehouse."""
         self._retrieve_object_by_id_not_found()
+
+
+class TestWarehouseUploadMap(BaseAPIMixin):
+
+    __test__ = True
+    detail_url_name = "stock:warehouse_map"
+    upload_file_spec = UploadSpec(field_name="directions", upload_to="maps/")
+
+    model = Warehouse
+    factory = WarehouseMapFactory
+    fields_map = {
+        "directions": FieldSpec("directions", str),
+    }
+
+    def test_upload_map(self) -> None:
+        temp = self.factory.build()
+        return self._upload_map_success(
+            {"directions": temp.directions}, self.upload_file_spec
+        )
+
+    def test_upload_map_missing_file_400(self) -> None:
+        return self._upload_map_missing_file_400(self.upload_file_spec)
