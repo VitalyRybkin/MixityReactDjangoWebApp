@@ -17,3 +17,11 @@ class WarehouseListCreateSerializer(serializers.ModelSerializer):
             "phoneNumber",
             "directions",
         ]
+
+class WarehouseMapSerializer(serializers.ModelSerializer):
+
+    directions = serializers.ImageField(required=True, use_url=False)
+
+    class Meta:
+        model = Warehouse
+        fields = ("directions",)
