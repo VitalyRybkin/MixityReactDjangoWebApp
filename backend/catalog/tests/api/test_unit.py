@@ -121,6 +121,13 @@ class TestUnitFiledValidation(UnitBaseTest, BaseAPIMixin):
         """Test the field validation logic for unit creation."""
         kg_ok = {"title": "kilogram", "isWeightBased": True, "toKgFactor": 1}
         ton_ok = {"title": "ton", "isWeightBased": True, "toKgFactor": 1000}
+        piece_ok = {"title": "piece", "isWeightBased": False, "toKgFactor": 1}
+        pallet_ok = {"title": "pallet", "isWeightBased": False, "toKgFactor": 1}
+        percent_ok = {"title": "%", "isWeightBased": False, "toKgFactor": 1}
+        millimeter_ok = {"title": "millimeter", "isWeightBased": False, "toKgFactor": 1}
+        megapascal_ok = {"title": "megapascal", "isWeightBased": False, "toKgFactor": 1}
+        litre_ok = {"title": "litre", "isWeightBased": False, "toKgFactor": 1}
+        kg_per_m3_ok = {"title": "kg/m3", "isWeightBased": False, "toKgFactor": 1}
 
         cases = [
             ({**kg_ok, "isWeightBased": False}, 400, "is_weight_based"),
@@ -129,6 +136,27 @@ class TestUnitFiledValidation(UnitBaseTest, BaseAPIMixin):
             ({**ton_ok, "isWeightBased": False}, 400, "is_weight_based"),
             ({**ton_ok, "toKgFactor": 10}, 400, "to_kg_factor"),
             (ton_ok, 201, None),
+            ({**piece_ok, "isWeightBased": True}, 400, "is_weight_based"),
+            ({**piece_ok, "toKgFactor": 10}, 400, "to_kg_factor"),
+            (piece_ok, 201, None),
+            ({**pallet_ok, "isWeightBased": True}, 400, "is_weight_based"),
+            ({**pallet_ok, "toKgFactor": 10}, 400, "to_kg_factor"),
+            (pallet_ok, 201, None),
+            ({**percent_ok, "isWeightBased": True}, 400, "is_weight_based"),
+            ({**percent_ok, "toKgFactor": 10}, 400, "to_kg_factor"),
+            (percent_ok, 201, None),
+            ({**millimeter_ok, "isWeightBased": True}, 400, "is_weight_based"),
+            ({**millimeter_ok, "toKgFactor": 10}, 400, "to_kg_factor"),
+            (millimeter_ok, 201, None),
+            ({**megapascal_ok, "isWeightBased": True}, 400, "is_weight_based"),
+            ({**megapascal_ok, "toKgFactor": 10}, 400, "to_kg_factor"),
+            (megapascal_ok, 201, None),
+            ({**litre_ok, "isWeightBased": True}, 400, "is_weight_based"),
+            ({**litre_ok, "toKgFactor": 10}, 400, "to_kg_factor"),
+            (litre_ok, 201, None),
+            ({**kg_per_m3_ok, "isWeightBased": True}, 400, "is_weight_based"),
+            ({**kg_per_m3_ok, "toKgFactor": 10}, 400, "to_kg_factor"),
+            (kg_per_m3_ok, 201, None),
         ]
 
         self._test_field_validation(cases)
