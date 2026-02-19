@@ -1,5 +1,6 @@
 from typing import Any
 
+from django.core.exceptions import ValidationError as DjangoValidationError
 from rest_framework import serializers
 
 from catalog.models import AppUnit
@@ -28,3 +29,15 @@ class UnitSerializer(serializers.ModelSerializer):
         representation = super().to_representation(instance)
         representation["title"] = instance.get_title_display()
         return representation
+
+    def create(self, validated_data: dict) -> AppUnit:
+        try:
+            return super().create(validated_data)
+        except DjangoValidationError as e:
+            raise serializers.ValidationError(e.message_dict)
+
+    def update(self, instance: AppUnit, validated_data: dict) -> AppUnit:
+        try:
+            return super().update(instance, validated_data)
+        except DjangoValidationError as e:
+            raise serializers.ValidationError(e.message_dict)
