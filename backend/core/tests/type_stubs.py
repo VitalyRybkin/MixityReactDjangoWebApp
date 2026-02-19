@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import Any, ContextManager, Optional, Protocol
+from typing import Any, ContextManager, NoReturn, Optional, Protocol
 
 
 class TestLoggerProto(Protocol):
@@ -35,7 +35,7 @@ class ApiRuntimeProto(Protocol):
 
     url: Optional[str]
     url_name: Optional[str]
-    detail_url_name: Optional[str]
+    pk_url_name: Optional[str]
     obj: Any
     model: Any
     factory: Any
@@ -46,6 +46,7 @@ class ApiRuntimeProto(Protocol):
     def assertTrue(self, expr: Any, msg: str | None = None) -> None: ...
     def assertFalse(self, expr: Any, msg: str | None = None) -> None: ...
     def assertIn(self, member: Any, container: Any, msg: str | None = None) -> None: ...
+    def fail(self, msg: Any = ...) -> NoReturn: ...
 
     def assertNotIn(
         self, member: Any, container: Any, msg: str | None = None

@@ -93,13 +93,13 @@ class TestTruckTypeRetrieveUpdate(TruckTypeBaseTest, BaseAPIMixin):
     as well as handling cases where the requested truck type does not exist.
 
     Attributes:
-        detail_url_name: The name of the URL used for accessing detailed truck
+        pk_url_name: The name of the URL used for accessing detailed truck
         type information.
     """
 
     __test__ = True
 
-    detail_url_name = "logistic:truck_types_details"
+    pk_url_name = "logistic:truck_types_details"
 
     def test_retrieve_update_logic(self) -> None:
         self._retrieve_object_by_id()
@@ -184,13 +184,13 @@ class TestTruckCapacityRetrieveUpdate(TruckCapacityBaseTest, BaseAPIMixin):
     and updating existing truck capacities.
 
     Attributes:
-        detail_url_name: A string representing the name of the API endpoint
+        pk_url_name: A string representing the name of the API endpoint
             detail URL for accessing specific truck capacity records.
     """
 
     __test__ = True
 
-    detail_url_name = "logistic:truck_capacities_details"
+    pk_url_name = "logistic:truck_capacities_details"
 
     def test_retrieve_update_logic(self) -> None:
         self._retrieve_object_by_id()
@@ -278,3 +278,34 @@ class TestTruckAPIList(TruckBaseTest, BaseAPIMixin):
             "capacity": capacity.pk,
             "carrier": carrier.pk,
         }
+
+
+class TestTruckRetrieveUpdate(TruckBaseTest, BaseAPIMixin):
+    """
+    Provides test cases to verify the functioning of the APIs
+    that allow retrieval and update of truck information. Validates functionality such as
+    retrieving specific truck data, checking API behavior on missing data,
+    and updating existing trucks.
+
+    Attributes:
+        pk_url_name: A string representing the name of the API endpoint
+            detail URL for accessing specific truck records.
+    """
+
+    __test__ = True
+
+    pk_url_name = "logistic:truck_details"
+
+    def test_retrieve_update_logic(self) -> None:
+        self._retrieve_object_by_id()
+
+    def test_not_found_error(self) -> None:
+        self._retrieve_object_by_id_not_found()
+
+    def test_patch_logic(self) -> None:
+        truck = TruckFactory.create()
+        payload = {"licensePlate": f"{truck.license_plate}-new"}
+        self._patch_logic(payload)
+
+    def test_delete_logic(self) -> None:
+        self._delete_logic()

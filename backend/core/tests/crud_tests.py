@@ -12,7 +12,6 @@ else:
     _Base = object
 
 
-@pytest.mark.usefixtures("temp_media_root")
 class CrudContractMixin(_Base):
     """
     Mixin class providing CRUD functionalities for a specific contract.
@@ -22,8 +21,15 @@ class CrudContractMixin(_Base):
     and response validation for the contract. Intended for use in
     testing frameworks where POST, GET, PUT and DELETE operations
     need to be performed and verified.
-
     """
+
+    def get_detail_url(self, pk: int) -> str:
+        self.assertTrue(
+            self.pk_url_name is not None,
+            "detail_url_name must be set for detail endpoints",
+        )
+        assert self.pk_url_name is not None
+        return reverse(self.pk_url_name, kwargs={"pk": pk})
 
     def _create_logic(
         self,
@@ -39,15 +45,10 @@ class CrudContractMixin(_Base):
             The data to be sent in the POST request payload.
         """
         self._logger_header(f"ENDPOINT POST: {self.url_name}")
+
         response = self.client.post(self.url, data=payload, format="json")
         if response.status_code != expected_status:
-            print(f"\n{self.COLOR['ERR']}FAILED PAYLOAD:{self.COLOR['END']}", payload)
-            print(f"{self.COLOR['ERR']}API ERRORS:{self.COLOR['END']}", response.data)
-        self.assertEqual(
-            response.status_code,
-            expected_status,
-            msg=f"API returned status code {response.status_code}",
-        )
+            self.fail(f"PATCH failed\nPayload: {payload}\nErrors: {response.data}")
 
         is_created = self.model.objects.filter(pk=response.data["id"]).exists()
         self.assertTrue(is_created, msg="Object was not created successfully")
@@ -57,9 +58,10 @@ class CrudContractMixin(_Base):
     def _retrieve_object_by_id(self, obj: Any = None) -> None:
         obj = obj or self.obj
 
-        self._logger_header(f"ENDPOINT GET: {self.detail_url_name}/{obj.id}")
+        self._logger_header(f"ENDPOINT GET: {self.pk_url_name}/{obj.id}")
 
         url = self.get_detail_url(obj.id)
+
         response = self.client.get(url)
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
@@ -80,9 +82,9 @@ class CrudContractMixin(_Base):
             AssertionError: If the API response status code does not match the
             expected 404 NOT FOUND status.
         """
-        self._logger_header(
-            f"ENDPOINT GET: {self.detail_url_name if self.detail_url_name else '' + f'/{self.obj.id}'}"
-        )
+        suffix = f"/{self.obj.id}" if self.obj else ""
+        name = self.pk_url_name or ""
+        self._logger_header(f"ENDPOINT GET: {name}{suffix}")
 
         url = self.get_detail_url(pk=9999)
         response = self.client.get(url)
@@ -116,32 +118,32 @@ class CrudContractMixin(_Base):
         """
         obj = obj or self.obj
 
-        self._logger_header(f"ENDPOINT GET: {self.detail_url_name}/{obj.id}")
+        self._logger_header(f"ENDPOINT GET: {self.pk_url_name}/{obj.id}")
 
         url = self.get_detail_url(obj.id)
         response = self.client.get(url)
 
-        assert response.status_code == status.HTTP_200_OK
-        assert isinstance(response.data, dict)
+        self.assertEqual(response.status_code, status.HTTP_200_OK, msg=response.data)
+        self.assertTrue(isinstance(response.data, dict))
 
-        assert "trucks" in response.data
-        assert "drivers" in response.data
+        self.assertIn("trucks", response.data, msg="Response keys mismatch")
+        self.assertIn("drivers", response.data, msg="Response keys mismatch")
 
-        assert isinstance(response.data["trucks"], list)
-        assert isinstance(response.data["drivers"], list)
+        self.assertTrue(isinstance(response.data["trucks"], list))
+        self.assertTrue(isinstance(response.data["drivers"], list))
 
         if expected_trucks is not None:
-            assert len(response.data["trucks"]) == expected_trucks
+            self.assertEqual(len(response.data["trucks"]), expected_trucks)
 
         if expected_drivers is not None:
-            assert len(response.data["drivers"]) == expected_drivers
+            self.assertEqual(len(response.data["drivers"]), expected_drivers)
 
         if response.data["trucks"]:
-            assert isinstance(response.data["trucks"][0], dict)
-            assert "id" in response.data["trucks"][0]
+            self.assertTrue(isinstance(response.data["trucks"][0], dict))
+            self.assertIn("id", response.data["trucks"][0], msg="Truck ID missing")
 
         if response.data["drivers"]:
-            assert isinstance(response.data["drivers"][0], dict)
+            self.assertTrue(isinstance(response.data["drivers"][0], dict))
 
         print(
             f"    {self.COLOR['OK']}✓ Resources verified "
@@ -149,12 +151,7 @@ class CrudContractMixin(_Base):
             f"{self.COLOR['END']}"
         )
 
-    def get_detail_url(self, pk: int) -> str:
-        assert (
-            self.detail_url_name is not None
-        ), "detail_url_name must be set for detail endpoints"
-        return reverse(self.detail_url_name, kwargs={"pk": pk})
-
+    @pytest.mark.usefixtures("temp_media_root")
     def _upload_map_success(
         self,
         payload: Dict[str, Any],
@@ -162,7 +159,7 @@ class CrudContractMixin(_Base):
         expected_status: int = status.HTTP_200_OK,
     ) -> None:
 
-        self._logger_header(f"ENDPOINT PATCH: {self.detail_url_name}/{self.obj.id}")
+        self._logger_header(f"ENDPOINT PATCH: {self.pk_url_name}/{self.obj.id}")
 
         resp = self.client.patch(
             self.url,
@@ -182,7 +179,7 @@ class CrudContractMixin(_Base):
         self,
         spec: UploadSpec,
     ) -> None:
-        self._logger_header(f"ENDPOINT PATCH: {self.detail_url_name}/{self.obj.id}")
+        self._logger_header(f"ENDPOINT PATCH: {self.pk_url_name}/{self.obj.id}")
 
         resp = self.client.patch(self.url, data={}, format="multipart")
         self.assertEqual(resp.status_code, status.HTTP_400_BAD_REQUEST)
@@ -191,3 +188,24 @@ class CrudContractMixin(_Base):
         print(
             f"    {self.COLOR['OK']}✓ Missing file validation passed{self.COLOR['END']}"
         )
+
+    def _patch_logic(self, payload: dict[str, Any] | None = None) -> None:
+        obj = self.factory.create()
+        self._logger_header(f"ENDPOINT PATCH: {self.pk_url_name}/{obj.id}")
+        url = self.get_detail_url(obj.id)
+        self.assertTrue(payload, msg="Provide patch payload for this resource")
+        response = self.client.patch(url, data=payload, format="json")
+        if response.status_code != 200:
+            self.fail(f"PATCH failed\nPayload: {payload}\nErrors: {response.data}")
+
+        print(f"    {self.COLOR['OK']}✓ PATCH logic passed{self.COLOR['END']}")
+
+    def _delete_logic(self, expected_status: int = 200) -> None:
+        obj = self.factory.create()
+        self._logger_header(f"ENDPOINT DELETE: {self.pk_url_name}/{obj.id}")
+        url = self.get_detail_url(obj.id)
+        response = self.client.delete(url)
+        if response.status_code != expected_status:
+            self.fail(f"DELETE failed\nErrors: {response.data}")
+
+        print(f"    {self.COLOR['OK']}✓ DELETE logic passed{self.COLOR['END']}")

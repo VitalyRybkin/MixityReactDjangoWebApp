@@ -93,12 +93,12 @@ class TestCarrierRetrieveUpdate(CarrierBaseTest, BaseAPIMixin):
     string method formatting.
 
     Attributes:
-        url_name: A string representing the name of the tested API URL.
+        pk_url_name: A string representing the name of the tested API URL.
     """
 
     __test__ = True
 
-    detail_url_name = "logistic:carrier_details"
+    pk_url_name = "logistic:carrier_details"
 
     def test_retrieve_update_logic(self) -> None:
         self._retrieve_object_by_id()
@@ -126,14 +126,14 @@ class TestCarrierResources(BaseAPIMixin):
     factories to generate test data.
 
     Attributes:
-        detail_url_name: str
+        pk_url_name: str
             The name of the detail resource URL to be used within the test.
         factory: FactorySubClass
             The factory class responsible for creating carrier test instances.
     """
 
     __test__ = True
-    detail_url_name = "logistic:carrier_resources"
+    pk_url_name = "logistic:carrier_resources"
     factory = CarrierFactory
 
     def test_retrieve_resources(self) -> None:

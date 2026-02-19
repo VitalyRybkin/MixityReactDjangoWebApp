@@ -78,7 +78,7 @@ class TruckRetrieveUpdateDestroyAPIView(BaseRetrieveUpdateDestroyAPIView):
     permission_classes = [AllowAny]
 
     def get_serializer_class(self) -> type[BaseSerializer]:
-        if self.request.method in ("PATCH", "POST"):
+        if self.request.method == "GET":
             return self.read_serializer_class
         return self.request_serializer_class
 

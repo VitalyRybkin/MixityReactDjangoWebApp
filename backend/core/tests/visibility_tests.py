@@ -52,11 +52,11 @@ class ActiveVisibilityContractMixin(_Base):
 
 
 class SoftDeleteContractMixin(_Base):
-    detail_url_name: str | None = None
+    pk_url_name: str | None = None
 
     def get_detail_url(self, pk: Any) -> str:
-        assert self.detail_url_name is not None
-        return reverse(self.detail_url_name, kwargs={"pk": pk})
+        assert self.pk_url_name is not None
+        return reverse(self.pk_url_name, kwargs={"pk": pk})
 
     def _assert_soft_delete_via_delete(self) -> None:
         """
@@ -65,9 +65,9 @@ class SoftDeleteContractMixin(_Base):
         the database. It ensures that the response data reflects the updated `is_active`
         attribute and confirms the HTTP status code of the operation.
         """
-        assert self.detail_url_name is not None
+        assert self.pk_url_name is not None
 
-        self._logger_header(f"ENDPOINT DELETE: {self.detail_url_name}")
+        self._logger_header(f"ENDPOINT DELETE: {self.pk_url_name}")
 
         obj = self.factory.create(is_active=True)
         url = self.get_detail_url(obj.id)
@@ -96,11 +96,11 @@ class ReadOnlyActiveFieldContractMixin(_Base):
             to construct the URL for accessing an individual resource based on its primary key.
     """
 
-    detail_url_name: str | None = None
+    pk_url_name: str | None = None
 
     def get_detail_url(self, pk: Any) -> str:
-        assert self.detail_url_name is not None
-        return reverse(self.detail_url_name, kwargs={"pk": pk})
+        assert self.pk_url_name is not None
+        return reverse(self.pk_url_name, kwargs={"pk": pk})
 
     def _assert_is_active_is_read_only(self) -> None:
         """
@@ -112,10 +112,8 @@ class ReadOnlyActiveFieldContractMixin(_Base):
             successfully modified via the PATCH request or if the response data does not match
             the expected behavior.
         """
-        assert self.detail_url_name is not None
-        self._logger_header(
-            f"ENDPOINT PATCH: {self.detail_url_name} (isActive read-only)"
-        )
+        assert self.pk_url_name is not None
+        self._logger_header(f"ENDPOINT PATCH: {self.pk_url_name} (isActive read-only)")
 
         obj = self.factory.create(is_active=True)
         url = self.get_detail_url(obj.id)
