@@ -1,6 +1,7 @@
 import factory.fuzzy
 
 from catalog.models import AppUnit
+from stock.tests.factories import WarehouseFactory
 
 
 class UnitFactory(factory.django.DjangoModelFactory):
@@ -38,3 +39,22 @@ class ProductFactory(factory.django.DjangoModelFactory):
     product_image = None
     for_web = True
     is_piece_based = True
+
+
+class DescriptionItemFactory(factory.django.DjangoModelFactory):
+    class Meta:
+        model = "catalog.DescriptionItem"
+
+    title = factory.Faker("word")
+
+
+class PurchasePriceHistoryFactory(factory.django.DjangoModelFactory):
+    class Meta:
+        model = "catalog.PurchasePriceHistory"
+
+    date = factory.Faker("date")
+    purchase_price = factory.Faker(
+        "pydecimal", left_digits=2, right_digits=2, positive=True
+    )
+    product = factory.SubFactory(ProductFactory)
+    warehouse = factory.SubFactory(WarehouseFactory)
