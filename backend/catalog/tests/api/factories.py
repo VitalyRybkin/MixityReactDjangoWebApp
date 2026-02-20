@@ -93,3 +93,12 @@ class ProductDescriptionFactory(factory.django.DjangoModelFactory):
     product = factory.SubFactory(ProductFactory)
     item = factory.SubFactory(DescriptionItemFactory)
     text = factory.Faker("sentence")
+
+
+class ProductUnitFactory(factory.django.DjangoModelFactory):
+    class Meta:
+        model = "catalog.ProductUnit"
+
+    product = factory.SubFactory("catalog.tests.api.factories.ProductFactory")
+    unit = factory.SubFactory("catalog.tests.api.factories.UnitFactory")
+    kg_per_unit = 20
