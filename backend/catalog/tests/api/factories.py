@@ -58,3 +58,38 @@ class PurchasePriceHistoryFactory(factory.django.DjangoModelFactory):
     )
     product = factory.SubFactory(ProductFactory)
     warehouse = factory.SubFactory(WarehouseFactory)
+
+
+class SpecificationGroupFactory(factory.django.DjangoModelFactory):
+    class Meta:
+        model = "catalog.SpecificationGroup"
+
+    name = factory.Faker("word")
+
+
+class ProductSpecNameFactory(factory.django.DjangoModelFactory):
+    class Meta:
+        model = "catalog.ProductSpecName"
+
+    title = factory.Faker("word")
+    group = factory.SubFactory(SpecificationGroupFactory)
+    order = factory.Sequence(lambda n: n)
+
+
+class ProductSpecificationFactory(factory.django.DjangoModelFactory):
+    class Meta:
+        model = "catalog.ProductSpecification"
+
+    product = factory.SubFactory(ProductFactory)
+    name = factory.SubFactory(ProductSpecNameFactory)
+    value = factory.Faker("word")
+    unit = factory.SubFactory(UnitFactory)
+
+
+class ProductDescriptionFactory(factory.django.DjangoModelFactory):
+    class Meta:
+        model = "catalog.ProductDescription"
+
+    product = factory.SubFactory(ProductFactory)
+    item = factory.SubFactory(DescriptionItemFactory)
+    text = factory.Faker("sentence")
