@@ -91,7 +91,7 @@ class TestWarehouseRetrieveUpdate(WarehouseBaseTest, BaseAPIMixin):
     """
 
     __test__ = True
-    detail_url_name = "stock:warehouse_details"
+    pk_url_name = "stock:warehouse_details"
 
     def test_retrieve_update_logic(self) -> None:
         """Test the logic for retrieving and updating warehouse details."""
@@ -105,7 +105,7 @@ class TestWarehouseRetrieveUpdate(WarehouseBaseTest, BaseAPIMixin):
 class TestWarehouseUploadMap(BaseAPIMixin):
 
     __test__ = True
-    detail_url_name = "stock:warehouse_map"
+    pk_url_name = "stock:warehouse_map"
     upload_file_spec = UploadSpec(field_name="directions", upload_to="maps/")
 
     model = Warehouse

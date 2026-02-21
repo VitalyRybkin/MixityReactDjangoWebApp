@@ -1,4 +1,5 @@
 import factory.fuzzy
+from factory import fuzzy
 
 from catalog.models import AppUnit
 from stock.tests.factories import WarehouseFactory
@@ -99,6 +100,6 @@ class ProductUnitFactory(factory.django.DjangoModelFactory):
     class Meta:
         model = "catalog.ProductUnit"
 
-    product = factory.SubFactory("catalog.tests.api.factories.ProductFactory")
-    unit = factory.SubFactory("catalog.tests.api.factories.UnitFactory")
-    kg_per_unit = 20
+    product = factory.SubFactory(ProductFactory)
+    unit = factory.SubFactory(UnitFactory, title=AppUnit.TitleChoices.PIECE)
+    kg_per_unit = fuzzy.FuzzyChoice([15, 20, 25, 30])

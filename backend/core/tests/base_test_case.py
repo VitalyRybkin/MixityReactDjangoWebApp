@@ -88,8 +88,8 @@ BaseAPIMixin = BaseAPITestCase
 class BaseModelTestCase(APITestCase, TestLoggingMixin):
     __test__ = False
 
-    test_model: Any = None
-    test_factory: Any = None
+    _model: Any = None
+    _factory: Any = None
 
     obj: Any
     expected: str
@@ -97,13 +97,13 @@ class BaseModelTestCase(APITestCase, TestLoggingMixin):
     def setUp(self) -> None:
         super().setUp()
 
-        if self.test_factory is None:
+        if self._factory is None:
             raise SkipTest(f"{self.__class__.__name__}: No factory configured.")
 
-        self.obj = self.test_factory.create()
+        self.obj = self._factory.create()
 
     def _str_method(self, expected: str) -> None:
-        self._logger_header(f"METHOD: __str__ for {self.test_model.__name__}")
+        self._logger_header(f"METHOD: __str__ for {self._model.__name__}")
         self.assertEqual(str(self.obj), str(expected))
         print(
             f"    {self.COLOR['OK']}✓ String matches: {str(self.obj)}{self.COLOR['END']}"
