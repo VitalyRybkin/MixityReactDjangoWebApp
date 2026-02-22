@@ -1,4 +1,7 @@
+import pytest
+
 from catalog.models import (
+    AppUnit,
     DescriptionItem,
     ProductDescription,
     ProductGroup,
@@ -17,8 +20,10 @@ from catalog.tests.api.factories import (
     ProductUnitFactory,
     PurchasePriceHistoryFactory,
     SpecificationGroupFactory,
+    UnitFactory,
 )
 from core.tests.base_test_case import BaseModelTestCase
+from core.tests.utils import ValidationFieldSpec
 
 
 class TestDescriptionItemModel(BaseModelTestCase):
@@ -97,10 +102,31 @@ class TestProductDescriptionModel(BaseModelTestCase):
         self._str_method(expected)
 
 
+@pytest.mark.django_db
 class TestProductUnitModel(BaseModelTestCase):
     __test__ = True
     _model = ProductUnit
     _factory = ProductUnitFactory
+
+    invalid_fields_map = [
+        ValidationFieldSpec(
+            field_name="unit",
+            invalid_value=lambda: UnitFactory.create(
+                title=AppUnit.TitleChoices.KILOGRAM
+            ),
+        ),
+        ValidationFieldSpec(field_name="kg_per_unit", invalid_value=10),
+    ]
+
+    valid_fields_map = [
+        ValidationFieldSpec(field_name="kg_per_unit", invalid_value=25),
+    ]
+
+    def test_invalid_field_validation(self) -> None:
+        self._validate_model_invalid_fields()
+
+    def test_valid_field_validation(self) -> None:
+        self._validate_model_valid_fields()
 
     def test_str_method(self) -> None:
         expected = f"{self.obj.product} ({self.obj.unit}) - {self.obj.kg_per_unit} kg"

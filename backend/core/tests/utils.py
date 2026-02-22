@@ -126,3 +126,13 @@ class UploadSpec:
     content_type: str = "image/png"
     filename: str = "file.png"
     file_bytes: bytes = b"\x89PNG\r\n\x1a\n" + b"0" * 2048
+
+
+@dataclass(frozen=True)
+class ValidationFieldSpec:
+    """
+    Describes what we expect from a validation error.
+    """
+
+    field_name: str
+    invalid_value: Any | Callable[[], Any]

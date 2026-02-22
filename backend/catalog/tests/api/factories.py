@@ -8,6 +8,7 @@ from stock.tests.factories import WarehouseFactory
 class UnitFactory(factory.django.DjangoModelFactory):
     class Meta:
         model = "catalog.AppUnit"
+        django_get_or_create = ("title",)
 
     title = factory.fuzzy.FuzzyChoice(AppUnit.TitleChoices.values)
 
