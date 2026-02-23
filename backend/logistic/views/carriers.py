@@ -67,13 +67,13 @@ class CarrierRetrieveUpdateDestroyAPIView(
         resource_name: Name of the resource for API documentation purposes.
         schema_tags: Tags for API documentation.
         read_serializer_class: Serializer class used for reading Carrier data.
-        request_serializer_class: Serializer class used for writing Carrier data.
+        write_serializer_class: Serializer class used for writing Carrier data.
     """
 
     resource_name = "Carrier"
     schema_tags = ["Carrier"]
     read_serializer_class = CarrierSerializer
-    request_serializer_class = CarrierSerializer
+    write_serializer_class = CarrierSerializer
 
     def perform_destroy(self, instance: Carrier) -> None:
         instance.is_active = False

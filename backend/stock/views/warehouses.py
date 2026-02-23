@@ -34,7 +34,7 @@ class WarehouseRetrieveUpdateDestroyAPIView(
     resource_name = "warehouse"
     schema_tags = ["Warehouse"]
     read_serializer_class = WarehouseListCreateSerializer
-    request_serializer_class = WarehouseListCreateSerializer
+    write_serializer_class = WarehouseListCreateSerializer
 
 
 class WarehouseUploadMapAPIView(BaseUpdateGenericAPIView):

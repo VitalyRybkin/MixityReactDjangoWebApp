@@ -3,6 +3,17 @@ from django.db import models
 
 
 class PhoneNumber(models.Model):
+    """
+    Represents a phone number associated with a contact.
+
+    This model stores phone numbers for contacts, ensuring they adhere to a specific format
+    for Russian phone numbers. It is linked to the Contact model through a foreign key
+    relationship.
+
+    Attributes:
+        phone_number (str): The phone number in Russian format.
+        contact (Contact): The contact this phone number is associated with.
+    """
 
     russian_phone_regex = RegexValidator(
         regex=r"^(\+7|7|8)?[\s\-]?\(?[489][0-9]{2}\)?[\s\-]?[0-9]{3}[\s\-]?[0-9]{2}[\s\-]?[0-9]{2}$",
@@ -13,6 +24,10 @@ class PhoneNumber(models.Model):
         validators=[russian_phone_regex],
         max_length=18,
         help_text="Russian phone number",
+    )
+
+    contact = models.ForeignKey(
+        "Contact", on_delete=models.CASCADE, related_name="phone_numbers"
     )
 
     class Meta:
@@ -39,20 +54,12 @@ class Contact(models.Model):
             be left blank.
         email (str or None): The email address of the contact. This field is optional. Each contact
             must have a unique email or none at all.
-        phone_number (PhoneNumber or None): A foreign key relationship to the PhoneNumber model. Represents the phone
-            number associated with the contact. This field is optional and can be left blank.
     """
+
     first_name = models.CharField(max_length=100)
     last_name = models.CharField(max_length=100, blank=True, null=True)
     position = models.CharField(max_length=100, blank=True, null=True)
     email = models.EmailField(unique=True, blank=True, null=True)
-    phone_number = models.ForeignKey(
-        PhoneNumber,
-        on_delete=models.CASCADE,
-        null=True,
-        blank=True,
-        related_name="contacts",
-    )
 
     class Meta:
         verbose_name = "Contact"

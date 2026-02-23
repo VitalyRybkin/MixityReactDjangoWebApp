@@ -43,13 +43,13 @@ class DriverRetrieveUpdateDestroyAPIView(BaseRetrieveUpdateDestroyAPIView):
         resource_name: Name of the resource for API documentation purposes.
         schema_tags: Tags for API documentation.
         read_serializer_class: Serializer class used for reading Driver data.
-        request_serializer_class: Serializer class used for writing Driver data.
+        write_serializer_class: Serializer class used for writing Driver data.
     """
 
     resource_name = "Driver"
     schema_tags = ["Driver"]
     read_serializer_class = DriverSerializer
-    request_serializer_class = DriverSerializer
+    write_serializer_class = DriverSerializer
 
     queryset = Driver.objects.all()
     serializer_class = DriverSerializer

@@ -49,15 +49,15 @@ class UnitRetrieveUpdateDestroyAPIView(
         queryset: A QuerySet defining all the unit instances to be operated on.
         permission_classes: A list of permission classes to control access to
             this view.
-        serializer_class: The serializer class used to process data to and from
+        serializer_class: The serializer class is used to process data to and from
             the client.
         resource_name: Name of the resource for API documentation purposes.
         schema_tags: Tags for API documentation.
         read_serializer_class: Defines the serializer to be used for reading
-        request_serializer_class: Defines the serializer to be used for writing
+        write_serializer_class: Defines the serializer to be used for writing
     """
 
     resource_name = "Unit"
     schema_tags = ["Unit"]
     read_serializer_class = UnitSerializer
-    request_serializer_class = UnitSerializer
+    write_serializer_class = UnitSerializer

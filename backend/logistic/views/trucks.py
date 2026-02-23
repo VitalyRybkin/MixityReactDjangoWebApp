@@ -64,7 +64,7 @@ class TruckRetrieveUpdateDestroyAPIView(BaseRetrieveUpdateDestroyAPIView):
                   database queries. Specifically includes related truck_type,
                   capacity, and carrier for each Truck instance.
         read_serializer_class: Defines the serializer to be used for reading
-        request_serializer_class: Defines the serializer to be used for writing
+        write_serializer_class: Defines the serializer to be used for writing
         resource_name: Name of the resource for API documentation
         schema_tags: Tags for API documentation
     """
@@ -72,7 +72,7 @@ class TruckRetrieveUpdateDestroyAPIView(BaseRetrieveUpdateDestroyAPIView):
     resource_name = "Truck"
     schema_tags = ["Truck"]
     read_serializer_class = TruckReadSerializer
-    request_serializer_class = TruckSerializer
+    write_serializer_class = TruckSerializer
 
     queryset = Truck.objects.select_related("truck_type", "capacity", "carrier")
     permission_classes = [AllowAny]
@@ -80,7 +80,7 @@ class TruckRetrieveUpdateDestroyAPIView(BaseRetrieveUpdateDestroyAPIView):
     def get_serializer_class(self) -> type[BaseSerializer]:
         if self.request.method == "GET":
             return self.read_serializer_class
-        return self.request_serializer_class
+        return self.write_serializer_class
 
     def update(self, request: Request, *args: Any, **kwargs: Any) -> Response:
         partial = kwargs.pop("partial", False)
@@ -142,18 +142,18 @@ class TruckCapacitiesRetrieveUpdateDestroyAPIView(BaseRetrieveUpdateDestroyAPIVi
         allowing unrestricted access in this case.
         resource_name: Name of the resource for API documentation
         schema_tags: Tags for API documentation
-        request_serializer_class: Defines the serializer to be used for writing
+        write_serializer_class: Defines the serializer to be used for writing
         read_serializer_class: Defines the serializer to be used for reading
     """
 
     resource_name = "TruckCapacity"
     schema_tags = ["TruckCapacity"]
     read_serializer_class = TruckCapacityReadSerializer
-    request_serializer_class = TruckCapacityWriteSerializer
+    write_serializer_class = TruckCapacityWriteSerializer
 
     queryset = TruckCapacity.objects.all()
     permission_classes = [AllowAny]
-    serializer_class = request_serializer_class
+    serializer_class = write_serializer_class
 
 
 class TruckTypesListCreateAPIView(BaseListCreateAPIView):
@@ -199,7 +199,7 @@ class TruckTypeRetrieveUpdateDestroyAPIView(BaseRetrieveUpdateDestroyAPIView):
     resource_name = "TruckType"
     schema_tags = ["TruckType"]
     read_serializer_class = TruckTypeSerializer
-    request_serializer_class = TruckTypeSerializer
+    write_serializer_class = TruckTypeSerializer
 
     queryset = TruckType.objects.all()
     permission_classes = [AllowAny]

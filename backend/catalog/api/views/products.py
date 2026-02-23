@@ -28,4 +28,4 @@ class ProductRetrieveUpdateDestroyAPIView(
     resource_name = "product"
     schema_tags = ["Product"]
     read_serializer_class = ProductListCreateAPISerializer
-    request_serializer_class = ProductListCreateAPISerializer
+    write_serializer_class = ProductListCreateAPISerializer

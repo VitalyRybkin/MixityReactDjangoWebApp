@@ -52,14 +52,14 @@ class BaseRetrieveUpdateDestroyAPIView(generics.RetrieveUpdateDestroyAPIView):
         resource_name: The name of the resource this view handles.
         schema_tags: List of tags used for schema organization and grouping.
         read_serializer_class: Serializer class used for reading resource data.
-        request_serializer_class: Serializer class used for handling incoming
+        write_serializer_class: Serializer class used for handling incoming
                                  request data. Typically used for validation.
     """
     resource_name: ClassVar[str] = ""
     schema_tags: ClassVar[list[str]] = []
 
     read_serializer_class: ClassVar[Type[serializers.BaseSerializer]] = serializers.Serializer
-    request_serializer_class: ClassVar[Type[serializers.BaseSerializer]] = serializers.Serializer
+    write_serializer_class: ClassVar[Type[serializers.BaseSerializer]] = serializers.Serializer
 
     @classmethod
     def as_view(cls, **kwargs: Any) -> Any:
@@ -67,7 +67,7 @@ class BaseRetrieveUpdateDestroyAPIView(generics.RetrieveUpdateDestroyAPIView):
             resource=cls.resource_name,
             tags=cls.schema_tags,
             read_serializer=cls.read_serializer_class,
-            request_serializer=cls.request_serializer_class,
+            request_serializer=cls.write_serializer_class,
         )(cls)
 
         return super(BaseRetrieveUpdateDestroyAPIView, decorated).as_view(**kwargs)
