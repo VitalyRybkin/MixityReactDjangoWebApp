@@ -32,9 +32,8 @@ class ContactCreateAPIView(BaseGenericAPIView):
 
     resource_name = "Contact"
     schema_tags = ["Contacts"]
-
     read_serializer_class = ContactSerializer
-    queryset = Contact.objects.all()
+
     permission_classes = [AllowAny]
 
     serializer_class = ContactSerializer

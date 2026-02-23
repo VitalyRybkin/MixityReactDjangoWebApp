@@ -74,4 +74,22 @@ urlpatterns = [
       ),
       name="swagger-stock",
   ),
+
+    # Contact-only OpenAPI
+    path(
+      "api/schema/contacts/",
+      SpectacularAPIView.as_view(
+          permission_classes=[AllowAny],
+          urlconf="contacts.schema_urls",
+      ),
+      name="schema-contacts",
+    ),
+    path(
+      "api/docs/contacts/",
+      SpectacularSwaggerView.as_view(
+          url_name="schema-contacts",
+          permission_classes=[AllowAny],
+      ),
+      name="swagger-contacts",
+    ),
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

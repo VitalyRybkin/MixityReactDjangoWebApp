@@ -188,6 +188,13 @@ def resources_schema(
             responses={200: read_serializer(many=True), **errors_read},
             description=get_description,
         ),
+        post=extend_schema(
+            operation_id=f"create{resource}",
+            summary=f"Create a new {resource}",
+            tags=tags,
+            responses={201: read_serializer},
+            description=f"Handles creating a new `{resource}` resource - create a new `{resource}` resource.",
+        ),
     )
 
 def update_patch_schema(*, resource: str, tags: list[str], serializer: Any, errors_read: dict[int, object],) -> Any:
