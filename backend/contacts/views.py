@@ -1,46 +1,57 @@
-from typing import Any
-
-from rest_framework import status
+from django.db.models import QuerySet
+from rest_framework import serializers
 from rest_framework.permissions import AllowAny
-from rest_framework.request import Request
-from rest_framework.response import Response
 
 from contacts.models import Contact, PhoneNumber
 from contacts.serializers import ContactSerializer
 from core.openapi.base_views import (
-    BaseCreateAPIView,
+    BaseListCreateAPIView,
     BaseRetrieveUpdateDestroyAPIView,
 )
 
 
-class ContactCreateAPIView(BaseCreateAPIView):
-
+class ContactListCreateAPIView(BaseListCreateAPIView):
     resource_name = "Contact"
     schema_tags = ["Contacts"]
-    read_serializer_class = ContactSerializer
 
     permission_classes = [AllowAny]
 
-    serializer_class = ContactSerializer
+    read_serializer_class = ContactSerializer
+    write_serializer_class = ContactSerializer
+    serializer_class = ContactSerializer  # DRF uses this; your schema uses read/write
 
-    def post(self, request: Request, *args: Any, **kwargs: Any) -> Response:
-        serializer = self.get_serializer(data=request.data)
-        serializer.is_valid(raise_exception=True)
+    def get_queryset(self) -> QuerySet[Contact]:
+        qs = Contact.objects.all().prefetch_related(
+            "phone_numbers"
+        )
 
-        validated_data = serializer.validated_data
+        carrier_id = self.request.query_params.get("carrier")
+        warehouse_id = self.request.query_params.get("warehouse")
+
+        if carrier_id:
+            qs = qs.filter(carrier_id=carrier_id)
+
+        if warehouse_id:
+            qs = qs.filter(warehouse_id=warehouse_id)
+
+        return qs.order_by("id")
+
+    def perform_create(self, serializer: serializers.BaseSerializer) -> None:
+        validated_data = dict(serializer.validated_data)
         phones_list = validated_data.pop("phone_numbers", [])
 
         contact = Contact.objects.create(**validated_data)
 
-        for phone_item in phones_list:
-            PhoneNumber.objects.get_or_create(
-                contact=contact, phone_number=phone_item["phone_number"]
+        if phones_list:
+            PhoneNumber.objects.bulk_create(
+                [
+                    PhoneNumber(contact=contact, phone_number=item["phone_number"])
+                    for item in phones_list
+                ],
+                ignore_conflicts=True,
             )
 
-        return Response(
-            self.get_serializer(contact).data,
-            status=status.HTTP_201_CREATED,
-        )
+        serializer.instance = contact
 
 
 class ContactRetrieveUpdateAPIView(BaseRetrieveUpdateDestroyAPIView):
