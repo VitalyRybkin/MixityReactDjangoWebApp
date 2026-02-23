@@ -62,6 +62,7 @@ INSTALLED_APPS = [
     "catalog.apps.ApiConfig",
     "logistic.apps.LogisticConfig",
     "core.apps.CoreConfig",
+    "contacts.apps.ContactsConfig",
     "drf_spectacular",
     "drf_spectacular_sidecar",
 ]

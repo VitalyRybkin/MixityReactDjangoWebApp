@@ -8,10 +8,9 @@ class TruckCapacity(models.Model):
     This model is used to store information about truck capacities, their description.
     It serves as a representation of vehicle capacities used for transportation purposes in the system.
 
-    :ivar capacity: The capacity of the truck capacity.
-    :type capacity: DecimalField
-    :ivar description: Optional description providing additional details about the truck capacity.
-    :type description: TextField
+    Attributes:
+        capacity (DecimalField): The capacity of the truck.
+        description (TextField): Optional description providing additional details about the truck capacity.
     """
 
     capacity = models.DecimalField(max_digits=2, decimal_places=1)

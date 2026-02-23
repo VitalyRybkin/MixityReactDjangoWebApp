@@ -11,18 +11,13 @@ class Driver(models.Model):
     Defines a driver model, storing information about drivers
     and their association with a carrier. Each driver belongs to a specific carrier.
 
-    :ivar carrier: The carrier associated with this driver.
-    :type carrier: ForeignKey
-    :ivar full_name: The full name of the driver.
-    :type full_name: CharField
-    :ivar phone: The phone number of the driver.
-    :type phone: CharField
-    :ivar passport_number: The passport number of the driver.
-    :type passport_number: CharField
-    :ivar passport_issue_date: The issue date of the driver's passport.
-    :type passport_issue_date: DateField
-    :ivar passport_emitted_by: The issuer of the driver's passport.
-    :type passport_emitted_by: CharField
+    Attributes:
+        carrier (ForeignKey): The carrier associated with this driver.
+        full_name (CharField): The full name of the driver.
+        phone (CharField): The phone number of the driver.
+        passport_number (CharField): The passport number of the driver.
+        passport_issue_date (DateField): The issue date of the driver's passport.
+        passport_emitted_by (CharField): The issuer of the driver's passport.
     """
 
     russian_phone_regex = RegexValidator(

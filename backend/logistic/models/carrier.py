@@ -14,25 +14,31 @@ class Carrier(models.Model):
     description of its services. It is used to manage carrier data in a database
     and provides a string representation of the carrier for display purposes.
 
-    :ivar name: The name of the carrier.
-    :type name: str
-    :ivar full_name: The full name of the carrier. This field is optional
-    :type full_name: str or None
-    :ivar address: The address of the carrier's headquarters. This field is optional
-    :type address: str or None
-    :ivar description: A description of the carrier, its services, or any
-        additional relevant information. This field is optional and can
-        be left blank.
-    :type description: str or None
-    :ivar is_active: Indicates whether the carrier is currently active or has been
-        deactivated. This field is used to filter active carriers in queries.
-    :type is_active: bool
+    Attributes:
+        name (str): The name of the carrier.
+        full_name (str, optional): The full name of the carrier. This field is optional.
+        address (str, optional): The address of the carrier's headquarters. This field is optional.
+        description (str, optional): A description of the carrier, its services, or any
+            additional relevant information. This field is optional and can
+            be left blank.
+        phone (str, optional): The phone number of the carrier. This field is optional.
+        email (str, optional): The email address of the carrier. This field is optional.
+        contacts (Contact, optional): The contact information associated with the carrier.
     """
 
     name = models.CharField(max_length=100, unique=True)
     full_name = models.CharField(max_length=255, null=True, blank=True)
     address = models.CharField(max_length=255, null=True, blank=True)
     description = models.TextField(null=True, blank=True)
+    phone = models.CharField(max_length=18, null=True, blank=True)
+    email = models.EmailField(null=True, blank=True)
+    contacts = models.ForeignKey(
+        "contacts.Contact",
+        blank=True,
+        null=True,
+        on_delete=models.SET_NULL,
+        related_name="carriers",
+    )
     is_active = models.BooleanField(default=True)
 
     objects = ActiveQuerySet.as_manager()

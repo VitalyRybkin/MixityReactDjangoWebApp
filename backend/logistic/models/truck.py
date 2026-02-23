@@ -12,14 +12,12 @@ class Truck(models.Model):
     and associated carriers. It serves as a representation of vehicles used
     for transportation purposes in the system.
 
-    :ivar truck_type: The type of the truck, linked to the TruckType model.
-    :type truck_type: ForeignKey
-    :ivar capacity: The capacity of the truck, linked to the TruckCapacity model.
-    :type capacity: ForeignKey
-    :ivar description: Optional description providing additional details about the truck.
-    :type description: TextField
-    :ivar carrier: The carrier associated with the truck, linked to the Carrier model.
-    :type carrier: ForeignKey
+    Attributes:
+        carrier (ForeignKey): The carrier associated with this truck.
+        truck_type (ForeignKey): The type of the truck.
+        capacity (ForeignKey): The capacity of the truck.
+        license_plate (CharField): The license plate number of the truck.
+        description (TextField): Optional description providing additional details about the truck.
     """
 
     plate_regex = RegexValidator(
