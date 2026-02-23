@@ -86,7 +86,6 @@ class ValidationContractMixin(_Base):
         -------
         None
         """
-        import uuid
 
         self._logger_header("VALIDATION: Mandatory fields", level=1)
 
@@ -98,10 +97,7 @@ class ValidationContractMixin(_Base):
             with self.subTest(field=api_field):
                 current_payload = {k: _jsonable(v) for k, v in valid_payload.items()}
 
-                for key, value in list(current_payload.items()):
-                    if isinstance(value, str):
-                        current_payload[key] = f"{value}_{uuid.uuid4().hex[:4]}"
-
+                current_payload.pop(api_field, None)
                 self._validation_error_logic(
                     api_field, current_payload, msg="missing field"
                 )

@@ -23,7 +23,7 @@ class PhoneNumberSerializer(serializers.ModelSerializer):
 
 class ContactSerializer(serializers.ModelSerializer):
     """
-    Serializer for Contact model.
+    Serializer for a Contact model.
 
     Attributes:
         firstName (serializers.CharField): Maps the 'first_name' field of the Contact model.
@@ -39,6 +39,7 @@ class ContactSerializer(serializers.ModelSerializer):
     lastName = serializers.CharField(
         source="last_name", required=False, allow_blank=True
     )
+    email = serializers.EmailField(required=False, allow_null=True)
     phoneNumbers = PhoneNumberSerializer(
         source="phone_numbers", many=True, required=False
     )
