@@ -24,6 +24,7 @@ class PhoneNumber(models.Model):
         validators=[russian_phone_regex],
         max_length=18,
         help_text="Russian phone number",
+        unique=True,
     )
 
     contact = models.ForeignKey(
@@ -59,7 +60,7 @@ class Contact(models.Model):
     first_name = models.CharField(max_length=100)
     last_name = models.CharField(max_length=100, blank=True, null=True)
     position = models.CharField(max_length=100, blank=True, null=True)
-    email = models.EmailField(unique=True, blank=True, null=True)
+    email = models.EmailField(blank=True, null=True)
 
     class Meta:
         verbose_name = "Contact"

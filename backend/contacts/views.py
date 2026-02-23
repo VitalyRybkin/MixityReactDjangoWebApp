@@ -7,10 +7,13 @@ from rest_framework.response import Response
 
 from contacts.models import Contact, PhoneNumber
 from contacts.serializers import ContactSerializer
-from core.openapi.base_views import BaseGenericAPIView, BaseRetrieveUpdateDestroyAPIView
+from core.openapi.base_views import (
+    BaseCreateAPIView,
+    BaseRetrieveUpdateDestroyAPIView,
+)
 
 
-class ContactCreateAPIView(BaseGenericAPIView):
+class ContactCreateAPIView(BaseCreateAPIView):
     """
     Class representing a view for creating Contact resources.
 
@@ -44,11 +47,8 @@ class ContactCreateAPIView(BaseGenericAPIView):
 
         validated_data = serializer.validated_data
         phones_list = validated_data.pop("phone_numbers", [])
-        email = validated_data.get("email")
 
-        contact, created = Contact.objects.get_or_create(
-            email=email, defaults=validated_data
-        )
+        contact = Contact.objects.create(**validated_data)
 
         for phone_item in phones_list:
             PhoneNumber.objects.get_or_create(
@@ -57,7 +57,7 @@ class ContactCreateAPIView(BaseGenericAPIView):
 
         return Response(
             self.get_serializer(contact).data,
-            status=status.HTTP_201_CREATED if created else status.HTTP_200_OK,
+            status=status.HTTP_201_CREATED,
         )
 
 
