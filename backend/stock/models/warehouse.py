@@ -14,7 +14,6 @@ class Warehouse(models.Model):
         address: The address of the warehouse.
         phone_number: The phone number associated with the warehouse.
         directions: An optional image with directions to the warehouse.
-        contacts: The contact information associated with the warehouse.
     """
 
     name = models.CharField(max_length=255, unique=True)
@@ -22,13 +21,6 @@ class Warehouse(models.Model):
     address = models.CharField(max_length=255, blank=True, null=True)
     email = models.EmailField(blank=True, null=True)
     phone_number = models.CharField(max_length=20, blank=True, null=True)
-    contacts = models.ForeignKey(
-        "contacts.Contact",
-        blank=True,
-        null=True,
-        on_delete=models.SET_NULL,
-        related_name="warehouses",
-    )
     directions = models.ImageField(upload_to="maps", null=True, blank=True)
 
     class Meta:

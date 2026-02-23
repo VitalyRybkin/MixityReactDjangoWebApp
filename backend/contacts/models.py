@@ -1,5 +1,6 @@
 from django.core.validators import RegexValidator
 from django.db import models
+from django.db.models import Q
 
 
 class PhoneNumber(models.Model):
@@ -61,10 +62,33 @@ class Contact(models.Model):
     last_name = models.CharField(max_length=100, blank=True, null=True)
     position = models.CharField(max_length=100, blank=True, null=True)
     email = models.EmailField(blank=True, null=True)
+    carrier = models.ForeignKey(
+        "logistic.Carrier",
+        on_delete=models.CASCADE,
+        null=True,
+        blank=True,
+        related_name="contacts",
+    )
+    warehouse = models.ForeignKey(
+        "stock.Warehouse",
+        on_delete=models.CASCADE,
+        null=True,
+        blank=True,
+        related_name="contacts",
+    )
 
     class Meta:
         verbose_name = "Contact"
         verbose_name_plural = "Contacts"
+        constraints = [
+            models.CheckConstraint(
+                check=(
+                    (Q(carrier__isnull=False) & Q(warehouse__isnull=True))
+                    | (Q(carrier__isnull=True) & Q(warehouse__isnull=False))
+                ),
+                name="contact_belongs_to_exactly_one_parent",
+            )
+        ]
 
     def __str__(self) -> str:
         return f"{self.first_name} {self.last_name}"

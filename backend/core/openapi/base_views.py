@@ -7,25 +7,7 @@ from core.openapi.schema_factories import list_create_schema, retrieve_update_de
 
 
 class BaseListCreateAPIView(generics.ListCreateAPIView):
-    """
-    Base class that extends ListCreateAPIView to provide custom schema and serializer behavior.
 
-    Attributes:
-        resource_name: Name of the resource associated with this view.
-        schema_tags: List of schema tags used for API documentation.
-        read_serializer: Instance of the serializer used for reading operations.
-        write_serializer: Instance of the serializer used for writing operations.
-        errors_read: Dictionary mapping HTTP status codes to descriptions or objects for reading
-            errors.
-        errors_write: Dictionary mapping HTTP status codes to descriptions or objects for writing
-            errors.
-        read_serializer_class: Serializer class used for reading operations.
-        write_serializer_class: Serializer class used for writing operations.
-
-    Methods:
-        as_view(**kwargs): Overrides the default as_view method to inject schema creation
-            logic and return a properly decorated view for the API endpoint.
-    """
     resource_name: ClassVar[str] = ""
     schema_tags: ClassVar[list[str]] = []
     read_serializer: Any

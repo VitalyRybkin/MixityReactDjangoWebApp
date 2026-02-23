@@ -23,7 +23,6 @@ class Carrier(models.Model):
             be left blank.
         phone (str, optional): The phone number of the carrier. This field is optional.
         email (str, optional): The email address of the carrier. This field is optional.
-        contacts (Contact, optional): The contact information associated with the carrier.
     """
 
     name = models.CharField(max_length=100, unique=True)
@@ -32,13 +31,6 @@ class Carrier(models.Model):
     description = models.TextField(null=True, blank=True)
     phone = models.CharField(max_length=18, null=True, blank=True)
     email = models.EmailField(null=True, blank=True)
-    contacts = models.ForeignKey(
-        "contacts.Contact",
-        blank=True,
-        null=True,
-        on_delete=models.SET_NULL,
-        related_name="carriers",
-    )
     is_active = models.BooleanField(default=True)
 
     objects = ActiveQuerySet.as_manager()

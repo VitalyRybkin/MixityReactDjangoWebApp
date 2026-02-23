@@ -14,24 +14,6 @@ from core.openapi.base_views import (
 
 
 class ContactCreateAPIView(BaseCreateAPIView):
-    """
-    Class representing a view for creating Contact resources.
-
-    This class is used for handling HTTP POST requests to create or retrieve
-    Contact resources. It validates the input data, associates phone numbers
-    with the Contact, and returns appropriate HTTP responses. This endpoint
-    is designed with the assumption that a Contact is uniquely identified by
-    an email address.
-
-    Attributes:
-        resource_name (str): The name of the resource managed by this view.
-        schema_tags (List[str]): Tags for grouping and categorizing the schema.
-        read_serializer_class: Serializer class for reading Contact data.
-        queryset: The queryset to retrieve Contact objects.
-        permission_classes: The permission classes controlling access to the view.
-        serializer_class: The serializer used for creating and validating Contact
-            data.
-    """
 
     resource_name = "Contact"
     schema_tags = ["Contacts"]
