@@ -1,5 +1,3 @@
-import uuid
-
 import factory.fuzzy
 
 
@@ -7,12 +5,22 @@ class ContactFactory(factory.django.DjangoModelFactory):
     class Meta:
         model = "contacts.Contact"
 
+    class Params:
+        is_carrier = factory.Trait(
+            carrier=factory.SubFactory("logistic.tests.factories.CarrierFactory"),
+            warehouse=None,
+        )
+        is_warehouse = factory.Trait(
+            warehouse=factory.SubFactory("stock.tests.factories.WarehouseFactory"),
+            carrier=None,
+        )
+
     first_name = factory.Faker("first_name")
     last_name = factory.Faker("last_name")
-    email = factory.LazyAttribute(
-        lambda o: f"{o.first_name.lower()}_{uuid.uuid4().hex[:4]}@example.com"
-    )
     position = factory.Faker("job")
+
+    carrier = factory.SubFactory("logistic.tests.factories.CarrierFactory")
+    warehouse = None
 
 
 class PhoneNumberFactory(factory.django.DjangoModelFactory):

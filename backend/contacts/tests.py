@@ -4,6 +4,8 @@ from contacts.factories import ContactFactory, PhoneNumberFactory
 from contacts.models import Contact
 from core.tests.base_test_case import BaseAPIMixin
 from core.tests.utils import FieldSpec
+from logistic.tests.factories import CarrierFactory
+from stock.tests.factories import WarehouseFactory
 
 
 class TestContactAPICreate(BaseAPIMixin):
@@ -23,8 +25,20 @@ class TestContactAPICreate(BaseAPIMixin):
 
     def test_create_contact(self) -> None:
         """Test that we can create a new contact."""
-        payload = self.payload_generator()
-        return self._create_logic(payload)
+        temp_factories = [
+            self.factory.build(carrier=CarrierFactory.create(), warehouse=None),
+            self.factory.build(warehouse=WarehouseFactory.create(), carrier=None),
+        ]
+        for temp in temp_factories:
+            field_name = "CARRIER" if temp.carrier else "WAREHOUSE"
+
+            print(
+                f"\n{self.COLOR['OK']}▶ Testing: create CONTACT with {self.COLOR['OK']}{field_name}"
+                f"{self.COLOR['END']}:",
+                end=" ",
+            )
+            payload = self.payload_generator(temp)
+            self._create_logic(payload)
 
     def test_item_mandatory_fields(self) -> None:
         """Test the logic for ensuring mandatory fields in contact creation."""
@@ -37,16 +51,17 @@ class TestContactAPICreate(BaseAPIMixin):
         expected = f"{contact.first_name} {contact.last_name}"
         self._str_method_logic(expected)
 
-    def payload_generator(self) -> Dict[str, Any]:
-        temp = self.factory.build()
-        phone = PhoneNumberFactory.build()
+    def payload_generator(self, temp: Any = None) -> Dict[str, Any]:
+        if temp is None:
+            temp = self.factory.build(carrier=CarrierFactory.create(), warehouse=None)
 
+        phone = PhoneNumberFactory.build()
         return {
             "firstName": temp.first_name,
             "lastName": temp.last_name,
             "email": temp.email,
             "position": temp.position,
-            "phoneNumbers": [
-                {"phoneNumber": phone.phone_number},
-            ],
+            "phoneNumbers": [{"phoneNumber": phone.phone_number}],
+            "carrier": getattr(temp.carrier, "id", None),
+            "warehouse": getattr(temp.warehouse, "id", None),
         }

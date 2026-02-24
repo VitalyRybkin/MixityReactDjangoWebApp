@@ -18,12 +18,10 @@ class ContactListCreateAPIView(BaseListCreateAPIView):
 
     read_serializer_class = ContactSerializer
     write_serializer_class = ContactSerializer
-    serializer_class = ContactSerializer  # DRF uses this; your schema uses read/write
+    serializer_class = ContactSerializer
 
     def get_queryset(self) -> QuerySet[Contact]:
-        qs = Contact.objects.all().prefetch_related(
-            "phone_numbers"
-        )
+        qs = Contact.objects.all().prefetch_related("phone_numbers")
 
         carrier_id = self.request.query_params.get("carrier")
         warehouse_id = self.request.query_params.get("warehouse")
