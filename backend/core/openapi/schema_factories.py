@@ -28,19 +28,19 @@ def list_create_schema(
     resources. The function dynamically generates operation IDs, summaries, and
     descriptions for both actions based on the provided resource name.
 
-    :param resource: The name of the resource being managed.
-    :param tags: A list of tags for categorizing the endpoint.
-    :param read_serializer: Serializer for reading the resource data.
-    :param write_serializer: Serializer for writing the resource data.
-    :param errors_read: A dictionary containing error responses for the GET method (default: ERRORS_READ).
-    :param errors_write: A dictionary containing error responses for the POST method (default: ERRORS_WRITE).
-    :param list_operation_id: The operation ID for the GET method (default: generated dynamically).
-    :param create_operation_id: The operation ID for the POST method (default: generated dynamically).
-    :param list_summary: A brief summary for the GET method endpoint (default: generated dynamically).
-    :param create_summary: A brief summary for the POST method endpoint (default: generated dynamically).
-    :param list_description: A detailed description for the GET method endpoint (default: generated dynamically).
-    :param create_description: A detailed description for the POST method endpoint (default: generated dynamically).
-    :return: An extended schema view with GET and POST methods defined.
+    Args:
+        resource (str): The name of the resource being documented.
+        tags (list[str]): A list of tags to group this resource in the API documentation.
+        read_serializer (Type[serializers.BaseSerializer]): Serializer for reading the resource data.
+        write_serializer (Type[serializers.BaseSerializer]): Serializer for writing the resource data.
+        errors_read (Dict[int, Any]): A dictionary containing error responses for the GET method (default: ERRORS_READ).
+        errors_write (Dict[int, Any]): A dictionary containing error responses for the POST method (default: ERRORS_WRITE).
+        list_operation_id (Optional[str]): The operation ID for the GET method (default: generated dynamically).
+        create_operation_id (Optional[str]): The operation ID for the POST method (default: generated dynamically).
+        list_summary (Optional[str]): A brief summary for the GET method endpoint (default: generated dynamically).
+        create_summary (Optional[str]): A brief summary for the POST method endpoint (default: generated dynamically).
+        list_description (Optional[str]): A detailed description for the GET method endpoint (default: generated dynamically).
+        create_description (Optional[str]): A detailed description for the POST method endpoint (default: generated dynamically).
     """
     list_operation_id = list_operation_id or f"list{resource}s"
     create_operation_id = create_operation_id or f"create{resource}"
@@ -98,22 +98,33 @@ def retrieve_update_destroy_schema(
     serialization logic for request and response types. The method supports customization of
     operation IDs, summaries, and descriptions for each HTTP method.
 
-    :param resource: The name of the resource being documented.
-    :param tags: A list of tags to group this resource in the API documentation.
-    :param read_serializer: Serializer used for serializing the response data of the "retrieve" operation.
-    :param request_serializer: Serializer used for processing the incoming payload for update operations.
-    :param errors_detail: A dictionary of possible error responses for read and delete operations.
-    :param errors_detail_write: A dictionary of possible error responses for update (patch) operations.
-    :param get_operation_id: Custom operation ID for the HTTP "GET" method; auto-generated if not provided.
-    :param patch_operation_id: Custom operation ID for the HTTP "PATCH" method; auto-generated if not provided.
-    :param delete_operation_id: Custom operation ID for the HTTP "DELETE" method; auto-generated if not provided.
-    :param get_summary: Custom summary for the "GET" operation; auto-generated if not provided.
-    :param patch_summary: Custom summary for the "PATCH" operation; auto-generated if not provided.
-    :param delete_summary: Custom summary for the "DELETE" operation; auto-generated if not provided.
-    :param get_description: Custom description for the "GET" operation; auto-generated if not provided.
-    :param patch_description: Custom description for the "PATCH" operation; auto-generated if not provided.
-    :param delete_description: Custom description for the "DELETE" operation; auto-generated if not provided.
-    :return: An object defining the schema for retrieve, update, and delete operations on the resource.
+    Args:
+        resource (str): The name of the resource being documented.
+        tags (list[str]): A list of tags to group this resource in the API documentation.
+        read_serializer (Type[serializers.BaseSerializer]): Serializer for reading the resource data.
+        request_serializer (Type[serializers.BaseSerializer]): Serializer for handling incoming request data.
+        errors_detail (Dict[int, Any]): A dictionary containing error responses for the GET method
+        (default: ERRORS_DETAIL).
+        errors_detail_write (Dict[int, Any]): A dictionary containing error responses for the PATCH method
+        (default: ERRORS_DETAIL_WRITE).
+        get_operation_id (Optional[str]): The operation ID for the GET method
+        (default: generated dynamically).
+        patch_operation_id (Optional[str]): The operation ID for the PATCH method
+        (default: generated dynamically).
+        delete_operation_id (Optional[str]): The operation ID for the DELETE method
+        (default: generated dynamically).
+        get_summary (Optional[str]): A brief summary for the GET method endpoint
+        (default: generated dynamically).
+        patch_summary (Optional[str]): A brief summary for the PATCH method endpoint
+        (default: generated dynamically).
+        delete_summary (Optional[str]): A brief summary for the DELETE method endpoint
+        (default: generated dynamically).
+        get_description (Optional[str]): A detailed description for the GET method endpoint
+        (default: generated dynamically).
+        patch_description (Optional[str]): A detailed description for the PATCH method endpoint
+        (default: generated dynamically).
+        delete_description (Optional[str]): A detailed description for the DELETE method endpoint
+        (default: generated dynamically).
     """
 
     read_response = OpenApiResponse(response=read_serializer)
@@ -173,9 +184,22 @@ def resources_schema(
     get_summary: Optional[str] = None,
     get_description: Optional[str] = None,
 ) -> Any:
+    """
+    Generates a schema for resources by extending the schema view with provided
+    parameters, enabling detailed and customizable API schema definitions.
+
+    Attributes:
+        resource (str): The name of the resource being documented.
+        tags (list[str]): Tags for categorizing and grouping API endpoints.
+        read_serializer (Any): Serializer for handling response data.
+        errors_read (Dict[int, Any]): Error representations for responses.
+        get_operation_id (Optional[str]): Custom operation ID.
+        get_summary (Optional[str]): Custom summary.
+        get_description (Optional[str]): Custom description.
+    """
 
     get_operation_id = get_operation_id or f"list{resource}s"
-    get_summary = get_summary or f"List {resource}s"
+    get_summary = get_summary or f"List {resource}s resources"
     get_description = get_description or (
         f"Handles listing `{resource}` resources - list all active `{resource}` resources."
     )
@@ -206,24 +230,51 @@ def create_schema(
     resource: str,
     tags: list[str],
     read_serializer: Any,
-    errors_read: Dict[int, Any] = ERRORS_READ,
     get_operation_id: Optional[str] = None,
-    get_summary: Optional[str] = None,
-    get_description: Optional[str] = None,
+    post_summary: Optional[str] = None,
+    post_description: Optional[str] = None,
 ) -> Any:
 
-    get_operation_id = get_operation_id or f"create{resource}"
-    get_summary = get_summary or f"Create a new {resource}"
-    get_description = get_description or (
+    post_operation_id = get_operation_id or f"create{resource}"
+    post_summary = post_summary or f"Create a new {resource}"
+    post_description = post_description or (
         f"Handles creating a new `{resource}` resource - create a new `{resource}` resource."
     )
 
     return extend_schema_view(
         post=extend_schema(
+            operation_id=post_operation_id,
+            summary=post_summary,
+            tags=tags,
+            responses={201: read_serializer},
+            description=post_description,
+        ),
+    )
+
+def list_schema(
+    *,
+    resource: str,
+    tags: list[str],
+    get_operation_id: Optional[str] = None,
+    get_summary: Optional[str] = None,
+    get_description: Optional[str] = None,
+    read_serializer: Any,
+    errors_read: Dict[int, Any] = ERRORS_READ,
+) -> Any:
+    read_response = OpenApiResponse(response=read_serializer)
+    get_operation_id = get_operation_id or f"get{resource}"
+    get_summary = get_summary or f"List {tags[0]} {resource}s"
+
+    get_description = get_description or (
+        f"Handles listing `{resource}` objects - list all existing `{tags[0]}` `{resource}s`."
+    )
+
+    return extend_schema_view(
+        get=extend_schema(
             operation_id=get_operation_id,
             summary=get_summary,
             tags=tags,
-            responses={201: read_serializer},
+            responses={200: read_response, **errors_read},
             description=get_description,
         ),
     )

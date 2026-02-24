@@ -2,8 +2,9 @@ from typing import ClassVar, Any, Type
 
 from rest_framework import generics, serializers
 
+from core.openapi import ERRORS_DETAIL
 from core.openapi.schema_factories import list_create_schema, retrieve_update_destroy_schema, resources_schema, \
-    update_patch_schema, create_schema
+    update_patch_schema, create_schema, list_schema
 
 
 class BaseListCreateAPIView(generics.ListCreateAPIView):
@@ -161,3 +162,20 @@ class BaseCreateAPIView(generics.CreateAPIView):
         )(cls)
 
         return super(BaseCreateAPIView, decorated).as_view(**kwargs)
+
+class BaseListAPIView(generics.ListAPIView):
+    resource_name: ClassVar[str] = ""
+    schema_tags: ClassVar[list[str]] = []
+
+    read_serializer_class: ClassVar[Type[serializers.BaseSerializer]] = serializers.Serializer
+
+    @classmethod
+    def as_view(cls, **kwargs: Any) -> Any:
+        decorated = list_schema(
+            resource=cls.resource_name,
+            tags=cls.schema_tags,
+            read_serializer=cls.read_serializer_class,
+            errors_read=ERRORS_DETAIL,
+        )(cls)
+
+        return super(BaseListAPIView, decorated).as_view(**kwargs)
