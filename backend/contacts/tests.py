@@ -51,6 +51,21 @@ class TestContactAPICreate(BaseAPIMixin):
         expected = f"{contact.first_name} {contact.last_name}"
         self._str_method_logic(expected)
 
+    def test_invalid_xor_both(self) -> None:
+        """Test that we can't create a contact with both a carrier and warehouse."""
+        carrier = CarrierFactory.create()
+        warehouse = WarehouseFactory.create()
+
+        temp = self.factory.build()
+        payload = self.payload_generator(temp)
+        payload.update({"carrier": carrier.id, "warehouse": warehouse.id})
+        print(
+            f"\n{self.COLOR['OK']}▶ Testing: create CONTACT with {self.COLOR['OK']}both CARRIER and WAREHOUSE"
+            f"{self.COLOR['END']}:",
+            end=" ",
+        )
+        self._create_invalid_xor_both(payload)
+
     def payload_generator(self, temp: Any = None) -> Dict[str, Any]:
         if temp is None:
             temp = self.factory.build(carrier=CarrierFactory.create(), warehouse=None)

@@ -1,6 +1,10 @@
+from typing import Any
+
 from rest_framework import serializers
 
 from contacts.models import Contact, PhoneNumber
+from logistic.models import Carrier
+from stock.models import Warehouse
 
 
 class PhoneNumberSerializer(serializers.ModelSerializer):
@@ -44,6 +48,13 @@ class ContactSerializer(serializers.ModelSerializer):
         source="phone_numbers", many=True, required=False
     )
 
+    carrier = serializers.PrimaryKeyRelatedField(
+        queryset=Carrier.objects.all(), required=False, allow_null=True
+    )
+    warehouse = serializers.PrimaryKeyRelatedField(
+        queryset=Warehouse.objects.all(), required=False, allow_null=True
+    )
+
     class Meta:
         model = Contact
         fields = [
@@ -56,3 +67,17 @@ class ContactSerializer(serializers.ModelSerializer):
             "carrier",
             "warehouse",
         ]
+
+    def validate(self, attrs: dict[str, Any]) -> dict[str, Any]:
+        carrier = attrs.get("carrier")
+        warehouse = attrs.get("warehouse")
+
+        if (carrier is None and warehouse is None) or (carrier and warehouse):
+            raise serializers.ValidationError(
+                {
+                    "non_field_errors": [
+                        "Provide exactly one of 'carrier' or 'warehouse'."
+                    ]
+                }
+            )
+        return attrs
