@@ -21,7 +21,7 @@ urlpatterns = [
         name="warehouse_details",
     ),
     path(
-        "<int:stock_pk>/contacts/",
+        "<int:pk>/contacts/",
         WarehouseContactListAPIView.as_view(),
         name="warehouse_contacts",
     ),

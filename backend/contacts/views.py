@@ -1,4 +1,4 @@
-from django.db.models import Q, QuerySet
+from django.db.models import QuerySet
 from rest_framework import serializers
 from rest_framework.permissions import AllowAny
 
@@ -19,12 +19,13 @@ class ContactListAPIView(BaseListAPIView):
     serializer_class = ContactSerializer
 
     def get_queryset(self) -> QuerySet[Contact]:
-        # Универсальная логика фильтрации
-        stock_pk = self.kwargs.get("stock_pk")
-        carrier_pk = self.kwargs.get("carrier_pk")
-        return Contact.objects.filter(
-            Q(warehouse_id=stock_pk) | Q(carrier_id=carrier_pk)
-        ).order_by("id")
+        pk = self.kwargs.get("pk")
+        path = self.request.path.lower()
+
+        if "stock" in path or "warehouse" in path:
+            return Contact.objects.filter(warehouse_id=pk).order_by("id")
+
+        return Contact.objects.filter(carrier_id=pk).order_by("id")
 
 
 class WarehouseContactListAPIView(ContactListAPIView):
@@ -49,16 +50,6 @@ class ContactListCreateAPIView(BaseListCreateAPIView):
 
     def get_queryset(self) -> QuerySet[Contact]:
         qs = Contact.objects.all().prefetch_related("phone_numbers")
-
-        # carrier_id = self.request.query_params.get("carrier")
-        # warehouse_id = self.request.query_params.get("warehouse")
-        #
-        # if carrier_id:
-        #     qs = qs.filter(carrier_id=carrier_id)
-        #
-        # if warehouse_id:
-        #     qs = qs.filter(warehouse_id=warehouse_id)
-
         return qs.order_by("id")
 
     def perform_create(self, serializer: serializers.BaseSerializer) -> None:

@@ -38,7 +38,7 @@ urlpatterns = [
         name="carrier_resources",
     ),
     path(
-        "carriers/<int:carrier_pk>/contacts/",
+        "carriers/<int:pk>/contacts/",
         CarrierContactListAPIView.as_view(),
         name="carrier_contacts",
     ),

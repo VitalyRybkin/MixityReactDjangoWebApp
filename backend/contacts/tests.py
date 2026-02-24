@@ -80,3 +80,23 @@ class TestContactAPICreate(BaseAPIMixin):
             "carrier": getattr(temp.carrier, "id", None),
             "warehouse": getattr(temp.warehouse, "id", None),
         }
+
+
+class TestCarrierContactsList(BaseAPIMixin):
+    __test__ = True
+    pk_url_name = "logistic:carrier_contacts"
+    factory = CarrierFactory
+
+    def test_get_list(self) -> None:
+        ContactFactory.create_batch(3, carrier=self.obj)
+        self._get_pk_list_logic(expected_contacts=3)
+
+
+class TestWarehouseContactsList(BaseAPIMixin):
+    __test__ = True
+    pk_url_name = "stock:warehouse_contacts"
+    factory = WarehouseFactory
+
+    def test_get_list(self) -> None:
+        ContactFactory.create_batch(3, warehouse=self.obj, carrier=None)
+        self._get_pk_list_logic(expected_contacts=3)

@@ -27,7 +27,7 @@ class CrudContractMixin(_Base):
         """Returns the URL for retrieving a specific object by ID."""
         self.assertTrue(
             self.pk_url_name is not None,
-            "detail_url_name must be set for detail endpoints",
+            "pk_url_name must be set",
         )
         assert self.pk_url_name is not None
         return reverse(self.pk_url_name, kwargs={"pk": pk})
@@ -267,3 +267,32 @@ class CrudContractMixin(_Base):
         print(
             f"      {self.COLOR['OK']}✓ Correctly rejected double parent assignment.{self.COLOR['END']}"
         )
+
+    def _get_pk_list_logic(
+        self,
+        obj: Any = None,
+        *,
+        expected_contacts: int | None = None,
+    ) -> None:
+        obj = obj or self.obj
+
+        self._logger_header(f"ENDPOINT GET: {self.pk_url_name}/{obj.id}")
+
+        url = self.get_detail_url(obj.id)
+        response = self.client.get(url)
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+        if isinstance(response.data, dict) and "results" in response.data:
+            data = response.data["results"]
+        else:
+            data = response.data
+
+        if expected_contacts is not None:
+            self.assertEqual(
+                len(data),
+                expected_contacts,
+                f"Expected {expected_contacts} contacts, but got {len(data)}",
+            )
+
+        print(f"    {self.COLOR['OK']}✓ GET logic passed{self.COLOR['END']}")
