@@ -8,13 +8,20 @@ from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 
 urlpatterns = [
     path("admin/", admin.site.urls),
-    path("auth/token/", TokenObtainPairView.as_view(), name="token_obtain_pair"),
-    path("auth/token/refresh/", TokenRefreshView.as_view(), name="token_refresh"),
-    path("auth/auth/", include("rest_framework.urls")),
+
+    # API
+    path("api/auth/token/", TokenObtainPairView.as_view(), name="token_obtain_pair"),
+    path("api/auth/token/refresh/", TokenRefreshView.as_view(), name="token_refresh"),
+
     path("api/logistic/", include("logistic.urls")),
     path("api/catalog/", include("catalog.api.urls")),
     path("api/stock/", include("stock.urls")),
     path("api/contacts/", include("contacts.urls")),
+
+    # DRF session login (optional, for browsable API)
+    path("api/auth/", include("rest_framework.urls")),
+
+    # Website
     path("", include("catalog.web.urls")),
 
     # Global
