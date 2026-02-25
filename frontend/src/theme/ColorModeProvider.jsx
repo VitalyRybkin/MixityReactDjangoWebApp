@@ -1,71 +1,62 @@
-import React, { createContext, useContext, useMemo, useState, useEffect } from "react";
+import React, { useMemo, useState, useEffect } from "react";
 import { ThemeProvider, createTheme, CssBaseline } from "@mui/material";
-
-const ColorModeContext = createContext({
-    mode: "light",
-    toggleColorMode: () => {},
-});
-
-export const useColorMode = () => useContext(ColorModeContext);
+import { ColorModeContext } from "./colorModeContext";
 
 const STORAGE_KEY = "mui-color-mode";
 
 function getInitialMode() {
-    const stored = localStorage.getItem(STORAGE_KEY);
-    if (stored === "light" || stored === "dark") return stored;
-
-    const prefersDark =
-        window.matchMedia?.("(prefers-color-scheme: dark)")?.matches ?? false;
-    return prefersDark ? "dark" : "light";
+  const stored = localStorage.getItem(STORAGE_KEY);
+  if (stored === "light" || stored === "dark") return stored;
+  return "dark"; // default
 }
 
-export const ColorModeProvider = ({ children }) => {
-    const [mode, setMode] = useState("light");
+export default function ColorModeProvider({ children }) {
+  const [mode, setMode] = useState("dark");
 
-    useEffect(() => {
-        setMode(getInitialMode());
-    }, []);
+  useEffect(() => {
+    setMode(getInitialMode());
+  }, []);
 
-    const toggleColorMode = () => {
-        setMode((prev) => {
-            const next = prev === "light" ? "dark" : "light";
-            localStorage.setItem(STORAGE_KEY, next);
-            return next;
-        });
-    };
+  const toggleColorMode = () => {
+    setMode((prev) => {
+      const next = prev === "light" ? "dark" : "light";
+      localStorage.setItem(STORAGE_KEY, next);
+      return next;
+    });
+  };
 
-    const theme = useMemo(
-        () =>
-            createTheme({
-                palette: {
-                    mode,
-                },
-                shape: {
-                    borderRadius: 12,
-                },
-                typography: {
-                    fontFamily: [
-                        "Inter",
-                        "system-ui",
-                        "-apple-system",
-                        "Segoe UI",
-                        "Roboto",
-                        "Arial",
-                        "sans-serif",
-                    ].join(","),
-                },
-            }),
-        [mode]
-    );
+  const theme = useMemo(
+    () =>
+      createTheme({
+        palette: {
+          mode,
+          ...(mode === "dark"
+            ? {
+                background: { default: "#0f172a", paper: "#1e293b" },
+                divider: "rgba(255,255,255,0.08)",
+                text: { primary: "#e2e8f0", secondary: "#94a3b8" },
+              }
+            : {
+                background: { default: "#f8fafc", paper: "#ffffff" },
+              }),
+        },
+        shape: { borderRadius: 12 },
+        typography: {
+          fontFamily: ["Ubuntu", "system-ui", "-apple-system", "Segoe UI", "Roboto", "Arial", "sans-serif"].join(","),
+          h4: { fontWeight: 700 },
+          h6: { fontWeight: 600 },
+          button: { fontWeight: 500, textTransform: "none" },
+        },
+      }),
+    [mode]
+  );
 
-    const value = useMemo(() => ({ mode, toggleColorMode }), [mode]);
-
-    return (
-        <ColorModeContext.Provider value={value}>
-            <ThemeProvider theme={theme}>
-                <CssBaseline />
-                {children}
-            </ThemeProvider>
-        </ColorModeContext.Provider>
-    );
-};
+  return (
+    <ColorModeContext.Provider value={{ mode, toggleColorMode }}>
+      <ThemeProvider theme={theme}>
+        <CssBaseline />
+        {children}
+      </ThemeProvider>
+    </ColorModeContext.Provider>
+  );
+}

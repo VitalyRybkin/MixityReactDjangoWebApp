@@ -27,7 +27,7 @@ const TopBar = () => {
         <AppBar position="sticky" elevation={1}>
             <Toolbar>
                 <Typography variant="h6" sx={sx.title}>
-                    Mixity Logistics
+                    Заявки на доставку
                 </Typography>
 
                 <Box sx={{ flexGrow: 1 }} />
@@ -39,7 +39,7 @@ const TopBar = () => {
                     onClick={handleLogout}
                     sx={sx.logout}
                 >
-                    Logout
+                    Выйти
                 </Button>
             </Toolbar>
         </AppBar>

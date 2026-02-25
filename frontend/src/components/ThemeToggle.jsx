@@ -1,7 +1,7 @@
 import { IconButton, Tooltip } from "@mui/material";
 import DarkModeIcon from "@mui/icons-material/DarkMode";
 import LightModeIcon from "@mui/icons-material/LightMode";
-import { useColorMode } from "../theme/ColorModeProvider";
+import { useColorMode } from "../theme/colorModeContext";
 
 const ThemeToggle = () => {
     const { mode, toggleColorMode } = useColorMode();

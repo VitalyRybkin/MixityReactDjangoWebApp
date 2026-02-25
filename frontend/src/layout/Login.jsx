@@ -48,7 +48,7 @@ const Login = () => {
             <Container maxWidth="sm">
                 <Paper elevation={10} sx={sx.card}>
                     <Typography variant="h4" sx={{ fontWeight: 700 }}>
-                        Sign In
+                        Вход
                     </Typography>
 
                     {error && (
@@ -59,7 +59,7 @@ const Login = () => {
 
                     <Box component="form" sx={sx.form} onSubmit={onSubmit}>
                         <TextField
-                            label="Username"
+                            label="Логин"
                             value={username}
                             onChange={(e) => setUsername(e.target.value)}
                             autoComplete="username"
@@ -68,7 +68,7 @@ const Login = () => {
                         />
 
                         <TextField
-                            label="Password"
+                            label="Пароль"
                             type="password"
                             value={password}
                             onChange={(e) => setPassword(e.target.value)}
@@ -78,7 +78,7 @@ const Login = () => {
                         />
 
                         <Button type="submit" variant="contained" size="large" sx={sx.submit} disabled={loading}>
-                            {loading ? "Signing in..." : "Login"}
+                            {loading ? "Signing in..." : "Войти"}
                         </Button>
                     </Box>
                 </Paper>
