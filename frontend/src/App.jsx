@@ -4,10 +4,12 @@ import Login from "./layout/Login";
 import NotFound from "./layout/NotFound";
 import ProtectedRoute from "./components/ProtectedRoute";
 import MainLayout from "./layout/MainLayout";
+import {ACCESS_TOKEN, REFRESH_TOKEN} from "./constants.js";
 
 function Logout() {
-    localStorage.removeItem("access_token");
-    return <Navigate to="/login" replace />;
+  localStorage.removeItem(ACCESS_TOKEN);
+  localStorage.removeItem(REFRESH_TOKEN);
+  return <Navigate to="/login" replace />;
 }
 
 function App() {

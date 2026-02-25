@@ -1,7 +1,7 @@
-import { AppBar, Toolbar, Typography, Box, Button } from "@mui/material";
-import { useNavigate } from "react-router-dom";
+import {AppBar, Toolbar, Typography, Box, Button} from "@mui/material";
+import {useNavigate} from "react-router-dom";
 import ThemeToggle from "../components/ThemeToggle";
-import { ACCESS_TOKEN, REFRESH_TOKEN } from "../contstants.js";
+import {ACCESS_TOKEN, REFRESH_TOKEN} from "../constants.js";
 
 const sx = {
     title: {
@@ -20,7 +20,7 @@ const TopBar = () => {
     const handleLogout = () => {
         localStorage.removeItem(ACCESS_TOKEN);
         localStorage.removeItem(REFRESH_TOKEN);
-        navigate("/login", { replace: true });
+        navigate("/login", {replace: true});
     };
 
     return (
@@ -30,9 +30,9 @@ const TopBar = () => {
                     Заявки на доставку
                 </Typography>
 
-                <Box sx={{ flexGrow: 1 }} />
+                <Box sx={{flexGrow: 1}}/>
 
-                <ThemeToggle />
+                <ThemeToggle/>
 
                 <Button
                     color="inherit"

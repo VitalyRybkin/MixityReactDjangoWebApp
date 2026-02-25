@@ -1,16 +1,16 @@
-import { useState } from "react";
-import { Box, Button, TextField, Typography, Paper, Container, Alert } from "@mui/material";
-import { useNavigate } from "react-router-dom";
+import {useState} from "react";
+import {Box, Button, TextField, Typography, Paper, Container, Alert} from "@mui/material";
+import {useNavigate} from "react-router-dom";
 import api from "../api";
-import { ACCESS_TOKEN, REFRESH_TOKEN } from "../contstants.js";
+import {ACCESS_TOKEN, REFRESH_TOKEN} from "../constants.js";
 import ThemeToggle from "../components/ThemeToggle";
 
 const sx = {
-    page: { minHeight: "100vh", display: "flex", alignItems: "center", justifyContent: "center" },
-    toggle: { position: "fixed", top: 20, right: 20, zIndex: 10 },
-    card: { p: { xs: 4, md: 6 }, textAlign: "center", borderRadius: 4 },
-    form: { display: "flex", flexDirection: "column", gap: 3, mt: 3 },
-    submit: { py: 1.4, borderRadius: 3, fontWeight: 600, textTransform: "none" },
+    page: {minHeight: "100vh", display: "flex", alignItems: "center", justifyContent: "center"},
+    toggle: {position: "fixed", top: 20, right: 20, zIndex: 10},
+    card: {p: {xs: 4, md: 6}, textAlign: "center", borderRadius: 4},
+    form: {display: "flex", flexDirection: "column", gap: 3, mt: 3},
+    submit: {py: 1.4, borderRadius: 3, fontWeight: 600, textTransform: "none"},
 };
 
 const Login = () => {
@@ -26,14 +26,18 @@ const Login = () => {
         setLoading(true);
 
         try {
-            const res = await api.post("/api/auth/token/", { username, password });
+            const res = await api.post("/api/auth/token/", {username, password});
 
+            localStorage.removeItem(ACCESS_TOKEN);
+            localStorage.removeItem(REFRESH_TOKEN);
             localStorage.setItem(ACCESS_TOKEN, res.data.access);
             localStorage.setItem(REFRESH_TOKEN, res.data.refresh);
 
-            navigate("/", { replace: true });
+            navigate("/", {replace: true});
         } catch (err) {
-            setError("Invalid username or password.");
+            if (!err.response) setError("Network error. Check API URL / connection.");
+            else if (err.response.status === 401) setError("Invalid username or password.");
+            else setError("Login failed. Try again later.");
         } finally {
             setLoading(false);
         }
@@ -42,17 +46,17 @@ const Login = () => {
     return (
         <Box sx={sx.page}>
             <Box sx={sx.toggle}>
-                <ThemeToggle />
+                <ThemeToggle/>
             </Box>
 
             <Container maxWidth="sm">
                 <Paper elevation={10} sx={sx.card}>
-                    <Typography variant="h4" sx={{ fontWeight: 700 }}>
+                    <Typography variant="h4" sx={{fontWeight: 700}}>
                         Вход
                     </Typography>
 
                     {error && (
-                        <Alert severity="error" sx={{ mt: 3 }}>
+                        <Alert severity="error" sx={{mt: 3}}>
                             {error}
                         </Alert>
                     )}
