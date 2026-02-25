@@ -199,9 +199,9 @@ def resources_schema(
     """
 
     get_operation_id = get_operation_id or f"list{resource}s"
-    get_summary = get_summary or f"List {resource}s resources"
+    get_summary = get_summary or f"List {resource}"
     get_description = get_description or (
-        f"Handles listing `{resource}` resources - list all active `{resource}` resources."
+        f"Handles listing `{resource}` - list all active `{resource}`."
     )
 
     return extend_schema_view(
@@ -263,10 +263,10 @@ def list_schema(
 ) -> Any:
     read_response = OpenApiResponse(response=read_serializer)
     get_operation_id = get_operation_id or f"get{resource}"
-    get_summary = get_summary or f"List {tags[0]} {resource}s"
+    get_summary = get_summary or f"List {resource}"
 
     get_description = get_description or (
-        f"Handles listing `{resource}` objects - list all existing `{tags[0]}` `{resource}s`."
+        f"Handles listing `{resource}` objects - list all existing `{resource}`."
     )
 
     return extend_schema_view(

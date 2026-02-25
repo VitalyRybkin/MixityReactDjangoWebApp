@@ -2,9 +2,11 @@ from django.urls import path
 
 from contacts.views import CarrierContactListAPIView
 from logistic.views.carriers import (
+    CarrierDriverListAPIView,
     CarrierListCreateAPIView,
     CarrierResourcesAPIView,
     CarrierRetrieveUpdateDestroyAPIView,
+    CarrierTruckListAPIView,
 )
 from logistic.views.driver import (
     DriverListCreateAPIView,
@@ -41,6 +43,16 @@ urlpatterns = [
         "carriers/<int:pk>/contacts/",
         CarrierContactListAPIView.as_view(),
         name="carrier_contacts",
+    ),
+    path(
+        "carriers/<int:pk>/trucks/",
+        CarrierTruckListAPIView.as_view(),
+        name="carrier_trucks",
+    ),
+    path(
+        "carriers/<int:pk>/drivers/",
+        CarrierDriverListAPIView.as_view(),
+        name="carrier_drivers",
     ),
     path(
         "trucks/",

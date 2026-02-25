@@ -141,3 +141,47 @@ class TestCarrierResources(BaseAPIMixin):
         DriverFactory.create_batch(2, carrier=self.obj)
 
         self._get_resources_logic(expected_trucks=3, expected_drivers=2)
+
+
+class TestCarrierDriverList(BaseAPIMixin):
+    """
+    Facilitates testing of API endpoints associated with carrier drivers. This
+    class includes setup properties and test methods to evaluate the behavior
+    and correctness of these endpoints.
+
+    Attributes:
+        pk_url_name: str
+            The name of the detail resource URL to be used within the test.
+        factory: CarrierFactory
+            The factory class responsible for creating carrier test instances.
+    """
+
+    __test__ = True
+    pk_url_name = "logistic:carrier_drivers"
+    factory = CarrierFactory
+
+    def test_get_list(self) -> None:
+        DriverFactory.create_batch(3, carrier=self.obj)
+        self._get_pk_list_logic(expected_contacts=3)
+
+
+class TestCarrierTruckList(BaseAPIMixin):
+    """
+    Facilitates testing of API endpoints associated with carrier trucks. This
+    class includes setup properties and test methods to evaluate the behavior
+    and correctness of these endpoints.
+
+    Attributes:
+        pk_url_name: str
+            The name of the detail resource URL to be used within the test.
+        factory: CarrierFactory
+            The factory class responsible for creating carrier test instances.
+    """
+
+    __test__ = True
+    pk_url_name = "logistic:carrier_trucks"
+    factory = CarrierFactory
+
+    def test_get_list(self) -> None:
+        TruckFactory.create_batch(3, carrier=self.obj)
+        self._get_pk_list_logic(expected_contacts=3)

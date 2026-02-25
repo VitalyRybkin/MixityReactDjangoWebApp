@@ -9,6 +9,7 @@ from rest_framework.response import Response
 
 from core.openapi.base_views import (
     BaseGenericAPIView,
+    BaseListAPIView,
     BaseListCreateAPIView,
     BaseRetrieveUpdateDestroyAPIView,
 )
@@ -17,6 +18,8 @@ from logistic.serializers.carrier_serializers import (
     CarrierResourcesSerializer,
     CarrierSerializer,
 )
+from logistic.serializers.driver_serializers import DriverSerializer
+from logistic.serializers.truck_serializers import TruckSerializer
 
 
 class CarrierBaseAPIView(GenericAPIView):
@@ -102,7 +105,7 @@ class CarrierResourcesAPIView(BaseGenericAPIView):
 
     """
 
-    resource_name = "Carrier"
+    resource_name = "Carrier resources"
     schema_tags = ["Carrier"]
     read_serializer_class = CarrierResourcesSerializer
 
@@ -124,3 +127,79 @@ class CarrierResourcesAPIView(BaseGenericAPIView):
         )
 
         return Response(serializer.data, status=status.HTTP_200_OK)
+
+
+class CarrierResourcesListAPIView(BaseListAPIView):
+    """
+    Handles listing of carrier resources such as trucks or drivers.
+
+    Provides an API view to list trucks or drivers associated with a carrier.
+    Uses different querysets and serializers based on the requested resource.
+
+    Attributes:
+        resource_name: Name of the resource being managed.
+        schema_tags: List of schema tags used for the API documentation.
+        permission_classes: List of permission classes applied to this view.
+    """
+
+    resource_name = ""
+    schema_tags = []
+
+    permission_classes = [AllowAny]
+
+    def get_queryset(self) -> QuerySet:
+        pk = self.kwargs.get("pk")
+        path = self.request.path.lower()
+
+        if "trucks" in path:
+            return Truck.objects.filter(carrier_id=pk).order_by("id")
+
+        return Driver.objects.filter(carrier_id=pk).order_by("id")
+
+    def get_serializer_class(self) -> type[TruckSerializer | DriverSerializer]:
+        if "trucks" in self.request.path.lower():
+            return TruckSerializer
+        return DriverSerializer
+
+
+class CarrierTruckListAPIView(CarrierResourcesListAPIView):
+    """
+    Manages the retrieval of carrier trucks in an API view.
+
+    Provides functionality for listing carrier truck resources that belong to
+    carriers. This view inherits common behavior from the CarrierResourcesListAPIView
+    and customizes it for carrier truck-specific requirements. Designed to handle
+    API-specific tasks including serialization and schema tagging.
+
+    Attributes:
+        resource_name: Name of the resource being managed, specific to carrier trucks.
+        schema_tags: List of schema tags used for the API documentation.
+        read_serializer_class: Serializer class used to serialize read requests
+            for carrier trucks.
+    """
+
+    resource_name = "Carrier trucks"
+    schema_tags = ["Carrier"]
+    read_serializer_class = TruckSerializer
+
+
+class CarrierDriverListAPIView(CarrierResourcesListAPIView):
+    """
+    Represents a view for listing carrier drivers.
+
+    Provides functionality for listing carrier driver resources that belong to
+    carriers. This view inherits common behavior from the CarrierResourcesListAPIView
+    and customizes it for carrier truck-specific requirements. Designed to handle
+    API-specific tasks including serialization and schema tagging.
+
+    Attributes:
+        resource_name: The name of the resource being represented.
+        schema_tags: Tags used for schema documentation purposes, typically
+            related to the resource category.
+        read_serializer_class: Serializer class used to serialize read requests
+            for carrier drivers.
+    """
+
+    resource_name = "Carrier drivers"
+    schema_tags = ["Carrier"]
+    read_serializer_class = DriverSerializer
