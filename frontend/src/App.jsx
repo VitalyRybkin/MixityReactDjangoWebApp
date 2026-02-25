@@ -1,29 +1,37 @@
-import react from 'react'
-import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom'
-import Home from './pages/Home'
-import Login from './pages/Login'
-import NotFound from './pages/NotFound'
-import ProtectedRoute from './components/ProtectedRoute'
+import { Routes, Route, Navigate } from "react-router-dom";
+import Home from "./layout/Home";
+import Login from "./layout/Login";
+import NotFound from "./layout/NotFound";
+import ProtectedRoute from "./components/ProtectedRoute";
+import MainLayout from "./layout/MainLayout";
 
 function Logout() {
-  localStorage.removeItem('access_token');
-  return (
-    <Navigate to="/login" />
-  )
+    localStorage.removeItem("access_token");
+    return <Navigate to="/login" replace />;
 }
 
 function App() {
+    return (
+        <Routes>
+            {/* Public */}
+            <Route path="/login" element={<Login />} />
+            <Route path="/logout" element={<Logout />} />
 
-  return (
-    <Router>
-      <Routes>
-        <Route path="/" element={<ProtectedRoute><Home /></ProtectedRoute>} />
-        <Route path="/login" element={<Login />} />
-        <Route path="/logout" element={<Logout />} />
-        <Route path="*" element={<NotFound />} />
-      </Routes>
-    </Router>
-  )
+            {/* Protected + Layout */}
+            <Route
+                element={
+                    <ProtectedRoute>
+                        <MainLayout />
+                    </ProtectedRoute>
+                }
+            >
+                <Route path="/" element={<Home />} />
+            </Route>
+
+            {/* 404 */}
+            <Route path="*" element={<NotFound />} />
+        </Routes>
+    );
 }
 
-export default App
+export default App;
