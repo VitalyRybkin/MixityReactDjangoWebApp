@@ -1,5 +1,7 @@
 from django.contrib import admin
 
+from contacts.admin import ContactInline
+from logistic.admin.driver_admin import DriverInline
 from logistic.models import Carrier, Truck
 
 
@@ -7,7 +9,7 @@ class TruckInline(admin.TabularInline):  # or StackedInline
     model = Truck
     extra = 0
     fields = (
-        "type",
+        "truck_type",
         "capacity",
         "license_plate",
     )
@@ -23,4 +25,4 @@ class CarrierAdmin(admin.ModelAdmin):
     verbose_name = "Carrier"
     verbose_name_plural = "Carriers"
 
-    inlines = [TruckInline]
+    inlines = [TruckInline, ContactInline, DriverInline]
