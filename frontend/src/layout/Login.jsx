@@ -1,88 +1,84 @@
-import {
-    Box,
-    Button,
-    TextField,
-    Typography,
-    Paper,
-    Container,
-} from "@mui/material";
-import { alpha, useTheme } from "@mui/material/styles";
-import { keyframes } from "@mui/system";
+import { useState } from "react";
+import { Box, Button, TextField, Typography, Paper, Container, Alert } from "@mui/material";
+import { useNavigate } from "react-router-dom";
+import api from "../api";
+import { ACCESS_TOKEN, REFRESH_TOKEN } from "../contstants.js";
 import ThemeToggle from "../components/ThemeToggle";
 
-const gradientAnimation = keyframes`
-  0% { background-position: 0% 50%; }
-  50% { background-position: 100% 50%; }
-  100% { background-position: 0% 50%; }
-`;
+const sx = {
+    page: { minHeight: "100vh", display: "flex", alignItems: "center", justifyContent: "center" },
+    toggle: { position: "fixed", top: 20, right: 20, zIndex: 10 },
+    card: { p: { xs: 4, md: 6 }, textAlign: "center", borderRadius: 4 },
+    form: { display: "flex", flexDirection: "column", gap: 3, mt: 3 },
+    submit: { py: 1.4, borderRadius: 3, fontWeight: 600, textTransform: "none" },
+};
 
 const Login = () => {
-    const theme = useTheme();
+    const navigate = useNavigate();
+    const [username, setUsername] = useState("");
+    const [password, setPassword] = useState("");
+    const [error, setError] = useState("");
+    const [loading, setLoading] = useState(false);
+
+    const onSubmit = async (e) => {
+        e.preventDefault();
+        setError("");
+        setLoading(true);
+
+        try {
+            const res = await api.post("/api/auth/token/", { username, password });
+
+            localStorage.setItem(ACCESS_TOKEN, res.data.access);
+            localStorage.setItem(REFRESH_TOKEN, res.data.refresh);
+
+            navigate("/", { replace: true });
+        } catch (err) {
+            setError("Invalid username or password.");
+        } finally {
+            setLoading(false);
+        }
+    };
 
     return (
-        <Box
-            sx={{
-                minHeight: "100vh",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                background:
-                    theme.palette.mode === "dark"
-                        ? "linear-gradient(-45deg, #0f2027, #203a43, #2c5364, #1e3c72)"
-                        : "linear-gradient(-45deg, #e3f2fd, #bbdefb, #90caf9, #64b5f6)",
-                backgroundSize: "400% 400%",
-                animation: `${gradientAnimation} 15s ease infinite`,
-            }}
-        >
-            {/* Theme toggle top right */}
-            <Box sx={{ position: "fixed", top: 20, right: 20 }}>
+        <Box sx={sx.page}>
+            <Box sx={sx.toggle}>
                 <ThemeToggle />
             </Box>
 
             <Container maxWidth="sm">
-                <Paper
-                    elevation={10}
-                    sx={{
-                        p: 5,
-                        borderRadius: 4,
-                        backdropFilter: "blur(20px)",
-                        backgroundColor: alpha(
-                            theme.palette.background.paper,
-                            0.7
-                        ),
-                    }}
-                >
-                    <Typography
-                        variant="h4"
-                        sx={{ fontWeight: 700, mb: 3, textAlign: "center" }}
-                    >
+                <Paper elevation={10} sx={sx.card}>
+                    <Typography variant="h4" sx={{ fontWeight: 700 }}>
                         Sign In
                     </Typography>
 
-                    <Box component="form" sx={{ display: "flex", flexDirection: "column", gap: 3 }}>
+                    {error && (
+                        <Alert severity="error" sx={{ mt: 3 }}>
+                            {error}
+                        </Alert>
+                    )}
+
+                    <Box component="form" sx={sx.form} onSubmit={onSubmit}>
                         <TextField
-                            label="Email"
-                            type="email"
+                            label="Username"
+                            value={username}
+                            onChange={(e) => setUsername(e.target.value)}
+                            autoComplete="username"
                             fullWidth
+                            required
                         />
 
                         <TextField
                             label="Password"
                             type="password"
+                            value={password}
+                            onChange={(e) => setPassword(e.target.value)}
+                            autoComplete="current-password"
                             fullWidth
+                            required
                         />
 
-                        <Button
-                            variant="contained"
-                            size="large"
-                            sx={{
-                                mt: 1,
-                                py: 1.5,
-                                borderRadius: 3,
-                                fontWeight: 600,
-                            }}
-                        >
-                            Login
+                        <Button type="submit" variant="contained" size="large" sx={sx.submit} disabled={loading}>
+                            {loading ? "Signing in..." : "Login"}
                         </Button>
                     </Box>
                 </Paper>

@@ -1,51 +1,84 @@
-import { Box, Typography, Button, Container } from "@mui/material";
+import { Box, Typography, Button, Container, Paper } from "@mui/material";
+import { alpha } from "@mui/material/styles";
 import { Link as RouterLink } from "react-router-dom";
+
+const sx = {
+    page: {
+        minHeight: "100vh",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+    },
+
+    card: (theme) => ({
+        p: { xs: 4, md: 6 },
+        textAlign: "center",
+        borderRadius: 4,
+        backgroundColor: alpha(
+            theme.palette.background.paper,
+            theme.palette.mode === "dark" ? 0.7 : 0.85
+        ),
+        backdropFilter: "blur(12px)",
+        border: `1px solid ${alpha(theme.palette.divider, 0.4)}`,
+        boxShadow: theme.shadows[10],
+    }),
+
+    code: (theme) => ({
+        fontWeight: 800,
+        fontSize: { xs: "4.5rem", md: "6rem" },
+        letterSpacing: -2,
+        background: `linear-gradient(45deg, ${theme.palette.primary.main}, ${theme.palette.primary.light})`,
+        WebkitBackgroundClip: "text",
+        WebkitTextFillColor: "transparent",
+    }),
+
+    description: {
+        mt: 2,
+        mb: 4,
+    },
+
+    button: {
+        px: 4,
+        py: 1.5,
+        borderRadius: 3,
+        fontWeight: 600,
+        textTransform: "none",
+    },
+};
 
 const NotFound = () => {
     return (
-        <Container maxWidth="sm">
-            <Box
-                sx={{
-                    minHeight: "100vh",
-                    display: "flex",
-                    flexDirection: "column",
-                    justifyContent: "center",
-                    alignItems: "center",
-                    textAlign: "center",
-                }}
-            >
-                <Typography
-                    variant="h1"
-                    sx={{
-                        fontWeight: 700,
-                        fontSize: { xs: "5rem", md: "7rem" },
-                        background: "linear-gradient(45deg, #1976d2, #42a5f5)",
-                        WebkitBackgroundClip: "text",
-                        WebkitTextFillColor: "transparent",
-                    }}
-                >
-                    404
-                </Typography>
+        <Box sx={sx.page}>
+            <Container maxWidth="sm">
+                <Paper elevation={0} sx={sx.card}>
+                    <Typography variant="h1" sx={sx.code}>
+                        404
+                    </Typography>
 
-                <Typography variant="h4" gutterBottom>
-                    Page Not Found
-                </Typography>
+                    <Typography variant="h4">
+                        Page Not Found
+                    </Typography>
 
-                <Typography variant="body1" color="text.secondary" sx={{ mb: 4 }}>
-                    The page you’re looking for doesn’t exist or has been moved.
-                </Typography>
+                    <Typography
+                        variant="body1"
+                        color="text.secondary"
+                        sx={sx.description}
+                    >
+                        The page you’re looking for doesn’t exist or has been moved.
+                    </Typography>
 
-                <Button
-                    variant="contained"
-                    size="large"
-                    component={RouterLink}
-                    to="/"
-                    sx={{ px: 4, py: 1.5, borderRadius: 3 }}
-                >
-                    Go Home
-                </Button>
-            </Box>
-        </Container>
+                    <Button
+                        variant="contained"
+                        size="large"
+                        component={RouterLink}
+                        to="/"
+                        sx={sx.button}
+                    >
+                        Go Home
+                    </Button>
+                </Paper>
+            </Container>
+        </Box>
     );
 };
 
