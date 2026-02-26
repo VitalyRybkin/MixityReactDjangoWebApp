@@ -15,6 +15,7 @@ class WarehouseListCreateSerializer(serializers.ModelSerializer):
             "id",
             "name",
             "organization",
+            "email",
             "address",
             "phoneNumber",
             "directions",

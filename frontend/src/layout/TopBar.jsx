@@ -1,7 +1,8 @@
-import {AppBar, Toolbar, Typography, Box, Button} from "@mui/material";
+import {AppBar, Toolbar, Box, Button} from "@mui/material";
 import {useNavigate} from "react-router-dom";
 import ThemeToggle from "../components/ThemeToggle";
 import {ACCESS_TOKEN, REFRESH_TOKEN} from "../constants.js";
+import SimpleNav from "../components/TopMenu.jsx";
 
 const sx = {
     title: {
@@ -26,9 +27,10 @@ const TopBar = () => {
     return (
         <AppBar position="sticky" elevation={1}>
             <Toolbar>
-                <Typography variant="h6" sx={sx.title}>
-                    Заявки на доставку
-                </Typography>
+                {/*<Typography variant="h6" sx={sx.title}>*/}
+                {/*    Заявки на доставку*/}
+                {/*</Typography>*/}
+                <SimpleNav>   </SimpleNav>
 
                 <Box sx={{flexGrow: 1}}/>
 

@@ -5,6 +5,7 @@ import NotFound from "./layout/NotFound";
 import ProtectedRoute from "./components/ProtectedRoute";
 import MainLayout from "./layout/MainLayout";
 import {ACCESS_TOKEN, REFRESH_TOKEN} from "./constants.js";
+import WarehousesPage from "./layout/WarehousesPage.jsx";
 
 function Logout() {
   localStorage.removeItem(ACCESS_TOKEN);
@@ -28,6 +29,7 @@ function App() {
                 }
             >
                 <Route path="/" element={<Home />} />
+                <Route path="/warehouses" element={<WarehousesPage />} />
             </Route>
 
             {/* 404 */}
