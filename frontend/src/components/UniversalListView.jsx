@@ -10,7 +10,7 @@ const UniversalListView = ({ title, items, renderRow }) => {
             </Typography>
             <Divider sx={{ mb: 3 }} />
 
-            {/* Grid with list */}
+            {/* Grid with a list */}
             <Grid
                 container
                 spacing={2}
@@ -19,8 +19,7 @@ const UniversalListView = ({ title, items, renderRow }) => {
             >
                 {items.length > 0 ? (
                     items.map((item, index) => (
-                        <Grid item xs={12} key={item.id || index}>
-                            {/* Render elements*/}
+                        <Grid size={12} key={item.id || index}>
                             {renderRow(item)}
                         </Grid>
                     ))

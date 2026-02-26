@@ -21,7 +21,7 @@ const SimpleNav = () => {
 
             <Button
                 component={NavLink}
-                to="/orders"
+                to="/carriers"
                 color="inherit"
                 sx={{
                     "&.active": {

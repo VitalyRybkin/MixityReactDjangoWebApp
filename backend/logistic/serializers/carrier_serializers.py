@@ -40,6 +40,8 @@ class CarrierSerializer(serializers.ModelSerializer):
             "fullName",
             "address",
             "description",
+            "phone",
+            "email",
             "isActive",
             "trucks",
         ]
