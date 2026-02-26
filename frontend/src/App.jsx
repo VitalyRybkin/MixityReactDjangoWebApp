@@ -35,6 +35,7 @@ function App() {
                 <Route path="/warehouses" element={<WarehousesPage />} />
                 <Route path="/carriers" element={<CarriersPage />} />
                 <Route path="/carriers/:id" element={<CarrierInfoPage />} />
+                <Route path="/carriers/:id/edit" element={<CarrierDetailPage />} />
             </Route>
 
             {/* 404 */}
