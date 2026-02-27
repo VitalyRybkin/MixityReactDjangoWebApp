@@ -1,48 +1,38 @@
 import React from 'react';
-import { Card, CardActionArea, CardContent, Typography, Divider, Box, Tooltip, IconButton } from "@mui/material";
-import { Link as RouterLink } from "react-router-dom";
+import {Card, CardActionArea, CardContent, Typography, Divider, Box, Tooltip, IconButton} from "@mui/material";
+import {Link as RouterLink} from "react-router-dom";
 import PictureAsPdfIcon from '@mui/icons-material/PictureAsPdf';
+import EmailLink from "./EmailLink.jsx";
 
-const ListInfoCard = ({ title, subtitle, extra, email, fileUrl, to }) => {
+const ListInfoCard = ({title, subtitle, extra, email, fileUrl, to}) => {
     const hasTextBefore = Boolean(subtitle || extra || email);
 
     return (
-        <Card sx={{ width: '100%', mb: 0 }}>
+        <Card sx={{width: '100%', mb: 0}}>
             <CardActionArea component={RouterLink} to={to}>
                 <CardContent>
                     <Typography variant="h6" gutterBottom>{title || "Без названия"}</Typography>
-                    <Divider sx={{ my: 1.5 }} />
+                    <Divider sx={{my: 1.5}}/>
 
-                    <Box sx={{ display: 'flex', alignItems: 'center', color: 'text.secondary', fontSize: '0.875rem' }}>
+                    <Box sx={{display: 'flex', alignItems: 'center', color: 'text.secondary', fontSize: '0.875rem'}}>
 
                         {subtitle && <Box component="span">{subtitle}</Box>}
 
                         {extra && (
                             <>
-                                {subtitle && <Divider orientation="vertical" flexItem sx={{ mx: 2, height: 14, alignSelf: 'center' }} />}
+                                {subtitle && <Divider orientation="vertical" flexItem
+                                                      sx={{mx: 2, height: 14, alignSelf: 'center'}}/>}
                                 <Box component="span">{extra}</Box>
                             </>
                         )}
 
                         {email && (
                             <>
-                                {(subtitle || extra) && <Divider orientation="vertical" flexItem sx={{ mx: 2, height: 14, alignSelf: 'center' }} />}
-                                <Typography
-                                    variant="body2"
-                                    onClick={(e) => {
-                                        e.stopPropagation();
-                                        e.preventDefault();
-                                        window.location.href = `mailto:${email}`;
-                                    }}
-                                    sx={{
-                                        fontWeight: 500,
-                                        cursor: 'pointer',
-                                        color: '#1787ff',
-                                        '&:hover': { color: '#6f94b8' }
-                                    }}
-                                >
-                                    {email}
-                                </Typography>
+                                {(subtitle || extra) && <Divider orientation="vertical" flexItem
+                                                                 sx={{mx: 2, height: 14, alignSelf: 'center'}}/>}
+                                <EmailLink
+                                    email={email}
+                                />
                             </>
                         )}
 
@@ -50,7 +40,8 @@ const ListInfoCard = ({ title, subtitle, extra, email, fileUrl, to }) => {
                         {fileUrl && (
                             <>
                                 {hasTextBefore && (
-                                    <Divider orientation="vertical" flexItem sx={{ mx: 2, height: 14, alignSelf: 'center' }} />
+                                    <Divider orientation="vertical" flexItem
+                                             sx={{mx: 2, height: 14, alignSelf: 'center'}}/>
                                 )}
 
                                 <Tooltip title="Открыть инструкцию (PDF)">
@@ -69,7 +60,7 @@ const ListInfoCard = ({ title, subtitle, extra, email, fileUrl, to }) => {
                                             }
                                         }}
                                     >
-                                        <PictureAsPdfIcon sx={{ fontSize: 20 }} />
+                                        <PictureAsPdfIcon sx={{fontSize: 20}}/>
                                     </IconButton>
                                 </Tooltip>
                             </>

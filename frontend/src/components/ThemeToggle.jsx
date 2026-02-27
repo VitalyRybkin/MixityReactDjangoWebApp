@@ -7,7 +7,7 @@ const ThemeToggle = () => {
     const { mode, toggleColorMode } = useColorMode();
 
     return (
-        <Tooltip title={mode === "dark" ? "Switch to light" : "Switch to dark"}>
+        <Tooltip title={mode === "dark" ? "Светлая" : "Тёмная"}>
             <IconButton onClick={toggleColorMode} color="inherit">
                 {mode === "dark" ? <LightModeIcon /> : <DarkModeIcon />}
             </IconButton>
