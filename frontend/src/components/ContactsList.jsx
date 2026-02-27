@@ -15,39 +15,54 @@ import {
 import React from "react";
 import ContactRow from "./ContactRow.jsx";
 
-const ContactsListView = ({contacts, onEdit, onDelete, onDeletePhone}) => {
-    const tableHeaders = ['Имя', 'Фамилия', 'Должность', 'Email', 'Телефоны', ''];
+const tableHeaders = ["Имя", "Фамилия", "Должность", "Email", "Телефоны", ""];
 
+const noop = () => {};
+
+const ContactsListView = ({
+                              contacts,
+                              onAdd,
+                              onEdit,
+                              onDelete = noop,
+                              onDeletePhone = noop,
+                          }) => {
     return (
-        <Card variant="outlined" sx={{width: '100%', borderRadius: 1}}>
-            <Box sx={{p: 3, display: 'flex', justifyContent: 'space-between', alignItems: 'center'}}>
-                <Typography variant="subtitle1" sx={{
-                    color: 'text.secondary',
-                    fontWeight: 700,
-                    textTransform: 'uppercase',
-                    fontSize: '0.9rem'
-                }}>
+        <Card variant="outlined" sx={{ width: "100%", borderRadius: 1 }}>
+            <Box sx={{ p: 3, display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                <Typography
+                    variant="subtitle1"
+                    sx={{ color: "text.secondary", fontWeight: 700, textTransform: "uppercase", fontSize: "0.9rem" }}
+                >
                     Контакты
                 </Typography>
-                <Button variant="contained" startIcon={<AddIcon/>} sx={{fontWeight: 700}}>
+
+                <Button
+                    variant="contained"
+                    startIcon={<AddIcon />}
+                    sx={{ fontWeight: 700 }}
+                    onClick={onAdd}
+                >
                     Добавить
                 </Button>
             </Box>
 
-            <Divider/>
+            <Divider />
 
             <TableContainer>
-                <Table sx={{minWidth: 800}}>
-                    <TableHead sx={{bgcolor: 'action.hover'}}>
+                <Table sx={{ minWidth: 800 }}>
+                    <TableHead sx={{ bgcolor: "action.hover" }}>
                         <TableRow>
-                            {tableHeaders.map((head) => (
-                                <TableCell key={head}
-                                           sx={{fontWeight: 700, color: 'text.secondary', fontSize: '0.75rem'}}>
-                                    {head.toUpperCase()}
+                            {tableHeaders.map((head, idx) => (
+                                <TableCell
+                                    key={`${head}-${idx}`}
+                                    sx={{ fontWeight: 700, color: "text.secondary", fontSize: "0.75rem" }}
+                                >
+                                    {head ? head.toUpperCase() : ""}
                                 </TableCell>
                             ))}
                         </TableRow>
                     </TableHead>
+
                     <TableBody>
                         {contacts?.length > 0 ? (
                             contacts.map((contact) => (
@@ -61,7 +76,7 @@ const ContactsListView = ({contacts, onEdit, onDelete, onDeletePhone}) => {
                             ))
                         ) : (
                             <TableRow>
-                                <TableCell colSpan={6} align="center" sx={{py: 3, color: 'text.disabled'}}>
+                                <TableCell colSpan={6} align="center" sx={{ py: 3, color: "text.disabled" }}>
                                     Список контактов пуст
                                 </TableCell>
                             </TableRow>
@@ -72,6 +87,5 @@ const ContactsListView = ({contacts, onEdit, onDelete, onDeletePhone}) => {
         </Card>
     );
 };
-
 
 export default ContactsListView;
