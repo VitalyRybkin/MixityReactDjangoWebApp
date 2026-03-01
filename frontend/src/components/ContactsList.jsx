@@ -17,14 +17,14 @@ import ContactRow from "./ContactRow.jsx";
 
 const tableHeaders = ["Имя", "Фамилия", "Должность", "Email", "Телефоны", ""];
 
-const noop = () => {};
-
 const ContactsListView = ({
                               contacts,
                               onAdd,
                               onEdit,
-                              onDelete = noop,
-                              onDeletePhone = noop,
+                              onDelete,
+                              onDeletePhone,
+                              isDeletingContact,
+                              isDeletingPhone,
                           }) => {
     return (
         <Card variant="outlined" sx={{ width: "100%", borderRadius: 1 }}>
@@ -55,7 +55,7 @@ const ContactsListView = ({
                             {tableHeaders.map((head, idx) => (
                                 <TableCell
                                     key={`${head}-${idx}`}
-                                    sx={{ fontWeight: 700, color: "text.secondary", fontSize: "0.75rem" }}
+                                    sx={{ fontWeight: 700, color: "text.secondary", fontSize: "0.75rem", verticalAlign: "middle" }}
                                 >
                                     {head ? head.toUpperCase() : ""}
                                 </TableCell>
@@ -72,6 +72,8 @@ const ContactsListView = ({
                                     onEdit={onEdit}
                                     onDelete={onDelete}
                                     onDeletePhone={onDeletePhone}
+                                    isDeletingContact={isDeletingContact}
+                                    isDeletingPhone={isDeletingPhone}
                                 />
                             ))
                         ) : (

@@ -4,7 +4,7 @@ import DeleteIcon from "@mui/icons-material/Delete";
 import {Edit as EditIcon} from "@mui/icons-material";
 import EmailLink from "./EmailLink.jsx";
 
-const ContactRow = ({ contact, onEdit, onDelete, onDeletePhone }) => {
+const ContactRow = ({  contact, onEdit, onDelete, onDeletePhone, isDeletingContact, isDeletingPhone }) => {
     const contactId = contact.id;
 
     return (
@@ -22,21 +22,35 @@ const ContactRow = ({ contact, onEdit, onDelete, onDeletePhone }) => {
                     contactId={contactId}
                     phoneNumbers={contact.phoneNumbers}
                     onDeletePhone={onDeletePhone}
+                    isDeletingPhone={isDeletingPhone}
+                    isDeletingContact={isDeletingContact(contactId)}
                 />
             </TableCell>
 
             <TableCell align="right">
                 <Stack direction="row" spacing={1} justifyContent="flex-end">
                     <Tooltip title="Редактировать контакт">
-                        <IconButton color="primary" onClick={() => onEdit(contact)}>
-                            <EditIcon fontSize="small" />
-                        </IconButton>
+            <span>
+              <IconButton
+                  color="primary"
+                  onClick={() => onEdit(contact)}
+                  disabled={isDeletingContact(contactId)}
+              >
+                <EditIcon fontSize="small" />
+              </IconButton>
+            </span>
                     </Tooltip>
 
                     <Tooltip title="Удалить контакт">
-                        <IconButton color="error" onClick={() => onDelete(contactId)}>
-                            <DeleteIcon fontSize="small" />
-                        </IconButton>
+            <span>
+              <IconButton
+                  color="error"
+                  onClick={() => onDelete(contactId)}
+                  disabled={isDeletingContact(contactId)}
+              >
+                <DeleteIcon fontSize="small" />
+              </IconButton>
+            </span>
                     </Tooltip>
                 </Stack>
             </TableCell>

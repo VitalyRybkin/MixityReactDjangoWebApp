@@ -1,25 +1,51 @@
-import {Box, IconButton, Stack, Tooltip, Typography} from "@mui/material";
+import { Stack, Chip, Tooltip } from "@mui/material";
 import DeleteIcon from "@mui/icons-material/Delete";
 
-const PhoneList = ({contactId, phoneNumbers, onDeletePhone}) => (
-    <Stack spacing={0.5}>
-        {phoneNumbers?.map((phone, idx) => (
-            <Box
-                key={idx}
-                sx={{
-                    display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-                    bgcolor: 'action.hover', borderRadius: 1, px: 1, py: 0.2
-                }}
-            >
-                <Typography sx={{fontSize: '0.875rem'}}>{phone.phoneNumber}</Typography>
-                <Tooltip title="Удалить номер">
-                    <IconButton size="small" color="error" onClick={() => onDeletePhone(contactId, phone.phoneNumber)}>
-                        <DeleteIcon sx={{fontSize: '0.9rem'}}/>
-                    </IconButton>
-                </Tooltip>
-            </Box>
-        ))}
-    </Stack>
-);
+export default function PhoneList({
+                                      contactId,
+                                      phoneNumbers,
+                                      onDeletePhone,
+                                      isDeletingContact,
+                                      isDeletingPhone,
+                                  }) {
+    const deletingContact =
+        typeof isDeletingContact === "function" ? isDeletingContact(contactId) : !!isDeletingContact;
 
-export default PhoneList;
+    return (
+        <Stack direction="row" spacing={1} flexWrap="wrap" useFlexGap>
+            {(phoneNumbers ?? []).map((phone) => {
+                const number = phone.phoneNumber;
+
+                const deletingThisPhone =
+                    typeof isDeletingPhone === "function" ? isDeletingPhone(contactId, number) : false;
+
+                const disabled = deletingContact || deletingThisPhone;
+
+                return (
+                    <Chip
+                        key={number}
+                        label={number}
+                        variant="outlined"
+                        size="small"
+                        onDelete={disabled ? undefined : () => onDeletePhone?.(contactId, number)}
+                        deleteIcon={
+                            <Tooltip title="Удалить телефон">
+                                <DeleteIcon fontSize="small" color="error" />
+                            </Tooltip>
+                        }
+                        sx={{
+                            mb: 0.5,
+                            alignItems: "center",
+                            "& .MuiChip-label": { display: "flex", alignItems: "center" },
+                            "& .MuiChip-deleteIcon": { display: "flex", alignItems: "center", color: "error.main","&:hover": {
+                                    color: "error.dark",
+                                }, },
+                            padding: "1rem 0.5rem",
+                            borderRadius: "0.5rem",
+                        }}
+                    />
+                );
+            })}
+        </Stack>
+    );
+}
