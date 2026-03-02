@@ -5,8 +5,8 @@ import NotFound from "./layout/NotFound";
 import ProtectedRoute from "./components/ProtectedRoute";
 import MainLayout from "./layout/MainLayout";
 import {ACCESS_TOKEN, REFRESH_TOKEN} from "./constants.js";
-import WarehousesPage from "./layout/Warehouses.jsx";
-import CarriersPage from "./layout/Carriers.jsx";
+import WarehousesList from "./layout/WarehousesList.jsx";
+import CarriersList from "./layout/CarriersList.jsx";
 import CarrierDetailPage from "./layout/CarrierDetail.jsx";
 import CarrierInfoPage from "./layout/CarrierInfo.jsx";
 
@@ -32,8 +32,8 @@ function App() {
                 }
             >
                 <Route path="/" element={<Home />} />
-                <Route path="/warehouses" element={<WarehousesPage />} />
-                <Route path="/carriers" element={<CarriersPage />} />
+                <Route path="/warehouses" element={<WarehousesList />} />
+                <Route path="/carriers" element={<CarriersList />} />
                 <Route path="/carriers/:id" element={<CarrierInfoPage />} />
                 <Route path="/carriers/:id/edit" element={<CarrierDetailPage />} />
             </Route>

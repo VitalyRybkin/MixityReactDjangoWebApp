@@ -3,20 +3,36 @@ import api from "../api";
 import UniversalListView from "../components/UniversalListView";
 import ListInfoCard from "../components/ListInfoCard";
 
-export default function CarriersPage() {
+export default function CarriersList() {
     const [carriers, setCarriers] = useState([]);
+    const [loading, setLoading] = useState(true);
 
     useEffect(() => {
-        api.get("/api/logistic/carriers/").then((res) => {
-            const data = Array.isArray(res.data) ? res.data : (res.data.results ?? []);
-            setCarriers(data);
-        });
+        let mounted = true;
+
+        (async () => {
+            try {
+                setLoading(true);
+                const res = await api.get("/api/logistic/carriers/");
+                const data = Array.isArray(res.data) ? res.data : (res.data.results ?? []);
+                if (mounted) setCarriers(data);
+            } catch (e) {
+                if (mounted) setCarriers([]); // optional
+            } finally {
+                if (mounted) setLoading(false);
+            }
+        })();
+
+        return () => {
+            mounted = false;
+        };
     }, []);
 
     return (
         <UniversalListView
             title="Грузоперевозчики"
             items={carriers}
+            loading={loading}
             renderRow={(w) => (
                 <ListInfoCard
                     title={w.name}

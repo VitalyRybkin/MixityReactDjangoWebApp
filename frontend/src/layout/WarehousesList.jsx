@@ -3,20 +3,36 @@ import api from "../api";
 import UniversalListView from "../components/UniversalListView";
 import ListInfoCard from "../components/ListInfoCard";
 
-export default function WarehousesPage() {
+export default function WarehousesList() {
     const [warehouses, setWarehouses] = useState([]);
+    const [loading, setLoading] = useState(true);
 
     useEffect(() => {
-        api.get("/api/stock/").then((res) => {
-            const data = Array.isArray(res.data) ? res.data : (res.data.results ?? []);
-            setWarehouses(data);
-        });
+        let mounted = true;
+
+        (async () => {
+            try {
+                setLoading(true);
+                const res = await api.get("/api/stock/");
+                const data = Array.isArray(res.data) ? res.data : (res.data.results ?? []);
+                if (mounted) setWarehouses(data);
+            } catch (e) {
+                if (mounted) setWarehouses([]); // optional
+            } finally {
+                if (mounted) setLoading(false);
+            }
+        })();
+
+        return () => {
+            mounted = false;
+        };
     }, []);
 
     return (
         <UniversalListView
             title="Склады"
             items={warehouses}
+            loading={loading}
             renderRow={(w) => (
                 <ListInfoCard
                     title={w.name}
