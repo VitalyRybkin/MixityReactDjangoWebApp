@@ -18,6 +18,7 @@ import {
 
 import api from '../api'
 
+
 const emptyPhone = () => ({ phoneNumber: '' })
 const safeStr = (v) => v ?? ''
 
@@ -179,7 +180,7 @@ export default function ContactDialog({
                                         fullWidth
                                     />
                                     <IconButton onClick={() => removePhone(idx)} disabled={saving}>
-                                        <DeleteIcon />
+                                        <DeleteIcon color="error" />
                                     </IconButton>
                                 </Stack>
                             ))}
