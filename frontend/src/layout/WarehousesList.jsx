@@ -1,33 +1,10 @@
-import { useEffect, useState } from 'react'
-
 import api from '../api'
 import ListInfoCard from '../components/ListInfoCard'
 import UniversalListView from '../components/UniversalListView'
+import { useListResource } from '../hooks/useListResource'
 
 export default function WarehousesList() {
-    const [warehouses, setWarehouses] = useState([])
-    const [loading, setLoading] = useState(true)
-
-    useEffect(() => {
-        let mounted = true
-
-        ;(async () => {
-            try {
-                setLoading(true)
-                const res = await api.get('/api/stock/')
-                const data = Array.isArray(res.data) ? res.data : (res.data.results ?? [])
-                if (mounted) setWarehouses(data)
-            } catch (e) {
-                if (mounted) setWarehouses([]) // optional
-            } finally {
-                if (mounted) setLoading(false)
-            }
-        })()
-
-        return () => {
-            mounted = false
-        }
-    }, [])
+    const { items: warehouses, loading } = useListResource(() => api.get('/api/stock/'), [])
 
     return (
         <UniversalListView

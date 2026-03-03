@@ -1,33 +1,10 @@
-import { useEffect, useState } from 'react'
-
 import api from '../api'
 import ListInfoCard from '../components/ListInfoCard'
 import UniversalListView from '../components/UniversalListView'
+import { useListResource } from '../hooks/useListResource'
 
 export default function CarriersList() {
-    const [carriers, setCarriers] = useState([])
-    const [loading, setLoading] = useState(true)
-
-    useEffect(() => {
-        let mounted = true
-
-        ;(async () => {
-            try {
-                setLoading(true)
-                const res = await api.get('/api/logistic/carriers/')
-                const data = Array.isArray(res.data) ? res.data : (res.data.results ?? [])
-                if (mounted) setCarriers(data)
-            } catch (e) {
-                if (mounted) setCarriers([]) // optional
-            } finally {
-                if (mounted) setLoading(false)
-            }
-        })()
-
-        return () => {
-            mounted = false
-        }
-    }, [])
+    const { items: carriers, loading } = useListResource(() => api.get('/api/logistic/carriers/'), [])
 
     return (
         <UniversalListView
