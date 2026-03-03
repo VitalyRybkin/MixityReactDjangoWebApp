@@ -1,32 +1,33 @@
-import { useEffect, useState } from "react";
-import api from "../api";
-import UniversalListView from "../components/UniversalListView";
-import ListInfoCard from "../components/ListInfoCard";
+import { useEffect, useState } from 'react'
+
+import api from '../api'
+import ListInfoCard from '../components/ListInfoCard'
+import UniversalListView from '../components/UniversalListView'
 
 export default function CarriersList() {
-    const [carriers, setCarriers] = useState([]);
-    const [loading, setLoading] = useState(true);
+    const [carriers, setCarriers] = useState([])
+    const [loading, setLoading] = useState(true)
 
     useEffect(() => {
-        let mounted = true;
+        let mounted = true
 
-        (async () => {
+        ;(async () => {
             try {
-                setLoading(true);
-                const res = await api.get("/api/logistic/carriers/");
-                const data = Array.isArray(res.data) ? res.data : (res.data.results ?? []);
-                if (mounted) setCarriers(data);
+                setLoading(true)
+                const res = await api.get('/api/logistic/carriers/')
+                const data = Array.isArray(res.data) ? res.data : (res.data.results ?? [])
+                if (mounted) setCarriers(data)
             } catch (e) {
-                if (mounted) setCarriers([]); // optional
+                if (mounted) setCarriers([]) // optional
             } finally {
-                if (mounted) setLoading(false);
+                if (mounted) setLoading(false)
             }
-        })();
+        })()
 
         return () => {
-            mounted = false;
-        };
-    }, []);
+            mounted = false
+        }
+    }, [])
 
     return (
         <UniversalListView
@@ -43,5 +44,5 @@ export default function CarriersList() {
                 />
             )}
         />
-    );
+    )
 }

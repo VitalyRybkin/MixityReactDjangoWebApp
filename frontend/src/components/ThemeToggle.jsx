@@ -1,18 +1,19 @@
-import { IconButton, Tooltip } from "@mui/material";
-import DarkModeIcon from "@mui/icons-material/DarkMode";
-import LightModeIcon from "@mui/icons-material/LightMode";
-import { useColorMode } from "../theme/colorModeContext";
+import DarkModeIcon from '@mui/icons-material/DarkMode'
+import LightModeIcon from '@mui/icons-material/LightMode'
+import { IconButton, Tooltip } from '@mui/material'
+
+import { useColorMode } from '../theme/colorModeContext'
 
 const ThemeToggle = () => {
-    const { mode, toggleColorMode } = useColorMode();
+    const { mode, toggleColorMode } = useColorMode()
 
     return (
-        <Tooltip title={mode === "dark" ? "Светлая" : "Тёмная"}>
+        <Tooltip title={mode === 'dark' ? 'Светлая' : 'Тёмная'}>
             <IconButton onClick={toggleColorMode} color="inherit">
-                {mode === "dark" ? <LightModeIcon /> : <DarkModeIcon />}
+                {mode === 'dark' ? <LightModeIcon /> : <DarkModeIcon />}
             </IconButton>
         </Tooltip>
-    );
-};
+    )
+}
 
-export default ThemeToggle;
+export default ThemeToggle

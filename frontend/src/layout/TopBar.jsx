@@ -1,8 +1,10 @@
-import {AppBar, Toolbar, Box, Button} from "@mui/material";
-import {useNavigate} from "react-router-dom";
-import ThemeToggle from "../components/ThemeToggle";
-import {ACCESS_TOKEN, REFRESH_TOKEN} from "../constants.js";
-import SimpleNav from "../components/TopMenu.jsx";
+import { useNavigate } from 'react-router-dom'
+
+import { AppBar, Box, Button, Toolbar } from '@mui/material'
+
+import ThemeToggle from '../components/ThemeToggle'
+import SimpleNav from '../components/TopMenu.jsx'
+import { ACCESS_TOKEN, REFRESH_TOKEN } from '../constants.js'
 
 const sx = {
     title: {
@@ -10,19 +12,19 @@ const sx = {
     },
     logout: {
         ml: 2,
-        textTransform: "none",
+        textTransform: 'none',
         fontWeight: 500,
     },
-};
+}
 
 const TopBar = () => {
-    const navigate = useNavigate();
+    const navigate = useNavigate()
 
     const handleLogout = () => {
-        localStorage.removeItem(ACCESS_TOKEN);
-        localStorage.removeItem(REFRESH_TOKEN);
-        navigate("/login", {replace: true});
-    };
+        localStorage.removeItem(ACCESS_TOKEN)
+        localStorage.removeItem(REFRESH_TOKEN)
+        navigate('/login', { replace: true })
+    }
 
     return (
         <AppBar position="sticky" elevation={1}>
@@ -30,22 +32,18 @@ const TopBar = () => {
                 {/*<Typography variant="h6" sx={sx.title}>*/}
                 {/*    Заявки на доставку*/}
                 {/*</Typography>*/}
-                <SimpleNav>   </SimpleNav>
+                <SimpleNav> </SimpleNav>
 
-                <Box sx={{flexGrow: 1}}/>
+                <Box sx={{ flexGrow: 1 }} />
 
-                <ThemeToggle/>
+                <ThemeToggle />
 
-                <Button
-                    color="inherit"
-                    onClick={handleLogout}
-                    sx={sx.logout}
-                >
+                <Button color="inherit" onClick={handleLogout} sx={sx.logout}>
                     Выйти
                 </Button>
             </Toolbar>
         </AppBar>
-    );
-};
+    )
+}
 
-export default TopBar;
+export default TopBar

@@ -1,70 +1,72 @@
-import {Navigate} from "react-router-dom";
-import {jwtDecode} from "jwt-decode";
-import api from "../api";
-import {REFRESH_TOKEN, ACCESS_TOKEN} from "../constants.js";
-import {useState, useEffect, useRef} from "react";
+import { useEffect, useRef, useState } from 'react'
+import { Navigate } from 'react-router-dom'
 
-const SKEW_SECONDS = 30;
+import { jwtDecode } from 'jwt-decode'
 
-function ProtectedRoute({children}) {
-    const [isAuthorized, setIsAuthorized] = useState(null);
-    const ranRef = useRef(false);
+import api from '../api'
+import { ACCESS_TOKEN, REFRESH_TOKEN } from '../constants.js'
+
+const SKEW_SECONDS = 30
+
+function ProtectedRoute({ children }) {
+    const [isAuthorized, setIsAuthorized] = useState(null)
+    const ranRef = useRef(false)
 
     useEffect(() => {
         // helps in dev StrictMode (avoid duplicate auth runs)
-        if (ranRef.current) return;
-        ranRef.current = true;
+        if (ranRef.current) return
+        ranRef.current = true
 
-        (async () => {
+        ;(async () => {
             try {
-                await auth();
+                await auth()
             } catch {
-                setIsAuthorized(false);
+                setIsAuthorized(false)
             }
-        })();
-    }, []);
+        })()
+    }, [])
 
     const refreshToken = async () => {
-        const refresh = localStorage.getItem(REFRESH_TOKEN);
+        const refresh = localStorage.getItem(REFRESH_TOKEN)
         if (!refresh) {
-            setIsAuthorized(false);
-            return;
+            setIsAuthorized(false)
+            return
         }
 
-        const response = await api.post("/api/auth/token/refresh/", {refresh});
-        localStorage.setItem(ACCESS_TOKEN, response.data.access);
-        setIsAuthorized(true);
-    };
+        const response = await api.post('/api/auth/token/refresh/', { refresh })
+        localStorage.setItem(ACCESS_TOKEN, response.data.access)
+        setIsAuthorized(true)
+    }
 
     const auth = async () => {
-        const token = localStorage.getItem(ACCESS_TOKEN);
+        const token = localStorage.getItem(ACCESS_TOKEN)
         if (!token) {
-            setIsAuthorized(false);
-            return;
+            setIsAuthorized(false)
+            return
         }
 
-        let decoded;
+        let decoded
         try {
-            decoded = jwtDecode(token);
+            decoded = jwtDecode(token)
         } catch {
-            localStorage.removeItem(ACCESS_TOKEN);
-            localStorage.removeItem(REFRESH_TOKEN);
-            setIsAuthorized(false);
-            return;
+            localStorage.removeItem(ACCESS_TOKEN)
+            localStorage.removeItem(REFRESH_TOKEN)
+            setIsAuthorized(false)
+            return
         }
 
-        const exp = decoded?.exp;
-        const now = Date.now() / 1000;
+        const exp = decoded?.exp
+        const now = Date.now() / 1000
 
         if (!exp || exp - now < SKEW_SECONDS) {
-            await refreshToken();
+            await refreshToken()
         } else {
-            setIsAuthorized(true);
+            setIsAuthorized(true)
         }
-    };
+    }
 
-    if (isAuthorized === null) return <div>Loading...</div>;
-    return isAuthorized ? children : <Navigate to="/login" replace/>;
+    if (isAuthorized === null) return <div>Loading...</div>
+    return isAuthorized ? children : <Navigate to="/login" replace />
 }
 
-export default ProtectedRoute;
+export default ProtectedRoute

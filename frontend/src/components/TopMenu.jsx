@@ -1,5 +1,6 @@
-import { Stack, Button } from '@mui/material';
-import { NavLink } from 'react-router-dom';
+import { NavLink } from 'react-router-dom'
+
+import { Button, Stack } from '@mui/material'
 
 const SimpleNav = () => {
     return (
@@ -9,11 +10,11 @@ const SimpleNav = () => {
                 to="/"
                 color="inherit"
                 sx={{
-                    "&.active": {
-                        backgroundColor: "rgba(255, 255, 255, 0.12)",
-                        borderBottom: "2px solid white",
-                        borderRadius: 0
-                    }
+                    '&.active': {
+                        backgroundColor: 'rgba(255, 255, 255, 0.12)',
+                        borderBottom: '2px solid white',
+                        borderRadius: 0,
+                    },
                 }}
             >
                 Заявки
@@ -24,11 +25,11 @@ const SimpleNav = () => {
                 to="/carriers"
                 color="inherit"
                 sx={{
-                    "&.active": {
-                        backgroundColor: "rgba(255, 255, 255, 0.12)",
-                        borderBottom: "2px solid white",
-                        borderRadius: 0
-                    }
+                    '&.active': {
+                        backgroundColor: 'rgba(255, 255, 255, 0.12)',
+                        borderBottom: '2px solid white',
+                        borderRadius: 0,
+                    },
                 }}
             >
                 Перевозчики
@@ -39,17 +40,17 @@ const SimpleNav = () => {
                 to="/warehouses"
                 color="inherit"
                 sx={{
-                    "&.active": {
-                        backgroundColor: "rgba(255, 255, 255, 0.12)",
-                        borderBottom: "2px solid white",
-                        borderRadius: 0
-                    }
+                    '&.active': {
+                        backgroundColor: 'rgba(255, 255, 255, 0.12)',
+                        borderBottom: '2px solid white',
+                        borderRadius: 0,
+                    },
                 }}
             >
                 Склады
             </Button>
         </Stack>
-    );
-};
+    )
+}
 
-export default SimpleNav;
+export default SimpleNav

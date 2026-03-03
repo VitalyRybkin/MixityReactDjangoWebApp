@@ -1,165 +1,162 @@
-import { useEffect, useState } from "react";
-import { useNavigate, useParams } from "react-router-dom";
+import { useEffect, useState } from 'react'
+import { useNavigate, useParams } from 'react-router-dom'
+
+import { Edit as EditIcon } from '@mui/icons-material'
 import {
+    Alert,
     Box,
+    Button,
     Card,
     CardContent,
-    Button,
+    Dialog,
+    DialogActions,
+    DialogContent,
+    DialogTitle,
+    Divider,
+    Snackbar,
     Stack,
     Typography,
-    Divider,
-    DialogTitle,
-    Snackbar,
-    Alert,
-    Dialog, DialogContent, DialogActions
-} from "@mui/material";
-import { Edit as EditIcon } from "@mui/icons-material";
-import api from "../api";
-import ContactsListView from "../components/ContactsList";
-import EmailLink from "../components/EmailLink.jsx";
-import ContactDialog from "../components/ContactDialog.jsx";
+} from '@mui/material'
 
-const unwrap = (d) => (Array.isArray(d) ? d : (d?.results ?? []));
+import api from '../api'
+import ContactDialog from '../components/ContactDialog.jsx'
+import ContactsListView from '../components/ContactsList'
+import EmailLink from '../components/EmailLink.jsx'
+
+const unwrap = (d) => (Array.isArray(d) ? d : (d?.results ?? []))
 
 export default function CarrierInfoPage() {
-    const { id } = useParams();
-    const navigate = useNavigate();
+    const { id } = useParams()
+    const navigate = useNavigate()
 
-    const [carrier, setCarrier] = useState(null);
-    const [contacts, setContacts] = useState([]);
+    const [carrier, setCarrier] = useState(null)
+    const [contacts, setContacts] = useState([])
 
     const [dialog, setDialog] = useState({
         open: false,
-        mode: "create", // "create" | "edit"
+        mode: 'create', // "create" | "edit"
         contact: null,
-    });
+    })
 
-    const carrierId = Number(id);
+    const carrierId = Number(id)
 
-    const closeDialog = () => setDialog((s) => ({ ...s, open: false }));
+    const closeDialog = () => setDialog((s) => ({ ...s, open: false }))
 
-    const openCreateContact = () =>
-        setDialog({ open: true, mode: "create", contact: null });
+    const openCreateContact = () => setDialog({ open: true, mode: 'create', contact: null })
 
-    const openEditContact = (contact) =>
-        setDialog({ open: true, mode: "edit", contact });
+    const openEditContact = (contact) => setDialog({ open: true, mode: 'edit', contact })
 
     const loadCarrier = async () => {
-        const res = await api.get(`/api/logistic/carriers/${id}/`);
-        setCarrier(res.data);
-    };
+        const res = await api.get(`/api/logistic/carriers/${id}/`)
+        setCarrier(res.data)
+    }
 
     const loadContacts = async () => {
-        const res = await api.get(`/api/logistic/carriers/${id}/contacts/`);
-        setContacts(unwrap(res.data));
-    };
+        const res = await api.get(`/api/logistic/carriers/${id}/contacts/`)
+        setContacts(unwrap(res.data))
+    }
 
-    const [snack, setSnack] = useState({ open: false, severity: "success", msg: "" });
-    const showSnack = (msg, severity = "success") => setSnack({ open: true, severity, msg });
+    const [snack, setSnack] = useState({ open: false, severity: 'success', msg: '' })
+    const showSnack = (msg, severity = 'success') => setSnack({ open: true, severity, msg })
 
-    const [confirm, setConfirm] = useState({ open: false, title: "", text: "", onYes: null });
-    const openConfirm = ({ title, text, onYes }) => setConfirm({ open: true, title, text, onYes });
-    const closeConfirm = () => setConfirm((s) => ({ ...s, open: false }));
+    const [confirm, setConfirm] = useState({ open: false, title: '', text: '', onYes: null })
+    const openConfirm = ({ title, text, onYes }) => setConfirm({ open: true, title, text, onYes })
+    const closeConfirm = () => setConfirm((s) => ({ ...s, open: false }))
 
     const [deleting, setDeleting] = useState({
-        contactIds: new Set(),            // contacts being deleted
-        phoneKeySet: new Set(),           // phones being deleted (key = `${contactId}:${phoneNumber}`)
-    });
+        contactIds: new Set(), // contacts being deleted
+        phoneKeySet: new Set(), // phones being deleted (key = `${contactId}:${phoneNumber}`)
+    })
 
     const setDeletingContact = (contactId, isOn) => {
         setDeleting((s) => {
-            const next = new Set(s.contactIds);
-            if (isOn) next.add(contactId);
-            else next.delete(contactId);
-            return { ...s, contactIds: next };
-        });
-    };
+            const next = new Set(s.contactIds)
+            if (isOn) next.add(contactId)
+            else next.delete(contactId)
+            return { ...s, contactIds: next }
+        })
+    }
 
     const setDeletingPhone = (contactId, phoneNumber, isOn) => {
-        const key = `${contactId}:${phoneNumber}`;
+        const key = `${contactId}:${phoneNumber}`
         setDeleting((s) => {
-            const next = new Set(s.phoneKeySet);
-            if (isOn) next.add(key);
-            else next.delete(key);
-            return { ...s, phoneKeySet: next };
-        });
-    };
+            const next = new Set(s.phoneKeySet)
+            if (isOn) next.add(key)
+            else next.delete(key)
+            return { ...s, phoneKeySet: next }
+        })
+    }
 
-    const isContactDeleting = (contactId) => deleting.contactIds.has(contactId);
-    const isPhoneDeleting = (contactId, phoneNumber) => deleting.phoneKeySet.has(`${contactId}:${phoneNumber}`);
-
+    const isContactDeleting = (contactId) => deleting.contactIds.has(contactId)
+    const isPhoneDeleting = (contactId, phoneNumber) => deleting.phoneKeySet.has(`${contactId}:${phoneNumber}`)
 
     const onDeleteContact = (contactId) => {
-        const contact = contacts.find((c) => c.id === contactId);
+        const contact = contacts.find((c) => c.id === contactId)
         openConfirm({
-            title: "Удалить контакт?",
-            text: `Контакт "${contact?.firstName ?? ""} ${contact?.lastName ?? ""}". Действие необратимо.`,
+            title: 'Удалить контакт?',
+            text: `Контакт "${contact?.firstName ?? ''} ${contact?.lastName ?? ''}". Действие необратимо.`,
             onYes: async () => {
-                closeConfirm();
+                closeConfirm()
 
-                const prev = contacts; // rollback snapshot
-                setContacts((cs) => cs.filter((c) => c.id !== contactId));
-                setDeletingContact(contactId, true);
+                const prev = contacts // rollback snapshot
+                setContacts((cs) => cs.filter((c) => c.id !== contactId))
+                setDeletingContact(contactId, true)
 
                 try {
-                    await api.delete(`/api/contacts/${contactId}/`);
-                    showSnack("Контакт удалён");
+                    await api.delete(`/api/contacts/${contactId}/`)
+                    showSnack('Контакт удалён')
                 } catch (e) {
-                    setContacts(prev); // rollback
-                    showSnack(e?.response?.data?.detail || "Не удалось удалить контакт", "error");
+                    setContacts(prev) // rollback
+                    showSnack(e?.response?.data?.detail || 'Не удалось удалить контакт', 'error')
                 } finally {
-                    setDeletingContact(contactId, false);
+                    setDeletingContact(contactId, false)
                 }
             },
-        });
-    };
+        })
+    }
 
     const onDeletePhone = async (contactId, phoneNumberToDelete) => {
-        const contact = contacts.find((c) => c.id === contactId);
-        if (!contact) return;
+        const contact = contacts.find((c) => c.id === contactId)
+        if (!contact) return
 
-        const prev = contacts; // rollback snapshot
+        const prev = contacts // rollback snapshot
 
-        const nextPhones = (contact.phoneNumbers ?? []).filter((p) => p.phoneNumber !== phoneNumberToDelete);
-        setContacts((cs) =>
-            cs.map((c) => (c.id === contactId ? { ...c, phoneNumbers: nextPhones } : c))
-        );
+        const nextPhones = (contact.phoneNumbers ?? []).filter((p) => p.phoneNumber !== phoneNumberToDelete)
+        setContacts((cs) => cs.map((c) => (c.id === contactId ? { ...c, phoneNumbers: nextPhones } : c)))
 
-        setDeletingPhone(contactId, phoneNumberToDelete, true);
+        setDeletingPhone(contactId, phoneNumberToDelete, true)
 
         try {
-            await api.patch(`/api/contacts/${contactId}/`, { phoneNumbers: nextPhones });
-            showSnack("Телефон удалён");
+            await api.patch(`/api/contacts/${contactId}/`, { phoneNumbers: nextPhones })
+            showSnack('Телефон удалён')
         } catch (e) {
-            setContacts(prev); // rollback
-            showSnack(e?.response?.data?.detail || "Не удалось удалить телефон", "error");
+            setContacts(prev) // rollback
+            showSnack(e?.response?.data?.detail || 'Не удалось удалить телефон', 'error')
         } finally {
-            setDeletingPhone(contactId, phoneNumberToDelete, false);
+            setDeletingPhone(contactId, phoneNumberToDelete, false)
         }
-    };
+    }
 
     useEffect(() => {
-        (async () => {
-            await Promise.all([loadCarrier(), loadContacts()]);
-        })();
+        ;(async () => {
+            await Promise.all([loadCarrier(), loadContacts()])
+        })()
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [id]);
-
-
+    }, [id])
 
     return (
         <Box sx={{ p: 3 }}>
             <Stack spacing={2}>
-                <Card variant="outlined" sx={{ width: "100%", borderRadius: 1 }}>
-                    <Box sx={{ p: 3, display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
+                <Card variant="outlined" sx={{ width: '100%', borderRadius: 1 }}>
+                    <Box sx={{ p: 3, display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
                         <Box>
                             <Typography
                                 variant="subtitle1"
                                 sx={{
-                                    color: "text.secondary",
+                                    color: 'text.secondary',
                                     fontWeight: 700,
-                                    textTransform: "uppercase",
-                                    fontSize: "0.9rem",
+                                    textTransform: 'uppercase',
+                                    fontSize: '0.9rem',
                                 }}
                             >
                                 Перевозчик
@@ -182,34 +179,37 @@ export default function CarrierInfoPage() {
                     <CardContent sx={{ p: 0 }}>
                         <Stack>
                             {[
-                                { label: "Полное наименование", value: carrier?.fullName },
-                                { label: "Адрес", value: carrier?.address },
-                                { label: "Телефон", value: carrier?.phone },
+                                { label: 'Полное наименование', value: carrier?.fullName },
+                                { label: 'Адрес', value: carrier?.address },
+                                { label: 'Телефон', value: carrier?.phone },
                                 {
-                                    label: "Email",
+                                    label: 'Email',
                                     value: carrier?.email ? (
-                                        <EmailLink email={carrier.email} sx={{ fontSize: "1.2rem", lineHeight: 1.1 }} />
+                                        <EmailLink email={carrier.email} sx={{ fontSize: '1.2rem', lineHeight: 1.1 }} />
                                     ) : null,
                                 },
-                                { label: "Примечание", value: carrier?.description },
+                                { label: 'Примечание', value: carrier?.description },
                             ].map((item) => (
                                 <Box key={item.label} sx={{ px: 3, py: 2.5 }}>
                                     <Typography
                                         variant="body2"
                                         sx={{
-                                            display: "block",
-                                            color: "text.disabled",
+                                            display: 'block',
+                                            color: 'text.disabled',
                                             fontWeight: 700,
-                                            textTransform: "uppercase",
+                                            textTransform: 'uppercase',
                                             mb: 0.5,
-                                            fontSize: "0.85rem",
+                                            fontSize: '0.85rem',
                                         }}
                                     >
                                         {item.label}
                                     </Typography>
 
-                                    <Typography variant="h6" sx={{ color: "text.primary", fontSize: "1.2rem", lineHeight: 1.1 }}>
-                                        {item.value || "—"}
+                                    <Typography
+                                        variant="h6"
+                                        sx={{ color: 'text.primary', fontSize: '1.2rem', lineHeight: 1.1 }}
+                                    >
+                                        {item.value || '—'}
                                     </Typography>
                                 </Box>
                             ))}
@@ -236,8 +236,8 @@ export default function CarrierInfoPage() {
                 initialData={dialog.contact}
                 onClose={closeDialog}
                 onSaved={async () => {
-                    await loadContacts();
-                    closeDialog();
+                    await loadContacts()
+                    closeDialog()
                 }}
             />
 
@@ -246,11 +246,7 @@ export default function CarrierInfoPage() {
                 <DialogContent>{confirm.text}</DialogContent>
                 <DialogActions>
                     <Button onClick={closeConfirm}>Отмена</Button>
-                    <Button
-                        color="error"
-                        variant="contained"
-                        onClick={() => confirm.onYes?.()}
-                    >
+                    <Button color="error" variant="contained" onClick={() => confirm.onYes?.()}>
                         Удалить
                     </Button>
                 </DialogActions>
@@ -260,7 +256,7 @@ export default function CarrierInfoPage() {
                 open={snack.open}
                 autoHideDuration={2500}
                 onClose={() => setSnack((s) => ({ ...s, open: false }))}
-                anchorOrigin={{ vertical: "bottom", horizontal: "center" }}
+                anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
             >
                 <Alert
                     severity={snack.severity}
@@ -271,6 +267,5 @@ export default function CarrierInfoPage() {
                 </Alert>
             </Snackbar>
         </Box>
-
-    );
+    )
 }

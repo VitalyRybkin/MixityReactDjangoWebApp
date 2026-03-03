@@ -1,6 +1,8 @@
-import { Container } from "@mui/material";
-import { Outlet } from "react-router-dom";
-import TopBar from "./TopBar";
+import { Outlet } from 'react-router-dom'
+
+import { Container } from '@mui/material'
+
+import TopBar from './TopBar'
 
 const MainLayout = () => {
     return (
@@ -10,7 +12,7 @@ const MainLayout = () => {
                 <Outlet />
             </Container>
         </>
-    );
-};
+    )
+}
 
-export default MainLayout;
+export default MainLayout

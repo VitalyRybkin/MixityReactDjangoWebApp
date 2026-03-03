@@ -1,8 +1,8 @@
-import { createContext, useContext } from "react";
+import { createContext, useContext } from 'react'
 
 export const ColorModeContext = createContext({
-  mode: "dark",
-  toggleColorMode: () => {},
-});
+    mode: 'dark',
+    toggleColorMode: () => {},
+})
 
-export const useColorMode = () => useContext(ColorModeContext);
+export const useColorMode = () => useContext(ColorModeContext)
