@@ -18,7 +18,6 @@ import {
 
 import api from '../api'
 
-
 const emptyPhone = () => ({ phoneNumber: '' })
 const safeStr = (v) => v ?? ''
 
@@ -138,11 +137,11 @@ export default function ContactDialog({
                 } else {
                     const msg = firstKey
                         ? `${firstKey}: ${Array.isArray(val) ? val[0] : typeof val === 'string' ? val : 'Invalid'}`
-                        : 'Save failed'
+                        : 'Ошибка сохранения'
                     setError(msg)
                 }
             } else {
-                setError(err?.message || 'Save failed')
+                setError(err?.message || 'Ошибка сохранения')
             }
         } finally {
             setSaving(false)

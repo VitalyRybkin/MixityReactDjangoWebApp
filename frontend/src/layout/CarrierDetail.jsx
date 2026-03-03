@@ -84,7 +84,7 @@ export default function CarrierDetailPage() {
         <Box sx={{ p: 3, maxWidth: 700 }}>
             <Paper sx={{ p: 3, borderRadius: 3 }}>
                 <Typography variant="h5" color="text.secondary" sx={{ mb: 2 }}>
-                    Редактировать перевозчика {form.fullName || ''}
+                    Редактировать {form.fullName || ''}
                 </Typography>
 
                 {error && (
@@ -116,10 +116,10 @@ export default function CarrierDetailPage() {
 
                         <Stack direction="row" spacing={2} sx={{ pt: 1 }}>
                             <Button type="submit" variant="contained" disabled={saving}>
-                                {saving ? 'Saving...' : 'Save'}
+                                {saving ? 'Сохранение...' : 'Сохранить'}
                             </Button>
                             <Button variant="outlined" onClick={() => navigate(-1)} disabled={saving}>
-                                Cancel
+                                Отмена
                             </Button>
                         </Stack>
                     </Stack>
