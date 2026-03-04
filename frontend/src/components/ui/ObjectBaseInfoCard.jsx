@@ -1,8 +1,10 @@
 import React from 'react'
 import { Link as RouterLink } from 'react-router-dom'
 
+import { Edit as EditIcon } from '@mui/icons-material'
+import DeleteIcon from '@mui/icons-material/Delete'
 import PictureAsPdfIcon from '@mui/icons-material/PictureAsPdf'
-import { Box, Card, CardActionArea, CardContent, Divider, IconButton, Tooltip, Typography } from '@mui/material'
+import { Box, Card, CardActionArea, CardContent, Divider, IconButton, Stack, Tooltip, Typography } from '@mui/material'
 
 import EmailLink from './EmailLink.jsx'
 
@@ -13,9 +15,42 @@ const ObjectBaseInfoCard = ({ title, subtitle, extra, email, fileUrl, to }) => {
         <Card sx={{ width: '100%', mb: 0 }}>
             <CardActionArea component={RouterLink} to={to}>
                 <CardContent>
-                    <Typography variant="h6" gutterBottom>
-                        {title || 'Без названия'}
-                    </Typography>
+                    <Stack direction="row" justifyContent="space-between" alignItems="center">
+                        <Typography variant="h6" gutterBottom>
+                            {title || 'Без названия'}
+                        </Typography>
+                        <Stack direction="row" spacing={1} justifyContent="flex-end">
+                            <Tooltip title="Редактировать">
+                                <span>
+                                    <IconButton
+                                        component={RouterLink}
+                                        to={`${to.replace(/\/$/, '')}/edit`}
+                                        color="primary"
+                                        onClick={(e) => {
+                                            e.stopPropagation()
+                                        }}
+                                    >
+                                        <EditIcon fontSize="small" />
+                                    </IconButton>
+                                </span>
+                            </Tooltip>
+
+                            <Tooltip title="Удалить">
+                                <span>
+                                    <IconButton
+                                        component={RouterLink}
+                                        to={`${to.replace(/\/$/, '')}/edit`}
+                                        color="error"
+                                        onClick={(e) => {
+                                            e.stopPropagation()
+                                        }}
+                                    >
+                                        <DeleteIcon fontSize="small" />
+                                    </IconButton>
+                                </span>
+                            </Tooltip>
+                        </Stack>
+                    </Stack>
                     <Divider sx={{ my: 1.5 }} />
 
                     <Box sx={{ display: 'flex', alignItems: 'center', color: 'text.secondary', fontSize: '0.875rem' }}>
