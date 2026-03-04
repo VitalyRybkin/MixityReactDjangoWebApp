@@ -3,9 +3,9 @@ import { useNavigate, useParams } from 'react-router-dom'
 
 import { Alert, Box, Button, CircularProgress, Paper, Stack, TextField, Typography } from '@mui/material'
 
-import api from '../api'
+import api from '../../api.js'
 
-export default function CarrierDetailPage() {
+export default function CarrierCreateUpdatePage() {
     const { id } = useParams()
     const navigate = useNavigate()
 

@@ -19,17 +19,17 @@ import {
     Typography,
 } from '@mui/material'
 
-import api from '../api'
-import ContactDialog from '../components/ContactDialog.jsx'
-import ContactsListView from '../components/ContactsList.jsx'
-import EmailLink from '../components/EmailLink.jsx'
+import api from '../../api.js'
+import ContactCreateUpdate from '../../components/ContactCreateUpdate.jsx'
+import ContactsListView from '../../components/ContactsList.jsx'
+import EmailLink from '../../components/ui/EmailLink.jsx'
 
 const unwrap = (d) => (Array.isArray(d) ? d : (d?.results ?? []))
 
 export const emailValue = (email) =>
     email ? <EmailLink email={email} sx={{ fontSize: '1.2rem', lineHeight: 1.1 }} /> : null
 
-export default function EntityInfoWithContacts({
+export default function ObjectInfoWithContactList({
     id,
     label,
     editTo, // (id) => `/warehouses/${id}/edit`
@@ -231,7 +231,7 @@ export default function EntityInfoWithContacts({
                 />
             </Stack>
 
-            <ContactDialog
+            <ContactCreateUpdate
                 open={dialog.open}
                 mode={dialog.mode}
                 ownerType={ownerType}

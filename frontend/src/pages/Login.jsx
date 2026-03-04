@@ -3,8 +3,8 @@ import { useNavigate } from 'react-router-dom'
 
 import { Alert, Box, Button, Container, Paper, TextField, Typography } from '@mui/material'
 
-import api from '../api'
-import ThemeToggle from '../components/ThemeToggle'
+import api from '../api.js'
+import ThemeToggle from '../components/ThemeToggle.jsx'
 import { ACCESS_TOKEN, REFRESH_TOKEN } from '../constants.js'
 
 const sx = {

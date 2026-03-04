@@ -1,16 +1,16 @@
 import { Navigate, Route, Routes } from 'react-router-dom'
 
-import ProtectedRoute from './components/ProtectedRoute'
+import ProtectedRoute from './components/routing/ProtectedRoute.jsx'
 import { ACCESS_TOKEN, REFRESH_TOKEN } from './constants.js'
-import CarrierDetailPage from './layout/CarrierDetail.jsx'
-import CarrierInfoPage from './layout/CarrierInfo.jsx'
-import CarriersList from './layout/CarriersList.jsx'
-import Home from './layout/Home'
-import Login from './layout/Login'
-import MainLayout from './layout/MainLayout'
-import NotFound from './layout/NotFound'
-import WarehouseInfoPage from './layout/WarehouseInfo.jsx'
-import WarehousesList from './layout/WarehousesList.jsx'
+import CarrierCreateUpdatePage from './pages/carriers/CarrierCreateUpdate.jsx'
+import CarrierInfoPage from './pages/carriers/CarrierInfo.jsx'
+import CarriersList from './pages/carriers/CarriersList.jsx'
+import Home from './pages/Home.jsx'
+import Login from './pages/Login.jsx'
+import MainLayout from './layouts/MainLayout'
+import NotFound from './pages/NotFound.jsx'
+import WarehouseInfoPage from './pages/warehouses/WarehouseInfo.jsx'
+import WarehousesList from './pages/warehouses/WarehousesList.jsx'
 
 function Logout() {
     localStorage.removeItem(ACCESS_TOKEN)
@@ -37,7 +37,7 @@ function App() {
                 <Route path="/warehouses" element={<WarehousesList />} />
                 <Route path="/carriers" element={<CarriersList />} />
                 <Route path="/carriers/:id" element={<CarrierInfoPage />} />
-                <Route path="/carriers/:id/edit" element={<CarrierDetailPage />} />
+                <Route path="/carriers/:id/edit" element={<CarrierCreateUpdatePage />} />
                 <Route path="/warehouses/:id" element={<WarehouseInfoPage />} />
             </Route>
 

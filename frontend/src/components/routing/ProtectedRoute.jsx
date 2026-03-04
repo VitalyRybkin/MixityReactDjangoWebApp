@@ -3,8 +3,8 @@ import { Navigate } from 'react-router-dom'
 
 import { jwtDecode } from 'jwt-decode'
 
-import api from '../api'
-import { ACCESS_TOKEN, REFRESH_TOKEN } from '../constants.js'
+import api from '../../api.js'
+import { ACCESS_TOKEN, REFRESH_TOKEN } from '../../constants.js'
 
 const SKEW_SECONDS = 30
 

@@ -1,13 +1,13 @@
 import { useParams } from 'react-router-dom'
 
-import EntityInfoWithContacts, { emailValue } from './EntityInfoWithContacts'
+import ObjectInfoWithContactList, { emailValue } from '../shared/ObjectInfoWithContactList.jsx'
 
 export default function CarrierInfoPage() {
     const { id } = useParams()
     const carrierId = Number(id)
 
     return (
-        <EntityInfoWithContacts
+        <ObjectInfoWithContactList
             id={id}
             label="Перевозчик"
             editTo={(id) => `/carriers/${id}/edit`}

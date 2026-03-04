@@ -4,7 +4,7 @@ import AddIcon from '@mui/icons-material/Add'
 import { Box, Button, Card, Divider, Typography } from '@mui/material'
 import { Table, TableBody, TableCell, TableContainer, TableHead, TableRow } from '@mui/material'
 
-import ContactRow from './ContactRow.jsx'
+import ContactsListRow from './ContactsListRow.jsx'
 
 const tableHeaders = ['Имя', 'Фамилия', 'Должность', 'Email', 'Телефоны', '']
 
@@ -49,7 +49,7 @@ const ContactsListView = ({ contacts, onAdd, onEdit, onDelete, onDeletePhone, is
                     <TableBody>
                         {contacts?.length > 0 ? (
                             contacts.map((contact) => (
-                                <ContactRow
+                                <ContactsListRow
                                     key={contact.id}
                                     contact={contact}
                                     onEdit={onEdit}

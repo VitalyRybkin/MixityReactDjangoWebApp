@@ -2,7 +2,7 @@ import React from 'react'
 
 import { Alert, Box, CircularProgress, Divider, Grid, Typography } from '@mui/material'
 
-const UniversalListView = ({
+const ObjectListView = ({
     title,
     items = [],
     renderRow,
@@ -42,4 +42,4 @@ const UniversalListView = ({
     )
 }
 
-export default UniversalListView
+export default ObjectListView

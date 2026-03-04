@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import { AppBar, Box, Button, Toolbar } from '@mui/material'
 
 import ThemeToggle from '../components/ThemeToggle'
-import SimpleNav from '../components/TopMenu.jsx'
+import TopBarNav from './TopBarNav.jsx'
 import { ACCESS_TOKEN, REFRESH_TOKEN } from '../constants.js'
 
 const sx = {
@@ -32,7 +32,7 @@ const TopBar = () => {
                 {/*<Typography variant="h6" sx={sx.title}>*/}
                 {/*    Заявки на доставку*/}
                 {/*</Typography>*/}
-                <SimpleNav> </SimpleNav>
+                <TopBarNav> </TopBarNav>
 
                 <Box sx={{ flexGrow: 1 }} />
 

@@ -1,18 +1,18 @@
-import api from '../api'
-import ListInfoCard from '../components/ListInfoCard'
-import UniversalListView from '../components/UniversalListView'
-import { useListResource } from '../hooks/useListResource'
+import api from '../../api.js'
+import ObjectBaseInfoCard from '../../components/ui/ObjectBaseInfoCard.jsx'
+import ObjectListView from '../shared/ObjectListView.jsx'
+import { useListResource } from '../../hooks/useListResource.js'
 
 export default function WarehousesList() {
     const { items: warehouses, loading } = useListResource(() => api.get('/api/stock/'), [])
 
     return (
-        <UniversalListView
+        <ObjectListView
             title="Склады"
             items={warehouses}
             loading={loading}
             renderRow={(w) => (
-                <ListInfoCard
+                <ObjectBaseInfoCard
                     title={w.name}
                     subtitle={w.organization}
                     extra={w.address}

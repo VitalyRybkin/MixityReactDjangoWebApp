@@ -21,7 +21,7 @@ import api from '../api'
 const emptyPhone = () => ({ phoneNumber: '' })
 const safeStr = (v) => v ?? ''
 
-export default function ContactDialog({
+export default function ContactCreateUpdate({
     open,
     mode,
     ownerType,

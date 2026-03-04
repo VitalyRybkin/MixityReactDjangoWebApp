@@ -6,7 +6,7 @@ import { Box, Card, CardActionArea, CardContent, Divider, IconButton, Tooltip, T
 
 import EmailLink from './EmailLink.jsx'
 
-const ListInfoCard = ({ title, subtitle, extra, email, fileUrl, to }) => {
+const ObjectBaseInfoCard = ({ title, subtitle, extra, email, fileUrl, to }) => {
     const hasTextBefore = Boolean(subtitle || extra || email)
 
     return (
@@ -86,4 +86,4 @@ const ListInfoCard = ({ title, subtitle, extra, email, fileUrl, to }) => {
     )
 }
 
-export default ListInfoCard
+export default ObjectBaseInfoCard

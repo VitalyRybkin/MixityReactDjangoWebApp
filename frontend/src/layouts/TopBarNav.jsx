@@ -2,7 +2,7 @@ import { NavLink } from 'react-router-dom'
 
 import { Button, Stack } from '@mui/material'
 
-const SimpleNav = () => {
+const TopBarNav = () => {
     return (
         <Stack direction="row" spacing={2} sx={{ ml: 3 }}>
             <Button
@@ -53,4 +53,4 @@ const SimpleNav = () => {
     )
 }
 
-export default SimpleNav
+export default TopBarNav

@@ -2,10 +2,10 @@ import { Edit as EditIcon } from '@mui/icons-material'
 import DeleteIcon from '@mui/icons-material/Delete'
 import { IconButton, Stack, TableCell, TableRow, Tooltip, Typography } from '@mui/material'
 
-import EmailLink from './EmailLink.jsx'
-import PhoneList from './PhoneList.jsx'
+import EmailLink from './ui/EmailLink.jsx'
+import ContactsListRowPhoneCard from './ui/ContactsListRowPhoneCard.jsx'
 
-const ContactRow = ({ contact, onEdit, onDelete, onDeletePhone, isDeletingContact, isDeletingPhone }) => {
+const ContactsListRow = ({ contact, onEdit, onDelete, onDeletePhone, isDeletingContact, isDeletingPhone }) => {
     const contactId = contact.id
 
     return (
@@ -17,7 +17,7 @@ const ContactRow = ({ contact, onEdit, onDelete, onDeletePhone, isDeletingContac
             <TableCell>{contact.email ? <EmailLink email={contact.email} /> : <Typography>—</Typography>}</TableCell>
 
             <TableCell sx={{ minWidth: 200, py: 1 }}>
-                <PhoneList
+                <ContactsListRowPhoneCard
                     contactId={contactId}
                     phoneNumbers={contact.phoneNumbers}
                     onDeletePhone={onDeletePhone}
@@ -57,4 +57,4 @@ const ContactRow = ({ contact, onEdit, onDelete, onDeletePhone, isDeletingContac
     )
 }
 
-export default ContactRow
+export default ContactsListRow
