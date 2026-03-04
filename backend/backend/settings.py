@@ -16,6 +16,7 @@ from datetime import timedelta
 from typing import Any
 
 from app_settings import project_settings
+from backend.middleware import RetryOnceOnDbEofMiddleware
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -70,6 +71,7 @@ INSTALLED_APPS = [
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
+    "backend.middleware.RetryOnceOnDbEofMiddleware",
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
     "django.contrib.auth.middleware.AuthenticationMiddleware",
@@ -131,7 +133,17 @@ else:
     }
 
 DATABASES["default"]["CONN_HEALTH_CHECKS"] = True
-DATABASES["default"]["CONN_MAX_AGE"] = 60
+DATABASES["default"]["CONN_MAX_AGE"] = 0
+
+DATABASES["default"]["OPTIONS"].update({
+    "connect_timeout": 10,
+    "keepalives": 1,
+    "keepalives_idle": 30,
+    "keepalives_interval": 10,
+    "keepalives_count": 5,
+})
+
+DATABASES["default"]["OPTIONS"]["application_name"] = "django-dev"
 
 # Password validation
 # https://docs.djangoproject.com/en/5.2/ref/settings/#auth-password-validators
