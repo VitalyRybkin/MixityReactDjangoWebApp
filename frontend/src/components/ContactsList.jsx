@@ -6,7 +6,6 @@ import { Table, TableBody, TableCell, TableContainer, TableHead, TableRow } from
 
 import ContactsListRow from './ContactsListRow.jsx'
 
-
 const tableHeaders = ['Имя', 'Фамилия', 'Должность', 'Email', 'Телефоны', '']
 
 const ContactsListView = ({ contacts, onEdit, onDelete, onDeletePhone, isDeletingContact, isDeletingPhone }) => {
@@ -22,10 +21,7 @@ const ContactsListView = ({ contacts, onEdit, onDelete, onDeletePhone, isDeletin
 
                 <Tooltip title="Добавить">
                     <span>
-                        <IconButton
-                            color="primary"
-                            // onClick={() => navigate(editTo(id))}
-                        >
+                        <IconButton color="primary" onClick={() => navigate(editTo(id))}>
                             <AddIcon fontSize="small" />
                         </IconButton>
                     </span>

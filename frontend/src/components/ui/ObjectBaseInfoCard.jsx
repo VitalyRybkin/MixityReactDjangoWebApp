@@ -1,19 +1,21 @@
 import React from 'react'
-import { Link as RouterLink } from 'react-router-dom'
+import { Link as RouterLink, useNavigate } from 'react-router-dom'
 
 import { Edit as EditIcon } from '@mui/icons-material'
-import DeleteIcon from '@mui/icons-material/Delete'
 import PictureAsPdfIcon from '@mui/icons-material/PictureAsPdf'
 import { Box, Card, CardActionArea, CardContent, Divider, IconButton, Stack, Tooltip, Typography } from '@mui/material'
 
+import DeleteAction from './DeleteAction.jsx'
+import EditAction from './EditAction.jsx'
 import EmailLink from './EmailLink.jsx'
 
-const ObjectBaseInfoCard = ({ title, subtitle, extra, email, fileUrl, to }) => {
+const ObjectBaseInfoCard = ({ title, subtitle, extra, email, fileUrl, to, onDelete }) => {
     const hasTextBefore = Boolean(subtitle || extra || email)
+    const navigate = useNavigate()
 
     return (
         <Card sx={{ width: '100%', mb: 0 }}>
-            <CardActionArea component={RouterLink} to={to}>
+            <CardActionArea component="div" onClick={() => navigate(to)} sx={{ cursor: 'pointer' }}>
                 <CardContent>
                     <Stack direction="row" justifyContent="space-between" alignItems="center">
                         <Typography variant="h6" gutterBottom>
@@ -21,34 +23,16 @@ const ObjectBaseInfoCard = ({ title, subtitle, extra, email, fileUrl, to }) => {
                         </Typography>
                         <Stack direction="row" spacing={1} justifyContent="flex-end">
                             <Tooltip title="Изменить">
-                                <span>
-                                    <IconButton
-                                        component={RouterLink}
-                                        to={`${to.replace(/\/$/, '')}/edit`}
-                                        color="primary"
-                                        onClick={(e) => {
-                                            e.stopPropagation()
-                                        }}
-                                    >
-                                        <EditIcon fontSize="small" />
-                                    </IconButton>
-                                </span>
+                                <EditAction
+                                    title="Изменить"
+                                    color="primary"
+                                    component={RouterLink}
+                                    to={`${to.replace(/\/$/, '')}/edit`}
+                                    icon={<EditIcon fontSize="small" />}
+                                />
                             </Tooltip>
 
-                            <Tooltip title="Удалить">
-                                <span>
-                                    <IconButton
-                                        component={RouterLink}
-                                        to={`${to.replace(/\/$/, '')}/edit`}
-                                        color="error"
-                                        onClick={(e) => {
-                                            e.stopPropagation()
-                                        }}
-                                    >
-                                        <DeleteIcon fontSize="small" />
-                                    </IconButton>
-                                </span>
-                            </Tooltip>
+                            <DeleteAction onClick={onDelete} disabled={!onDelete} stopPropagation preventDefault />
                         </Stack>
                     </Stack>
                     <Divider sx={{ my: 1.5 }} />

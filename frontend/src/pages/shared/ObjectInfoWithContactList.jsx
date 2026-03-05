@@ -14,16 +14,15 @@ import {
     DialogContent,
     DialogTitle,
     Divider,
-    IconButton,
     Snackbar,
     Stack,
-    Tooltip,
     Typography,
 } from '@mui/material'
 
 import api from '../../api.js'
 import ContactCreateUpdate from '../../components/ContactCreateUpdate.jsx'
 import ContactsListView from '../../components/ContactsList.jsx'
+import EditAction from '../../components/ui/EditAction.jsx'
 import EmailLink from '../../components/ui/EmailLink.jsx'
 
 const unwrap = (d) => (Array.isArray(d) ? d : (d?.results ?? []))
@@ -172,13 +171,12 @@ export default function ObjectInfoWithContactList({
                         >
                             {label}
                         </Typography>
-                        <Tooltip title="Изменить">
-                            <span>
-                                <IconButton color="primary" onClick={() => navigate(editTo(id))}>
-                                    <EditIcon fontSize="small" />
-                                </IconButton>
-                            </span>
-                        </Tooltip>
+                        <EditAction
+                            title="Изменить"
+                            color="primary"
+                            onClick={() => navigate(editTo(id))}
+                            icon={<EditIcon fontSize="small" />}
+                        />
                     </Box>
 
                     <Divider />

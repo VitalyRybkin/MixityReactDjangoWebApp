@@ -1,10 +1,15 @@
 import api from '../../api.js'
 import ObjectBaseInfoCard from '../../components/ui/ObjectBaseInfoCard.jsx'
-import ObjectListView from '../shared/ObjectListView.jsx'
 import { useListResource } from '../../hooks/useListResource.js'
+import ObjectListView from '../shared/ObjectListView.jsx'
 
 export default function CarriersList() {
-    const { items: carriers, loading } = useListResource(() => api.get('/api/logistic/carriers/'), [])
+    const { items: carriers, loading, reload } = useListResource(() => api.get('/api/logistic/carriers/'), [])
+
+    const handleDelete = async (id) => {
+        await api.delete(`/api/logistic/carriers/${id}/`)
+        await reload()
+    }
 
     return (
         <ObjectListView
@@ -18,6 +23,7 @@ export default function CarriersList() {
                     extra={w.address}
                     email={w.email}
                     to={`/carriers/${w.id}`}
+                    onDelete={() => handleDelete(w.id)}
                 />
             )}
         />

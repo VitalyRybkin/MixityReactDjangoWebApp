@@ -1,11 +1,15 @@
 import api from '../../api.js'
 import ObjectBaseInfoCard from '../../components/ui/ObjectBaseInfoCard.jsx'
-import ObjectListView from '../shared/ObjectListView.jsx'
 import { useListResource } from '../../hooks/useListResource.js'
+import ObjectListView from '../shared/ObjectListView.jsx'
 
 export default function WarehousesList() {
-    const { items: warehouses, loading } = useListResource(() => api.get('/api/stock/'), [])
+    const { items: warehouses, loading, reload } = useListResource(() => api.get('/api/stock/'), [])
 
+    const handleDelete = async (id) => {
+        await api.delete(`/api/logistic/carriers/${id}/`)
+        await reload()
+    }
     return (
         <ObjectListView
             title="Склады"
@@ -19,6 +23,7 @@ export default function WarehousesList() {
                     email={w.email}
                     fileUrl={w.directions}
                     to={`/warehouses/${w.id}`}
+                    onDelete={() => handleDelete(w.id)}
                 />
             )}
         />

@@ -1,8 +1,9 @@
 import { Edit as EditIcon } from '@mui/icons-material'
-import DeleteIcon from '@mui/icons-material/Delete'
-import { IconButton, Stack, TableCell, TableRow, Tooltip, Typography } from '@mui/material'
+import { Stack, TableCell, TableRow, Typography } from '@mui/material'
 
 import ContactsListRowPhoneCard from './ui/ContactsListRowPhoneCard.jsx'
+import DeleteAction from './ui/DeleteAction.jsx'
+import EditAction from './ui/EditAction.jsx'
 import EmailLink from './ui/EmailLink.jsx'
 
 const ContactsListRow = ({ contact, onEdit, onDelete, onDeletePhone, isDeletingContact, isDeletingPhone }) => {
@@ -28,29 +29,14 @@ const ContactsListRow = ({ contact, onEdit, onDelete, onDeletePhone, isDeletingC
 
             <TableCell align="right">
                 <Stack direction="row" spacing={1} justifyContent="flex-end">
-                    <Tooltip title="Изменить">
-                        <span>
-                            <IconButton
-                                color="primary"
-                                onClick={() => onEdit(contact)}
-                                disabled={isDeletingContact(contactId)}
-                            >
-                                <EditIcon fontSize="small" />
-                            </IconButton>
-                        </span>
-                    </Tooltip>
-
-                    <Tooltip title="Удалить">
-                        <span>
-                            <IconButton
-                                color="error"
-                                onClick={() => onDelete(contactId)}
-                                disabled={isDeletingContact(contactId)}
-                            >
-                                <DeleteIcon fontSize="small" />
-                            </IconButton>
-                        </span>
-                    </Tooltip>
+                    <EditAction
+                        title="Изменить"
+                        color="primary"
+                        disabled={isDeletingContact(contactId)}
+                        onClick={() => onEdit(contact)}
+                        icon={<EditIcon fontSize="small" />}
+                    />
+                    <DeleteAction onClick={() => onDelete(contactId)} disabled={isDeletingContact(contactId)} />
                 </Stack>
             </TableCell>
         </TableRow>
