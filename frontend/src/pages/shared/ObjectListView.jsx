@@ -1,9 +1,21 @@
 import React from 'react'
+import { useNavigate } from 'react-router-dom'
 
-import AddIcon from '@mui/icons-material/Add'
-import { Alert, Box, CircularProgress, Divider, Grid, IconButton, Tooltip, Typography } from '@mui/material'
+import { Alert, Box, CircularProgress, Divider, Grid, Typography } from '@mui/material'
 
-const ObjectListView = ({ title, items = [], renderRow, loading = false, error = null, emptyText = 'Список пуст' }) => {
+import AddAction from '../../components/ui/AddAction.jsx'
+
+const ObjectListView = ({
+    title,
+    items = [],
+    renderRow,
+    loading = false,
+    addTo,
+    error = null,
+    emptyText = 'Список пуст',
+}) => {
+    const navigate = useNavigate()
+
     return (
         <Box sx={{ p: 3, width: '100%' }}>
             <Box sx={{ p: 3, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
@@ -12,24 +24,7 @@ const ObjectListView = ({ title, items = [], renderRow, loading = false, error =
                 </Typography>
                 <Divider sx={{ mb: 3 }} />
 
-                <Tooltip title="Добавить">
-                    <span>
-                        <IconButton
-                            color="primary"
-                            sx={{
-                                border: '1px solid',
-                                borderColor: 'primary.main',
-                                backgroundColor: 'primary',
-                                '&:hover': {
-                                    backgroundColor: 'rgba(25, 118, 210, 0.12)',
-                                },
-                            }}
-                            onClick={() => navigate(editTo(id))}
-                        >
-                            <AddIcon fontSize="small" />
-                        </IconButton>
-                    </span>
-                </Tooltip>
+                <AddAction onClick={() => navigate(addTo)} />
             </Box>
 
             {error ? (

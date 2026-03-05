@@ -5,29 +5,49 @@ import { Alert, Box, Button, CircularProgress, Paper, Stack, TextField, Typograp
 
 import api from '../../api.js'
 
-export default function CarrierCreateUpdatePage() {
+const emptyForm = {
+    name: '',
+    fullName: '',
+    address: '',
+    phone: '',
+    email: '',
+    description: '',
+}
+
+const firstError = (e) => {
+    const data = e?.response?.data
+    if (data && typeof data === 'object') {
+        const firstKey = Object.keys(data)[0]
+        return firstKey
+            ? `${firstKey}: ${Array.isArray(data[firstKey]) ? data[firstKey][0] : data[firstKey]}`
+            : 'Ошибка сохранения!'
+    }
+    return data?.detail || 'Ошибка сохранения!'
+}
+
+export default function CarrierFormPage() {
     const { id } = useParams()
+    const isEdit = Boolean(id)
     const navigate = useNavigate()
 
-    const [loading, setLoading] = useState(true)
+    const [loading, setLoading] = useState(isEdit)
     const [saving, setSaving] = useState(false)
     const [error, setError] = useState('')
-
-    const [form, setForm] = useState({
-        name: '',
-        fullName: '',
-        address: '',
-        email: '',
-    })
+    const [form, setForm] = useState(emptyForm)
 
     useEffect(() => {
-        let alive = true
+        if (!isEdit) {
+            setForm(emptyForm)
+            setLoading(false)
+            return
+        }
 
+        let alive = true
         ;(async () => {
             try {
+                setLoading(true)
                 const res = await api.get(`/api/logistic/carriers/${id}/`)
                 if (!alive) return
-
                 setForm({
                     name: res.data.name ?? '',
                     fullName: res.data.fullName ?? '',
@@ -47,32 +67,23 @@ export default function CarrierCreateUpdatePage() {
         return () => {
             alive = false
         }
-    }, [id])
+    }, [id, isEdit])
 
-    const onChange = (field) => (e) => {
-        setForm((prev) => ({ ...prev, [field]: e.target.value }))
-    }
+    const onChange = (field) => (e) => setForm((prev) => ({ ...prev, [field]: e.target.value }))
 
     const onSubmit = async (e) => {
         e.preventDefault()
         setSaving(true)
         setError('')
-
         try {
-            await api.patch(`/api/logistic/carriers/${id}/`, form)
-
-            navigate('/carriers')
-        } catch (e) {
-            const data = e?.response?.data
-            if (data && typeof data === 'object') {
-                const firstKey = Object.keys(data)[0]
-                const msg = firstKey
-                    ? `${firstKey}: ${Array.isArray(data[firstKey]) ? data[firstKey][0] : data[firstKey]}`
-                    : 'Ошибка обновления!'
-                setError(msg)
+            if (isEdit) {
+                await api.patch(`/api/logistic/carriers/${id}/`, form)
             } else {
-                setError('Ошибка обновления!')
+                await api.post(`/api/logistic/carriers/`, form)
             }
+            navigate('/carriers')
+        } catch (e2) {
+            setError(firstError(e2))
         } finally {
             setSaving(false)
         }
@@ -84,7 +95,7 @@ export default function CarrierCreateUpdatePage() {
         <Box sx={{ p: 3, maxWidth: 700 }}>
             <Paper sx={{ p: 3, borderRadius: 3 }}>
                 <Typography variant="h5" color="text.secondary" sx={{ mb: 2 }}>
-                    Редактировать {form.fullName || ''}
+                    {isEdit ? `Редактировать ${form.fullName || ''}` : 'Создать грузоперевозчика'}
                 </Typography>
 
                 {error && (

@@ -2,13 +2,13 @@ import { Navigate, Route, Routes } from 'react-router-dom'
 
 import ProtectedRoute from './components/routing/ProtectedRoute.jsx'
 import { ACCESS_TOKEN, REFRESH_TOKEN } from './constants.js'
-import CarrierCreateUpdatePage from './pages/carriers/CarrierCreateUpdate.jsx'
-import CarrierInfoPage from './pages/carriers/CarrierInfo.jsx'
-import CarriersList from './pages/carriers/CarriersList.jsx'
+import MainLayout from './layouts/MainLayout'
 import Home from './pages/Home.jsx'
 import Login from './pages/Login.jsx'
-import MainLayout from './layouts/MainLayout'
 import NotFound from './pages/NotFound.jsx'
+import CarrierDetailPage from './pages/carriers/CarrierDetail.jsx'
+import CarrierFormPage from './pages/carriers/CarrierForm.jsx'
+import CarriersList from './pages/carriers/CarriersList.jsx'
 import WarehouseInfoPage from './pages/warehouses/WarehouseInfo.jsx'
 import WarehousesList from './pages/warehouses/WarehousesList.jsx'
 
@@ -36,8 +36,9 @@ function App() {
                 <Route path="/" element={<Home />} />
                 <Route path="/warehouses" element={<WarehousesList />} />
                 <Route path="/carriers" element={<CarriersList />} />
-                <Route path="/carriers/:id" element={<CarrierInfoPage />} />
-                <Route path="/carriers/:id/edit" element={<CarrierCreateUpdatePage />} />
+                <Route path="/carrier/create" element={<CarrierFormPage />} />
+                <Route path="/carrier/:id" element={<CarrierDetailPage />} />
+                <Route path="/carrier/:id/edit" element={<CarrierFormPage />} />
                 <Route path="/warehouses/:id" element={<WarehouseInfoPage />} />
             </Route>
 

@@ -30,7 +30,7 @@ const unwrap = (d) => (Array.isArray(d) ? d : (d?.results ?? []))
 export const emailValue = (email) =>
     email ? <EmailLink email={email} sx={{ fontSize: '1.2rem', lineHeight: 1.1 }} /> : null
 
-export default function ObjectInfoWithContactList({
+export default function ObjectDetailWithContactList({
     id,
     label,
     editTo, // (id) => `/warehouses/${id}/edit`

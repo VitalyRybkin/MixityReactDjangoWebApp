@@ -1,7 +1,7 @@
 import api from '../../api.js'
-import ObjectBaseInfoCard from '../../components/ui/ObjectBaseInfoCard.jsx'
 import { useListResource } from '../../hooks/useListResource.js'
 import ObjectListView from '../shared/ObjectListView.jsx'
+import ObjectListViewCard from '../shared/ObjectListViewCard.jsx'
 
 export default function CarriersList() {
     const { items: carriers, loading, reload } = useListResource(() => api.get('/api/logistic/carriers/'), [])
@@ -16,13 +16,14 @@ export default function CarriersList() {
             title="Грузоперевозчики"
             items={carriers}
             loading={loading}
+            addTo={`/carrier/create`}
             renderRow={(w) => (
-                <ObjectBaseInfoCard
+                <ObjectListViewCard
                     title={w.name}
                     subtitle={w.fullName}
                     extra={w.address}
                     email={w.email}
-                    to={`/carriers/${w.id}`}
+                    to={`/carrier/${w.id}`}
                     onDelete={() => handleDelete(w.id)}
                 />
             )}
