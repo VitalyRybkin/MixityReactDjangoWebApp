@@ -1,7 +1,13 @@
 import DeleteIcon from '@mui/icons-material/Delete'
 import { Chip, Stack, Tooltip } from '@mui/material'
 
-export default function ContactsListRowPhoneCard({ contactId, phoneNumbers, onDeletePhone, isDeletingContact, isDeletingPhone }) {
+export default function ContactsListRowPhoneCard({
+    contactId,
+    phoneNumbers,
+    onDeletePhone,
+    isDeletingContact,
+    isDeletingPhone,
+}) {
     const deletingContact = typeof isDeletingContact === 'function' ? isDeletingContact(contactId) : !!isDeletingContact
 
     return (
@@ -22,7 +28,7 @@ export default function ContactsListRowPhoneCard({ contactId, phoneNumbers, onDe
                         size="small"
                         onDelete={disabled ? undefined : () => onDeletePhone?.(contactId, number)}
                         deleteIcon={
-                            <Tooltip title="Удалить телефон">
+                            <Tooltip title="Удалить">
                                 <DeleteIcon fontSize="small" color="error" />
                             </Tooltip>
                         }

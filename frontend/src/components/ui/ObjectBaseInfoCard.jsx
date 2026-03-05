@@ -20,7 +20,7 @@ const ObjectBaseInfoCard = ({ title, subtitle, extra, email, fileUrl, to }) => {
                             {title || 'Без названия'}
                         </Typography>
                         <Stack direction="row" spacing={1} justifyContent="flex-end">
-                            <Tooltip title="Редактировать">
+                            <Tooltip title="Изменить">
                                 <span>
                                     <IconButton
                                         component={RouterLink}

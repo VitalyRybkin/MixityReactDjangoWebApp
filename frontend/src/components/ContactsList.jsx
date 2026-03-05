@@ -1,14 +1,15 @@
 import React from 'react'
 
 import AddIcon from '@mui/icons-material/Add'
-import { Box, Button, Card, Divider, Typography } from '@mui/material'
+import { Box, Card, Divider, IconButton, Tooltip, Typography } from '@mui/material'
 import { Table, TableBody, TableCell, TableContainer, TableHead, TableRow } from '@mui/material'
 
 import ContactsListRow from './ContactsListRow.jsx'
 
+
 const tableHeaders = ['Имя', 'Фамилия', 'Должность', 'Email', 'Телефоны', '']
 
-const ContactsListView = ({ contacts, onAdd, onEdit, onDelete, onDeletePhone, isDeletingContact, isDeletingPhone }) => {
+const ContactsListView = ({ contacts, onEdit, onDelete, onDeletePhone, isDeletingContact, isDeletingPhone }) => {
     return (
         <Card variant="outlined" sx={{ width: '100%', borderRadius: 1 }}>
             <Box sx={{ p: 3, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
@@ -19,9 +20,16 @@ const ContactsListView = ({ contacts, onAdd, onEdit, onDelete, onDeletePhone, is
                     Контакты
                 </Typography>
 
-                <Button variant="contained" startIcon={<AddIcon />} sx={{ fontWeight: 700 }} onClick={onAdd}>
-                    Добавить
-                </Button>
+                <Tooltip title="Добавить">
+                    <span>
+                        <IconButton
+                            color="primary"
+                            // onClick={() => navigate(editTo(id))}
+                        >
+                            <AddIcon fontSize="small" />
+                        </IconButton>
+                    </span>
+                </Tooltip>
             </Box>
 
             <Divider />

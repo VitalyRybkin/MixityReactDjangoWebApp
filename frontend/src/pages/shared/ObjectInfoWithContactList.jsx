@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react'
+import React, { useEffect, useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 
 import { Edit as EditIcon } from '@mui/icons-material'
@@ -14,8 +14,10 @@ import {
     DialogContent,
     DialogTitle,
     Divider,
+    IconButton,
     Snackbar,
     Stack,
+    Tooltip,
     Typography,
 } from '@mui/material'
 
@@ -170,16 +172,13 @@ export default function ObjectInfoWithContactList({
                         >
                             {label}
                         </Typography>
-
-                        <Button
-                            variant="contained"
-                            startIcon={<EditIcon />}
-                            onClick={() => navigate(editTo(id))}
-                            sx={{ fontWeight: 700, px: 3 }}
-                            disabled={!entity}
-                        >
-                            Изменить
-                        </Button>
+                        <Tooltip title="Изменить">
+                            <span>
+                                <IconButton color="primary" onClick={() => navigate(editTo(id))}>
+                                    <EditIcon fontSize="small" />
+                                </IconButton>
+                            </span>
+                        </Tooltip>
                     </Box>
 
                     <Divider />

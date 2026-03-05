@@ -2,8 +2,8 @@ import { Edit as EditIcon } from '@mui/icons-material'
 import DeleteIcon from '@mui/icons-material/Delete'
 import { IconButton, Stack, TableCell, TableRow, Tooltip, Typography } from '@mui/material'
 
-import EmailLink from './ui/EmailLink.jsx'
 import ContactsListRowPhoneCard from './ui/ContactsListRowPhoneCard.jsx'
+import EmailLink from './ui/EmailLink.jsx'
 
 const ContactsListRow = ({ contact, onEdit, onDelete, onDeletePhone, isDeletingContact, isDeletingPhone }) => {
     const contactId = contact.id
@@ -28,7 +28,7 @@ const ContactsListRow = ({ contact, onEdit, onDelete, onDeletePhone, isDeletingC
 
             <TableCell align="right">
                 <Stack direction="row" spacing={1} justifyContent="flex-end">
-                    <Tooltip title="Редактировать контакт">
+                    <Tooltip title="Изменить">
                         <span>
                             <IconButton
                                 color="primary"
@@ -40,7 +40,7 @@ const ContactsListRow = ({ contact, onEdit, onDelete, onDeletePhone, isDeletingC
                         </span>
                     </Tooltip>
 
-                    <Tooltip title="Удалить контакт">
+                    <Tooltip title="Удалить">
                         <span>
                             <IconButton
                                 color="error"
