@@ -2,9 +2,9 @@ import { Edit as EditIcon } from '@mui/icons-material'
 import { Stack, TableCell, TableRow, Typography } from '@mui/material'
 
 import ContactsListRowPhoneCard from './ui/ContactsListRowPhoneCard.jsx'
-import DeleteAction from './ui/DeleteAction.jsx'
-import EditAction from './ui/EditAction.jsx'
 import EmailLink from './ui/EmailLink.jsx'
+import DeleteAction from './ui/buttons/DeleteAction.jsx'
+import EditAction from './ui/buttons/EditAction.jsx'
 
 const ContactsListRow = ({ contact, onEdit, onDelete, onDeletePhone, isDeletingContact, isDeletingPhone }) => {
     const contactId = contact.id

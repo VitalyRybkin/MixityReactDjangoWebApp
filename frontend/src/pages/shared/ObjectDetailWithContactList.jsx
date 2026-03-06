@@ -22,8 +22,8 @@ import {
 import api from '../../api.js'
 import ContactCreateUpdate from '../../components/ContactCreateUpdate.jsx'
 import ContactsListView from '../../components/ContactsList.jsx'
-import EditAction from '../../components/ui/EditAction.jsx'
 import EmailLink from '../../components/ui/EmailLink.jsx'
+import EditAction from '../../components/ui/buttons/EditAction.jsx'
 
 const unwrap = (d) => (Array.isArray(d) ? d : (d?.results ?? []))
 

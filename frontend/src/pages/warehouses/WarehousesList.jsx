@@ -16,6 +16,8 @@ export default function WarehousesList() {
             items={warehouses}
             loading={loading}
             error={error}
+            onRetry={reload}
+            addTo={`/warehouse/create`}
             renderRow={(w) => (
                 <ObjectListViewCard
                     title={w.name}

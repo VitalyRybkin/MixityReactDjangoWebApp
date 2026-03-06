@@ -1,25 +1,28 @@
 import React from 'react'
 
-import AddIcon from '@mui/icons-material/Add'
 import { IconButton, Tooltip } from '@mui/material'
 
-export default function AddAction({
-    title = 'Добавить',
+export default function IconAction({
+    title,
     onClick,
     disabled = false,
     stopPropagation = false,
     preventDefault = false,
+    children,
+    color = 'primary',
+    sx,
 }) {
     return (
         <Tooltip title={title}>
             <span>
                 <IconButton
-                    color="primary"
+                    color={color}
                     sx={(theme) => ({
                         backgroundColor: theme.palette.action.hover,
                         '&:hover': {
                             backgroundColor: theme.palette.action.selected,
                         },
+                        ...((typeof sx === 'function' ? sx(theme) : sx) || {}),
                     })}
                     disabled={disabled}
                     onClick={(e) => {
@@ -28,7 +31,7 @@ export default function AddAction({
                         onClick?.(e)
                     }}
                 >
-                    <AddIcon fontSize="small" />
+                    {children}
                 </IconButton>
             </span>
         </Tooltip>

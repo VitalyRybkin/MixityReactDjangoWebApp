@@ -5,9 +5,9 @@ import { Edit as EditIcon } from '@mui/icons-material'
 import PictureAsPdfIcon from '@mui/icons-material/PictureAsPdf'
 import { Box, Card, CardActionArea, CardContent, Divider, IconButton, Stack, Tooltip, Typography } from '@mui/material'
 
-import DeleteAction from '../../components/ui/DeleteAction.jsx'
-import EditAction from '../../components/ui/EditAction.jsx'
 import EmailLink from '../../components/ui/EmailLink.jsx'
+import DeleteAction from '../../components/ui/buttons/DeleteAction.jsx'
+import EditAction from '../../components/ui/buttons/EditAction.jsx'
 
 const ObjectListViewCard = ({ title, subtitle, extra, email, fileUrl, to, onDelete }) => {
     const hasTextBefore = Boolean(subtitle || extra || email)

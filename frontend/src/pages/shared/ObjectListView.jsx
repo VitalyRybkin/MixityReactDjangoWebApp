@@ -1,9 +1,10 @@
 import React from 'react'
 import { useNavigate } from 'react-router-dom'
 
-import { Alert, Box, CircularProgress, Divider, Grid, Typography } from '@mui/material'
+import { Box, CircularProgress, Divider, Grid, Typography } from '@mui/material'
 
-import AddAction from '../../components/ui/AddAction.jsx'
+import ErrorState from '../../components/ui/ErrorState.jsx'
+import AddAction from '../../components/ui/buttons/AddAction.jsx'
 
 const ObjectListView = ({
     title,
@@ -12,6 +13,7 @@ const ObjectListView = ({
     loading = false,
     addTo,
     error = null,
+    onRetry,
     emptyText = 'Список пуст',
 }) => {
     const navigate = useNavigate()
@@ -28,9 +30,7 @@ const ObjectListView = ({
             <Divider sx={{ mb: 3 }} />
 
             {error ? (
-                <Alert severity="error" sx={{ mt: 2 }}>
-                    {error?.response?.data?.detail || error?.message || 'Не удалось загрузить данные'}
-                </Alert>
+                <ErrorState error={error} onRetry={onRetry} loading={loading} />
             ) : loading ? (
                 <Box sx={{ py: 6, display: 'flex', justifyContent: 'center' }}>
                     <CircularProgress />
