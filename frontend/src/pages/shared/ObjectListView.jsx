@@ -22,14 +22,14 @@ const ObjectListView = ({
                 <Typography variant="h4" gutterBottom fontWeight={600}>
                     {title}
                 </Typography>
-                <Divider sx={{ mb: 3 }} />
 
                 <AddAction onClick={() => navigate(addTo)} />
             </Box>
+            <Divider sx={{ mb: 3 }} />
 
             {error ? (
                 <Alert severity="error" sx={{ mt: 2 }}>
-                    Не удалось загрузить данные
+                    {error?.response?.data?.detail || error?.message || 'Не удалось загрузить данные'}
                 </Alert>
             ) : loading ? (
                 <Box sx={{ py: 6, display: 'flex', justifyContent: 'center' }}>

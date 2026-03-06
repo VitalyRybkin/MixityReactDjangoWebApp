@@ -4,10 +4,10 @@ import ObjectListView from '../shared/ObjectListView.jsx'
 import ObjectListViewCard from '../shared/ObjectListViewCard.jsx'
 
 export default function WarehousesList() {
-    const { items: warehouses, loading, reload } = useListResource(() => api.get('/api/stock/'), [])
+    const { items: warehouses, loading, error, reload } = useListResource(() => api.get('/api/stock/'), [])
 
     const handleDelete = async (id) => {
-        await api.delete(`/api/logistic/carriers/${id}/`)
+        await api.delete(`/api/stock/${id}/`)
         await reload()
     }
     return (
@@ -15,6 +15,7 @@ export default function WarehousesList() {
             title="Склады"
             items={warehouses}
             loading={loading}
+            error={error}
             renderRow={(w) => (
                 <ObjectListViewCard
                     title={w.name}
