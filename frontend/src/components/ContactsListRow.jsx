@@ -1,7 +1,7 @@
 import { Edit as EditIcon } from '@mui/icons-material'
 import { Stack, TableCell, TableRow, Typography } from '@mui/material'
 
-import ContactsListRowPhoneCard from './ui/ContactsListRowPhoneCard.jsx'
+import ContactsListRowPhoneCard from './ContactsListRowPhoneCard.jsx'
 import EmailLink from './ui/EmailLink.jsx'
 import DeleteAction from './ui/buttons/DeleteAction.jsx'
 import EditAction from './ui/buttons/EditAction.jsx'

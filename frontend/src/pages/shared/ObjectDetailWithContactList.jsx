@@ -105,7 +105,7 @@ export default function ObjectDetailWithContactList({
         const contact = contacts.find((c) => c.id === contactId)
         openConfirm({
             title: 'Удалить контакт?',
-            text: `Контакт "${contact?.firstName ?? ''} ${contact?.lastName ?? ''}". Действие необратимо.`,
+            text: `"${contact?.firstName ?? ''} ${contact?.lastName ?? ''}". Действие необратимо.`,
             onYes: async () => {
                 closeConfirm()
 
