@@ -22,13 +22,9 @@ import {
 import api from '../../api.js'
 import ContactCreateUpdate from '../../components/ContactCreateUpdate.jsx'
 import ContactsListView from '../../components/ContactsList.jsx'
-import EmailLink from '../../components/ui/EmailLink.jsx'
 import EditAction from '../../components/ui/buttons/EditAction.jsx'
 
 const unwrap = (d) => (Array.isArray(d) ? d : (d?.results ?? []))
-
-export const emailValue = (email) =>
-    email ? <EmailLink email={email} sx={{ fontSize: '1.2rem', lineHeight: 1.1 }} /> : null
 
 export default function ObjectDetailWithContactList({
     id,

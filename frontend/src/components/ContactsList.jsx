@@ -1,7 +1,6 @@
 import React from 'react'
 
-import AddIcon from '@mui/icons-material/Add'
-import { Box, Card, Divider, IconButton, Tooltip, Typography } from '@mui/material'
+import { Box, Card, Divider, Typography } from '@mui/material'
 import { Table, TableBody, TableCell, TableContainer, TableHead, TableRow } from '@mui/material'
 
 import ContactsListRow from './ContactsListRow.jsx'
