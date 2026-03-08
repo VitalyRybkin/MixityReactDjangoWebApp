@@ -9,8 +9,9 @@ import NotFound from './pages/NotFound.jsx'
 import CarrierDetailPage from './pages/carriers/CarrierDetail.jsx'
 import CarrierFormPage from './pages/carriers/CarrierForm.jsx'
 import CarriersList from './pages/carriers/CarriersList.jsx'
-import WarehouseInfoPage from './pages/warehouses/WarehouseInfo.jsx'
+import WarehouseInfoPage from './pages/warehouses/WarehouseDetail.jsx'
 import WarehousesList from './pages/warehouses/WarehousesList.jsx'
+import WarehouseFormPage from "./pages/warehouses/WarehousForm.jsx";
 
 function Logout() {
     localStorage.removeItem(ACCESS_TOKEN)
@@ -34,12 +35,14 @@ function App() {
                 }
             >
                 <Route path="/" element={<Home />} />
-                <Route path="/warehouses" element={<WarehousesList />} />
                 <Route path="/carriers" element={<CarriersList />} />
                 <Route path="/carrier/create" element={<CarrierFormPage />} />
                 <Route path="/carrier/:id" element={<CarrierDetailPage />} />
                 <Route path="/carrier/:id/edit" element={<CarrierFormPage />} />
-                <Route path="/warehouses/:id" element={<WarehouseInfoPage />} />
+                <Route path="/warehouses" element={<WarehousesList />} />
+                <Route path="/warehouse/create" element={<WarehouseFormPage />} />
+                <Route path="/warehouse/:id" element={<WarehouseInfoPage />} />
+                <Route path="/warehouse/:id/edit" element={<WarehouseFormPage />} />
             </Route>
 
             {/* 404 */}

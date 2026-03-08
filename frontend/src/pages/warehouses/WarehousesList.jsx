@@ -25,7 +25,7 @@ export default function WarehousesList() {
                     extra={w.address}
                     email={w.email}
                     fileUrl={w.directions}
-                    to={`/warehouses/${w.id}`}
+                    to={`/warehouse/${w.id}`}
                     onDelete={() => handleDelete(w.id)}
                 />
             )}
