@@ -6,7 +6,9 @@ from stock.models import Warehouse
 
 
 class WarehouseListCreateSerializer(serializers.ModelSerializer):
-    phoneNumber = serializers.CharField(source="phone_number")
+    phoneNumber = serializers.CharField(
+        source="phone_number", required=False, allow_null=True, allow_blank=True
+    )
     directions = serializers.ImageField(required=False, allow_null=True)
 
     class Meta:
