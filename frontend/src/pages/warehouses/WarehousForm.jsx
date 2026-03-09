@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
-
+import { firstError } from '../../utils/apiError'
 import { Alert, Box, Button, CircularProgress, Paper, Stack, TextField, Typography } from '@mui/material'
 
 import api from '../../api.js'
@@ -12,17 +12,6 @@ const emptyForm = {
     phoneNumber: '',
     email: '',
     descriptions: '',
-}
-
-const firstError = (e) => {
-    const data = e?.response?.data
-    if (data && typeof data === 'object') {
-        const firstKey = Object.keys(data)[0]
-        return firstKey
-            ? `${firstKey}: ${Array.isArray(data[firstKey]) ? data[firstKey][0] : data[firstKey]}`
-            : 'Ошибка сохранения!'
-    }
-    return data?.detail || 'Ошибка сохранения!'
 }
 
 export default function WarehouseFormPage() {
