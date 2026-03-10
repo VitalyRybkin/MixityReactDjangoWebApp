@@ -10,13 +10,14 @@ export default function CarrierDetailPage() {
     return (
         <ObjectDetailWithContactList
             id={id}
-            label="Перевозчик"
+            label="Грузоперевозчик"
             editTo={(id) => `/carriers/${id}/edit`}
             entityUrl={(id) => `/api/logistic/carriers/${id}/`}
             contactsUrl={(id) => `/api/logistic/carriers/${id}/contacts/`}
             ownerType="carrier"
             ownerId={carrierId}
             fields={(c) => [
+                { label: "Наименование", value: c?.name },
                 { label: 'Полное наименование', value: c?.fullName },
                 { label: 'Адрес', value: c?.address },
                 { label: 'Телефон', value: c?.phone },

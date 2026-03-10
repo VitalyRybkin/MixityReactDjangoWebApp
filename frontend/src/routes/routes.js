@@ -19,7 +19,14 @@ export const routes = [
         path: '/carriers/:id/edit',
         breadcrumb: 'Редактировать',
     },
-
+    {
+        path: '/carriers/:id/drivers',
+        breadcrumb: 'Водители',
+    },
+    {
+        path: '/carriers/:id/trucks',
+        breadcrumb: 'Автотранспорт',
+    },
     {
         path: '/warehouses',
         breadcrumb: 'Склады',

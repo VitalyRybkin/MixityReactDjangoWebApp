@@ -26,6 +26,8 @@ import ContactsListView from '../../components/ContactsList.jsx'
 import EditAction from '../../components/ui/buttons/EditAction.jsx'
 import {useCarrierContacts} from "../../features/logistic/carriers/carriers.queries.js";
 import AppBreadcrumbs from "../../components/AppBreadcrumbs.jsx";
+import PersonIcon from '@mui/icons-material/Person';
+import LocalShippingIcon from '@mui/icons-material/LocalShipping';
 
 
 export default function ObjectDetailWithContactList({
@@ -139,6 +141,8 @@ export default function ObjectDetailWithContactList({
 
     const rows = useMemo(() => fields(entity), [entity, fields])
 
+
+
     return (
         <Box sx={{ p: 3 }}>
             <AppBreadcrumbs dynamicLabels={entity ? { id: entity.name } : {}} />
@@ -156,12 +160,34 @@ export default function ObjectDetailWithContactList({
                         >
                             {label}
                         </Typography>
-                        <EditAction
-                            title="Изменить"
-                            color="primary"
-                            onClick={() => navigate(editTo(id))}
-                            icon={<EditIcon fontSize="small" />}
-                        />
+                        <Stack direction="row" spacing={1}>
+                            <EditAction
+                                title="Изменить"
+                                color="primary"
+                                onClick={() => navigate(editTo(id))}
+                                icon={<EditIcon fontSize="small" />}
+                            />
+                            {ownerType === 'carrier' && entity && (
+                                <EditAction
+                                    title="Водители"
+                                    color="primary"
+                                    onClick={() => navigate(editTo(id).replace('edit', 'drivers'), {
+                                        state: { entity }
+                                    })}
+                                    icon={<PersonIcon fontSize="small" />}
+                                />
+                            )}
+                            {ownerType === 'carrier' && entity && (
+                                <EditAction
+                                    title="Автотранспорт"
+                                    color="primary"
+                                    onClick={() => navigate(editTo(id).replace('edit', 'trucks'), {
+                                        state: { entity }
+                                    })}
+                                    icon={<LocalShippingIcon fontSize="small" />}
+                                />
+                            )}
+                        </Stack>
                     </Box>
 
                     <Divider />

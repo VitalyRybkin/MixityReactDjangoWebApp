@@ -12,6 +12,8 @@ import CarriersList from './features/logistic/carriers/CarriersList.jsx'
 import WarehouseInfoPage from './features/warehouses/stocks/WarehouseDetail.jsx'
 import WarehousesList from './features/warehouses/stocks/WarehousesList.jsx'
 import WarehouseFormPage from "./features/warehouses/stocks/WarehousForm.jsx";
+import CarrierDriversPage from "./features/logistic/carriers/CarrierDrivers.jsx";
+import CarrierTrucksPage from "./features/logistic/carriers/CarrierTrucks.jsx";
 
 function Logout() {
     localStorage.removeItem(ACCESS_TOKEN)
@@ -39,6 +41,8 @@ function App() {
                 <Route path="/carriers/create" element={<CarrierFormPage />} />
                 <Route path="/carriers/:id" element={<CarrierDetailPage />} />
                 <Route path="/carriers/:id/edit" element={<CarrierFormPage />} />
+                <Route path="/carriers/:id/trucks" element={<CarrierTrucksPage />} />
+                <Route path="/carriers/:id/drivers" element={<CarrierDriversPage />} />
 
                 <Route path="/warehouses" element={<WarehousesList />} />
                 <Route path="/warehouses/create" element={<WarehouseFormPage />} />
