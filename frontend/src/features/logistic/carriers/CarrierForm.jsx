@@ -1,90 +1,84 @@
 import { useEffect, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
-import { firstError } from '../../utils/apiError'
 import { Alert, Box, Button, CircularProgress, Paper, Stack, TextField, Typography } from '@mui/material'
 
-import api from '../../api.js'
+import { firstError } from '../../../utils/apiError.js'
+import { useCarrier, useCreateCarrier, useUpdateCarrier } from './carriers.queries.js'
 
 const emptyForm = {
     name: '',
-    organization: '',
+    fullName: '',
     address: '',
-    phoneNumber: '',
+    phone: '',
     email: '',
-    descriptions: '',
+    description: '',
 }
 
-export default function WarehouseFormPage() {
+export default function CarrierFormPage() {
     const { id } = useParams()
     const isEdit = Boolean(id)
     const navigate = useNavigate()
 
-    const [loading, setLoading] = useState(isEdit)
-    const [saving, setSaving] = useState(false)
+    const { data: carrier, isPending: loadingCarrier, error: loadError } = useCarrier(id)
+    const createCarrier = useCreateCarrier()
+    const updateCarrier = useUpdateCarrier()
+
     const [error, setError] = useState('')
     const [form, setForm] = useState(emptyForm)
 
     useEffect(() => {
         if (!isEdit) {
             setForm(emptyForm)
-            setLoading(false)
             return
         }
 
-        let alive = true
-        ;(async () => {
-            try {
-                setLoading(true)
-                const res = await api.get(`/api/stock/${id}/`)
-                if (!alive) return
-                setForm({
-                    name: res.data.name ?? '',
-                    organization: res.data.organization ?? '',
-                    address: res.data.address ?? '',
-                    phoneNumber: res.data.phoneNumber ?? '',
-                    email: res.data.email ?? '',
-                    descriptions: res.data.descriptions ?? '',
-                })
-            } catch (e) {
-                if (!alive) return
-                setError(e?.response?.data?.detail || 'Ошибка загрузки данных')
-            } finally {
-                if (alive) setLoading(false)
-            }
-        })()
-
-        return () => {
-            alive = false
+        if (carrier) {
+            setForm({
+                name: carrier.name ?? '',
+                fullName: carrier.fullName ?? '',
+                address: carrier.address ?? '',
+                phone: carrier.phone ?? '',
+                email: carrier.email ?? '',
+                description: carrier.description ?? '',
+            })
         }
-    }, [id, isEdit])
+    }, [carrier, isEdit])
 
-    const onChange = (field) => (e) => setForm((prev) => ({ ...prev, [field]: e.target.value }))
+    useEffect(() => {
+        if (loadError) {
+            setError(loadError?.response?.data?.detail || 'Ошибка загрузки данных')
+        }
+    }, [loadError])
+
+    const onChange = (field) => (e) => {
+        setForm((prev) => ({ ...prev, [field]: e.target.value }))
+    }
+
+    const saving = createCarrier.isPending || updateCarrier.isPending
 
     const onSubmit = async (e) => {
         e.preventDefault()
-        setSaving(true)
         setError('')
+
         try {
             if (isEdit) {
-                await api.patch(`/api/stock/${id}/`, form)
+                await updateCarrier.mutateAsync({ id, payload: form })
             } else {
-                await api.post(`/api/stock/`, form)
+                await createCarrier.mutateAsync(form)
             }
-            navigate('/warehouses')
+            navigate('/carriers')
         } catch (e2) {
             setError(firstError(e2))
-        } finally {
-            setSaving(false)
         }
     }
 
-    if (loading) return <CircularProgress />
+    if (isEdit && loadingCarrier) return <CircularProgress />
 
     return (
         <Box sx={{ p: 3, maxWidth: 700 }}>
             <Paper sx={{ p: 3, borderRadius: 3 }}>
                 <Typography variant="h5" color="text.secondary" sx={{ mb: 2 }}>
-                    {isEdit ? `Редактировать ${form.organization || ''}` : 'Создать склад'}
+                    {isEdit ? `Редактировать ${form.fullName || ''}` : 'Создать грузоперевозчика'}
                 </Typography>
 
                 {error && (
@@ -97,18 +91,18 @@ export default function WarehouseFormPage() {
                     <Stack spacing={2}>
                         <TextField label="Наименование" value={form.name} onChange={onChange('name')} fullWidth />
                         <TextField
-                            label="Наименование организации"
-                            value={form.organization}
-                            onChange={onChange('organization')}
+                            label="Полное наименование"
+                            value={form.fullName}
+                            onChange={onChange('fullName')}
                             fullWidth
                         />
                         <TextField label="Адрес" value={form.address} onChange={onChange('address')} fullWidth />
-                        <TextField label="Телефон" value={form.phoneNumber} onChange={onChange('phoneNumber')} fullWidth />
+                        <TextField label="Телефон" value={form.phone} onChange={onChange('phone')} fullWidth />
                         <TextField label="Эл. почта" value={form.email} onChange={onChange('email')} fullWidth />
                         <TextField
                             label="Примечание"
-                            value={form.descriptions}
-                            onChange={onChange('descriptions')}
+                            value={form.description}
+                            onChange={onChange('description')}
                             fullWidth
                             multiline
                             minRows={3}
@@ -118,7 +112,7 @@ export default function WarehouseFormPage() {
                             <Button type="submit" variant="contained" disabled={saving}>
                                 {saving ? 'Сохранение...' : 'Сохранить'}
                             </Button>
-                            <Button variant="outlined" onClick={() => navigate(-1)} disabled={saving}>
+                            <Button variant="outlined" onClick={() => navigate('/carriers')} disabled={saving}>
                                 Отмена
                             </Button>
                         </Stack>

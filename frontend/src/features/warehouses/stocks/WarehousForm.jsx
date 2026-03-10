@@ -1,84 +1,90 @@
 import { useEffect, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
+import { firstError } from '../../../utils/apiError.js'
 import { Alert, Box, Button, CircularProgress, Paper, Stack, TextField, Typography } from '@mui/material'
 
-import { firstError } from '../../utils/apiError'
-import { useCarrier, useCreateCarrier, useUpdateCarrier } from '../../features/logistic/carriers/carrier.queries.js'
+import api from '../../../api.js'
 
 const emptyForm = {
     name: '',
-    fullName: '',
+    organization: '',
     address: '',
-    phone: '',
+    phoneNumber: '',
     email: '',
-    description: '',
+    descriptions: '',
 }
 
-export default function CarrierFormPage() {
+export default function WarehouseFormPage() {
     const { id } = useParams()
     const isEdit = Boolean(id)
     const navigate = useNavigate()
 
-    const { data: carrier, isPending: loadingCarrier, error: loadError } = useCarrier(id)
-    const createCarrier = useCreateCarrier()
-    const updateCarrier = useUpdateCarrier()
-
+    const [loading, setLoading] = useState(isEdit)
+    const [saving, setSaving] = useState(false)
     const [error, setError] = useState('')
     const [form, setForm] = useState(emptyForm)
 
     useEffect(() => {
         if (!isEdit) {
             setForm(emptyForm)
+            setLoading(false)
             return
         }
 
-        if (carrier) {
-            setForm({
-                name: carrier.name ?? '',
-                fullName: carrier.fullName ?? '',
-                address: carrier.address ?? '',
-                phone: carrier.phone ?? '',
-                email: carrier.email ?? '',
-                description: carrier.description ?? '',
-            })
+        let alive = true
+        ;(async () => {
+            try {
+                setLoading(true)
+                const res = await api.get(`/api/stock/${id}/`)
+                if (!alive) return
+                setForm({
+                    name: res.data.name ?? '',
+                    organization: res.data.organization ?? '',
+                    address: res.data.address ?? '',
+                    phoneNumber: res.data.phoneNumber ?? '',
+                    email: res.data.email ?? '',
+                    descriptions: res.data.descriptions ?? '',
+                })
+            } catch (e) {
+                if (!alive) return
+                setError(e?.response?.data?.detail || 'Ошибка загрузки данных')
+            } finally {
+                if (alive) setLoading(false)
+            }
+        })()
+
+        return () => {
+            alive = false
         }
-    }, [carrier, isEdit])
+    }, [id, isEdit])
 
-    useEffect(() => {
-        if (loadError) {
-            setError(loadError?.response?.data?.detail || 'Ошибка загрузки данных')
-        }
-    }, [loadError])
-
-    const onChange = (field) => (e) => {
-        setForm((prev) => ({ ...prev, [field]: e.target.value }))
-    }
-
-    const saving = createCarrier.isPending || updateCarrier.isPending
+    const onChange = (field) => (e) => setForm((prev) => ({ ...prev, [field]: e.target.value }))
 
     const onSubmit = async (e) => {
         e.preventDefault()
+        setSaving(true)
         setError('')
-
         try {
             if (isEdit) {
-                await updateCarrier.mutateAsync({ id, payload: form })
+                await api.patch(`/api/stock/${id}/`, form)
             } else {
-                await createCarrier.mutateAsync(form)
+                await api.post(`/api/stock/`, form)
             }
-            navigate('/carriers')
+            navigate('/warehouses')
         } catch (e2) {
             setError(firstError(e2))
+        } finally {
+            setSaving(false)
         }
     }
 
-    if (isEdit && loadingCarrier) return <CircularProgress />
+    if (loading) return <CircularProgress />
 
     return (
         <Box sx={{ p: 3, maxWidth: 700 }}>
             <Paper sx={{ p: 3, borderRadius: 3 }}>
                 <Typography variant="h5" color="text.secondary" sx={{ mb: 2 }}>
-                    {isEdit ? `Редактировать ${form.fullName || ''}` : 'Создать грузоперевозчика'}
+                    {isEdit ? `Редактировать ${form.organization || ''}` : 'Создать склад'}
                 </Typography>
 
                 {error && (
@@ -91,18 +97,18 @@ export default function CarrierFormPage() {
                     <Stack spacing={2}>
                         <TextField label="Наименование" value={form.name} onChange={onChange('name')} fullWidth />
                         <TextField
-                            label="Полное наименование"
-                            value={form.fullName}
-                            onChange={onChange('fullName')}
+                            label="Наименование организации"
+                            value={form.organization}
+                            onChange={onChange('organization')}
                             fullWidth
                         />
                         <TextField label="Адрес" value={form.address} onChange={onChange('address')} fullWidth />
-                        <TextField label="Телефон" value={form.phone} onChange={onChange('phone')} fullWidth />
+                        <TextField label="Телефон" value={form.phoneNumber} onChange={onChange('phoneNumber')} fullWidth />
                         <TextField label="Эл. почта" value={form.email} onChange={onChange('email')} fullWidth />
                         <TextField
                             label="Примечание"
-                            value={form.description}
-                            onChange={onChange('description')}
+                            value={form.descriptions}
+                            onChange={onChange('descriptions')}
                             fullWidth
                             multiline
                             minRows={3}
@@ -112,7 +118,7 @@ export default function CarrierFormPage() {
                             <Button type="submit" variant="contained" disabled={saving}>
                                 {saving ? 'Сохранение...' : 'Сохранить'}
                             </Button>
-                            <Button variant="outlined" onClick={() => navigate('/carriers')} disabled={saving}>
+                            <Button variant="outlined" onClick={() => navigate(-1)} disabled={saving}>
                                 Отмена
                             </Button>
                         </Stack>

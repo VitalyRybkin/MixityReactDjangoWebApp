@@ -1,7 +1,7 @@
-import api from '../../api.js'
-import { useListResource } from '../../hooks/useListResource.js'
-import ObjectListView from '../shared/ObjectListView.jsx'
-import ObjectListViewCard from '../shared/ObjectListViewCard.jsx'
+import api from '../../../api.js'
+import { useListResource } from '../../../hooks/useListResource.js'
+import ObjectListView from '../../../pages/shared/ObjectListView.jsx'
+import ObjectListViewCard from '../../../pages/shared/ObjectListViewCard.jsx'
 
 export default function WarehousesList() {
     const { items: warehouses, loading, error, reload } = useListResource(() => api.get('/api/stock/'), [])

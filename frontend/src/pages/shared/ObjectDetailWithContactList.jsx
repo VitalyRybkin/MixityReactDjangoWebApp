@@ -24,7 +24,7 @@ import api from '../../api.js'
 import ContactCreateUpdate from '../../components/ContactCreateUpdate.jsx'
 import ContactsListView from '../../components/ContactsList.jsx'
 import EditAction from '../../components/ui/buttons/EditAction.jsx'
-import {useCarrierContacts} from "../../features/logistic/carriers/carrier.queries.js";
+import {useCarrierContacts} from "../../features/logistic/carriers/carriers.queries.js";
 
 // const unwrap = (d) => (Array.isArray(d) ? d : (d?.results ?? []))
 

@@ -6,12 +6,12 @@ import MainLayout from './layouts/MainLayout'
 import Home from './pages/Home.jsx'
 import Login from './pages/Login.jsx'
 import NotFound from './pages/NotFound.jsx'
-import CarrierDetailPage from './pages/carriers/CarrierDetail.jsx'
-import CarrierFormPage from './pages/carriers/CarrierForm.jsx'
-import CarriersList from './pages/carriers/CarriersList.jsx'
-import WarehouseInfoPage from './pages/warehouses/WarehouseDetail.jsx'
-import WarehousesList from './pages/warehouses/WarehousesList.jsx'
-import WarehouseFormPage from "./pages/warehouses/WarehousForm.jsx";
+import CarrierDetailPage from './features/logistic/carriers/CarrierDetail.jsx'
+import CarrierFormPage from './features/logistic/carriers/CarrierForm.jsx'
+import CarriersList from './features/logistic/carriers/CarriersList.jsx'
+import WarehouseInfoPage from './features/warehouses/stocks/WarehouseDetail.jsx'
+import WarehousesList from './features/warehouses/stocks/WarehousesList.jsx'
+import WarehouseFormPage from "./features/warehouses/stocks/WarehousForm.jsx";
 
 function Logout() {
     localStorage.removeItem(ACCESS_TOKEN)
