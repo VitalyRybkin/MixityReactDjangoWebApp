@@ -11,7 +11,7 @@ export default function CarrierDetailPage() {
         <ObjectDetailWithContactList
             id={id}
             label="Перевозчик"
-            editTo={(id) => `/carrier/${id}/edit`}
+            editTo={(id) => `/carriers/${id}/edit`}
             entityUrl={(id) => `/api/logistic/carriers/${id}/`}
             contactsUrl={(id) => `/api/logistic/carriers/${id}/contacts/`}
             ownerType="carrier"

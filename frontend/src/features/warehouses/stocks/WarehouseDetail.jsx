@@ -11,7 +11,7 @@ export default function WarehouseDetailPage() {
         <ObjectDetailWithContactList
             id={id}
             label="Склад"
-            editTo={(id) => `/warehouse/${id}/edit`}
+            editTo={(id) => `/warehouses/${id}/edit`}
             entityUrl={(id) => `/api/stock/${id}/`}
             contactsUrl={(id) => `/api/stock/${id}/contacts/`}
             ownerType="warehouse"

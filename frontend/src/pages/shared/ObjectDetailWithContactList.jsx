@@ -25,15 +25,14 @@ import ContactCreateUpdate from '../../components/ContactCreateUpdate.jsx'
 import ContactsListView from '../../components/ContactsList.jsx'
 import EditAction from '../../components/ui/buttons/EditAction.jsx'
 import {useCarrierContacts} from "../../features/logistic/carriers/carriers.queries.js";
+import AppBreadcrumbs from "../../components/AppBreadcrumbs.jsx";
 
-// const unwrap = (d) => (Array.isArray(d) ? d : (d?.results ?? []))
 
 export default function ObjectDetailWithContactList({
                                                         id,
                                                         label,
                                                         editTo,
                                                         entityUrl,
-                                                        // contactsUrl,
                                                         ownerType,
                                                         ownerId,
                                                         fields,
@@ -47,14 +46,6 @@ export default function ObjectDetailWithContactList({
             return res.data
         },
     })
-
-    // const contactsQuery = useQuery({
-    //     queryKey: ['object-contacts', contactsUrl(id)],
-    //     queryFn: async () => {
-    //         const res = await api.get(contactsUrl(id))
-    //         return unwrap(res.data)
-    //     },
-    // })
 
     const contactsQuery = useCarrierContacts(id)
 
@@ -150,6 +141,7 @@ export default function ObjectDetailWithContactList({
 
     return (
         <Box sx={{ p: 3 }}>
+            <AppBreadcrumbs dynamicLabels={entity ? { id: entity.name } : {}} />
             <Stack spacing={2}>
                 <Card variant="outlined" sx={{ width: '100%', borderRadius: 1 }}>
                     <Box sx={{ p: 3, display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>

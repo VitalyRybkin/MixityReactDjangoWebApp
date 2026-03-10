@@ -36,14 +36,14 @@ function App() {
             >
                 <Route path="/" element={<Home />} />
                 <Route path="/carriers" element={<CarriersList />} />
-                <Route path="/carrier/create" element={<CarrierFormPage />} />
-                <Route path="/carrier/:id" element={<CarrierDetailPage />} />
-                <Route path="/carrier/:id/edit" element={<CarrierFormPage />} />
+                <Route path="/carriers/create" element={<CarrierFormPage />} />
+                <Route path="/carriers/:id" element={<CarrierDetailPage />} />
+                <Route path="/carriers/:id/edit" element={<CarrierFormPage />} />
 
                 <Route path="/warehouses" element={<WarehousesList />} />
-                <Route path="/warehouse/create" element={<WarehouseFormPage />} />
-                <Route path="/warehouse/:id" element={<WarehouseInfoPage />} />
-                <Route path="/warehouse/:id/edit" element={<WarehouseFormPage />} />
+                <Route path="/warehouses/create" element={<WarehouseFormPage />} />
+                <Route path="/warehouses/:id" element={<WarehouseInfoPage />} />
+                <Route path="/warehouses/:id/edit" element={<WarehouseFormPage />} />
             </Route>
 
             {/* 404 */}

@@ -17,14 +17,14 @@ export default function CarriersList() {
             loading={isPending || deleteCarrier.isPending}
             error={error}
             onRetry={refetch}
-            addTo="/carrier/create"
+            addTo="/carriers/create"
             renderRow={(w) => (
                 <ObjectListViewCard
                     title={w.name}
                     subtitle={w.fullName}
                     extra={w.address}
                     email={w.email}
-                    to={`/carrier/${w.id}`}
+                    to={`/carriers/${w.id}`}
                     onDelete={() => handleDelete(w.id)}
                 />
             )}

@@ -17,7 +17,7 @@ export default function WarehousesList() {
             loading={isPending || deleteWarehouse.isPending}
             error={error}
             onRetry={refetch}
-            addTo="/warehouse/create"
+            addTo="/warehouses/create"
             renderRow={(w) => (
                 <ObjectListViewCard
                     title={w.name}
@@ -25,7 +25,7 @@ export default function WarehousesList() {
                     extra={w.address}
                     email={w.email}
                     fileUrl={w.directions}
-                    to={`/warehouse/${w.id}`}
+                    to={`/warehouses/${w.id}`}
                     onDelete={() => handleDelete(w.id)}
                 />
             )}

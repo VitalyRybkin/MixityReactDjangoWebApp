@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import { Alert, Box, Button, CircularProgress, Paper, Stack, TextField, Typography } from '@mui/material'
 
@@ -8,6 +8,7 @@ import {
     useUpdateWarehouse,
     useWarehouse,
 } from './stocks.queries.js'
+import AppBreadcrumbs from "../../../components/AppBreadcrumbs.jsx";
 
 const emptyForm = {
     name: '',
@@ -80,6 +81,7 @@ export default function WarehouseFormPage() {
 
     return (
         <Box sx={{ p: 3, maxWidth: 700 }}>
+            <AppBreadcrumbs dynamicLabels={{ id: warehouse?.name }} />
             <Paper sx={{ p: 3, borderRadius: 3 }}>
                 <Typography variant="h5" color="text.secondary" sx={{ mb: 2 }}>
                     {isEdit ? `Редактировать ${form.organization || ''}` : 'Создать склад'}
