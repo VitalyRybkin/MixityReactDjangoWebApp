@@ -1,23 +1,23 @@
-import api from '../../../api.js'
-import { useListResource } from '../../../hooks/useListResource.js'
 import ObjectListView from '../../../pages/shared/ObjectListView.jsx'
 import ObjectListViewCard from '../../../pages/shared/ObjectListViewCard.jsx'
+import { useWarehouses, useDeleteWarehouse } from './stocks.queries.js'
 
 export default function WarehousesList() {
-    const { items: warehouses, loading, error, reload } = useListResource(() => api.get('/api/stock/'), [])
+    const { data: warehouses = [], isPending, error, refetch } = useWarehouses()
+    const deleteWarehouse = useDeleteWarehouse()
 
     const handleDelete = async (id) => {
-        await api.delete(`/api/stock/${id}/`)
-        await reload()
+        await deleteWarehouse.mutateAsync(id)
     }
+
     return (
         <ObjectListView
             title="Склады"
             items={warehouses}
-            loading={loading}
+            loading={isPending || deleteWarehouse.isPending}
             error={error}
-            onRetry={reload}
-            addTo={`/warehouse/create`}
+            onRetry={refetch}
+            addTo="/warehouse/create"
             renderRow={(w) => (
                 <ObjectListViewCard
                     title={w.name}

@@ -1,9 +1,13 @@
 import { useEffect, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
-import { firstError } from '../../../utils/apiError.js'
 import { Alert, Box, Button, CircularProgress, Paper, Stack, TextField, Typography } from '@mui/material'
 
-import api from '../../../api.js'
+import { firstError } from '../../../utils/apiError.js'
+import {
+    useCreateWarehouse,
+    useUpdateWarehouse,
+    useWarehouse,
+} from './stocks.queries.js'
 
 const emptyForm = {
     name: '',
@@ -19,66 +23,60 @@ export default function WarehouseFormPage() {
     const isEdit = Boolean(id)
     const navigate = useNavigate()
 
-    const [loading, setLoading] = useState(isEdit)
-    const [saving, setSaving] = useState(false)
+    const { data: warehouse, isPending: loadingWarehouse, error: loadError } = useWarehouse(id)
+    const createWarehouse = useCreateWarehouse()
+    const updateWarehouse = useUpdateWarehouse()
+
     const [error, setError] = useState('')
     const [form, setForm] = useState(emptyForm)
 
     useEffect(() => {
         if (!isEdit) {
             setForm(emptyForm)
-            setLoading(false)
             return
         }
 
-        let alive = true
-        ;(async () => {
-            try {
-                setLoading(true)
-                const res = await api.get(`/api/stock/${id}/`)
-                if (!alive) return
-                setForm({
-                    name: res.data.name ?? '',
-                    organization: res.data.organization ?? '',
-                    address: res.data.address ?? '',
-                    phoneNumber: res.data.phoneNumber ?? '',
-                    email: res.data.email ?? '',
-                    descriptions: res.data.descriptions ?? '',
-                })
-            } catch (e) {
-                if (!alive) return
-                setError(e?.response?.data?.detail || 'Ошибка загрузки данных')
-            } finally {
-                if (alive) setLoading(false)
-            }
-        })()
-
-        return () => {
-            alive = false
+        if (warehouse) {
+            setForm({
+                name: warehouse.name ?? '',
+                organization: warehouse.organization ?? '',
+                address: warehouse.address ?? '',
+                phoneNumber: warehouse.phoneNumber ?? '',
+                email: warehouse.email ?? '',
+                descriptions: warehouse.descriptions ?? '',
+            })
         }
-    }, [id, isEdit])
+    }, [warehouse, isEdit])
 
-    const onChange = (field) => (e) => setForm((prev) => ({ ...prev, [field]: e.target.value }))
+    useEffect(() => {
+        if (loadError) {
+            setError(loadError?.response?.data?.detail || 'Ошибка загрузки данных')
+        }
+    }, [loadError])
+
+    const onChange = (field) => (e) => {
+        setForm((prev) => ({ ...prev, [field]: e.target.value }))
+    }
+
+    const saving = createWarehouse.isPending || updateWarehouse.isPending
 
     const onSubmit = async (e) => {
         e.preventDefault()
-        setSaving(true)
         setError('')
+
         try {
             if (isEdit) {
-                await api.patch(`/api/stock/${id}/`, form)
+                await updateWarehouse.mutateAsync({ id, payload: form })
             } else {
-                await api.post(`/api/stock/`, form)
+                await createWarehouse.mutateAsync(form)
             }
             navigate('/warehouses')
         } catch (e2) {
             setError(firstError(e2))
-        } finally {
-            setSaving(false)
         }
     }
 
-    if (loading) return <CircularProgress />
+    if (isEdit && loadingWarehouse) return <CircularProgress />
 
     return (
         <Box sx={{ p: 3, maxWidth: 700 }}>
@@ -103,7 +101,12 @@ export default function WarehouseFormPage() {
                             fullWidth
                         />
                         <TextField label="Адрес" value={form.address} onChange={onChange('address')} fullWidth />
-                        <TextField label="Телефон" value={form.phoneNumber} onChange={onChange('phoneNumber')} fullWidth />
+                        <TextField
+                            label="Телефон"
+                            value={form.phoneNumber}
+                            onChange={onChange('phoneNumber')}
+                            fullWidth
+                        />
                         <TextField label="Эл. почта" value={form.email} onChange={onChange('email')} fullWidth />
                         <TextField
                             label="Примечание"
@@ -118,7 +121,7 @@ export default function WarehouseFormPage() {
                             <Button type="submit" variant="contained" disabled={saving}>
                                 {saving ? 'Сохранение...' : 'Сохранить'}
                             </Button>
-                            <Button variant="outlined" onClick={() => navigate(-1)} disabled={saving}>
+                            <Button variant="outlined" onClick={() => navigate('/warehouses')} disabled={saving}>
                                 Отмена
                             </Button>
                         </Stack>
