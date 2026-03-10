@@ -6,6 +6,7 @@ from stock.models import Warehouse
 
 
 class WarehouseListCreateSerializer(serializers.ModelSerializer):
+    name = serializers.CharField(required=True, label="Наименование")
     phoneNumber = serializers.CharField(
         source="phone_number", required=False, allow_null=True, allow_blank=True
     )
