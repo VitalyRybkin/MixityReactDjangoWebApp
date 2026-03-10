@@ -22,16 +22,13 @@ const ObjectListViewCard = ({ title, subtitle, extra, email, fileUrl, to, onDele
                             {title || 'Без названия'}
                         </Typography>
                         <Stack direction="row" spacing={1} justifyContent="flex-end">
-                            <Tooltip title="Изменить">
-                                <EditAction
-                                    title="Изменить"
-                                    color="primary"
-                                    component={RouterLink}
-                                    to={`${to.replace(/\/$/, '')}/edit`}
-                                    icon={<EditIcon fontSize="small" />}
-                                />
-                            </Tooltip>
-
+                            <EditAction
+                                title="Изменить"
+                                color="primary"
+                                component={RouterLink}
+                                to={`${to.replace(/\/$/, '')}/edit`}
+                                icon={<EditIcon fontSize="small" />}
+                            />
                             <DeleteAction onClick={onDelete} disabled={!onDelete} stopPropagation preventDefault />
                         </Stack>
                     </Stack>

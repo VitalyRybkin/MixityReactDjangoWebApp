@@ -1,8 +1,9 @@
 import { useParams } from 'react-router-dom'
 
-import ObjectDetailWithContactList, { emailValue } from '../shared/ObjectDetailWithContactList.jsx'
+import ObjectDetailWithContactList from '../../../pages/shared/ObjectDetailWithContactList.jsx'
+import {emailValue} from "../../../utils/emailValue.jsx";
 
-export default function WarehouseInfo() {
+export default function WarehouseDetailPage() {
     const { id } = useParams()
     const warehouseId = Number(id)
 

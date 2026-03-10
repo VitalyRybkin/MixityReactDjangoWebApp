@@ -22,14 +22,14 @@ const emptyPhone = () => ({ phoneNumber: '' })
 const safeStr = (v) => v ?? ''
 
 export default function ContactCreateUpdate({
-    open,
-    mode,
-    ownerType,
-    ownerId,
-    initialData, // contact object for edit (can be null)
-    onClose,
-    onSaved,
-}) {
+                                                open,
+                                                mode,
+                                                ownerType,
+                                                ownerId,
+                                                initialData,
+                                                onClose,
+                                                onSaved,
+                                            }) {
     const [saving, setSaving] = useState(false)
     const [error, setError] = useState('')
 
@@ -70,15 +70,20 @@ export default function ContactCreateUpdate({
         }
     }, [open, mode, initialData])
 
-    const onChange = (field) => (e) => setForm((p) => ({ ...p, [field]: e.target.value }))
+    const onChange = (field) => (e) => {
+        setForm((p) => ({ ...p, [field]: e.target.value }))
+    }
 
-    const addPhone = () => setForm((p) => ({ ...p, phoneNumbers: [...p.phoneNumbers, emptyPhone()] }))
+    const addPhone = () => {
+        setForm((p) => ({ ...p, phoneNumbers: [...p.phoneNumbers, emptyPhone()] }))
+    }
 
-    const removePhone = (idx) =>
+    const removePhone = (idx) => {
         setForm((p) => ({
             ...p,
             phoneNumbers: p.phoneNumbers.length === 1 ? [emptyPhone()] : p.phoneNumbers.filter((_, i) => i !== idx),
         }))
+    }
 
     const changePhone = (idx) => (e) => {
         const value = e.target.value
@@ -91,7 +96,10 @@ export default function ContactCreateUpdate({
     const buildPayload = () => {
         const id = Number(ownerId)
 
-        const owner = ownerType === 'warehouse' ? { warehouse: id, carrier: null } : { carrier: id, warehouse: null }
+        const owner =
+            ownerType === 'warehouse'
+                ? { warehouse: id, carrier: null }
+                : { carrier: id, warehouse: null }
 
         const phones = (form.phoneNumbers ?? [])
             .map((p) => ({ phoneNumber: safeStr(p.phoneNumber).trim() }))
@@ -108,15 +116,16 @@ export default function ContactCreateUpdate({
     }
 
     const submit = async (e) => {
-        e.preventDefault()
+        if (e) e.preventDefault()
+
         setSaving(true)
         setError('')
 
         try {
             if (mode === 'create') {
-                await api.post('/api/contacts/', buildPayload)
+                await api.post('/api/contacts/', buildPayload())
             } else {
-                const editPayload = { ...buildPayload }
+                const editPayload = { ...buildPayload() }
                 delete editPayload.carrier
                 delete editPayload.warehouse
 
@@ -131,7 +140,6 @@ export default function ContactCreateUpdate({
                 const firstKey = Object.keys(data)[0]
                 const val = data[firstKey]
 
-                // Example: phoneNumbers: [{phoneNumber: ["..."]}]
                 if (firstKey === 'phoneNumbers' && Array.isArray(val) && val[0]?.phoneNumber) {
                     setError(`phoneNumbers: ${val[0].phoneNumber[0]}`)
                 } else {
@@ -153,7 +161,7 @@ export default function ContactCreateUpdate({
             <DialogTitle>{mode === 'create' ? 'Добавить контакт' : 'Редактировать контакт'}</DialogTitle>
 
             <DialogContent>
-                <Stack component="form" onSubmit={submit} spacing={2} sx={{ mt: 1 }}>
+                <Stack component="form" id="contact-form" onSubmit={submit} spacing={2} sx={{ mt: 1 }}>
                     {error && <Alert severity="error">{error}</Alert>}
 
                     <TextField label="Имя" value={form.firstName} onChange={onChange('firstName')} fullWidth />
@@ -164,7 +172,7 @@ export default function ContactCreateUpdate({
                     <Box>
                         <Stack direction="row" alignItems="center" justifyContent="space-between" sx={{ mb: 1 }}>
                             <Typography variant="subtitle1">Телефоны</Typography>
-                            <Button size="small" startIcon={<AddIcon />} onClick={addPhone} disabled={saving}>
+                            <Button type="button" size="small" startIcon={<AddIcon />} onClick={addPhone} disabled={saving}>
                                 Добавить
                             </Button>
                         </Stack>
@@ -178,16 +186,13 @@ export default function ContactCreateUpdate({
                                         onChange={changePhone(idx)}
                                         fullWidth
                                     />
-                                    <IconButton onClick={() => removePhone(idx)} disabled={saving}>
+                                    <IconButton type="button" onClick={() => removePhone(idx)} disabled={saving}>
                                         <DeleteIcon color="error" />
                                     </IconButton>
                                 </Stack>
                             ))}
                         </Stack>
                     </Box>
-
-                    {/* allow Enter submit */}
-                    <button type="submit" style={{ display: 'none' }} />
                 </Stack>
             </DialogContent>
 
@@ -195,7 +200,7 @@ export default function ContactCreateUpdate({
                 <Button onClick={onClose} disabled={saving}>
                     Отмена
                 </Button>
-                <Button onClick={submit} variant="contained" disabled={saving}>
+                <Button type="submit" form="contact-form" variant="contained" disabled={saving}>
                     {saving ? 'Сохранение...' : 'Сохранить'}
                 </Button>
             </DialogActions>

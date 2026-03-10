@@ -1,14 +1,16 @@
 import React from 'react'
 
-import AddIcon from '@mui/icons-material/Add'
-import { Box, Card, Divider, IconButton, Tooltip, Typography } from '@mui/material'
+import { Box, Card, Divider, Typography } from '@mui/material'
 import { Table, TableBody, TableCell, TableContainer, TableHead, TableRow } from '@mui/material'
 
 import ContactsListRow from './ContactsListRow.jsx'
+import {useNavigate} from "react-router-dom";
+import AddAction from "./ui/buttons/AddAction.jsx";
 
 const tableHeaders = ['Имя', 'Фамилия', 'Должность', 'Email', 'Телефоны', '']
 
-const ContactsListView = ({ contacts, onEdit, onDelete, onDeletePhone, isDeletingContact, isDeletingPhone }) => {
+const ContactsListView = ({ contacts, onAdd, onEdit, onDelete, onDeletePhone, isDeletingContact, isDeletingPhone }) => {
+    useNavigate();
     return (
         <Card variant="outlined" sx={{ width: '100%', borderRadius: 1 }}>
             <Box sx={{ p: 3, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
@@ -19,13 +21,7 @@ const ContactsListView = ({ contacts, onEdit, onDelete, onDeletePhone, isDeletin
                     Контакты
                 </Typography>
 
-                <Tooltip title="Добавить">
-                    <span>
-                        <IconButton color="primary" onClick={() => navigate(editTo(id))}>
-                            <AddIcon fontSize="small" />
-                        </IconButton>
-                    </span>
-                </Tooltip>
+                <AddAction onClick={() => onAdd()} />
             </Box>
 
             <Divider />

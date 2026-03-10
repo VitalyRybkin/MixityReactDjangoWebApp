@@ -6,11 +6,14 @@ import MainLayout from './layouts/MainLayout'
 import Home from './pages/Home.jsx'
 import Login from './pages/Login.jsx'
 import NotFound from './pages/NotFound.jsx'
-import CarrierDetailPage from './pages/carriers/CarrierDetail.jsx'
-import CarrierFormPage from './pages/carriers/CarrierForm.jsx'
-import CarriersList from './pages/carriers/CarriersList.jsx'
-import WarehouseInfoPage from './pages/warehouses/WarehouseInfo.jsx'
-import WarehousesList from './pages/warehouses/WarehousesList.jsx'
+import CarrierDetailPage from './features/logistic/carriers/CarrierDetail.jsx'
+import CarrierFormPage from './features/logistic/carriers/CarrierForm.jsx'
+import CarriersList from './features/logistic/carriers/CarriersList.jsx'
+import WarehouseInfoPage from './features/warehouses/stocks/WarehouseDetail.jsx'
+import WarehousesList from './features/warehouses/stocks/WarehousesList.jsx'
+import WarehouseFormPage from "./features/warehouses/stocks/WarehousForm.jsx";
+import CarrierDriversPage from "./features/logistic/carriers/CarrierDrivers.jsx";
+import CarrierTrucksPage from "./features/logistic/carriers/CarrierTrucks.jsx";
 
 function Logout() {
     localStorage.removeItem(ACCESS_TOKEN)
@@ -34,12 +37,17 @@ function App() {
                 }
             >
                 <Route path="/" element={<Home />} />
-                <Route path="/warehouses" element={<WarehousesList />} />
                 <Route path="/carriers" element={<CarriersList />} />
-                <Route path="/carrier/create" element={<CarrierFormPage />} />
-                <Route path="/carrier/:id" element={<CarrierDetailPage />} />
-                <Route path="/carrier/:id/edit" element={<CarrierFormPage />} />
+                <Route path="/carriers/create" element={<CarrierFormPage />} />
+                <Route path="/carriers/:id" element={<CarrierDetailPage />} />
+                <Route path="/carriers/:id/edit" element={<CarrierFormPage />} />
+                <Route path="/carriers/:id/trucks" element={<CarrierTrucksPage />} />
+                <Route path="/carriers/:id/drivers" element={<CarrierDriversPage />} />
+
+                <Route path="/warehouses" element={<WarehousesList />} />
+                <Route path="/warehouses/create" element={<WarehouseFormPage />} />
                 <Route path="/warehouses/:id" element={<WarehouseInfoPage />} />
+                <Route path="/warehouses/:id/edit" element={<WarehouseFormPage />} />
             </Route>
 
             {/* 404 */}

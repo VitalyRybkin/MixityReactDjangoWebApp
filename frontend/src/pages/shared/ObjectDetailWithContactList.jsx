@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from 'react'
+import React, { useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 
 import { Edit as EditIcon } from '@mui/icons-material'
@@ -18,34 +18,42 @@ import {
     Stack,
     Typography,
 } from '@mui/material'
+import { useQuery } from '@tanstack/react-query'
 
 import api from '../../api.js'
 import ContactCreateUpdate from '../../components/ContactCreateUpdate.jsx'
 import ContactsListView from '../../components/ContactsList.jsx'
-import EmailLink from '../../components/ui/EmailLink.jsx'
 import EditAction from '../../components/ui/buttons/EditAction.jsx'
+import {useCarrierContacts} from "../../features/logistic/carriers/carriers.queries.js";
+import AppBreadcrumbs from "../../components/AppBreadcrumbs.jsx";
+import PersonIcon from '@mui/icons-material/Person';
+import LocalShippingIcon from '@mui/icons-material/LocalShipping';
 
-const unwrap = (d) => (Array.isArray(d) ? d : (d?.results ?? []))
-
-export const emailValue = (email) =>
-    email ? <EmailLink email={email} sx={{ fontSize: '1.2rem', lineHeight: 1.1 }} /> : null
 
 export default function ObjectDetailWithContactList({
-    id,
-    label,
-    editTo, // (id) => `/warehouses/${id}/edit`
-    entityUrl, // (id) => `/api/stock/${id}/`
-    contactsUrl, // (id) => `/api/stock/${id}/contacts/`
-    ownerType, // "warehouse" | "carrier"
-    ownerId, // Number(id)
-    fields, // (entity) => [{ label, value }]
-}) {
+                                                        id,
+                                                        label,
+                                                        editTo,
+                                                        entityUrl,
+                                                        ownerType,
+                                                        ownerId,
+                                                        fields,
+                                                    }) {
     const navigate = useNavigate()
 
-    const [entity, setEntity] = useState(null)
-    const [contacts, setContacts] = useState([])
+    const entityQuery = useQuery({
+        queryKey: ['object-detail', entityUrl(id)],
+        queryFn: async () => {
+            const res = await api.get(entityUrl(id))
+            return res.data
+        },
+    })
 
-    const [loading, setLoading] = useState(true)
+    const contactsQuery = useCarrierContacts(id)
+
+    const entity = entityQuery.data ?? null
+    const contacts = contactsQuery.data ?? []
+    const loading = entityQuery.isPending || contactsQuery.isPending
 
     const [dialog, setDialog] = useState({ open: false, mode: 'create', contact: null })
     const closeDialog = () => setDialog((s) => ({ ...s, open: false }))
@@ -86,38 +94,24 @@ export default function ObjectDetailWithContactList({
     const isContactDeleting = (contactId) => deleting.contactIds.has(contactId)
     const isPhoneDeleting = (contactId, phoneNumber) => deleting.phoneKeySet.has(`${contactId}:${phoneNumber}`)
 
-    const load = async () => {
-        setLoading(true)
-        try {
-            const [entityRes, contactsRes] = await Promise.all([api.get(entityUrl(id)), api.get(contactsUrl(id))])
-            setEntity(entityRes.data)
-            setContacts(unwrap(contactsRes.data))
-        } catch (e) {
-            showSnack(e?.response?.data?.detail || 'Не удалось загрузить данные', 'error')
-            setEntity(null)
-            setContacts([])
-        } finally {
-            setLoading(false)
-        }
+    const refetchAll = async () => {
+        await Promise.all([entityQuery.refetch(), contactsQuery.refetch()])
     }
 
     const onDeleteContact = (contactId) => {
         const contact = contacts.find((c) => c.id === contactId)
         openConfirm({
             title: 'Удалить контакт?',
-            text: `Контакт "${contact?.firstName ?? ''} ${contact?.lastName ?? ''}". Действие необратимо.`,
+            text: `"${contact?.firstName ?? ''} ${contact?.lastName ?? ''}". Действие необратимо.`,
             onYes: async () => {
                 closeConfirm()
-
-                const prev = contacts
-                setContacts((cs) => cs.filter((c) => c.id !== contactId))
                 setDeletingContact(contactId, true)
 
                 try {
                     await api.delete(`/api/contacts/${contactId}/`)
+                    await contactsQuery.refetch()
                     showSnack('Контакт удалён')
                 } catch (e) {
-                    setContacts(prev)
                     showSnack(e?.response?.data?.detail || 'Не удалось удалить контакт', 'error')
                 } finally {
                     setDeletingContact(contactId, false)
@@ -130,33 +124,28 @@ export default function ObjectDetailWithContactList({
         const contact = contacts.find((c) => c.id === contactId)
         if (!contact) return
 
-        const prev = contacts
-
         const nextPhones = (contact.phoneNumbers ?? []).filter((p) => p.phoneNumber !== phoneNumberToDelete)
-        setContacts((cs) => cs.map((c) => (c.id === contactId ? { ...c, phoneNumbers: nextPhones } : c)))
 
         setDeletingPhone(contactId, phoneNumberToDelete, true)
 
         try {
             await api.patch(`/api/contacts/${contactId}/`, { phoneNumbers: nextPhones })
+            await contactsQuery.refetch()
             showSnack('Телефон удалён')
         } catch (e) {
-            setContacts(prev)
             showSnack(e?.response?.data?.detail || 'Не удалось удалить телефон', 'error')
         } finally {
             setDeletingPhone(contactId, phoneNumberToDelete, false)
         }
     }
 
-    useEffect(() => {
-        load()
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [id])
-
     const rows = useMemo(() => fields(entity), [entity, fields])
+
+
 
     return (
         <Box sx={{ p: 3 }}>
+            <AppBreadcrumbs dynamicLabels={entity ? { id: entity.name } : {}} />
             <Stack spacing={2}>
                 <Card variant="outlined" sx={{ width: '100%', borderRadius: 1 }}>
                     <Box sx={{ p: 3, display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
@@ -171,12 +160,34 @@ export default function ObjectDetailWithContactList({
                         >
                             {label}
                         </Typography>
-                        <EditAction
-                            title="Изменить"
-                            color="primary"
-                            onClick={() => navigate(editTo(id))}
-                            icon={<EditIcon fontSize="small" />}
-                        />
+                        <Stack direction="row" spacing={1}>
+                            <EditAction
+                                title="Изменить"
+                                color="primary"
+                                onClick={() => navigate(editTo(id))}
+                                icon={<EditIcon fontSize="small" />}
+                            />
+                            {ownerType === 'carrier' && entity && (
+                                <EditAction
+                                    title="Водители"
+                                    color="primary"
+                                    onClick={() => navigate(editTo(id).replace('edit', 'drivers'), {
+                                        state: { entity }
+                                    })}
+                                    icon={<PersonIcon fontSize="small" />}
+                                />
+                            )}
+                            {ownerType === 'carrier' && entity && (
+                                <EditAction
+                                    title="Автотранспорт"
+                                    color="primary"
+                                    onClick={() => navigate(editTo(id).replace('edit', 'trucks'), {
+                                        state: { entity }
+                                    })}
+                                    icon={<LocalShippingIcon fontSize="small" />}
+                                />
+                            )}
+                        </Stack>
                     </Box>
 
                     <Divider />
@@ -236,7 +247,7 @@ export default function ObjectDetailWithContactList({
                 initialData={dialog.contact}
                 onClose={closeDialog}
                 onSaved={async () => {
-                    await load()
+                    await refetchAll()
                     closeDialog()
                 }}
             />
