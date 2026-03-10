@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from 'react'
+import React, { useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 
 import { Edit as EditIcon } from '@mui/icons-material'
@@ -18,30 +18,49 @@ import {
     Stack,
     Typography,
 } from '@mui/material'
+import { useQuery } from '@tanstack/react-query'
 
 import api from '../../api.js'
 import ContactCreateUpdate from '../../components/ContactCreateUpdate.jsx'
 import ContactsListView from '../../components/ContactsList.jsx'
 import EditAction from '../../components/ui/buttons/EditAction.jsx'
+import {useCarrierContacts} from "../../features/logistic/carriers/carrier.queries.js";
 
-const unwrap = (d) => (Array.isArray(d) ? d : (d?.results ?? []))
+// const unwrap = (d) => (Array.isArray(d) ? d : (d?.results ?? []))
 
 export default function ObjectDetailWithContactList({
-    id,
-    label,
-    editTo, // (id) => `/warehouses/${id}/edit`
-    entityUrl, // (id) => `/api/stock/${id}/`
-    contactsUrl, // (id) => `/api/stock/${id}/contacts/`
-    ownerType, // "warehouse" | "carrier"
-    ownerId, // Number(id)
-    fields, // (entity) => [{ label, value }]
-}) {
+                                                        id,
+                                                        label,
+                                                        editTo,
+                                                        entityUrl,
+                                                        // contactsUrl,
+                                                        ownerType,
+                                                        ownerId,
+                                                        fields,
+                                                    }) {
     const navigate = useNavigate()
 
-    const [entity, setEntity] = useState(null)
-    const [contacts, setContacts] = useState([])
+    const entityQuery = useQuery({
+        queryKey: ['object-detail', entityUrl(id)],
+        queryFn: async () => {
+            const res = await api.get(entityUrl(id))
+            return res.data
+        },
+    })
 
-    const [loading, setLoading] = useState(true)
+    // const contactsQuery = useQuery({
+    //     queryKey: ['object-contacts', contactsUrl(id)],
+    //     queryFn: async () => {
+    //         const res = await api.get(contactsUrl(id))
+    //         return unwrap(res.data)
+    //     },
+    // })
+
+    const contactsQuery = useCarrierContacts(id)
+
+    const entity = entityQuery.data ?? null
+    const contacts = contactsQuery.data ?? []
+    const loading = entityQuery.isPending || contactsQuery.isPending
 
     const [dialog, setDialog] = useState({ open: false, mode: 'create', contact: null })
     const closeDialog = () => setDialog((s) => ({ ...s, open: false }))
@@ -82,19 +101,8 @@ export default function ObjectDetailWithContactList({
     const isContactDeleting = (contactId) => deleting.contactIds.has(contactId)
     const isPhoneDeleting = (contactId, phoneNumber) => deleting.phoneKeySet.has(`${contactId}:${phoneNumber}`)
 
-    const load = async () => {
-        setLoading(true)
-        try {
-            const [entityRes, contactsRes] = await Promise.all([api.get(entityUrl(id)), api.get(contactsUrl(id))])
-            setEntity(entityRes.data)
-            setContacts(unwrap(contactsRes.data))
-        } catch (e) {
-            showSnack(e?.response?.data?.detail || 'Не удалось загрузить данные', 'error')
-            setEntity(null)
-            setContacts([])
-        } finally {
-            setLoading(false)
-        }
+    const refetchAll = async () => {
+        await Promise.all([entityQuery.refetch(), contactsQuery.refetch()])
     }
 
     const onDeleteContact = (contactId) => {
@@ -104,16 +112,13 @@ export default function ObjectDetailWithContactList({
             text: `"${contact?.firstName ?? ''} ${contact?.lastName ?? ''}". Действие необратимо.`,
             onYes: async () => {
                 closeConfirm()
-
-                const prev = contacts
-                setContacts((cs) => cs.filter((c) => c.id !== contactId))
                 setDeletingContact(contactId, true)
 
                 try {
                     await api.delete(`/api/contacts/${contactId}/`)
+                    await contactsQuery.refetch()
                     showSnack('Контакт удалён')
                 } catch (e) {
-                    setContacts(prev)
                     showSnack(e?.response?.data?.detail || 'Не удалось удалить контакт', 'error')
                 } finally {
                     setDeletingContact(contactId, false)
@@ -126,28 +131,20 @@ export default function ObjectDetailWithContactList({
         const contact = contacts.find((c) => c.id === contactId)
         if (!contact) return
 
-        const prev = contacts
-
         const nextPhones = (contact.phoneNumbers ?? []).filter((p) => p.phoneNumber !== phoneNumberToDelete)
-        setContacts((cs) => cs.map((c) => (c.id === contactId ? { ...c, phoneNumbers: nextPhones } : c)))
 
         setDeletingPhone(contactId, phoneNumberToDelete, true)
 
         try {
             await api.patch(`/api/contacts/${contactId}/`, { phoneNumbers: nextPhones })
+            await contactsQuery.refetch()
             showSnack('Телефон удалён')
         } catch (e) {
-            setContacts(prev)
             showSnack(e?.response?.data?.detail || 'Не удалось удалить телефон', 'error')
         } finally {
             setDeletingPhone(contactId, phoneNumberToDelete, false)
         }
     }
-
-    useEffect(() => {
-        load()
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [id])
 
     const rows = useMemo(() => fields(entity), [entity, fields])
 
@@ -232,7 +229,7 @@ export default function ObjectDetailWithContactList({
                 initialData={dialog.contact}
                 onClose={closeDialog}
                 onSaved={async () => {
-                    await load()
+                    await refetchAll()
                     closeDialog()
                 }}
             />

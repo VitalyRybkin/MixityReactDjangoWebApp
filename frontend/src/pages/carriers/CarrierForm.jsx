@@ -1,9 +1,9 @@
 import { useEffect, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
-import { firstError } from '../../utils/apiError'
 import { Alert, Box, Button, CircularProgress, Paper, Stack, TextField, Typography } from '@mui/material'
 
-import api from '../../api.js'
+import { firstError } from '../../utils/apiError'
+import { useCarrier, useCreateCarrier, useUpdateCarrier } from '../../features/logistic/carriers/carrier.queries.js'
 
 const emptyForm = {
     name: '',
@@ -19,66 +19,60 @@ export default function CarrierFormPage() {
     const isEdit = Boolean(id)
     const navigate = useNavigate()
 
-    const [loading, setLoading] = useState(isEdit)
-    const [saving, setSaving] = useState(false)
+    const { data: carrier, isPending: loadingCarrier, error: loadError } = useCarrier(id)
+    const createCarrier = useCreateCarrier()
+    const updateCarrier = useUpdateCarrier()
+
     const [error, setError] = useState('')
     const [form, setForm] = useState(emptyForm)
 
     useEffect(() => {
         if (!isEdit) {
             setForm(emptyForm)
-            setLoading(false)
             return
         }
 
-        let alive = true
-        ;(async () => {
-            try {
-                setLoading(true)
-                const res = await api.get(`/api/logistic/carriers/${id}/`)
-                if (!alive) return
-                setForm({
-                    name: res.data.name ?? '',
-                    fullName: res.data.fullName ?? '',
-                    address: res.data.address ?? '',
-                    phone: res.data.phone ?? '',
-                    email: res.data.email ?? '',
-                    description: res.data.description ?? '',
-                })
-            } catch (e) {
-                if (!alive) return
-                setError(e?.response?.data?.detail || 'Ошибка загрузки данных')
-            } finally {
-                if (alive) setLoading(false)
-            }
-        })()
-
-        return () => {
-            alive = false
+        if (carrier) {
+            setForm({
+                name: carrier.name ?? '',
+                fullName: carrier.fullName ?? '',
+                address: carrier.address ?? '',
+                phone: carrier.phone ?? '',
+                email: carrier.email ?? '',
+                description: carrier.description ?? '',
+            })
         }
-    }, [id, isEdit])
+    }, [carrier, isEdit])
 
-    const onChange = (field) => (e) => setForm((prev) => ({ ...prev, [field]: e.target.value }))
+    useEffect(() => {
+        if (loadError) {
+            setError(loadError?.response?.data?.detail || 'Ошибка загрузки данных')
+        }
+    }, [loadError])
+
+    const onChange = (field) => (e) => {
+        setForm((prev) => ({ ...prev, [field]: e.target.value }))
+    }
+
+    const saving = createCarrier.isPending || updateCarrier.isPending
 
     const onSubmit = async (e) => {
         e.preventDefault()
-        setSaving(true)
         setError('')
+
         try {
             if (isEdit) {
-                await api.patch(`/api/logistic/carriers/${id}/`, form)
+                await updateCarrier.mutateAsync({ id, payload: form })
             } else {
-                await api.post(`/api/logistic/carriers/`, form)
+                await createCarrier.mutateAsync(form)
             }
             navigate('/carriers')
         } catch (e2) {
             setError(firstError(e2))
-        } finally {
-            setSaving(false)
         }
     }
 
-    if (loading) return <CircularProgress />
+    if (isEdit && loadingCarrier) return <CircularProgress />
 
     return (
         <Box sx={{ p: 3, maxWidth: 700 }}>
@@ -118,7 +112,7 @@ export default function CarrierFormPage() {
                             <Button type="submit" variant="contained" disabled={saving}>
                                 {saving ? 'Сохранение...' : 'Сохранить'}
                             </Button>
-                            <Button variant="outlined" onClick={() => navigate(-1)} disabled={saving}>
+                            <Button variant="outlined" onClick={() => navigate('/carriers')} disabled={saving}>
                                 Отмена
                             </Button>
                         </Stack>
