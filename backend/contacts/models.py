@@ -1,6 +1,7 @@
-from django.core.validators import RegexValidator
+from phonenumber_field.modelfields import PhoneNumberField
 from django.db import models
 from django.db.models import Q
+from phonenumber_field.validators import validate_international_phonenumber
 
 
 class PhoneNumber(models.Model):
@@ -16,16 +17,10 @@ class PhoneNumber(models.Model):
         contact (Contact): The contact this phone number is associated with.
     """
 
-    russian_phone_regex = RegexValidator(
-        regex=r"^(\+7|7|8)?[\s\-]?\(?[489][0-9]{2}\)?[\s\-]?[0-9]{3}[\s\-]?[0-9]{2}[\s\-]?[0-9]{2}$",
-        message="Format: '+79991234567' or '89991234567'. Exactly 10 digits required after prefix.",
-    )
-
-    phone_number = models.CharField(
-        validators=[russian_phone_regex],
-        max_length=18,
-        help_text="Russian phone number",
+    phone_number = PhoneNumberField(
+        region="RU",
         unique=True,
+        validators=[validate_international_phonenumber]
     )
 
     contact = models.ForeignKey(
@@ -37,7 +32,7 @@ class PhoneNumber(models.Model):
         verbose_name_plural = "Phone numbers"
 
     def __str__(self) -> str:
-        return self.phone_number
+        return str(self.phone_number)
 
 
 class Contact(models.Model):

@@ -6,6 +6,7 @@ from rest_framework import serializers
 from contacts.models import Contact, PhoneNumber
 from logistic.models import Carrier
 from stock.models import Warehouse
+from phonenumber_field.serializerfields import PhoneNumberField
 
 
 class PhoneNumberSerializer(serializers.ModelSerializer):
@@ -13,13 +14,19 @@ class PhoneNumberSerializer(serializers.ModelSerializer):
     Serializer for PhoneNumber model.
 
     Attributes:
-        phoneNumber (serializers.CharField): Maps the 'phone_number' field of the PhoneNumber model.
+        phoneNumber (PhoneNumberField): Maps the 'phone_number' field of the PhoneNumber model.
 
     Meta:
         fields (list): Defines the list of fields to be included in the serialized data.
     """
 
-    phoneNumber = serializers.CharField(source="phone_number")
+    phoneNumber = PhoneNumberField(
+        source="phone_number",
+        region="RU",
+        label="Номер телефона",
+        error_messages={
+            'invalid': 'Введите корректный номер в формате +79991234567.'
+        })
 
     class Meta:
         model = PhoneNumber
@@ -45,7 +52,10 @@ class ContactSerializer(serializers.ModelSerializer):
     )
     email = serializers.EmailField(required=False, allow_null=True)
     phoneNumbers = PhoneNumberSerializer(
-        source="phone_numbers", many=True, required=False
+        source="phone_numbers",
+        many=True,
+        required=False,
+        label="Номера телефонов",
     )
 
     carrier = serializers.PrimaryKeyRelatedField(
