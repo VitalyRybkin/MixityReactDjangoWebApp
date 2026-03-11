@@ -1,6 +1,6 @@
-from phonenumber_field.modelfields import PhoneNumberField
 from django.db import models
 from django.db.models import Q
+from phonenumber_field.modelfields import PhoneNumberField
 from phonenumber_field.validators import validate_international_phonenumber
 
 
@@ -18,9 +18,7 @@ class PhoneNumber(models.Model):
     """
 
     phone_number = PhoneNumberField(
-        region="RU",
-        unique=True,
-        validators=[validate_international_phonenumber]
+        region="RU", unique=True, validators=[validate_international_phonenumber]
     )
 
     contact = models.ForeignKey(

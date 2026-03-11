@@ -1,12 +1,12 @@
 from typing import Any
 
 from django.db import transaction
+from phonenumber_field.serializerfields import PhoneNumberField
 from rest_framework import serializers
 
 from contacts.models import Contact, PhoneNumber
 from logistic.models import Carrier
 from stock.models import Warehouse
-from phonenumber_field.serializerfields import PhoneNumberField
 
 
 class PhoneNumberSerializer(serializers.ModelSerializer):
@@ -24,9 +24,8 @@ class PhoneNumberSerializer(serializers.ModelSerializer):
         source="phone_number",
         region="RU",
         label="Номер телефона",
-        error_messages={
-            'invalid': 'Введите корректный номер в формате +79991234567.'
-        })
+        error_messages={"invalid": "Введите корректный номер в формате +79991234567."},
+    )
 
     class Meta:
         model = PhoneNumber
