@@ -1,8 +1,7 @@
 from django.db.models import QuerySet
-from rest_framework import serializers
 from rest_framework.permissions import AllowAny
 
-from contacts.models import Contact, PhoneNumber
+from contacts.models import Contact
 from contacts.serializers import ContactSerializer
 from core.openapi.base_views import (
     BaseListAPIView,
@@ -51,23 +50,6 @@ class ContactListCreateAPIView(BaseListCreateAPIView):
     def get_queryset(self) -> QuerySet[Contact]:
         qs = Contact.objects.all().prefetch_related("phone_numbers")
         return qs.order_by("id")
-
-    def perform_create(self, serializer: serializers.BaseSerializer) -> None:
-        validated_data = dict(serializer.validated_data)
-        phones_list = validated_data.pop("phone_numbers", [])
-
-        contact = Contact.objects.create(**validated_data)
-
-        if phones_list:
-            PhoneNumber.objects.bulk_create(
-                [
-                    PhoneNumber(contact=contact, phone_number=item["phone_number"])
-                    for item in phones_list
-                ],
-                ignore_conflicts=True,
-            )
-
-        serializer.instance = contact
 
 
 class ContactRetrieveUpdateAPIView(BaseRetrieveUpdateDestroyAPIView):

@@ -31,6 +31,35 @@ class PhoneNumberSerializer(serializers.ModelSerializer):
         model = PhoneNumber
         fields = ["phoneNumber"]
 
+    @staticmethod
+    def validate_phoneNumber(value: Any) -> Any:
+        """
+        Validates the format and length of a phone number.
+
+        Parameters:
+        value: Any
+            The phone number provided for validation.
+
+        Returns:
+        Any
+            The validated phone number if it meets the criteria.
+
+        Raises:
+        serializers.ValidationError
+            If the phone number format is invalid or if it doesn't contain
+            exactly 11 digits.
+        """
+        if not value.is_valid():
+            raise serializers.ValidationError("Некорректный формат номера.")
+
+        digits_only = "".join(filter(str.isdigit, str(value)))
+        if len(digits_only) != 11:
+            raise serializers.ValidationError(
+                "Номер должен содержать ровно 11 цифр (включая 7)."
+            )
+
+        return value
+
 
 class ContactSerializer(serializers.ModelSerializer):
     """
@@ -77,8 +106,69 @@ class ContactSerializer(serializers.ModelSerializer):
             "warehouse",
         ]
 
+    def validate_phoneNumbers(
+        self, value: list[dict[str, Any]]
+    ) -> list[dict[str, Any]]:
+        """
+        Validates a list of phone numbers to ensure there are no duplicates within the input and that no phone
+        number already exists in the database.
+
+        Raises validation errors if duplicate phone numbers are found in the input or if any phone number already
+        exists in the database.
+
+        Attributes:
+            value (list): A list of dictionaries containing phone number information. Each dictionary should have
+            a "phone_number" key.
+
+        Returns:
+            list: The original input list of phone numbers if validation passes.
+
+        Raises:
+            serializers.ValidationError: Raised if duplicates are found in the input list or if any phone number
+            already exists in the database.
+        """
+        phone_values = [
+            item.get("phone_number") for item in value if item.get("phone_number")
+        ]
+
+        duplicates_in_request = set()
+        seen = set()
+        for phone in phone_values:
+            if phone in seen:
+                duplicates_in_request.add(phone)
+            seen.add(phone)
+
+        if duplicates_in_request:
+            raise serializers.ValidationError(
+                "Номера телефонов не должны дублироваться."
+            )
+
+        qs = PhoneNumber.objects.filter(phone_number__in=phone_values)
+
+        if self.instance is not None:
+            qs = qs.exclude(contact=self.instance)
+
+        if qs.exists():
+            raise serializers.ValidationError("Такой номер телефона уже существует.")
+
+        return value
+
     def validate(self, attrs: dict[str, Any]) -> dict[str, Any]:
-        """Validate the input data for creating or updating a contact."""
+        """
+        Validates the input dictionary to ensure only one of the 'carrier' or 'warehouse' fields
+        is provided or updated. It raises a validation error if neither or both fields are present.
+
+        Parameters:
+            attrs: dict[str, Any]
+                The input dictionary containing fields to be validated.
+
+        Returns:
+            dict[str, Any]: The validated dictionary.
+
+        Raises:
+            serializers.ValidationError: Raised when neither 'carrier' nor 'warehouse' is
+            provided, or when both are provided simultaneously.
+        """
         carrier = attrs.get("carrier")
         warehouse = attrs.get("warehouse")
 
@@ -103,20 +193,19 @@ class ContactSerializer(serializers.ModelSerializer):
         cls, contact: Contact, phone_numbers_data: list[dict]
     ) -> None:
         """
-        Upserts phone numbers for a given contact by replacing the existing phone numbers with
-        a new set of provided phone numbers. Any phone numbers not included in the new
-        data will be deleted, and any new phone numbers will be created. Duplicate phone
-        numbers in the provided data will be ignored.
+        Handles the replacement of phone numbers associated with a contact in the database. It ensures the
+        provided phone numbers are properly normalized, unique, and updates the database accordingly
+        by deleting unused numbers and adding new ones.
 
         Attributes:
-            contact: The contact that owns the phone numbers.
-            phone_numbers_data: A list of dictionaries containing phone numbers. Each
-                dictionary should at least have a 'phone_number' key with the raw phone number
-                string as a value.
+            contact (Contact): The contact object to associate with the phone numbers.
+            phone_numbers_data (list[dict]): A list of dictionaries containing phone number information. Each dictionary
+                                              should have a key "phone_number" whose value is the phone number string.
         """
         normalized = []
         for item in phone_numbers_data:
-            raw = (item.get("phone_number") or "").strip()
+            value = item.get("phone_number")
+            raw = str(value).strip() if value else ""
             if raw:
                 normalized.append(raw)
 
@@ -127,15 +216,20 @@ class ContactSerializer(serializers.ModelSerializer):
         ).delete()
 
         existing = set(
-            PhoneNumber.objects.filter(contact=contact).values_list(
-                "phone_number", flat=True
+            map(
+                str,
+                PhoneNumber.objects.filter(contact=contact).values_list(
+                    "phone_number", flat=True
+                ),
             )
         )
+
         to_create = [
             PhoneNumber(contact=contact, phone_number=p)
             for p in normalized
             if p not in existing
         ]
+
         if to_create:
             PhoneNumber.objects.bulk_create(to_create)
 
@@ -151,6 +245,9 @@ class ContactSerializer(serializers.ModelSerializer):
             validated_data: A dictionary containing the fields and their values
                 to be used for creating the Contact instance. Can include "phone_numbers"
                 for replacement of associated phone numbers.
+
+        Returns:
+            Contact: The newly created Contact instance.
         """
         phone_numbers_data = validated_data.pop("phone_numbers", [])
         contact = super().create(validated_data)
@@ -173,6 +270,9 @@ class ContactSerializer(serializers.ModelSerializer):
             validated_data: A dictionary containing the fields and their updated values
                 to be applied to the Contact instance. Can include "phone_numbers" for
                 replacement of associated phone numbers.
+
+        Returns:
+            Contact: The updated Contact instance.
         """
         phone_numbers_present = "phone_numbers" in validated_data
         phone_numbers_data = validated_data.pop("phone_numbers", None)

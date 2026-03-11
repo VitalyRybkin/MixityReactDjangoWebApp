@@ -17,21 +17,21 @@ import {
 } from '@mui/material'
 
 import api from '../api'
+import {
+    PHONE_ERROR_MESSAGE,
+    buildPhonePayload,
+    emptyPhone,
+    normalizePhoneInput,
+    validatePhoneList,
+    validatePhoneValue,
+} from '../utils/phone'
 
-const emptyPhone = () => ({ phoneNumber: '' })
 const safeStr = (v) => v ?? ''
 
-export default function ContactCreateUpdate({
-                                                open,
-                                                mode,
-                                                ownerType,
-                                                ownerId,
-                                                initialData,
-                                                onClose,
-                                                onSaved,
-                                            }) {
+export default function ContactCreateUpdate({ open, mode, ownerType, ownerId, initialData, onClose, onSaved }) {
     const [saving, setSaving] = useState(false)
     const [error, setError] = useState('')
+    const [phoneErrors, setPhoneErrors] = useState([''])
 
     const [form, setForm] = useState({
         firstName: '',
@@ -48,17 +48,18 @@ export default function ContactCreateUpdate({
         setSaving(false)
 
         if (mode === 'edit' && initialData) {
+            const phones = (initialData.phoneNumbers?.length ? initialData.phoneNumbers : [emptyPhone()]).map((p) => ({
+                phoneNumber: safeStr(p.phoneNumber),
+            }))
+
             setForm({
                 firstName: safeStr(initialData.firstName),
                 lastName: safeStr(initialData.lastName),
                 position: safeStr(initialData.position),
                 email: safeStr(initialData.email),
-                phoneNumbers: (initialData.phoneNumbers?.length ? initialData.phoneNumbers : [emptyPhone()]).map(
-                    (p) => ({
-                        phoneNumber: safeStr(p.phoneNumber),
-                    }),
-                ),
+                phoneNumbers: phones,
             })
+            setPhoneErrors(phones.map(() => ''))
         } else {
             setForm({
                 firstName: '',
@@ -67,50 +68,60 @@ export default function ContactCreateUpdate({
                 email: '',
                 phoneNumbers: [emptyPhone()],
             })
+            setPhoneErrors([''])
         }
     }, [open, mode, initialData])
 
     const onChange = (field) => (e) => {
-        setForm((p) => ({ ...p, [field]: e.target.value }))
+        setForm((prev) => ({ ...prev, [field]: e.target.value }))
     }
 
     const addPhone = () => {
-        setForm((p) => ({ ...p, phoneNumbers: [...p.phoneNumbers, emptyPhone()] }))
+        setForm((prev) => ({
+            ...prev,
+            phoneNumbers: [...prev.phoneNumbers, emptyPhone()],
+        }))
+        setPhoneErrors((prev) => [...prev, ''])
     }
 
     const removePhone = (idx) => {
-        setForm((p) => ({
-            ...p,
-            phoneNumbers: p.phoneNumbers.length === 1 ? [emptyPhone()] : p.phoneNumbers.filter((_, i) => i !== idx),
+        setForm((prev) => ({
+            ...prev,
+            phoneNumbers:
+                prev.phoneNumbers.length === 1 ? [emptyPhone()] : prev.phoneNumbers.filter((_, i) => i !== idx),
         }))
+
+        setPhoneErrors((prev) => (prev.length === 1 ? [''] : prev.filter((_, i) => i !== idx)))
     }
 
     const changePhone = (idx) => (e) => {
-        const value = e.target.value
-        setForm((p) => ({
-            ...p,
-            phoneNumbers: p.phoneNumbers.map((ph, i) => (i === idx ? { ...ph, phoneNumber: value } : ph)),
+        const value = normalizePhoneInput(e.target.value)
+
+        setForm((prev) => ({
+            ...prev,
+            phoneNumbers: prev.phoneNumbers.map((phone, i) => (i === idx ? { ...phone, phoneNumber: value } : phone)),
         }))
+
+        setPhoneErrors((prev) => prev.map((err, i) => (i === idx ? validatePhoneValue(value) : err)))
+    }
+
+    const validatePhonesBeforeSubmit = () => {
+        const errors = validatePhoneList(form.phoneNumbers)
+        setPhoneErrors(errors)
+        return errors.every((err) => !err)
     }
 
     const buildPayload = () => {
         const id = Number(ownerId)
 
-        const owner =
-            ownerType === 'warehouse'
-                ? { warehouse: id, carrier: null }
-                : { carrier: id, warehouse: null }
-
-        const phones = (form.phoneNumbers ?? [])
-            .map((p) => ({ phoneNumber: safeStr(p.phoneNumber).trim() }))
-            .filter((p) => p.phoneNumber.length > 0)
+        const owner = ownerType === 'warehouse' ? { warehouse: id, carrier: null } : { carrier: id, warehouse: null }
 
         return {
             firstName: form.firstName.trim(),
             lastName: form.lastName.trim() || '',
             position: form.position.trim() || null,
             email: form.email.trim() || null,
-            phoneNumbers: phones,
+            phoneNumbers: buildPhonePayload(form.phoneNumbers),
             ...owner,
         }
     }
@@ -120,6 +131,11 @@ export default function ContactCreateUpdate({
 
         setSaving(true)
         setError('')
+
+        if (!validatePhonesBeforeSubmit()) {
+            setSaving(false)
+            return
+        }
 
         try {
             if (mode === 'create') {
@@ -136,18 +152,19 @@ export default function ContactCreateUpdate({
         } catch (err) {
             const data = err?.response?.data
 
-            if (data && typeof data === 'object') {
+            if (Array.isArray(data)) {
+                setError(data[0] || 'Ошибка сохранения')
+            } else if (typeof data === 'string') {
+                setError(data)
+            } else if (data && typeof data === 'object') {
                 const firstKey = Object.keys(data)[0]
                 const val = data[firstKey]
 
-                if (firstKey === 'phoneNumbers' && Array.isArray(val) && val[0]?.phoneNumber) {
-                    setError(`phoneNumbers: ${val[0].phoneNumber[0]}`)
-                } else {
-                    const msg = firstKey
-                        ? `${firstKey}: ${Array.isArray(val) ? val[0] : typeof val === 'string' ? val : 'Invalid'}`
-                        : 'Ошибка сохранения'
-                    setError(msg)
-                }
+                const msg = firstKey
+                    ? `${firstKey}: ${Array.isArray(val) ? val[0] : typeof val === 'string' ? val : 'Invalid'}`
+                    : 'Ошибка сохранения'
+
+                setError(msg)
             } else {
                 setError(err?.message || 'Ошибка сохранения')
             }
@@ -172,7 +189,13 @@ export default function ContactCreateUpdate({
                     <Box>
                         <Stack direction="row" alignItems="center" justifyContent="space-between" sx={{ mb: 1 }}>
                             <Typography variant="subtitle1">Телефоны</Typography>
-                            <Button type="button" size="small" startIcon={<AddIcon />} onClick={addPhone} disabled={saving}>
+                            <Button
+                                type="button"
+                                size="small"
+                                startIcon={<AddIcon />}
+                                onClick={addPhone}
+                                disabled={saving}
+                            >
                                 Добавить
                             </Button>
                         </Stack>
@@ -185,6 +208,12 @@ export default function ContactCreateUpdate({
                                         value={p.phoneNumber}
                                         onChange={changePhone(idx)}
                                         fullWidth
+                                        error={Boolean(phoneErrors[idx])}
+                                        helperText={
+                                            phoneErrors[idx] ||
+                                            `Формат: ${PHONE_ERROR_MESSAGE.slice(-12) === '+79991234567' ? '+79991234567' : PHONE_ERROR_MESSAGE}`
+                                        }
+                                        placeholder="+79991234567"
                                     />
                                     <IconButton type="button" onClick={() => removePhone(idx)} disabled={saving}>
                                         <DeleteIcon color="error" />
