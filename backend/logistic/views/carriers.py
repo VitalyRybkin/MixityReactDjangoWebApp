@@ -19,7 +19,9 @@ from logistic.serializers.carrier_serializers import (
     CarrierSerializer,
 )
 from logistic.serializers.driver_serializers import DriverSerializer
-from logistic.serializers.truck_serializers import TruckSerializer
+from logistic.serializers.truck_serializers import (
+    TruckBaseReadSerializer,
+)
 
 
 class CarrierBaseAPIView(GenericAPIView):
@@ -156,9 +158,9 @@ class CarrierResourcesListAPIView(BaseListAPIView):
 
         return Driver.objects.filter(carrier_id=pk).order_by("id")
 
-    def get_serializer_class(self) -> type[TruckSerializer | DriverSerializer]:
+    def get_serializer_class(self) -> type[TruckBaseReadSerializer | DriverSerializer]:
         if "trucks" in self.request.path.lower():
-            return TruckSerializer
+            return TruckBaseReadSerializer
         return DriverSerializer
 
 
@@ -180,7 +182,7 @@ class CarrierTruckListAPIView(CarrierResourcesListAPIView):
 
     resource_name = "Carrier trucks"
     schema_tags = ["Carrier"]
-    read_serializer_class = TruckSerializer
+    read_serializer_class = TruckBaseReadSerializer
 
 
 class CarrierDriverListAPIView(CarrierResourcesListAPIView):

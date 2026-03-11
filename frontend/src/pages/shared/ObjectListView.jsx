@@ -3,9 +3,9 @@ import { useNavigate } from 'react-router-dom'
 
 import { Box, CircularProgress, Divider, Grid, Typography } from '@mui/material'
 
+import AppBreadcrumbs from '../../components/AppBreadcrumbs.jsx'
 import ErrorState from '../../components/ui/ErrorState.jsx'
 import AddAction from '../../components/ui/buttons/AddAction.jsx'
-import AppBreadcrumbs from "../../components/AppBreadcrumbs.jsx";
 
 const ObjectListView = ({
     title,
@@ -23,12 +23,9 @@ const ObjectListView = ({
         <Box sx={{ p: 3, width: '100%' }}>
             <AppBreadcrumbs />
             <Box sx={{ p: 3, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-
-
                 <Typography variant="h4" gutterBottom fontWeight={600}>
                     {title}
                 </Typography>
-
                 <AddAction onClick={() => navigate(addTo)} />
             </Box>
             <Divider sx={{ mb: 3 }} />

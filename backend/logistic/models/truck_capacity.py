@@ -13,7 +13,7 @@ class TruckCapacity(models.Model):
         description (TextField): Optional description providing additional details about the truck capacity.
     """
 
-    capacity = models.DecimalField(max_digits=2, decimal_places=1)
+    capacity = models.DecimalField(max_digits=4, decimal_places=1)
     description = models.TextField(null=True, blank=True)
 
     class Meta:

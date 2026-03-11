@@ -2,6 +2,8 @@ import React, { useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 
 import { Edit as EditIcon } from '@mui/icons-material'
+import LocalShippingIcon from '@mui/icons-material/LocalShipping'
+import PersonIcon from '@mui/icons-material/Person'
 import {
     Alert,
     Box,
@@ -18,27 +20,17 @@ import {
     Stack,
     Typography,
 } from '@mui/material'
+
 import { useQuery } from '@tanstack/react-query'
 
 import api from '../../api.js'
+import AppBreadcrumbs from '../../components/AppBreadcrumbs.jsx'
 import ContactCreateUpdate from '../../components/ContactCreateUpdate.jsx'
 import ContactsListView from '../../components/ContactsList.jsx'
 import EditAction from '../../components/ui/buttons/EditAction.jsx'
-import {useCarrierContacts} from "../../features/logistic/carriers/carriers.queries.js";
-import AppBreadcrumbs from "../../components/AppBreadcrumbs.jsx";
-import PersonIcon from '@mui/icons-material/Person';
-import LocalShippingIcon from '@mui/icons-material/LocalShipping';
+import { useCarrierContacts } from '../../features/logistic/carriers/carriers.queries.js'
 
-
-export default function ObjectDetailWithContactList({
-                                                        id,
-                                                        label,
-                                                        editTo,
-                                                        entityUrl,
-                                                        ownerType,
-                                                        ownerId,
-                                                        fields,
-                                                    }) {
+export default function ObjectDetailWithContactList({ id, label, editTo, entityUrl, ownerType, ownerId, fields }) {
     const navigate = useNavigate()
 
     const entityQuery = useQuery({
@@ -141,8 +133,6 @@ export default function ObjectDetailWithContactList({
 
     const rows = useMemo(() => fields(entity), [entity, fields])
 
-
-
     return (
         <Box sx={{ p: 3 }}>
             <AppBreadcrumbs dynamicLabels={entity ? { id: entity.name } : {}} />
@@ -171,9 +161,11 @@ export default function ObjectDetailWithContactList({
                                 <EditAction
                                     title="Водители"
                                     color="primary"
-                                    onClick={() => navigate(editTo(id).replace('edit', 'drivers'), {
-                                        state: { entity }
-                                    })}
+                                    onClick={() =>
+                                        navigate(editTo(id).replace('edit', 'drivers'), {
+                                            state: { entity },
+                                        })
+                                    }
                                     icon={<PersonIcon fontSize="small" />}
                                 />
                             )}
@@ -181,9 +173,11 @@ export default function ObjectDetailWithContactList({
                                 <EditAction
                                     title="Автотранспорт"
                                     color="primary"
-                                    onClick={() => navigate(editTo(id).replace('edit', 'trucks'), {
-                                        state: { entity }
-                                    })}
+                                    onClick={() =>
+                                        navigate(editTo(id).replace('edit', 'trucks'), {
+                                            state: { entity },
+                                        })
+                                    }
                                     icon={<LocalShippingIcon fontSize="small" />}
                                 />
                             )}
