@@ -2,6 +2,7 @@ import React from 'react'
 import { Link as RouterLink, useNavigate } from 'react-router-dom'
 
 import { Edit as EditIcon } from '@mui/icons-material'
+import PhoneIcon from '@mui/icons-material/Phone'
 import PictureAsPdfIcon from '@mui/icons-material/PictureAsPdf'
 import { Box, Card, CardActionArea, CardContent, Divider, IconButton, Stack, Tooltip, Typography } from '@mui/material'
 
@@ -72,7 +73,20 @@ const ObjectListViewCard = ({ title, subtitle, extra, email, phone, fileUrl, to,
                                         sx={{ mx: 2, height: 14, alignSelf: 'center' }}
                                     />
                                 )}
-                                {phone}
+
+                                <Stack direction="row" alignItems="center" spacing={0.5}>
+                                    <Typography variant="body2">{phone}</Typography>
+                                    <IconButton
+                                        size="small"
+                                        onClick={(e) => {
+                                            e.preventDefault()
+                                            e.stopPropagation()
+                                            window.location.href = `tel:${phone}`
+                                        }}
+                                    >
+                                        <PhoneIcon fontSize="small" />
+                                    </IconButton>
+                                </Stack>
                             </>
                         )}
 

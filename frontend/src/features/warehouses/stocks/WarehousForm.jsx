@@ -5,6 +5,7 @@ import { Alert, Box, Button, CircularProgress, Paper, Stack, TextField, Typograp
 
 import AppBreadcrumbs from '../../../components/AppBreadcrumbs.jsx'
 import { firstError } from '../../../utils/apiError.js'
+import { EMAIL_HINT, normalizeEmailInput, validateEmailValue } from '../../../utils/email.js'
 import { normalizePhoneInput, validatePhoneValue } from '../../../utils/phone.js'
 
 import { useCreateWarehouse, useUpdateWarehouse, useWarehouse } from './stocks.queries.js'
@@ -31,12 +32,14 @@ export default function WarehouseFormPage() {
 
     const [error, setError] = useState('')
     const [phoneError, setPhoneError] = useState('')
+    const [emailError, setEmailError] = useState('')
     const [form, setForm] = useState(emptyForm)
 
     useEffect(() => {
         if (!isEdit) {
             setForm(emptyForm)
             setPhoneError('')
+            setEmailError('')
             return
         }
 
@@ -50,6 +53,7 @@ export default function WarehouseFormPage() {
                 descriptions: warehouse.descriptions ?? '',
             })
             setPhoneError('')
+            setEmailError('')
         }
     }, [warehouse, isEdit])
 
@@ -66,14 +70,22 @@ export default function WarehouseFormPage() {
             value = normalizePhoneInput(value)
             setPhoneError(validatePhoneValue(value))
         }
+        if (field === 'email') {
+            value = normalizeEmailInput(value)
+            setEmailError(validateEmailValue(value))
+        }
 
         setForm((prev) => ({ ...prev, [field]: value }))
     }
 
     const validateBeforeSubmit = () => {
-        const currentPhoneError = validatePhoneValue(form.phone)
-        setPhoneError(currentPhoneError)
-        return !currentPhoneError
+        const phoneErr = validatePhoneValue(form.phone)
+        const emailErr = validateEmailValue(form.email)
+
+        setPhoneError(phoneErr)
+        setEmailError(emailErr)
+
+        return !phoneErr && !emailErr
     }
 
     const onSubmit = async (e) => {
@@ -131,7 +143,15 @@ export default function WarehouseFormPage() {
                             helperText={phoneError || 'Формат: +79991234567'}
                             placeholder="+79991234567"
                         />
-                        <TextField label="Эл. почта" value={form.email} onChange={onChange('email')} fullWidth />
+                        <TextField
+                            label="Эл. почта"
+                            value={form.email}
+                            onChange={onChange('email')}
+                            error={Boolean(emailError)}
+                            helperText={emailError || EMAIL_HINT}
+                            placeholder="name@example.com"
+                            fullWidth
+                        />
                         <TextField
                             label="Примечание"
                             value={form.descriptions}
