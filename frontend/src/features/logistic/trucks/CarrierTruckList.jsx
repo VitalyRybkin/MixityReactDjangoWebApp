@@ -119,7 +119,11 @@ export default function CarrierTruckListPage() {
                                                 <EditAction
                                                     title="Изменить"
                                                     color="primary"
-                                                    onClick={() => onEdit(truck)}
+                                                    onClick={() =>
+                                                        navigate(`/carriers/${id}/trucks/${truck.id}/edit`, {
+                                                            state: { entity },
+                                                        })
+                                                    }
                                                     icon={<EditIcon fontSize="small" />}
                                                 />
                                                 <DeleteAction onClick={() => handleDelete(truck)} />

@@ -44,6 +44,7 @@ function App() {
                 <Route path="/carriers/:id/edit" element={<CarrierFormPage />} />
                 <Route path="/carriers/:id/trucks" element={<CarrierTruckListPage />} />
                 <Route path="/carriers/:carrierId/trucks/create" element={<TruckFormPage />} />
+                <Route path="/carriers/:carrierId/trucks/:truckId/edit" element={<TruckFormPage />} />
                 <Route path="/carriers/:id/drivers" element={<CarrierDriversPage />} />
 
                 <Route path="/warehouses" element={<WarehousesList />} />
