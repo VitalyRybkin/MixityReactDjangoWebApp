@@ -1,5 +1,5 @@
 import React from 'react'
-import { useLocation, useParams } from 'react-router-dom'
+import { useLocation, useNavigate, useParams } from 'react-router-dom'
 
 import { Edit as EditIcon } from '@mui/icons-material'
 import {
@@ -31,6 +31,7 @@ import { useDeleteCarrierTruck, useGetCarrierTrucks } from './trucks.queries.js'
 const tableHeaders = ['Тип', 'Грузоподъемность', 'Госномер', 'Примечание', '']
 
 export default function CarrierTruckListPage() {
+    const navigate = useNavigate()
     const { id } = useParams()
     const { data: trucks = [], isPending, error, refetch } = useGetCarrierTrucks(id)
     const deleteTruck = useDeleteCarrierTruck()
@@ -68,8 +69,13 @@ export default function CarrierTruckListPage() {
                 <Typography variant="h4" gutterBottom fontWeight={600}>
                     Автотранспорт
                 </Typography>
-                <AddAction />
-                {/*<AddAction onClick={() => navigate(addTo)} />*/}
+                <AddAction
+                    onClick={() =>
+                        navigate(`/carriers/${entity?.id}/trucks/create`, {
+                            state: { entity },
+                        })
+                    }
+                />
             </Box>
             <Divider sx={{ mb: 3 }} />
 
@@ -122,9 +128,15 @@ export default function CarrierTruckListPage() {
                                     </TableRow>
                                 ))
                             ) : (
-                                <Typography color="text.secondary" sx={{ p: 2 }}>
-                                    Список пуст
-                                </Typography>
+                                <TableRow>
+                                    <TableCell
+                                        colSpan={tableHeaders.length}
+                                        align="left"
+                                        sx={{ py: 3, color: 'text.secondary' }}
+                                    >
+                                        Список пуст
+                                    </TableCell>
+                                </TableRow>
                             )}
                         </TableBody>
                     </Table>

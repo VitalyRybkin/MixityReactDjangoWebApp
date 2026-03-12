@@ -1,108 +1,74 @@
-import React, { useEffect, useState } from 'react'
-import { useNavigate, useParams } from 'react-router-dom'
+import React, { useState } from 'react'
 
-import { Alert, Box, CircularProgress, Paper, Stack, TextField, Typography } from '@mui/material'
+import { Alert, Button, Dialog, DialogActions, DialogContent, DialogTitle, Stack, TextField } from '@mui/material'
 
-import AppBreadcrumbs from '../../../components/AppBreadcrumbs.jsx'
-import FormActions from '../../../components/ui/FormActions.jsx'
 import { firstError } from '../../../utils/apiError.js'
 
-import { useCreateTruckType, useGetTruckType, useUpdateTruckType } from './trucks.queries.js'
+import { useCreateTruckType } from './trucks.queries.js'
 
 const emptyForm = {
-    name: '',
+    truckType: '',
     description: '',
 }
 
-export default function TruckTypeDialogFormPage() {
-    const { id } = useParams()
-    const isEdit = Boolean(id)
-    const navigate = useNavigate()
-
-    const { data: truckType, isPending: loadingTruckType } = useGetTruckType(id)
+export default function TruckTypeCreateDialog({ open, onClose, onCreated }) {
     const createType = useCreateTruckType()
-    const updateType = useUpdateTruckType()
 
-    const [error, setError] = useState('')
     const [form, setForm] = useState(emptyForm)
-
-    useEffect(() => {
-        if (!isEdit) {
-            setForm(emptyForm)
-            return
-        }
-
-        if (truckType) {
-            setForm({
-                name: truckType.name ?? '',
-                description: truckType.description ?? '',
-            })
-        }
-    }, [truckType, isEdit])
+    const [error, setError] = useState('')
 
     const onChange = (field) => (e) => {
         setForm((prev) => ({ ...prev, [field]: e.target.value }))
     }
 
-    const saving = createType.isPending || updateType.isPending
+    const handleClose = () => {
+        setForm(emptyForm)
+        setError('')
+        onClose()
+    }
 
     const onSubmit = async (e) => {
         e.preventDefault()
         setError('')
 
         try {
-            if (isEdit) {
-                await updateType.mutateAsync({ id, payload: form })
-            } else {
-                await createType.mutateAsync(form)
-            }
-
-            navigate('/truck-types')
+            const created = await createType.mutateAsync(form)
+            setForm(emptyForm)
+            setError('')
+            onCreated(created)
+            onClose()
         } catch (err) {
             setError(firstError(err))
         }
     }
 
-    if (isEdit && loadingTruckType) {
-        return (
-            <Box sx={{ py: 6, display: 'flex', justifyContent: 'center' }}>
-                <CircularProgress />
-            </Box>
-        )
-    }
-
     return (
-        <Box sx={{ p: 3, maxWidth: 700 }}>
-            <AppBreadcrumbs dynamicLabels={{ id: truckType?.name }} />
+        <Dialog open={open} onClose={handleClose} fullWidth maxWidth="sm">
+            <DialogTitle>Добавить тип</DialogTitle>
 
-            <Paper sx={{ p: 3, borderRadius: 3 }}>
-                <Typography variant="h5" sx={{ mb: 2 }}>
-                    {isEdit ? `Редактировать тип` : 'Добавить тип'}
-                </Typography>
+            <DialogContent>
+                <Stack spacing={2} sx={{ mt: 1 }}>
+                    {error && <Alert severity="error">{error}</Alert>}
 
-                {error && (
-                    <Alert severity="error" sx={{ mb: 2 }}>
-                        {error}
-                    </Alert>
-                )}
+                    <TextField label="Тип" value={form.truckType} onChange={onChange('truckType')} fullWidth required />
 
-                <Box component="form" onSubmit={onSubmit}>
-                    <Stack spacing={2}>
-                        <TextField label="Тип" value={form.name} onChange={onChange('name')} fullWidth required />
+                    <TextField
+                        label="Примечание"
+                        value={form.description}
+                        onChange={onChange('description')}
+                        fullWidth
+                        multiline
+                        minRows={3}
+                    />
+                </Stack>
+            </DialogContent>
 
-                        <TextField
-                            label="Примечание"
-                            value={form.description}
-                            onChange={onChange('description')}
-                            fullWidth
-                            multiline
-                            minRows={3}
-                        />
-
-                        <FormActions saving={saving} onCancel={() => navigate('/truck-types')} />
-                    </Stack>
-                </Box>
-            </Paper>
-        </Box>
+            <DialogActions>
+                <Button onClick={handleClose}>Отмена</Button>
+                <Button onClick={onSubmit} variant="contained" disabled={createType.isPending}>
+                    Сохранить
+                </Button>
+            </DialogActions>
+        </Dialog>
     )
 }

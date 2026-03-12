@@ -6,6 +6,7 @@ import CarrierDetailPage from './features/logistic/carriers/CarrierDetail.jsx'
 import CarrierDriversPage from './features/logistic/carriers/CarrierDrivers.jsx'
 import CarrierFormPage from './features/logistic/carriers/CarrierForm.jsx'
 import CarriersList from './features/logistic/carriers/CarriersList.jsx'
+import TruckFormPage from './features/logistic/trucks/CarrierTruckForm.jsx'
 import CarrierTruckListPage from './features/logistic/trucks/CarrierTruckList.jsx'
 import WarehouseFormPage from './features/warehouses/stocks/WarehousForm.jsx'
 import WarehouseInfoPage from './features/warehouses/stocks/WarehouseDetail.jsx'
@@ -42,6 +43,7 @@ function App() {
                 <Route path="/carriers/:id" element={<CarrierDetailPage />} />
                 <Route path="/carriers/:id/edit" element={<CarrierFormPage />} />
                 <Route path="/carriers/:id/trucks" element={<CarrierTruckListPage />} />
+                <Route path="/carriers/:carrierId/trucks/create" element={<TruckFormPage />} />
                 <Route path="/carriers/:id/drivers" element={<CarrierDriversPage />} />
 
                 <Route path="/warehouses" element={<WarehousesList />} />

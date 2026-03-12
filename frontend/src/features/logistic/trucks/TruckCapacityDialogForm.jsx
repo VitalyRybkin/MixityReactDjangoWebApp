@@ -1,114 +1,80 @@
-import React, { useEffect, useState } from 'react'
-import { useNavigate, useParams } from 'react-router-dom'
+import React, { useState } from 'react'
 
-import { Alert, Box, CircularProgress, Paper, Stack, TextField, Typography } from '@mui/material'
+import { Alert, Button, Dialog, DialogActions, DialogContent, DialogTitle, Stack, TextField } from '@mui/material'
 
-import AppBreadcrumbs from '../../../components/AppBreadcrumbs.jsx'
-import FormActions from '../../../components/ui/FormActions.jsx'
 import { firstError } from '../../../utils/apiError.js'
 
-import { useCreateTruckCapacity, useGetTruckCapacity, useUpdateTruckCapacity } from './trucks.queries.js'
+import { useCreateTruckCapacity } from './trucks.queries.js'
 
 const emptyForm = {
     capacity: '',
     description: '',
 }
 
-export default function TruckCapacityDialogFormPage() {
-    const { id } = useParams()
-    const isEdit = Boolean(id)
-    const navigate = useNavigate()
-
-    const { data: truckCapacity, isPending: loadingTruckCapacity } = useGetTruckCapacity(id)
+export default function TruckCapacityCreateDialog({ open, onClose, onCreated }) {
     const createCapacity = useCreateTruckCapacity()
-    const updateCapacity = useUpdateTruckCapacity()
 
-    const [error, setError] = useState('')
     const [form, setForm] = useState(emptyForm)
-
-    useEffect(() => {
-        if (!isEdit) {
-            setForm(emptyForm)
-            return
-        }
-
-        if (truckCapacity) {
-            setForm({
-                capacity: truckCapacity.capacity ?? '',
-                description: truckCapacity.description ?? '',
-            })
-        }
-    }, [truckCapacity, isEdit])
+    const [error, setError] = useState('')
 
     const onChange = (field) => (e) => {
         setForm((prev) => ({ ...prev, [field]: e.target.value }))
     }
 
-    const saving = createCapacity.isPending || updateCapacity.isPending
+    const handleClose = () => {
+        setForm(emptyForm)
+        setError('')
+        onClose()
+    }
 
     const onSubmit = async (e) => {
         e.preventDefault()
         setError('')
 
         try {
-            if (isEdit) {
-                await updateCapacity.mutateAsync({ id, payload: form })
-            } else {
-                await createCapacity.mutateAsync(form)
-            }
-
-            navigate('/truck-capacities')
+            const created = await createCapacity.mutateAsync(form)
+            setForm(emptyForm)
+            setError('')
+            onCreated(created)
+            onClose()
         } catch (err) {
             setError(firstError(err))
         }
     }
 
-    if (isEdit && loadingTruckCapacity) {
-        return (
-            <Box sx={{ py: 6, display: 'flex', justifyContent: 'center' }}>
-                <CircularProgress />
-            </Box>
-        )
-    }
-
     return (
-        <Box sx={{ p: 3, maxWidth: 700 }}>
-            <AppBreadcrumbs dynamicLabels={{ id: truckCapacity?.capacity }} />
+        <Dialog open={open} onClose={handleClose} fullWidth maxWidth="sm">
+            <DialogTitle>Добавить грузоподъемность</DialogTitle>
 
-            <Paper sx={{ p: 3, borderRadius: 3 }}>
-                <Typography variant="h5" sx={{ mb: 2 }}>
-                    {isEdit ? `Редактировать грузоподъемность` : 'Добавить грузоподъемность'}
-                </Typography>
+            <DialogContent>
+                <Stack spacing={2} sx={{ mt: 1 }}>
+                    {error && <Alert severity="error">{error}</Alert>}
 
-                {error && (
-                    <Alert severity="error" sx={{ mb: 2 }}>
-                        {error}
-                    </Alert>
-                )}
+                    <TextField
+                        label="Грузоподъемность"
+                        value={form.capacity}
+                        onChange={onChange('capacity')}
+                        fullWidth
+                        required
+                    />
 
-                <Box component="form" onSubmit={onSubmit}>
-                    <Stack spacing={2}>
-                        <TextField
-                            label="Грузоподъемность"
-                            value={form.capacity}
-                            onChange={onChange('capacity')}
-                            fullWidth
-                            required
-                        />
+                    <TextField
+                        label="Примечание"
+                        value={form.description}
+                        onChange={onChange('description')}
+                        fullWidth
+                        multiline
+                        minRows={3}
+                    />
+                </Stack>
+            </DialogContent>
 
-                        <TextField
-                            label="Примечание"
-                            value={form.description}
-                            onChange={onChange('description')}
-                            fullWidth
-                            multiline
-                            minRows={3}
-                        />
-
-                        <FormActions saving={saving} onCancel={() => navigate('/truck-capacities')} />
-                    </Stack>
-                </Box>
-            </Paper>
-        </Box>
+            <DialogActions>
+                <Button onClick={handleClose}>Отмена</Button>
+                <Button onClick={onSubmit} variant="contained" disabled={createCapacity.isPending}>
+                    Сохранить
+                </Button>
+            </DialogActions>
+        </Dialog>
     )
 }
