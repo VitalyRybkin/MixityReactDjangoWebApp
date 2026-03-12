@@ -1,9 +1,10 @@
-import { useCarriers, useDeleteCarrier } from './carriers.queries.js'
 import ObjectListView from '../../../pages/shared/ObjectListView.jsx'
 import ObjectListViewCard from '../../../pages/shared/ObjectListViewCard.jsx'
 
+import { useDeleteCarrier, useGetCarriers } from './carriers.queries.js'
+
 export default function CarriersList() {
-    const { data: carriers = [], isPending, error, refetch } = useCarriers()
+    const { data: carriers = [], isPending, error, refetch } = useGetCarriers()
     const deleteCarrier = useDeleteCarrier()
 
     const handleDelete = async (id) => {

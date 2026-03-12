@@ -1,4 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+
 import api from '../../../api.js'
 
 const unwrapList = (d) => {
@@ -43,14 +44,14 @@ const deleteCarrier = async (id) => {
     return id
 }
 
-export function useCarriers() {
+export function useGetCarriers() {
     return useQuery({
         queryKey: carrierKeys.all,
         queryFn: fetchCarriers,
     })
 }
 
-export function useCarrier(id) {
+export function useGetCarrier(id) {
     return useQuery({
         queryKey: carrierKeys.detail(id),
         queryFn: () => fetchCarrier(id),
@@ -58,7 +59,7 @@ export function useCarrier(id) {
     })
 }
 
-export function useCarrierContacts(id) {
+export function useGetCarrierContacts(id) {
     return useQuery({
         queryKey: carrierKeys.contacts(id),
         queryFn: () => fetchCarrierContacts(id),

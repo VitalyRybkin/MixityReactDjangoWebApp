@@ -19,7 +19,7 @@ export const fetchCarrierTrucks = async (id) => {
     return unwrapList(res.data)
 }
 
-export function useCarrierTrucks(id) {
+export function useGetCarrierTrucks(id) {
     return useQuery({
         queryKey: truckKeys.list(id),
         queryFn: () => fetchCarrierTrucks(id),

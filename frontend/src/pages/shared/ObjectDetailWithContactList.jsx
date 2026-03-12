@@ -28,7 +28,7 @@ import AppBreadcrumbs from '../../components/AppBreadcrumbs.jsx'
 import ContactCreateUpdate from '../../components/ContactCreateUpdate.jsx'
 import ContactsListView from '../../components/ContactsList.jsx'
 import EditAction from '../../components/ui/buttons/EditAction.jsx'
-import { useCarrierContacts } from '../../features/logistic/carriers/carriers.queries.js'
+import { useGetCarrierContacts } from '../../features/logistic/carriers/carriers.queries.js'
 
 export default function ObjectDetailWithContactList({ id, label, editTo, entityUrl, ownerType, ownerId, fields }) {
     const navigate = useNavigate()
@@ -41,7 +41,7 @@ export default function ObjectDetailWithContactList({ id, label, editTo, entityU
         },
     })
 
-    const contactsQuery = useCarrierContacts(id)
+    const contactsQuery = useGetCarrierContacts(id)
 
     const entity = entityQuery.data ?? null
     const contacts = contactsQuery.data ?? []

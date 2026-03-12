@@ -1,10 +1,12 @@
 import React, { useEffect, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
+
 import { Alert, Box, Button, CircularProgress, Paper, Stack, TextField, Typography } from '@mui/material'
 
+import AppBreadcrumbs from '../../../components/AppBreadcrumbs.jsx'
 import { firstError } from '../../../utils/apiError.js'
-import { useCarrier, useCreateCarrier, useUpdateCarrier } from './carriers.queries.js'
-import AppBreadcrumbs from "../../../components/AppBreadcrumbs.jsx";
+
+import { useCreateCarrier, useGetCarrier, useUpdateCarrier } from './carriers.queries.js'
 
 const emptyForm = {
     name: '',
@@ -20,7 +22,7 @@ export default function CarrierFormPage() {
     const isEdit = Boolean(id)
     const navigate = useNavigate()
 
-    const { data: carrier, isPending: loadingCarrier, error: loadError } = useCarrier(id)
+    const { data: carrier, isPending: loadingCarrier, error: loadError } = useGetCarrier(id)
     const createCarrier = useCreateCarrier()
     const updateCarrier = useUpdateCarrier()
 

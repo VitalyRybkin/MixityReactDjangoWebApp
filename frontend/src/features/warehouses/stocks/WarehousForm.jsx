@@ -1,20 +1,18 @@
 import React, { useEffect, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
+
 import { Alert, Box, Button, CircularProgress, Paper, Stack, TextField, Typography } from '@mui/material'
 
+import AppBreadcrumbs from '../../../components/AppBreadcrumbs.jsx'
 import { firstError } from '../../../utils/apiError.js'
-import {
-    useCreateWarehouse,
-    useUpdateWarehouse,
-    useWarehouse,
-} from './stocks.queries.js'
-import AppBreadcrumbs from "../../../components/AppBreadcrumbs.jsx";
+
+import { useCreateWarehouse, useUpdateWarehouse, useWarehouse } from './stocks.queries.js'
 
 const emptyForm = {
     name: '',
     organization: '',
     address: '',
-    phoneNumber: '',
+    phone: '',
     email: '',
     descriptions: '',
 }
@@ -42,7 +40,7 @@ export default function WarehouseFormPage() {
                 name: warehouse.name ?? '',
                 organization: warehouse.organization ?? '',
                 address: warehouse.address ?? '',
-                phoneNumber: warehouse.phoneNumber ?? '',
+                phone: warehouse.phone ?? '',
                 email: warehouse.email ?? '',
                 descriptions: warehouse.descriptions ?? '',
             })
@@ -103,12 +101,7 @@ export default function WarehouseFormPage() {
                             fullWidth
                         />
                         <TextField label="Адрес" value={form.address} onChange={onChange('address')} fullWidth />
-                        <TextField
-                            label="Телефон"
-                            value={form.phoneNumber}
-                            onChange={onChange('phoneNumber')}
-                            fullWidth
-                        />
+                        <TextField label="Телефон" value={form.phone} onChange={onChange('phone')} fullWidth />
                         <TextField label="Эл. почта" value={form.email} onChange={onChange('email')} fullWidth />
                         <TextField
                             label="Примечание"

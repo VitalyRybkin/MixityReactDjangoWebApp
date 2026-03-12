@@ -22,13 +22,13 @@ import AddAction from '../../../components/ui/buttons/AddAction.jsx'
 import DeleteAction from '../../../components/ui/buttons/DeleteAction.jsx'
 import EditAction from '../../../components/ui/buttons/EditAction.jsx'
 
-import { useCarrierTrucks } from './trucks.queries.js'
+import { useGetCarrierTrucks } from './trucks.queries.js'
 
 const tableHeaders = ['Тип', 'Грузоподъемность', 'Госномер', 'Примечание', '']
 
 export default function CarrierTruckListPage() {
     const { id } = useParams()
-    const { data: trucks = [], isPending, error, refetch } = useCarrierTrucks(id)
+    const { data: trucks = [], isPending, error, refetch } = useGetCarrierTrucks(id)
 
     const location = useLocation()
     const entity = location.state?.entity
