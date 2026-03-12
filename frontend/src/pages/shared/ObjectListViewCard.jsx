@@ -9,7 +9,7 @@ import EmailLink from '../../components/ui/EmailLink.jsx'
 import DeleteAction from '../../components/ui/buttons/DeleteAction.jsx'
 import EditAction from '../../components/ui/buttons/EditAction.jsx'
 
-const ObjectListViewCard = ({ title, subtitle, extra, email, fileUrl, to, onDelete }) => {
+const ObjectListViewCard = ({ title, subtitle, extra, email, phone, fileUrl, to, onDelete }) => {
     const hasTextBefore = Boolean(subtitle || extra || email)
     const navigate = useNavigate()
 
@@ -60,6 +60,19 @@ const ObjectListViewCard = ({ title, subtitle, extra, email, fileUrl, to, onDele
                                     />
                                 )}
                                 <EmailLink email={email} />
+                            </>
+                        )}
+
+                        {phone && (
+                            <>
+                                {(subtitle || extra) && (
+                                    <Divider
+                                        orientation="vertical"
+                                        flexItem
+                                        sx={{ mx: 2, height: 14, alignSelf: 'center' }}
+                                    />
+                                )}
+                                {phone}
                             </>
                         )}
 

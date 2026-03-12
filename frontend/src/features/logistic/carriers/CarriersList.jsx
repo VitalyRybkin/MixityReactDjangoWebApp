@@ -25,6 +25,7 @@ export default function CarriersList() {
                     subtitle={w.fullName}
                     extra={w.address}
                     email={w.email}
+                    phone={w.phone}
                     to={`/carriers/${w.id}`}
                     onDelete={() => handleDelete(w.id)}
                 />

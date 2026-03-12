@@ -5,6 +5,7 @@ import { Alert, Box, Button, CircularProgress, Paper, Stack, TextField, Typograp
 
 import AppBreadcrumbs from '../../../components/AppBreadcrumbs.jsx'
 import { firstError } from '../../../utils/apiError.js'
+import { normalizePhoneInput, validatePhoneValue } from '../../../utils/phone.js'
 
 import { useCreateCarrier, useGetCarrier, useUpdateCarrier } from './carriers.queries.js'
 
@@ -27,11 +28,13 @@ export default function CarrierFormPage() {
     const updateCarrier = useUpdateCarrier()
 
     const [error, setError] = useState('')
+    const [phoneError, setPhoneError] = useState('')
     const [form, setForm] = useState(emptyForm)
 
     useEffect(() => {
         if (!isEdit) {
             setForm(emptyForm)
+            setPhoneError('')
             return
         }
 
@@ -44,6 +47,7 @@ export default function CarrierFormPage() {
                 email: carrier.email ?? '',
                 description: carrier.description ?? '',
             })
+            setPhoneError('')
         }
     }, [carrier, isEdit])
 
@@ -54,7 +58,18 @@ export default function CarrierFormPage() {
     }, [loadError])
 
     const onChange = (field) => (e) => {
+        let value = e.target.value
+        if (field === 'phone') {
+            value = normalizePhoneInput(value)
+            setPhoneError(validatePhoneValue(value))
+        }
         setForm((prev) => ({ ...prev, [field]: e.target.value }))
+    }
+
+    const validateBeforeSubmit = () => {
+        const currentPhoneError = validatePhoneValue(form.phone)
+        setPhoneError(currentPhoneError)
+        return !currentPhoneError
     }
 
     const saving = createCarrier.isPending || updateCarrier.isPending
@@ -62,6 +77,10 @@ export default function CarrierFormPage() {
     const onSubmit = async (e) => {
         e.preventDefault()
         setError('')
+
+        if (!validateBeforeSubmit()) {
+            return
+        }
 
         try {
             if (isEdit) {
@@ -101,7 +120,15 @@ export default function CarrierFormPage() {
                             fullWidth
                         />
                         <TextField label="Адрес" value={form.address} onChange={onChange('address')} fullWidth />
-                        <TextField label="Телефон" value={form.phone} onChange={onChange('phone')} fullWidth />
+                        <TextField
+                            label="Телефон"
+                            value={form.phone}
+                            onChange={onChange('phone')}
+                            fullWidth
+                            error={Boolean(phoneError)}
+                            helperText={phoneError || 'Формат: +79991234567'}
+                            placeholder="+79991234567"
+                        />
                         <TextField label="Эл. почта" value={form.email} onChange={onChange('email')} fullWidth />
                         <TextField
                             label="Примечание"

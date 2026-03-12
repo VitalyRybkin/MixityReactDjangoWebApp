@@ -1,6 +1,7 @@
 import ObjectListView from '../../../pages/shared/ObjectListView.jsx'
 import ObjectListViewCard from '../../../pages/shared/ObjectListViewCard.jsx'
-import { useWarehouses, useDeleteWarehouse } from './stocks.queries.js'
+
+import { useDeleteWarehouse, useWarehouses } from './stocks.queries.js'
 
 export default function WarehousesList() {
     const { data: warehouses = [], isPending, error, refetch } = useWarehouses()
@@ -24,6 +25,7 @@ export default function WarehousesList() {
                     subtitle={w.organization}
                     extra={w.address}
                     email={w.email}
+                    phone={w.phone}
                     fileUrl={w.directions}
                     to={`/warehouses/${w.id}`}
                     onDelete={() => handleDelete(w.id)}

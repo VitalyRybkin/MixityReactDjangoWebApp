@@ -5,6 +5,7 @@ import { Alert, Box, Button, CircularProgress, Paper, Stack, TextField, Typograp
 
 import AppBreadcrumbs from '../../../components/AppBreadcrumbs.jsx'
 import { firstError } from '../../../utils/apiError.js'
+import { normalizePhoneInput, validatePhoneValue } from '../../../utils/phone.js'
 
 import { useCreateWarehouse, useUpdateWarehouse, useWarehouse } from './stocks.queries.js'
 
@@ -26,12 +27,16 @@ export default function WarehouseFormPage() {
     const createWarehouse = useCreateWarehouse()
     const updateWarehouse = useUpdateWarehouse()
 
+    const saving = createWarehouse.isPending || updateWarehouse.isPending
+
     const [error, setError] = useState('')
+    const [phoneError, setPhoneError] = useState('')
     const [form, setForm] = useState(emptyForm)
 
     useEffect(() => {
         if (!isEdit) {
             setForm(emptyForm)
+            setPhoneError('')
             return
         }
 
@@ -44,6 +49,7 @@ export default function WarehouseFormPage() {
                 email: warehouse.email ?? '',
                 descriptions: warehouse.descriptions ?? '',
             })
+            setPhoneError('')
         }
     }, [warehouse, isEdit])
 
@@ -54,14 +60,29 @@ export default function WarehouseFormPage() {
     }, [loadError])
 
     const onChange = (field) => (e) => {
-        setForm((prev) => ({ ...prev, [field]: e.target.value }))
+        let value = e.target.value
+
+        if (field === 'phone') {
+            value = normalizePhoneInput(value)
+            setPhoneError(validatePhoneValue(value))
+        }
+
+        setForm((prev) => ({ ...prev, [field]: value }))
     }
 
-    const saving = createWarehouse.isPending || updateWarehouse.isPending
+    const validateBeforeSubmit = () => {
+        const currentPhoneError = validatePhoneValue(form.phone)
+        setPhoneError(currentPhoneError)
+        return !currentPhoneError
+    }
 
     const onSubmit = async (e) => {
         e.preventDefault()
         setError('')
+
+        if (!validateBeforeSubmit()) {
+            return
+        }
 
         try {
             if (isEdit) {
@@ -101,7 +122,15 @@ export default function WarehouseFormPage() {
                             fullWidth
                         />
                         <TextField label="Адрес" value={form.address} onChange={onChange('address')} fullWidth />
-                        <TextField label="Телефон" value={form.phone} onChange={onChange('phone')} fullWidth />
+                        <TextField
+                            label="Телефон"
+                            value={form.phone}
+                            onChange={onChange('phone')}
+                            fullWidth
+                            error={Boolean(phoneError)}
+                            helperText={phoneError || 'Формат: +79991234567'}
+                            placeholder="+79991234567"
+                        />
                         <TextField label="Эл. почта" value={form.email} onChange={onChange('email')} fullWidth />
                         <TextField
                             label="Примечание"
