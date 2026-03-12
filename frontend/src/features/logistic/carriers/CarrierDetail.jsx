@@ -1,7 +1,7 @@
 import { useParams } from 'react-router-dom'
 
 import ObjectDetailWithContactList from '../../../pages/shared/ObjectDetailWithContactList.jsx'
-import {emailValue} from "../../../utils/emailValue.jsx";
+import { emailValue } from '../../../utils/emailValue.jsx'
 
 export default function CarrierDetailPage() {
     const { id } = useParams()
@@ -17,7 +17,7 @@ export default function CarrierDetailPage() {
             ownerType="carrier"
             ownerId={carrierId}
             fields={(c) => [
-                { label: "Наименование", value: c?.name },
+                { label: 'Наименование', value: c?.name },
                 { label: 'Полное наименование', value: c?.fullName },
                 { label: 'Адрес', value: c?.address },
                 { label: 'Телефон', value: c?.phone },

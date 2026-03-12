@@ -4,22 +4,7 @@ import { useNavigate } from 'react-router-dom'
 import { Edit as EditIcon } from '@mui/icons-material'
 import LocalShippingIcon from '@mui/icons-material/LocalShipping'
 import PersonIcon from '@mui/icons-material/Person'
-import {
-    Alert,
-    Box,
-    Button,
-    Card,
-    CardContent,
-    CircularProgress,
-    Dialog,
-    DialogActions,
-    DialogContent,
-    DialogTitle,
-    Divider,
-    Snackbar,
-    Stack,
-    Typography,
-} from '@mui/material'
+import { Box, Card, CardContent, CircularProgress, Divider, Stack, Typography } from '@mui/material'
 
 import { useQuery } from '@tanstack/react-query'
 
@@ -28,9 +13,21 @@ import AppBreadcrumbs from '../../components/AppBreadcrumbs.jsx'
 import ContactCreateUpdate from '../../components/ContactCreateUpdate.jsx'
 import ContactsListView from '../../components/ContactsList.jsx'
 import EditAction from '../../components/ui/buttons/EditAction.jsx'
-import { useGetCarrierContacts } from '../../features/logistic/carriers/carriers.queries.js'
+import AppSnackbar from '../../components/ui/feedback/AppSnackbar.jsx'
+import ConfirmDialog from '../../components/ui/feedback/ConfirmDialog.jsx'
+import useConfirm from '../../hooks/useConfirm.js'
+import useSnackbar from '../../hooks/useSnackbar.js'
 
-export default function ObjectDetailWithContactList({ id, label, editTo, entityUrl, ownerType, ownerId, fields }) {
+export default function ObjectDetailWithContactList({
+    id,
+    label,
+    editTo,
+    entityUrl,
+    contactsUrl,
+    ownerType,
+    ownerId,
+    fields,
+}) {
     const navigate = useNavigate()
 
     const entityQuery = useQuery({
@@ -41,7 +38,13 @@ export default function ObjectDetailWithContactList({ id, label, editTo, entityU
         },
     })
 
-    const contactsQuery = useGetCarrierContacts(id)
+    const contactsQuery = useQuery({
+        queryKey: ['object-contacts', contactsUrl(id)],
+        queryFn: async () => {
+            const res = await api.get(contactsUrl(id))
+            return Array.isArray(res.data) ? res.data : (res.data?.results ?? [])
+        },
+    })
 
     const entity = entityQuery.data ?? null
     const contacts = contactsQuery.data ?? []
@@ -52,12 +55,8 @@ export default function ObjectDetailWithContactList({ id, label, editTo, entityU
     const openCreateContact = () => setDialog({ open: true, mode: 'create', contact: null })
     const openEditContact = (contact) => setDialog({ open: true, mode: 'edit', contact })
 
-    const [snack, setSnack] = useState({ open: false, severity: 'success', msg: '' })
-    const showSnack = (msg, severity = 'success') => setSnack({ open: true, severity, msg })
-
-    const [confirm, setConfirm] = useState({ open: false, title: '', text: '', onYes: null })
-    const openConfirm = ({ title, text, onYes }) => setConfirm({ open: true, title, text, onYes })
-    const closeConfirm = () => setConfirm((s) => ({ ...s, open: false }))
+    const { confirm, askConfirm, closeConfirm, handleConfirm } = useConfirm()
+    const { snack, showSnackbar, closeSnackbar } = useSnackbar()
 
     const [deleting, setDeleting] = useState({
         contactIds: new Set(),
@@ -92,19 +91,23 @@ export default function ObjectDetailWithContactList({ id, label, editTo, entityU
 
     const onDeleteContact = (contactId) => {
         const contact = contacts.find((c) => c.id === contactId)
-        openConfirm({
+        const fullName = [contact?.firstName, contact?.lastName].filter(Boolean).join(' ')
+
+        askConfirm({
             title: 'Удалить контакт?',
-            text: `"${contact?.firstName ?? ''} ${contact?.lastName ?? ''}". Действие необратимо.`,
-            onYes: async () => {
-                closeConfirm()
+            text: `Вы действительно хотите удалить "${fullName}"?`,
+            confirmText: 'Удалить',
+            cancelText: 'Отмена',
+            confirmColor: 'error',
+            onConfirm: async () => {
                 setDeletingContact(contactId, true)
 
                 try {
                     await api.delete(`/api/contacts/${contactId}/`)
                     await contactsQuery.refetch()
-                    showSnack('Контакт удалён')
+                    showSnackbar('Контакт удалён', 'success')
                 } catch (e) {
-                    showSnack(e?.response?.data?.detail || 'Не удалось удалить контакт', 'error')
+                    showSnackbar(e?.response?.data?.detail || 'Не удалось удалить контакт', 'error')
                 } finally {
                     setDeletingContact(contactId, false)
                 }
@@ -123,9 +126,9 @@ export default function ObjectDetailWithContactList({ id, label, editTo, entityU
         try {
             await api.patch(`/api/contacts/${contactId}/`, { phoneNumbers: nextPhones })
             await contactsQuery.refetch()
-            showSnack('Телефон удалён')
+            showSnackbar('Телефон удалён', 'success')
         } catch (e) {
-            showSnack(e?.response?.data?.detail || 'Не удалось удалить телефон', 'error')
+            showSnackbar(e?.response?.data?.detail || 'Не удалось удалить телефон', 'error')
         } finally {
             setDeletingPhone(contactId, phoneNumberToDelete, false)
         }
@@ -136,6 +139,7 @@ export default function ObjectDetailWithContactList({ id, label, editTo, entityU
     return (
         <Box sx={{ p: 3 }}>
             <AppBreadcrumbs dynamicLabels={entity ? { id: entity.name } : {}} />
+
             <Stack spacing={2}>
                 <Card variant="outlined" sx={{ width: '100%', borderRadius: 1 }}>
                     <Box sx={{ p: 3, display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
@@ -150,6 +154,7 @@ export default function ObjectDetailWithContactList({ id, label, editTo, entityU
                         >
                             {label}
                         </Typography>
+
                         <Stack direction="row" spacing={1}>
                             <EditAction
                                 title="Изменить"
@@ -157,6 +162,7 @@ export default function ObjectDetailWithContactList({ id, label, editTo, entityU
                                 onClick={() => navigate(editTo(id))}
                                 icon={<EditIcon fontSize="small" />}
                             />
+
                             {ownerType === 'carrier' && entity && (
                                 <EditAction
                                     title="Водители"
@@ -169,6 +175,7 @@ export default function ObjectDetailWithContactList({ id, label, editTo, entityU
                                     icon={<PersonIcon fontSize="small" />}
                                 />
                             )}
+
                             {ownerType === 'carrier' && entity && (
                                 <EditAction
                                     title="Автотранспорт"
@@ -246,31 +253,18 @@ export default function ObjectDetailWithContactList({ id, label, editTo, entityU
                 }}
             />
 
-            <Dialog open={confirm.open} onClose={closeConfirm}>
-                <DialogTitle>{confirm.title}</DialogTitle>
-                <DialogContent>{confirm.text}</DialogContent>
-                <DialogActions>
-                    <Button onClick={closeConfirm}>Отмена</Button>
-                    <Button color="error" variant="contained" onClick={() => confirm.onYes?.()}>
-                        Удалить
-                    </Button>
-                </DialogActions>
-            </Dialog>
+            <ConfirmDialog
+                open={confirm.open}
+                title={confirm.title}
+                text={confirm.text}
+                confirmText={confirm.confirmText}
+                cancelText={confirm.cancelText}
+                confirmColor={confirm.confirmColor}
+                onClose={closeConfirm}
+                onConfirm={handleConfirm}
+            />
 
-            <Snackbar
-                open={snack.open}
-                autoHideDuration={2500}
-                onClose={() => setSnack((s) => ({ ...s, open: false }))}
-                anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
-            >
-                <Alert
-                    severity={snack.severity}
-                    onClose={() => setSnack((s) => ({ ...s, open: false }))}
-                    variant="filled"
-                >
-                    {snack.msg}
-                </Alert>
-            </Snackbar>
+            <AppSnackbar open={snack.open} message={snack.message} severity={snack.severity} onClose={closeSnackbar} />
         </Box>
     )
 }

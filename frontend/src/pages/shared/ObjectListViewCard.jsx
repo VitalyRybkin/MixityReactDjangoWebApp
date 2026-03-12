@@ -6,9 +6,10 @@ import PhoneIcon from '@mui/icons-material/Phone'
 import PictureAsPdfIcon from '@mui/icons-material/PictureAsPdf'
 import { Box, Card, CardActionArea, CardContent, Divider, IconButton, Stack, Tooltip, Typography } from '@mui/material'
 
-import EmailLink from '../../components/ui/EmailLink.jsx'
 import DeleteAction from '../../components/ui/buttons/DeleteAction.jsx'
 import EditAction from '../../components/ui/buttons/EditAction.jsx'
+import EmailLink from '../../components/ui/buttons/EmailLink.jsx'
+import IconAction from '../../components/ui/buttons/IconAction.jsx'
 
 const ObjectListViewCard = ({ title, subtitle, extra, email, phone, fileUrl, to, onDelete }) => {
     const hasTextBefore = Boolean(subtitle || extra || email)
@@ -76,16 +77,17 @@ const ObjectListViewCard = ({ title, subtitle, extra, email, phone, fileUrl, to,
 
                                 <Stack direction="row" alignItems="center" spacing={0.5}>
                                     <Typography variant="body2">{phone}</Typography>
-                                    <IconButton
-                                        size="small"
-                                        onClick={(e) => {
-                                            e.preventDefault()
-                                            e.stopPropagation()
+
+                                    <IconAction
+                                        title="Позвонить"
+                                        stopPropagation
+                                        preventDefault
+                                        onClick={() => {
                                             window.location.href = `tel:${phone}`
                                         }}
                                     >
                                         <PhoneIcon fontSize="small" />
-                                    </IconButton>
+                                    </IconAction>
                                 </Stack>
                             </>
                         )}

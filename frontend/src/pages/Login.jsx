@@ -37,9 +37,9 @@ const Login = () => {
 
             navigate('/', { replace: true })
         } catch (err) {
-            if (!err.response) setError('Network error. Check API URL / connection.')
-            else if (err.response.status === 401) setError('Invalid username or password.')
-            else setError('Login failed. Try again later.')
+            if (!err.response) setError('Сеть не доступна. Проверьте URL API / соединение.')
+            else if (err.response.status === 401) setError('Неправильный логин или пароль.')
+            else setError('Войти не удалось. Попробуйте позже.')
         } finally {
             setLoading(false)
         }
@@ -84,7 +84,7 @@ const Login = () => {
                         />
 
                         <Button type="submit" variant="contained" size="large" sx={sx.submit} disabled={loading}>
-                            {loading ? 'Signing in...' : 'Войти'}
+                            {loading ? 'Вход...' : 'Войти'}
                         </Button>
                     </Box>
                 </Paper>
