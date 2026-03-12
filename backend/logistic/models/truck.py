@@ -1,29 +1,28 @@
-from typing import Any
-
 from django.core.validators import RegexValidator
 from django.db import models
+
+plate_regex = RegexValidator(
+    regex=r"^[АВЕКМНОРСТУХ]\d{3}[АВЕКМНОРСТУХ]{2}\d{2,3}$",
+    message="Формат: А123ВС77",
+)
 
 
 class Truck(models.Model):
     """
-    Represents a Truck model in the system.
-
-    Used to store information about trucks, their type, capacity,
-    and associated carriers. It serves as a representation of vehicles used
-    for transportation purposes in the system.
+    Encapsulates the details of a truck, including its type,
+    capacity, license plate, and optional description. It is associated with a carrier
+    and represents a key element in the logistics management system.
 
     Attributes:
-        carrier (ForeignKey): The carrier associated with this truck.
-        truck_type (ForeignKey): The type of the truck.
-        capacity (ForeignKey): The capacity of the truck.
-        license_plate (CharField): The license plate number of the truck.
-        description (TextField): Optional description providing additional details about the truck.
+        carrier (ForeignKey): A reference to the Carrier model that owns this truck.
+        truck_type (ForeignKey): A reference to the TruckType model that specifies the
+            type of the truck.
+        capacity (ForeignKey): A reference to the TruckCapacity model that defines the
+            truck's load capacity.
+        license_plate (CharField): The unique license plate identifier for the truck,
+            validated and indexed for efficient lookup. Example: 'А123ВС77'.
+        description (TextField): An optional textual description of the truck.
     """
-
-    plate_regex = RegexValidator(
-        regex=r"^[ABEKMHOPCTUX]\d{3}[ABEKMHOPCTUX]{2}\d{2,3}$",
-        message="Format: A123BC77 (Use Latin characters A, B, E, K, M, H, O, P, C, T, U, X)",
-    )
 
     carrier = models.ForeignKey(
         "logistic.Carrier",
@@ -44,24 +43,14 @@ class Truck(models.Model):
     )
 
     license_plate = models.CharField(
-        validators=[plate_regex],
         max_length=9,
         unique=True,
         db_index=True,
-        help_text="Standard Russian license plate (Cyrillic)",
+        validators=[plate_regex],
+        help_text="Например: А123ВС77",
     )
 
-    description = models.TextField(null=True, blank=True)
-
-    class Meta:
-        indexes = [models.Index(fields=["carrier"])]
-
-    def save(self, *args: Any, **kwargs: Any) -> None:
-        if self.license_plate:
-            self.license_plate = (
-                self.license_plate.upper().replace(" ", "").replace("-", "")
-            )
-        super().save(*args, **kwargs)
+    description = models.TextField(blank=True, null=True)
 
     def __str__(self) -> str:
-        return f"Авто: {self.truck_type}, {self.capacity}, {self.carrier}"
+        return f"{self.license_plate} ({self.truck_type})"

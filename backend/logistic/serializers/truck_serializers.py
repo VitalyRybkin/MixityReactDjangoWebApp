@@ -1,3 +1,5 @@
+import re
+
 from drf_spectacular.utils import extend_schema_field
 from rest_framework import serializers
 from rest_framework.validators import UniqueValidator
@@ -35,7 +37,10 @@ class TruckTypeSerializer(serializers.ModelSerializer):
     """
 
     truckType = serializers.CharField(
-        source="name", validators=[UniqueValidator(queryset=TruckType.objects.all())]
+        source="name",
+        validators=[UniqueValidator(queryset=TruckType.objects.all())],
+        label="Тип",
+        help_text="Тип грузовика",
     )
 
     class Meta:
@@ -79,7 +84,12 @@ class TruckCapacityWriteSerializer(serializers.ModelSerializer):
         model: Defines the model class `TruckCapacity` to be serialized.
     """
 
-    capacity = serializers.DecimalField(max_digits=2, decimal_places=1)
+    capacity = serializers.DecimalField(
+        max_digits=2,
+        decimal_places=1,
+        label="Грузоподъемность",
+        help_text="Грузоподъемность грузовика в тоннах",
+    )
 
     class Meta:
         model = TruckCapacity
@@ -88,27 +98,30 @@ class TruckCapacityWriteSerializer(serializers.ModelSerializer):
 
 class TruckBaseSerializer(serializers.ModelSerializer):
     """
-    Serializes and validates `Truck` model data for input and output operations.
+    Serializer for managing and validating truck-related data.
 
-    Attributes
-        licensePlate : CharField
-            Represents the serialized Truck model's `license_plate` field. A unique
-            validator ensures that duplicate values are rejected.
-        truckType : PrimaryKeyRelatedField
-            Maps the serialized `truck_type` field from the Truck model to its
-            corresponding primary key representation.
-        capacity : PrimaryKeyRelatedField
-            Maps the serialized `capacity` field for storing the truck capacity
-            as a primary key from the TruckCapacity model.
+    Attributes:
+        licensePlate: Serialized representation of the truck's license plate, which is sourced
+            from the `license_plate` field in the model and validated for uniqueness.
+        truckType: Serialized representation of the related truck type, sourced from the `truck_type`
+            field and linked to the TruckType model.
+        capacity: Serialized representation of the related truck capacity, linked to the TruckCapacity model.
+
+    Methods:
+        validate_licensePlate(value):
+            Validates and normalizes Russian license plates to ensure they conform to
+            specified formatting rules.
 
     Meta:
-        fields: Specifies the list of fields to be included in the serialized data.
-        model: Defines the model class `Truck` to be serialized.
+        model: Specifies the model associated with this serializer (Truck).
+        fields: Defines the fields in the serializer, including id, truckType, capacity,
+            license plate, and description.
     """
 
     licensePlate = serializers.CharField(
         source="license_plate",
         validators=[UniqueValidator(queryset=Truck.objects.all())],
+        label="Госномер",
     )
     truckType = serializers.PrimaryKeyRelatedField(
         source="truck_type", queryset=TruckType.objects.all()
@@ -118,6 +131,18 @@ class TruckBaseSerializer(serializers.ModelSerializer):
     class Meta:
         model = Truck
         fields = ["id", "truckType", "capacity", "licensePlate", "description"]
+
+    def validate_licensePlate(self, value: str) -> str:
+        """
+        Validates and normalizes Russian license plates to ensure they conform to
+        specified formatting rules.
+        """
+        value = value.upper().replace(" ", "").replace("-", "")
+
+        if not re.fullmatch(r"^[АВЕКМНОРСТУХ]\d{3}[АВЕКМНОРСТУХ]{2}\d{2,3}$", value):
+            raise serializers.ValidationError("Введите в формате - А123ВС77")
+
+        return value
 
 
 class TruckSerializer(TruckBaseSerializer):
