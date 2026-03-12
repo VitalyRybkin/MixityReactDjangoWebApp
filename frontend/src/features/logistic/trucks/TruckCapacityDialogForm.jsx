@@ -1,13 +1,13 @@
-import React, { useEffect, useState } from 'react';
-import { useNavigate, useParams } from 'react-router-dom';
+import React, { useEffect, useState } from 'react'
+import { useNavigate, useParams } from 'react-router-dom'
 
-import { Alert, Box, CircularProgress, Paper, Stack, TextField, Typography } from '@mui/material';
+import { Alert, Box, CircularProgress, Paper, Stack, TextField, Typography } from '@mui/material'
 
-import AppBreadcrumbs from '../../../components/AppBreadcrumbs.jsx';
-import FormActions from '../../../components/ui/FormActions.jsx';
-import { firstError } from '../../../utils/apiError.js';
+import AppBreadcrumbs from '../../../components/AppBreadcrumbs.jsx'
+import FormActions from '../../../components/ui/FormActions.jsx'
+import { firstError } from '../../../utils/apiError.js'
 
-import { useCreateTruckCapacity, useGetTruckCapacity, useUpdateTruckCapacity } from './trucks.queries.js';
+import { useCreateTruckCapacity, useGetTruckCapacity, useUpdateTruckCapacity } from './trucks.queries.js'
 
 const emptyForm = {
     capacity: '',
@@ -77,7 +77,7 @@ export default function TruckCapacityDialogFormPage() {
 
             <Paper sx={{ p: 3, borderRadius: 3 }}>
                 <Typography variant="h5" sx={{ mb: 2 }}>
-                    {isEdit ? `Редактировать ${form.capacity || ''}` : 'Добавить грузоподъемность'}
+                    {isEdit ? `Редактировать грузоподъемность` : 'Добавить грузоподъемность'}
                 </Typography>
 
                 {error && (
