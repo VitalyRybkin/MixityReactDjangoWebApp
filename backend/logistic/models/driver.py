@@ -2,6 +2,8 @@ from typing import Any
 
 from django.core.validators import RegexValidator
 from django.db import models
+from phonenumber_field.modelfields import PhoneNumberField
+from phonenumber_field.validators import validate_international_phonenumber
 
 
 class Driver(models.Model):
@@ -14,16 +16,11 @@ class Driver(models.Model):
     Attributes:
         carrier (ForeignKey): The carrier associated with this driver.
         full_name (CharField): The full name of the driver.
-        phone (CharField): The phone number of the driver.
+        phone (PhoneNumberField): The phone number of the driver.
         passport_number (CharField): The passport number of the driver.
         passport_issue_date (DateField): The issue date of the driver's passport.
         passport_emitted_by (CharField): The issuer of the driver's passport.
     """
-
-    russian_phone_regex = RegexValidator(
-        regex=r"^(\+7|7|8)?[\s\-]?\(?[489][0-9]{2}\)?[\s\-]?[0-9]{3}[\s\-]?[0-9]{2}[\s\-]?[0-9]{2}$",
-        message="Format: '+79991234567' or '89991234567'. Exactly 10 digits required after prefix.",
-    )
 
     passport_regex = RegexValidator(
         regex=r"^\d{4}\s?\d{6}$",
@@ -38,12 +35,11 @@ class Driver(models.Model):
 
     full_name = models.CharField(max_length=100)
 
-    phone = models.CharField(
-        validators=[russian_phone_regex],
-        max_length=18,
+    phone = PhoneNumberField(
+        region="RU",
+        validators=[validate_international_phonenumber],
         null=True,
         blank=True,
-        help_text="Russian phone number",
     )
 
     passport_number = models.CharField(

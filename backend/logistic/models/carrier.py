@@ -1,4 +1,6 @@
 from django.db import models
+from phonenumber_field.modelfields import PhoneNumberField
+from phonenumber_field.validators import validate_international_phonenumber
 
 
 class ActiveQuerySet(models.QuerySet):
@@ -29,7 +31,12 @@ class Carrier(models.Model):
     full_name = models.CharField(max_length=255, null=True, blank=True)
     address = models.CharField(max_length=255, null=True, blank=True)
     description = models.TextField(null=True, blank=True)
-    phone = models.CharField(max_length=18, null=True, blank=True)
+    phone = PhoneNumberField(
+        region="RU",
+        validators=[validate_international_phonenumber],
+        null=True,
+        blank=True,
+    )
     email = models.EmailField(null=True, blank=True)
     is_active = models.BooleanField(default=True)
 

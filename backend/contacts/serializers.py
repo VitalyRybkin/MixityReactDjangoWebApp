@@ -5,6 +5,7 @@ from phonenumber_field.serializerfields import PhoneNumberField
 from rest_framework import serializers
 
 from contacts.models import Contact, PhoneNumber
+from core.validators import validate_ru_phone
 from logistic.models import Carrier
 from stock.models import Warehouse
 
@@ -31,34 +32,11 @@ class PhoneNumberSerializer(serializers.ModelSerializer):
         model = PhoneNumber
         fields = ["phoneNumber"]
 
-    @staticmethod
-    def validate_phoneNumber(value: Any) -> Any:
+    def validate_phoneNumber(self, value: Any) -> Any:
         """
-        Validates the format and length of a phone number.
-
-        Parameters:
-        value: Any
-            The phone number provided for validation.
-
-        Returns:
-        Any
-            The validated phone number if it meets the criteria.
-
-        Raises:
-        serializers.ValidationError
-            If the phone number format is invalid or if it doesn't contain
-            exactly 11 digits.
+        Validates a phone number to ensure it adheres to the rules for Russian phone numbers.
         """
-        if not value.is_valid():
-            raise serializers.ValidationError("Некорректный формат номера.")
-
-        digits_only = "".join(filter(str.isdigit, str(value)))
-        if len(digits_only) != 11:
-            raise serializers.ValidationError(
-                "Номер должен содержать ровно 11 цифр (включая 7)."
-            )
-
-        return value
+        return validate_ru_phone(value)
 
 
 class ContactSerializer(serializers.ModelSerializer):

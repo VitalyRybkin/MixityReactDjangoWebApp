@@ -18,7 +18,9 @@ class PhoneNumber(models.Model):
     """
 
     phone_number = PhoneNumberField(
-        region="RU", unique=True, validators=[validate_international_phonenumber]
+        region="RU",
+        unique=True,
+        validators=[validate_international_phonenumber],
     )
 
     contact = models.ForeignKey(

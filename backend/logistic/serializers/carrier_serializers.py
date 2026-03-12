@@ -1,5 +1,9 @@
+from typing import Any
+
+from phonenumber_field.serializerfields import PhoneNumberField
 from rest_framework import serializers
 
+from core.validators import validate_ru_phone
 from logistic.models import Carrier
 from logistic.serializers.driver_serializers import DriverSerializer
 from logistic.serializers.truck_serializers import (
@@ -31,6 +35,11 @@ class CarrierSerializer(serializers.ModelSerializer):
     isActive = serializers.BooleanField(source="is_active", read_only=True)
     fullName = serializers.CharField(source="full_name")
     trucks = TruckBaseReadSerializer(many=True, read_only=True)
+    phone = PhoneNumberField(
+        region="RU",
+        label="Номер телефона",
+        error_messages={"invalid": "Введите корректный номер в формате +79991234567."},
+    )
 
     class Meta:
         model = Carrier
@@ -45,6 +54,12 @@ class CarrierSerializer(serializers.ModelSerializer):
             "isActive",
             "trucks",
         ]
+
+    def validate_phone(self, value: Any) -> Any:
+        """
+        Validate phone number format and length.
+        """
+        return validate_ru_phone(value)
 
 
 class CarrierResourcesSerializer(serializers.Serializer):

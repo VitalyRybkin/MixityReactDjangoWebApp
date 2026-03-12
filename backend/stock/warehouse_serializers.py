@@ -1,16 +1,20 @@
 from typing import Any
 
+from phonenumber_field.serializerfields import PhoneNumberField
 from rest_framework import serializers
 
+from core.validators import validate_ru_phone
 from stock.models import Warehouse
 
 
 class WarehouseListCreateSerializer(serializers.ModelSerializer):
     name = serializers.CharField(required=True, label="Наименование")
-    phoneNumber = serializers.CharField(
-        source="phone_number", required=False, allow_null=True, allow_blank=True
-    )
     directions = serializers.ImageField(required=False, allow_null=True)
+    phone = PhoneNumberField(
+        region="RU",
+        label="Номер телефона",
+        error_messages={"invalid": "Введите корректный номер в формате +79991234567."},
+    )
 
     class Meta:
         model = Warehouse
@@ -20,9 +24,15 @@ class WarehouseListCreateSerializer(serializers.ModelSerializer):
             "organization",
             "email",
             "address",
-            "phoneNumber",
+            "phone",
             "directions",
         ]
+
+    def validate_phone(self, value: Any) -> Any:
+        """
+        Validate phone number format and length.
+        """
+        return validate_ru_phone(value)
 
 
 class WarehouseMapSerializer(serializers.ModelSerializer):
@@ -34,6 +44,9 @@ class WarehouseMapSerializer(serializers.ModelSerializer):
         fields = ("directions",)
 
     def validate(self, attrs: Any) -> Any:
+        """
+        Validate that directions field is required when updating.
+        """
         if self.instance and self.partial and "directions" not in attrs:
             raise serializers.ValidationError({"directions": "This field is required."})
         return attrs

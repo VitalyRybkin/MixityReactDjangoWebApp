@@ -1,5 +1,9 @@
+from typing import Any
+
+from phonenumber_field.serializerfields import PhoneNumberField
 from rest_framework import serializers
 
+from core.validators import validate_ru_phone
 from logistic.models import Driver
 
 
@@ -24,6 +28,11 @@ class DriverSerializer(serializers.ModelSerializer):
     passportNumber = serializers.CharField(source="passport_number")
     passportIssueDate = serializers.DateField(source="passport_issue_date")
     passportEmittedBy = serializers.CharField(source="passport_emitted_by")
+    phone = PhoneNumberField(
+        region="RU",
+        label="Номер телефона",
+        error_messages={"invalid": "Введите корректный номер в формате +79991234567."},
+    )
 
     class Meta:
         model = Driver
@@ -36,3 +45,9 @@ class DriverSerializer(serializers.ModelSerializer):
             "passportIssueDate",
             "passportEmittedBy",
         ]
+
+    def validate_phone(self, value: Any) -> Any:
+        """
+        Validate phone number format and length.
+        """
+        return validate_ru_phone(value)
