@@ -21,17 +21,44 @@ import ErrorState from '../../../components/ui/ErrorState.jsx'
 import AddAction from '../../../components/ui/buttons/AddAction.jsx'
 import DeleteAction from '../../../components/ui/buttons/DeleteAction.jsx'
 import EditAction from '../../../components/ui/buttons/EditAction.jsx'
+import AppSnackbar from '../../../components/ui/feedback/AppSnackbar.jsx'
+import ConfirmDialog from '../../../components/ui/feedback/ConfirmDialog.jsx'
+import useConfirm from '../../../hooks/useConfirm.js'
+import useSnackbar from '../../../hooks/useSnackbar.js'
 
-import { useGetCarrierTrucks } from './trucks.queries.js'
+import { useDeleteCarrierTruck, useGetCarrierTrucks } from './trucks.queries.js'
 
 const tableHeaders = ['Тип', 'Грузоподъемность', 'Госномер', 'Примечание', '']
 
 export default function CarrierTruckListPage() {
     const { id } = useParams()
     const { data: trucks = [], isPending, error, refetch } = useGetCarrierTrucks(id)
+    const deleteTruck = useDeleteCarrierTruck()
 
     const location = useLocation()
     const entity = location.state?.entity
+
+    const { confirm, askConfirm, closeConfirm, handleConfirm } = useConfirm()
+    const { snack, showSnackbar, closeSnackbar } = useSnackbar()
+
+    const handleDelete = (truck) => {
+        askConfirm({
+            title: 'Удалить автотраспорт?',
+            text: `Вы действительно хотите удалить "${truck.truckType?.truckType}"?`,
+            confirmText: 'Удалить',
+            cancelText: 'Отмена',
+            confirmColor: 'error',
+            onConfirm: async () => {
+                try {
+                    await deleteTruck.mutateAsync(truck.id)
+                    showSnackbar('Авторанспорт удален', 'success')
+                    await refetch()
+                } catch {
+                    showSnackbar('Ошибка удаления!', 'error')
+                }
+            },
+        })
+    }
 
     return (
         <Box sx={{ p: 3 }}>
@@ -89,7 +116,7 @@ export default function CarrierTruckListPage() {
                                                     onClick={() => onEdit(truck)}
                                                     icon={<EditIcon fontSize="small" />}
                                                 />
-                                                <DeleteAction onClick={() => onDelete(truck.id)} />
+                                                <DeleteAction onClick={() => handleDelete(truck)} />
                                             </Stack>
                                         </TableCell>
                                     </TableRow>
@@ -103,6 +130,18 @@ export default function CarrierTruckListPage() {
                     </Table>
                 </TableContainer>
             )}
+            <ConfirmDialog
+                open={confirm.open}
+                title={confirm.title}
+                text={confirm.text}
+                confirmText={confirm.confirmText}
+                cancelText={confirm.cancelText}
+                confirmColor={confirm.confirmColor}
+                onClose={closeConfirm}
+                onConfirm={handleConfirm}
+            />
+
+            <AppSnackbar open={snack.open} message={snack.message} severity={snack.severity} onClose={closeSnackbar} />
         </Box>
     )
 }
