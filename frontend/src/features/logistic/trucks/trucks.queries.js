@@ -10,9 +10,9 @@ const unwrapList = (d) => {
 
 export const truckKeys = {
     all: ['trucks'],
-    carrierLists: () => ['trucks', 'list'],
-    carrierList: (carrierId) => ['trucks', 'list', 'carrier', String(carrierId)],
-    truckDetail: (id) => ['trucks', 'detail', String(id)],
+    lists: () => ['trucks', 'list'],
+    list: (carrierId) => ['trucks', 'list', 'carrier', String(carrierId)],
+    detail: (id) => ['trucks', 'detail', String(id)],
 }
 
 export const truckCapacityKeys = {
@@ -27,8 +27,8 @@ export const truckTypeKeys = {
     detail: (id) => ['truck-types', 'detail', String(id)],
 }
 
-export const fetchCarrierTrucks = async (id) => {
-    const res = await api.get(`/api/logistic/carriers/${id}/trucks/`)
+export const fetchCarrierTrucks = async (carrierId) => {
+    const res = await api.get(`/api/logistic/carriers/${carrierId}/trucks/`)
     return unwrapList(res.data)
 }
 
@@ -38,7 +38,7 @@ const fetchTruck = async (id) => {
 }
 
 const createTruck = async ({ payload }) => {
-    const res = await api.post(`/api/logistic/trucks/`, payload)
+    const res = await api.post('/api/logistic/trucks/', payload)
     return res.data
 }
 
@@ -47,7 +47,7 @@ const updateTruck = async ({ id, payload }) => {
     return res.data
 }
 
-const deleteTruck = async (id) => {
+const deleteTruck = async ({ id }) => {
     await api.delete(`/api/logistic/trucks/${id}/`)
     return id
 }
@@ -92,17 +92,17 @@ const updateTruckType = async ({ id, payload }) => {
     return res.data
 }
 
-export function useGetCarrierTrucks(id) {
+export function useGetCarrierTrucks(carrierId) {
     return useQuery({
-        queryKey: truckKeys.carrierList(id),
-        queryFn: () => fetchCarrierTrucks(id),
-        enabled: Boolean(id),
+        queryKey: truckKeys.list(carrierId),
+        queryFn: () => fetchCarrierTrucks(carrierId),
+        enabled: Boolean(carrierId),
     })
 }
 
 export function useGetTruck(id) {
     return useQuery({
-        queryKey: truckKeys.truckDetail(id),
+        queryKey: truckKeys.detail(id),
         queryFn: () => fetchTruck(id),
         enabled: Boolean(id),
     })
@@ -113,11 +113,15 @@ export function useCreateTruck() {
 
     return useMutation({
         mutationFn: createTruck,
-        onSuccess: async (_, variables) => {
+        onSuccess: async (data, variables) => {
             await queryClient.invalidateQueries({ queryKey: truckKeys.all })
-            await queryClient.invalidateQueries({
-                queryKey: truckKeys.carrierList(variables.carrierId),
-            })
+
+            const carrierId = data?.carrier ?? variables?.payload?.carrier
+            if (carrierId) {
+                await queryClient.invalidateQueries({
+                    queryKey: truckKeys.list(carrierId),
+                })
+            }
         },
     })
 }
@@ -130,12 +134,13 @@ export function useUpdateTruck() {
         onSuccess: async (data, variables) => {
             await queryClient.invalidateQueries({ queryKey: truckKeys.all })
             await queryClient.invalidateQueries({
-                queryKey: truckKeys.truckDetail(variables.id),
+                queryKey: truckKeys.detail(variables.id),
             })
 
-            if (data?.carrier) {
+            const carrierId = data?.carrier ?? variables?.payload?.carrier
+            if (carrierId) {
                 await queryClient.invalidateQueries({
-                    queryKey: truckKeys.carrierList(data.carrier),
+                    queryKey: truckKeys.list(carrierId),
                 })
             }
         },
@@ -147,9 +152,16 @@ export function useDeleteCarrierTruck() {
 
     return useMutation({
         mutationFn: deleteTruck,
-        onSuccess: async (id) => {
+        onSuccess: async (id, variables) => {
             await queryClient.invalidateQueries({ queryKey: truckKeys.all })
-            queryClient.removeQueries({ queryKey: truckKeys.truckDetail(id) })
+            queryClient.removeQueries({ queryKey: truckKeys.detail(id) })
+
+            const carrierId = variables?.carrierId
+            if (carrierId) {
+                await queryClient.invalidateQueries({
+                    queryKey: truckKeys.list(carrierId),
+                })
+            }
         },
     })
 }

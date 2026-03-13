@@ -3,9 +3,9 @@ import { Navigate, Route, Routes } from 'react-router-dom'
 import ProtectedRoute from './components/routing/ProtectedRoute.jsx'
 import { ACCESS_TOKEN, REFRESH_TOKEN } from './constants.js'
 import CarrierDetailPage from './features/logistic/carriers/CarrierDetail.jsx'
-import CarrierDriversPage from './features/logistic/carriers/CarrierDrivers.jsx'
 import CarrierFormPage from './features/logistic/carriers/CarrierForm.jsx'
 import CarriersList from './features/logistic/carriers/CarriersList.jsx'
+import CarrierDriverListPage from './features/logistic/drivers/CarrierDriverList.jsx'
 import TruckFormPage from './features/logistic/trucks/CarrierTruckForm.jsx'
 import CarrierTruckListPage from './features/logistic/trucks/CarrierTruckList.jsx'
 import WarehouseFormPage from './features/warehouses/stocks/WarehousForm.jsx'
@@ -45,7 +45,7 @@ function App() {
                 <Route path="/carriers/:id/trucks" element={<CarrierTruckListPage />} />
                 <Route path="/carriers/:carrierId/trucks/create" element={<TruckFormPage />} />
                 <Route path="/carriers/:carrierId/trucks/:truckId/edit" element={<TruckFormPage />} />
-                <Route path="/carriers/:id/drivers" element={<CarrierDriversPage />} />
+                <Route path="/carriers/:id/drivers" element={<CarrierDriverListPage />} />
 
                 <Route path="/warehouses" element={<WarehousesList />} />
                 <Route path="/warehouses/create" element={<WarehouseFormPage />} />

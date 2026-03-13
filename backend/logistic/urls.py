@@ -85,12 +85,12 @@ urlpatterns = [
         name="truck_types_details",
     ),
     path(
-        "driver/",
+        "drivers/",
         DriverListCreateAPIView.as_view(),
-        name="driver_list_create",
+        name="drivers_list_create",
     ),
     path(
-        "driver/<int:pk>/",
+        "drivers/<int:pk>/",
         DriverRetrieveUpdateDestroyAPIView.as_view(),
         name="driver_details",
     ),

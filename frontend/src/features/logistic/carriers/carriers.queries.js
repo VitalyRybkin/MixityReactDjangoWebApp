@@ -10,8 +10,9 @@ const unwrapList = (d) => {
 
 export const carrierKeys = {
     all: ['carriers'],
-    detail: (id) => ['carrier', String(id)],
-    contacts: (id) => ['carrier', String(id), 'contacts'],
+    list: () => ['carriers', 'list'],
+    detail: (id) => ['carriers', 'detail', String(id)],
+    contacts: (id) => ['carriers', 'detail', String(id), 'contacts'],
 }
 
 const fetchCarriers = async () => {
@@ -39,14 +40,14 @@ const updateCarrier = async ({ id, payload }) => {
     return res.data
 }
 
-const deleteCarrier = async (id) => {
+const deleteCarrier = async ({ id }) => {
     await api.delete(`/api/logistic/carriers/${id}/`)
     return id
 }
 
 export function useGetCarriers() {
     return useQuery({
-        queryKey: carrierKeys.all,
+        queryKey: carrierKeys.list(),
         queryFn: fetchCarriers,
     })
 }
