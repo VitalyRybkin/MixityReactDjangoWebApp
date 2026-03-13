@@ -5,6 +5,7 @@ import { ACCESS_TOKEN, REFRESH_TOKEN } from './constants.js'
 import CarrierDetailPage from './features/logistic/carriers/CarrierDetail.jsx'
 import CarrierFormPage from './features/logistic/carriers/CarrierForm.jsx'
 import CarriersList from './features/logistic/carriers/CarriersList.jsx'
+import DriverFormPage from './features/logistic/drivers/CarrierDriverForm.jsx'
 import CarrierDriverListPage from './features/logistic/drivers/CarrierDriverList.jsx'
 import TruckFormPage from './features/logistic/trucks/CarrierTruckForm.jsx'
 import CarrierTruckListPage from './features/logistic/trucks/CarrierTruckList.jsx'
@@ -46,6 +47,8 @@ function App() {
                 <Route path="/carriers/:carrierId/trucks/create" element={<TruckFormPage />} />
                 <Route path="/carriers/:carrierId/trucks/:truckId/edit" element={<TruckFormPage />} />
                 <Route path="/carriers/:id/drivers" element={<CarrierDriverListPage />} />
+                <Route path="/carriers/:carrierId/drivers/create" element={<DriverFormPage />} />
+                <Route path="/carriers/:carrierId/drivers/:driverId/edit" element={<DriverFormPage />} />
 
                 <Route path="/warehouses" element={<WarehousesList />} />
                 <Route path="/warehouses/create" element={<WarehouseFormPage />} />

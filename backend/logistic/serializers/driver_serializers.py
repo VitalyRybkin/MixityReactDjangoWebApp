@@ -25,13 +25,30 @@ class DriverSerializer(serializers.ModelSerializer):
     """
 
     fullName = serializers.CharField(source="full_name")
-    passportNumber = serializers.CharField(source="passport_number")
-    passportIssueDate = serializers.DateField(source="passport_issue_date")
-    passportEmittedBy = serializers.CharField(source="passport_emitted_by")
+    passportNumber = serializers.CharField(
+        source="passport_number",
+        required=False,
+        allow_null=True,
+        allow_blank=True,
+    )
+    passportIssueDate = serializers.DateField(
+        source="passport_issue_date",
+        required=False,
+        allow_null=True,
+    )
+    passportEmittedBy = serializers.CharField(
+        source="passport_emitted_by",
+        required=False,
+        allow_null=True,
+        allow_blank=True,
+    )
     phone = PhoneNumberField(
         region="RU",
         label="Номер телефона",
         error_messages={"invalid": "Введите корректный номер в формате +79991234567."},
+        required=False,
+        allow_null=True,
+        allow_blank=True,
     )
 
     class Meta:
