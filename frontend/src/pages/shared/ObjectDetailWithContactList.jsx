@@ -1,5 +1,5 @@
-import React, { useMemo, useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import React, { useState } from 'react'
+import { useLocation, useNavigate } from 'react-router-dom'
 
 import { Edit as EditIcon } from '@mui/icons-material'
 import LocalShippingIcon from '@mui/icons-material/LocalShipping'
@@ -29,6 +29,7 @@ export default function ObjectDetailWithContactList({
     fields,
 }) {
     const navigate = useNavigate()
+    const location = useLocation()
 
     const entityQuery = useQuery({
         queryKey: ['object-detail', entityUrl(id)],
@@ -134,7 +135,8 @@ export default function ObjectDetailWithContactList({
         }
     }
 
-    const rows = useMemo(() => fields(entity), [entity, fields])
+    // const rows = useMemo(() => fields(entity), [entity, fields])
+    const rows = fields(entity)
 
     return (
         <Box sx={{ p: 3 }}>
@@ -159,7 +161,7 @@ export default function ObjectDetailWithContactList({
                             <EditAction
                                 title="Изменить"
                                 color="primary"
-                                onClick={() => navigate(editTo(id))}
+                                onClick={() => navigate(editTo(id), { state: { from: location.pathname } })}
                                 icon={<EditIcon fontSize="small" />}
                             />
 

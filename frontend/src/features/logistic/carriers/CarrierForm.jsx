@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react'
-import { useNavigate, useParams } from 'react-router-dom'
+import { useLocation, useNavigate, useParams } from 'react-router-dom'
 
 import { Alert, Box, CircularProgress, Paper, Stack, TextField, Typography } from '@mui/material'
 
@@ -23,6 +23,8 @@ export default function CarrierFormPage() {
     const { id } = useParams()
     const isEdit = Boolean(id)
     const navigate = useNavigate()
+    const location = useLocation()
+    const backPath = location.state?.from || '/'
 
     const { data: carrier, isPending: loadingCarrier, error: loadError } = useGetCarrier(id)
     const createCarrier = useCreateCarrier()
@@ -140,7 +142,7 @@ export default function CarrierFormPage() {
                             minRows={3}
                         />
 
-                        <FormActions saving={saving} onCancel={() => navigate('/carriers')} />
+                        <FormActions saving={saving} onCancel={() => navigate(backPath)} />
                     </Stack>
                 </Box>
             </Paper>

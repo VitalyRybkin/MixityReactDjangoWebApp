@@ -1,5 +1,5 @@
 import React from 'react'
-import { Link as RouterLink, useNavigate } from 'react-router-dom'
+import { Link as RouterLink, useLocation, useNavigate } from 'react-router-dom'
 
 import { Edit as EditIcon } from '@mui/icons-material'
 import PhoneIcon from '@mui/icons-material/Phone'
@@ -14,6 +14,7 @@ import IconAction from '../../components/ui/buttons/IconAction.jsx'
 const ObjectListViewCard = ({ title, subtitle, extra, email, phone, fileUrl, to, onDelete }) => {
     const hasTextBefore = Boolean(subtitle || extra || email)
     const navigate = useNavigate()
+    const location = useLocation()
 
     return (
         <Card sx={{ width: '100%', mb: 0 }}>
@@ -29,6 +30,7 @@ const ObjectListViewCard = ({ title, subtitle, extra, email, phone, fileUrl, to,
                                 color="primary"
                                 component={RouterLink}
                                 to={`${to.replace(/\/$/, '')}/edit`}
+                                state={{ from: location.pathname }}
                                 icon={<EditIcon fontSize="small" />}
                             />
                             <DeleteAction onClick={onDelete} disabled={!onDelete} stopPropagation preventDefault />

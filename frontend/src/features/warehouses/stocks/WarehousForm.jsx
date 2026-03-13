@@ -1,9 +1,10 @@
 import React, { useEffect, useState } from 'react'
-import { useNavigate, useParams } from 'react-router-dom'
+import { useLocation, useNavigate, useParams } from 'react-router-dom'
 
-import { Alert, Box, Button, CircularProgress, Paper, Stack, TextField, Typography } from '@mui/material'
+import { Alert, Box, CircularProgress, Paper, Stack, TextField, Typography } from '@mui/material'
 
 import AppBreadcrumbs from '../../../components/AppBreadcrumbs.jsx'
+import FormActions from '../../../components/ui/FormActions.jsx'
 import { firstError } from '../../../utils/apiError.js'
 import { EMAIL_HINT, normalizeEmailInput, validateEmailValue } from '../../../utils/email.js'
 import { normalizePhoneInput, validatePhoneValue } from '../../../utils/phone.js'
@@ -23,6 +24,8 @@ export default function WarehouseFormPage() {
     const { id } = useParams()
     const isEdit = Boolean(id)
     const navigate = useNavigate()
+    const location = useLocation()
+    const backPath = location.state?.from || '/'
 
     const { data: warehouse, isPending: loadingWarehouse, error: loadError } = useWarehouse(id)
     const createWarehouse = useCreateWarehouse()
@@ -161,14 +164,7 @@ export default function WarehouseFormPage() {
                             minRows={3}
                         />
 
-                        <Stack direction="row" spacing={2} sx={{ pt: 1 }}>
-                            <Button type="submit" variant="contained" disabled={saving}>
-                                {saving ? 'Сохранение...' : 'Сохранить'}
-                            </Button>
-                            <Button variant="outlined" onClick={() => navigate('/warehouses')} disabled={saving}>
-                                Отмена
-                            </Button>
-                        </Stack>
+                        <FormActions saving={saving} onCancel={() => navigate(backPath)} />
                     </Stack>
                 </Box>
             </Paper>
