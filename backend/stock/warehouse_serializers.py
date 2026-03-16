@@ -37,7 +37,7 @@ class WarehouseListCreateSerializer(serializers.ModelSerializer):
 
 class WarehouseMapSerializer(serializers.ModelSerializer):
 
-    directions = serializers.ImageField(required=True, use_url=False)
+    directions = serializers.ImageField(required=True, use_url=True)
 
     class Meta:
         model = Warehouse
@@ -47,6 +47,6 @@ class WarehouseMapSerializer(serializers.ModelSerializer):
         """
         Validate that directions field is required when updating.
         """
-        if self.instance and self.partial and "directions" not in attrs:
+        if "directions" not in attrs:
             raise serializers.ValidationError({"directions": "This field is required."})
         return attrs

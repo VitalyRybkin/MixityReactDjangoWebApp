@@ -3,6 +3,11 @@ from phonenumber_field.modelfields import PhoneNumberField
 from phonenumber_field.validators import validate_international_phonenumber
 
 
+class ActiveQuerySet(models.QuerySet):
+    def active(self) -> "ActiveQuerySet":
+        return self.filter(is_active=True)
+
+
 class Warehouse(models.Model):
     """
     Represents a warehouse in the catalog system.
@@ -32,6 +37,10 @@ class Warehouse(models.Model):
         null=True,
     )
     directions = models.ImageField(upload_to="maps", null=True, blank=True)
+    is_active = models.BooleanField(default=True)
+
+    objects = ActiveQuerySet.as_manager()
+    all_objects = models.Manager()
 
     class Meta:
         db_table = "catalog_warehouse"

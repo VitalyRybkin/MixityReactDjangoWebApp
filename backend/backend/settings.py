@@ -67,6 +67,7 @@ INSTALLED_APPS = [
     "contacts.apps.ContactsConfig",
     "drf_spectacular",
     "drf_spectacular_sidecar",
+    'django_cleanup.apps.CleanupConfig',
 ]
 
 MIDDLEWARE = [
