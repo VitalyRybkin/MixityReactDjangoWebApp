@@ -11,6 +11,7 @@ import TruckFormPage from './features/logistic/trucks/CarrierTruckForm.jsx'
 import CarrierTruckListPage from './features/logistic/trucks/CarrierTruckList.jsx'
 import WarehouseFormPage from './features/warehouses/stocks/WarehousForm.jsx'
 import WarehouseInfoPage from './features/warehouses/stocks/WarehouseDetail.jsx'
+import WarehouseMapUploadPage from './features/warehouses/stocks/WarehouseMapUpload.jsx'
 import WarehousesList from './features/warehouses/stocks/WarehousesList.jsx'
 import MainLayout from './layouts/MainLayout'
 import Home from './pages/Home.jsx'
@@ -54,6 +55,7 @@ function App() {
                 <Route path="/warehouses/create" element={<WarehouseFormPage />} />
                 <Route path="/warehouses/:id" element={<WarehouseInfoPage />} />
                 <Route path="/warehouses/:id/edit" element={<WarehouseFormPage />} />
+                <Route path="/warehouses/:id/map" element={<WarehouseMapUploadPage />} />
             </Route>
 
             {/* 404 */}

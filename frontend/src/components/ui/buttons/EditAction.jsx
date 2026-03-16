@@ -17,7 +17,7 @@ import { IconButton, Tooltip } from '@mui/material'
  * - preventDefault: boolean (default false)
  */
 export default function EditAction({
-    title,
+    title = 'Изменить',
     icon,
     onClick,
     to,
@@ -37,6 +37,7 @@ export default function EditAction({
                             backgroundColor: theme.palette.action.selected,
                         },
                     })}
+                    color="primary"
                     component={component}
                     to={to}
                     disabled={disabled}

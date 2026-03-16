@@ -159,8 +159,6 @@ export default function ObjectDetailWithContactList({
 
                         <Stack direction="row" spacing={1}>
                             <EditAction
-                                title="Изменить"
-                                color="primary"
                                 onClick={() => navigate(editTo(id), { state: { from: location.pathname } })}
                                 icon={<EditIcon fontSize="small" />}
                             />
@@ -168,7 +166,6 @@ export default function ObjectDetailWithContactList({
                             {ownerType === 'carrier' && entity && (
                                 <EditAction
                                     title="Водители"
-                                    color="primary"
                                     onClick={() =>
                                         navigate(editTo(id).replace('edit', 'drivers'), {
                                             state: { entity },
@@ -181,7 +178,6 @@ export default function ObjectDetailWithContactList({
                             {ownerType === 'carrier' && entity && (
                                 <EditAction
                                     title="Автотранспорт"
-                                    color="primary"
                                     onClick={() =>
                                         navigate(editTo(id).replace('edit', 'trucks'), {
                                             state: { entity },
@@ -202,30 +198,40 @@ export default function ObjectDetailWithContactList({
                             </Box>
                         ) : (
                             <Stack>
-                                {rows.map((item) => (
-                                    <Box key={item.label} sx={{ px: 3, py: 2.5 }}>
-                                        <Typography
-                                            variant="body2"
-                                            sx={{
-                                                display: 'block',
-                                                color: 'text.disabled',
-                                                fontWeight: 700,
-                                                textTransform: 'uppercase',
-                                                mb: 0.5,
-                                                fontSize: '0.85rem',
-                                            }}
-                                        >
-                                            {item.label}
-                                        </Typography>
+                                {rows.map((item) => {
+                                    const isEmpty = item.value === null || item.value === undefined || item.value === ''
 
-                                        <Typography
-                                            variant="h6"
-                                            sx={{ color: 'text.primary', fontSize: '1.2rem', lineHeight: 1.1 }}
-                                        >
-                                            {item.value || '—'}
-                                        </Typography>
-                                    </Box>
-                                ))}
+                                    const isNode = React.isValidElement(item.value)
+
+                                    return (
+                                        <Box key={item.label} sx={{ px: 3, py: 2.5 }}>
+                                            <Typography
+                                                variant="body2"
+                                                sx={{
+                                                    display: 'block',
+                                                    color: 'text.disabled',
+                                                    fontWeight: 700,
+                                                    textTransform: 'uppercase',
+                                                    mb: 0.5,
+                                                    fontSize: '0.85rem',
+                                                }}
+                                            >
+                                                {item.label}
+                                            </Typography>
+
+                                            {isNode ? (
+                                                item.value
+                                            ) : (
+                                                <Typography
+                                                    variant="h6"
+                                                    sx={{ color: 'text.primary', fontSize: '1.2rem', lineHeight: 1.1 }}
+                                                >
+                                                    {isEmpty ? '—' : item.value}
+                                                </Typography>
+                                            )}
+                                        </Box>
+                                    )
+                                })}
                             </Stack>
                         )}
                     </CardContent>

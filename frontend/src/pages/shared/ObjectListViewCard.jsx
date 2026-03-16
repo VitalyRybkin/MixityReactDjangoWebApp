@@ -3,13 +3,13 @@ import { Link as RouterLink, useLocation, useNavigate } from 'react-router-dom'
 
 import { Edit as EditIcon } from '@mui/icons-material'
 import PhoneIcon from '@mui/icons-material/Phone'
-import PictureAsPdfIcon from '@mui/icons-material/PictureAsPdf'
-import { Box, Card, CardActionArea, CardContent, Divider, IconButton, Stack, Tooltip, Typography } from '@mui/material'
+import { Box, Card, CardActionArea, CardContent, Divider, Stack, Typography } from '@mui/material'
 
 import DeleteAction from '../../components/ui/buttons/DeleteAction.jsx'
 import EditAction from '../../components/ui/buttons/EditAction.jsx'
 import EmailLink from '../../components/ui/buttons/EmailLink.jsx'
 import IconAction from '../../components/ui/buttons/IconAction.jsx'
+import ViewAction from '../../components/ui/buttons/ViewAction.jsx'
 
 const ObjectListViewCard = ({ title, subtitle, extra, email, phone, fileUrl, to, onDelete }) => {
     const hasTextBefore = Boolean(subtitle || extra || email)
@@ -26,8 +26,6 @@ const ObjectListViewCard = ({ title, subtitle, extra, email, phone, fileUrl, to,
                         </Typography>
                         <Stack direction="row" spacing={1} justifyContent="flex-end">
                             <EditAction
-                                title="Изменить"
-                                color="primary"
                                 component={RouterLink}
                                 to={`${to.replace(/\/$/, '')}/edit`}
                                 state={{ from: location.pathname }}
@@ -94,7 +92,7 @@ const ObjectListViewCard = ({ title, subtitle, extra, email, phone, fileUrl, to,
                             </>
                         )}
 
-                        {/* PDF */}
+                        {/* Directions */}
                         {fileUrl && (
                             <>
                                 {hasTextBefore && (
@@ -105,25 +103,18 @@ const ObjectListViewCard = ({ title, subtitle, extra, email, phone, fileUrl, to,
                                     />
                                 )}
 
-                                <Tooltip title="Открыть инструкцию (PDF)">
-                                    <IconButton
-                                        onClick={(e) => {
-                                            e.stopPropagation()
-                                            e.preventDefault()
-                                            window.open(fileUrl, '_blank')
-                                        }}
-                                        sx={{
-                                            p: 0,
-                                            color: '#d32f2f',
-                                            '&:hover': {
-                                                color: '#b71c1c',
-                                                backgroundColor: 'transparent',
-                                            },
-                                        }}
-                                    >
-                                        <PictureAsPdfIcon sx={{ fontSize: 20 }} />
-                                    </IconButton>
-                                </Tooltip>
+                                <Typography variant="body2" sx={{ mr: 0.5, alignSelf: 'center' }}>
+                                    Схема проезда
+                                </Typography>
+
+                                <ViewAction
+                                    title={'Схема проезда'}
+                                    onClick={(e) => {
+                                        e.stopPropagation()
+                                        e.preventDefault()
+                                        window.open(fileUrl, '_blank')
+                                    }}
+                                />
                             </>
                         )}
                     </Box>

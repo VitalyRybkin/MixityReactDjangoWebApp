@@ -117,8 +117,6 @@ export default function CarrierTruckListPage() {
                                         <TableCell align="right">
                                             <Stack direction="row" spacing={1} justifyContent="flex-end">
                                                 <EditAction
-                                                    title="Изменить"
-                                                    color="primary"
                                                     onClick={() =>
                                                         navigate(`/carriers/${id}/trucks/${truck.id}/edit`, {
                                                             state: { entity },

@@ -114,8 +114,6 @@ export default function CarrierDriverListPage() {
                                         <TableCell align="right">
                                             <Stack direction="row" spacing={1} justifyContent="flex-end">
                                                 <EditAction
-                                                    title="Изменить"
-                                                    color="primary"
                                                     onClick={() =>
                                                         navigate(`/carriers/${id}/drivers/${driver.id}/edit`, {
                                                             state: { entity },

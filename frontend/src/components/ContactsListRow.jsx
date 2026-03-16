@@ -30,8 +30,6 @@ const ContactsListRow = ({ contact, onEdit, onDelete, onDeletePhone, isDeletingC
             <TableCell align="right">
                 <Stack direction="row" spacing={1} justifyContent="flex-end">
                     <EditAction
-                        title="Изменить"
-                        color="primary"
                         disabled={isDeletingContact(contactId)}
                         onClick={() => onEdit(contact)}
                         icon={<EditIcon fontSize="small" />}
