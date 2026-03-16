@@ -35,7 +35,7 @@ export default function WarehouseDetailPage() {
                         <Stack direction="row" spacing={1} flexWrap="wrap">
                             <ViewAction onClick={() => window.open(w.directions, '_blank', 'noopener,noreferrer')} />
                             <EditAction
-                                onClick={() => navigate(`/warehouses/${w.id}/map`)}
+                                onClick={() => navigate(`/warehouses/${w.id}/map`, { state: { warehouse: w.name } })}
                                 icon={<EditIcon fontSize="small" />}
                             />
                         </Stack>

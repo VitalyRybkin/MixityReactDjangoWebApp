@@ -1,5 +1,5 @@
-import { useState } from 'react'
-import { useNavigate, useParams } from 'react-router-dom'
+import React, { useState } from 'react'
+import { useLocation, useNavigate, useParams } from 'react-router-dom'
 
 import { Alert, Box, Button, Card, CardContent, Stack, Typography } from '@mui/material'
 
@@ -9,6 +9,7 @@ import AppBreadcrumbs from '../../../components/AppBreadcrumbs.jsx'
 export default function WarehouseMapUploadPage() {
     const { id } = useParams()
     const navigate = useNavigate()
+    const warehouse = useLocation().state?.warehouse
 
     const [file, setFile] = useState(null)
     const [saving, setSaving] = useState(false)
@@ -43,7 +44,7 @@ export default function WarehouseMapUploadPage() {
 
     return (
         <Box sx={{ p: 3 }}>
-            <AppBreadcrumbs />
+            <AppBreadcrumbs dynamicLabels={{ id: warehouse }} />
             <Card variant="outlined">
                 <CardContent>
                     <Stack component="form" spacing={2} onSubmit={onSubmit}>

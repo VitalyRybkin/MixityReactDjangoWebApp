@@ -1,8 +1,3 @@
-import { Route } from 'react-router-dom'
-
-import DriverFormPage from '../features/logistic/drivers/CarrierDriverForm.jsx'
-import TruckFormPage from '../features/logistic/trucks/CarrierTruckForm.jsx'
-
 export const routes = [
     {
         path: '/',
@@ -63,5 +58,9 @@ export const routes = [
     {
         path: '/warehouses/:id/edit',
         breadcrumb: 'Редактировать',
+    },
+    {
+        path: '/warehouses/:id/map',
+        breadcrumb: 'Схема проезда',
     },
 ]
