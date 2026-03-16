@@ -17,6 +17,7 @@ urlpatterns = [
     path("api/catalog/", include("catalog.api.urls")),
     path("api/stock/", include("stock.urls")),
     path("api/contacts/", include("contacts.urls")),
+    path("api/core/", include("core.urls")),
 
     # DRF session login (optional, for browsable API)
     path("api/auth/", include("rest_framework.urls")),
