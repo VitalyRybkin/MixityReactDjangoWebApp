@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import { useLocation, useNavigate, useParams } from 'react-router-dom'
 
 import { Alert, Box, CircularProgress, Paper, Stack, TextField, Typography } from '@mui/material'
@@ -10,6 +10,7 @@ import AppBreadcrumbs from '../../../components/AppBreadcrumbs.jsx'
 import DateField from '../../../components/ui/DateField.jsx'
 import FormActions from '../../../components/ui/FormActions.jsx'
 import { firstError } from '../../../utils/apiError.js'
+import { normalizePhoneInput, validatePhoneValue } from '../../../utils/phone.js'
 
 import { useCreateDriver, useGetDriver, useUpdateDriver } from './drivers.queries.js'
 
@@ -40,6 +41,7 @@ export default function DriverFormPage() {
 
     const [form, setForm] = useState(emptyForm)
     const [error, setError] = useState('')
+    const [phoneError, setPhoneError] = useState('')
 
     useEffect(() => {
         if (!isEdit) {
@@ -61,8 +63,11 @@ export default function DriverFormPage() {
     const saving = createDriver.isPending || updateDriver.isPending
     const loading = isEdit && loadingDriver
 
-    const payload = useMemo(
-        () => ({
+    const onSubmit = async (e) => {
+        e.preventDefault()
+        setError('')
+
+        const payload = {
             carrier: Number(carrierId),
             fullName: form.fullName.trim(),
             passportNumber: emptyToNull(form.passportNumber),
@@ -71,13 +76,7 @@ export default function DriverFormPage() {
                 : null,
             passportEmittedBy: emptyToNull(form.passportEmittedBy),
             phone: emptyToNull(form.phone),
-        }),
-        [carrierId, form],
-    )
-
-    const onSubmit = async (e) => {
-        e.preventDefault()
-        setError('')
+        }
 
         try {
             if (isEdit) {
@@ -95,6 +94,11 @@ export default function DriverFormPage() {
     }
 
     const onChange = (field) => (e) => {
+        let value = e.target.value
+        if (field === 'phone') {
+            value = normalizePhoneInput(value)
+            setPhoneError(validatePhoneValue(value))
+        }
         setForm((prev) => ({ ...prev, [field]: e.target.value }))
     }
 
@@ -162,9 +166,15 @@ export default function DriverFormPage() {
                             fullWidth
                         />
 
-                        <TextField label="Телефон" value={form.phone} onChange={onChange('phone')} fullWidth />
-
-                        <TextField label="Телефон" value={form.phone} onChange={onChange('phone')} fullWidth />
+                        <TextField
+                            label="Телефон"
+                            value={form.phone}
+                            onChange={onChange('phone')}
+                            fullWidth
+                            error={Boolean(phoneError)}
+                            helperText={phoneError || 'Формат: +79991234567'}
+                            placeholder="+79991234567"
+                        />
 
                         <FormActions
                             saving={saving}

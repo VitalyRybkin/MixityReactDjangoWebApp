@@ -26,7 +26,7 @@ const ObjectListView = ({
                 <Typography variant="h4" gutterBottom fontWeight={600}>
                     {title}
                 </Typography>
-                <AddAction onClick={() => navigate(addTo)} />
+                <AddAction onClick={() => navigate(addTo, { state: { from: location.pathname } })} />
             </Box>
             <Divider sx={{ mb: 3 }} />
 
