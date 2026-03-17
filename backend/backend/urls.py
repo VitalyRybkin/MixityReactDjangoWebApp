@@ -100,4 +100,22 @@ urlpatterns = [
       ),
       name="swagger-contacts",
     ),
+
+    # Documentation OpenAPI
+    path(
+      "api/schema/core/",
+      SpectacularAPIView.as_view(
+          permission_classes=[AllowAny],
+          urlconf="core.schema_urls",
+      ),
+      name="schema-core",
+    ),
+    path(
+      "api/docs/core/",
+      SpectacularSwaggerView.as_view(
+          url_name="schema-core",
+          permission_classes=[AllowAny],
+      ),
+      name="swagger-core",
+    ),
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
