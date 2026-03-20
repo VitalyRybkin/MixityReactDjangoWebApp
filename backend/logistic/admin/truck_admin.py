@@ -1,10 +1,11 @@
 from django.contrib import admin
 
+from core.admin import BaseAdmin
 from logistic.models import Truck, TruckCapacity, TruckType
 
 
 @admin.register(Truck)
-class TruckAdmin(admin.ModelAdmin):
+class TruckAdmin(BaseAdmin):
     list_display = [
         "carrier",
         "truck_type",
@@ -17,7 +18,7 @@ class TruckAdmin(admin.ModelAdmin):
 
 
 @admin.register(TruckType)
-class TruckTypeAdmin(admin.ModelAdmin):
+class TruckTypeAdmin(BaseAdmin):
     list_display = ["name", "description"]
     list_display_links = ["name"]
     ordering = ["name"]
@@ -26,7 +27,7 @@ class TruckTypeAdmin(admin.ModelAdmin):
 
 
 @admin.register(TruckCapacity)
-class TruckCapacityAdmin(admin.ModelAdmin):
+class TruckCapacityAdmin(BaseAdmin):
     list_display = ["capacity", "description"]
     list_display_links = ["capacity"]
     ordering = ["capacity"]

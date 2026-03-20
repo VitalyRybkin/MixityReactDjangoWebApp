@@ -44,6 +44,8 @@ class Warehouse(models.Model):
 
     class Meta:
         db_table = "catalog_warehouse"
+        verbose_name = "Склад"
+        verbose_name_plural = "Склады"
 
     def __str__(self) -> str:
         return f"{self.name} - {self.address}"

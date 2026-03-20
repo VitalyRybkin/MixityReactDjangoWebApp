@@ -9,15 +9,16 @@ from catalog.models import (
     ProductSpecName,
     SpecificationGroup,
 )
+from core.admin import BaseAdmin
 
 
 @admin.register(ProductGroup)
-class ProductGroupAdmin(admin.ModelAdmin):
+class ProductGroupAdmin(BaseAdmin):
     list_display = ("name",)
 
 
 @admin.register(SpecificationGroup)
-class SpecificationGroupAdmin(admin.ModelAdmin):
+class SpecificationGroupAdmin(BaseAdmin):
     list_display = ("order", "name")
     ordering = ("order", "name")
     list_display_links = ("name",)
@@ -25,7 +26,7 @@ class SpecificationGroupAdmin(admin.ModelAdmin):
 
 
 @admin.register(ProductSpecName)
-class ProductSpecNameAdmin(admin.ModelAdmin):
+class ProductSpecNameAdmin(BaseAdmin):
     list_display = ("title", "group")
     ordering = (
         "group__order",
@@ -35,7 +36,7 @@ class ProductSpecNameAdmin(admin.ModelAdmin):
 
 
 @admin.register(ProductSpecification)
-class ProductSpecificationAdmin(admin.ModelAdmin):
+class ProductSpecificationAdmin(BaseAdmin):
     list_display = ("name", "value", "unit")
 
 
@@ -45,7 +46,7 @@ class ProductSpecificationInline(admin.TabularInline):
 
 
 @admin.register(DescriptionItem)
-class DescriptionItemAdmin(admin.ModelAdmin):
+class DescriptionItemAdmin(BaseAdmin):
     list_display = ("order", "title")
     ordering = ("order", "title")
     list_display_links = ("title",)
@@ -57,7 +58,7 @@ class ProductDescriptionInline(admin.TabularInline):
 
 
 @admin.register(Product)
-class ProductAdmin(admin.ModelAdmin):
+class ProductAdmin(BaseAdmin):
     list_display = (
         "name",
         "for_web",

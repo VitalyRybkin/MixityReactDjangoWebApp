@@ -1,6 +1,7 @@
 from django.contrib import admin
 
 from contacts.admin import ContactInline
+from core.admin import BaseAdmin
 from logistic.admin.driver_admin import DriverInline
 from logistic.models import Carrier, Truck
 
@@ -18,7 +19,7 @@ class TruckInline(admin.TabularInline):  # or StackedInline
 
 
 @admin.register(Carrier)
-class CarrierAdmin(admin.ModelAdmin):
+class CarrierAdmin(BaseAdmin):
     list_display = ["name", "description"]
     list_display_links = ["name"]
     ordering = ["name"]

@@ -66,6 +66,8 @@ class Driver(models.Model):
 
     class Meta:
         indexes = [models.Index(fields=["carrier", "full_name"])]
+        verbose_name = "Водитель"
+        verbose_name_plural = "Водители"
 
     def save(self, *args: Any, **kwargs: Any) -> None:
         if self.passport_number:

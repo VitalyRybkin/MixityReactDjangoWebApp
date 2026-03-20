@@ -18,8 +18,8 @@ class TruckCapacity(models.Model):
 
     class Meta:
         indexes = [models.Index(fields=["capacity"])]
-        verbose_name = "Truck Capacity"
-        verbose_name_plural = "Truck Capacities"
+        verbose_name = "Грузоподъемность"
+        verbose_name_plural = "Грузоподъемность"
 
     def __str__(self) -> str:
         return f"Грузоподъемность - {self.capacity} т"

@@ -28,8 +28,8 @@ class PhoneNumber(models.Model):
     )
 
     class Meta:
-        verbose_name = "Phone number"
-        verbose_name_plural = "Phone numbers"
+        verbose_name = "Телефон"
+        verbose_name_plural = "Телефоны"
 
     def __str__(self) -> str:
         return str(self.phone_number)
@@ -73,8 +73,8 @@ class Contact(models.Model):
     )
 
     class Meta:
-        verbose_name = "Contact"
-        verbose_name_plural = "Contacts"
+        verbose_name = "Контакт"
+        verbose_name_plural = "Контакты"
         constraints = [
             models.CheckConstraint(
                 check=(

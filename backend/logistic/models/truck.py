@@ -52,5 +52,9 @@ class Truck(models.Model):
 
     description = models.TextField(blank=True, null=True)
 
+    class Meta:
+        verbose_name = "Автотранспорт"
+        verbose_name_plural = "Автотранспорт"
+
     def __str__(self) -> str:
         return f"{self.license_plate} ({self.truck_type})"

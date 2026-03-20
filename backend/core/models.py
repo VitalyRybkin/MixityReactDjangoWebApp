@@ -12,7 +12,7 @@ class Organisation(models.Model):
     kpp = models.CharField(max_length=9)
     ceo_name = models.CharField(max_length=255)
 
-    def __str__(self):
+    def __str__(self) -> str:
         return self.short_name
 
 class Documentation(models.Model):
@@ -21,3 +21,10 @@ class Documentation(models.Model):
     """
     title = models.CharField(max_length=255)
     file = models.FileField(upload_to="docs")
+
+    class Meta:
+        verbose_name = "Документ"
+        verbose_name_plural = "Документы"
+
+    def __str__(self) -> str:
+        return self.title

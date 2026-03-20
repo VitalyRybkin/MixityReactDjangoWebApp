@@ -1,5 +1,6 @@
 from django.contrib import admin
 
+from core.admin import BaseAdmin
 from logistic.models import Driver
 
 
@@ -10,6 +11,6 @@ class DriverInline(admin.TabularInline):
 
 
 @admin.register(Driver)
-class DriverAdmin(admin.ModelAdmin):
+class DriverAdmin(BaseAdmin):
     list_display = ["full_name", "carrier"]
     list_filter = ("carrier",)

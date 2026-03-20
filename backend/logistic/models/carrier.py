@@ -45,6 +45,8 @@ class Carrier(models.Model):
 
     class Meta:
         indexes = [models.Index(fields=["is_active", "name"])]
+        verbose_name = "Перевозчик"
+        verbose_name_plural = "Перевозчики"
 
     def __str__(self) -> str:
         return f"TK: {self.name}"

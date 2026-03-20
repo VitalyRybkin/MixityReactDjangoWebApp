@@ -35,6 +35,8 @@ class AppUnit(models.Model):
 
     class Meta:
         db_table = "catalog_unit"
+        verbose_name = "Единица измерения"
+        verbose_name_plural = "Единицы измерения"
 
     def clean(self) -> None:
         """

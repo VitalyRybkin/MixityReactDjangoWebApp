@@ -1,6 +1,7 @@
 from django.contrib import admin
 
 from contacts.models import Contact, PhoneNumber
+from core.admin import BaseAdmin
 
 
 class PhoneNumberInline(admin.TabularInline):
@@ -16,7 +17,7 @@ class ContactInline(admin.TabularInline):
 
 
 @admin.register(Contact)
-class ContactAdmin(admin.ModelAdmin):
+class ContactAdmin(BaseAdmin):
     inlines = (PhoneNumberInline,)
 
     list_display = [
