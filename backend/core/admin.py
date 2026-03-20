@@ -3,7 +3,7 @@ from typing import Any, Union
 from django.http import HttpRequest
 from rest_framework.request import Request
 
-from core.models import Documentation
+from core.models import Documentation, Organisation
 from django.contrib import admin, messages
 
 
@@ -54,4 +54,16 @@ class DocumentationAdmin(BaseAdmin):
     list_display = (
         "title",
         "file",
+        "tag",
+    )
+
+@admin.register(Organisation)
+class OrganizationAdmin(BaseAdmin):
+    list_display = (
+        "short_name",
+        "full_name",
+        "address",
+        "inn",
+        "kpp",
+        "ceo_name"
     )
