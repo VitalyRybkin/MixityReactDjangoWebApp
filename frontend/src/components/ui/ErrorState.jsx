@@ -1,9 +1,11 @@
 import { Alert } from '@mui/material'
 
+import getErrorMessage from '../../utils/getErrorMessage.js'
+
 import ReloadAction from './buttons/ReloadAction.jsx'
 
 export default function ErrorState({ error, onRetry, loading }) {
-    const message = error?.response?.data?.detail || error?.message || 'Не удалось загрузить данные'
+    const message = getErrorMessage(error)
 
     return (
         <Alert

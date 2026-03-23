@@ -34,8 +34,14 @@ export default function DocumentationListPage() {
         setSelectedDocs((prev) => (prev.includes(id) ? prev.filter((item) => item !== id) : [...prev, id]))
     }
 
+    const [downloadLoading, setDownloadLoading] = useState(false)
+    const [actionError, setActionError] = useState(null)
+
     const handleDownloadAll = async () => {
         if (!selectedDocs.length) return
+
+        setActionError(null)
+        setDownloadLoading(true)
 
         try {
             const response = await api.post(
@@ -56,7 +62,9 @@ export default function DocumentationListPage() {
 
             window.URL.revokeObjectURL(url)
         } catch (error) {
-            console.error('Ошибка при скачивании архива:', error)
+            setActionError(error)
+        } finally {
+            setDownloadLoading(false)
         }
     }
 
@@ -104,6 +112,8 @@ export default function DocumentationListPage() {
             </Box>
 
             <Divider sx={{ mb: 3 }} />
+
+            {actionError && <ErrorState error={actionError} onRetry={handleDownloadAll} loading={downloadLoading} />}
 
             {error ? (
                 <ErrorState error={error} onRetry={refetch} loading={isPending} />
