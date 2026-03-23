@@ -26,7 +26,12 @@ import { useGetDocumentation } from './core.queries.js'
 export default function DocumentationListPage() {
     const { data: documentation = [], isPending, error, refetch } = useGetDocumentation()
 
-    const uniqueTags = [...new Set(documentation.map((doc) => doc.tag).flat())]
+    const normalizedDocs = documentation.map((doc) => ({
+        ...doc,
+        tags: Array.isArray(doc.tag) ? doc.tag : doc.tag ? [doc.tag] : [],
+    }))
+
+    const uniqueTags = [...new Set(normalizedDocs.flatMap((doc) => doc.tag))]
 
     const [selectedDocs, setSelectedDocs] = useState([])
 
@@ -102,19 +107,21 @@ export default function DocumentationListPage() {
 
             <Box sx={{ p: 3, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                 <Typography variant="h4">Документация</Typography>
+                {downloadLoading && <CircularProgress size={20} />}
 
                 <Stack direction="row" spacing={2}>
                     <>
                         <EmailLink title="Отправить" onClick={handleSendEmail} />
                         <DownloadAction onClick={handleDownloadAll} />
+
+                        {actionError && (
+                            <ErrorState error={actionError} onRetry={handleDownloadAll} loading={downloadLoading} />
+                        )}
                     </>
                 </Stack>
             </Box>
 
             <Divider sx={{ mb: 3 }} />
-
-            {actionError && <ErrorState error={actionError} onRetry={handleDownloadAll} loading={downloadLoading} />}
-
             {error ? (
                 <ErrorState error={error} onRetry={refetch} loading={isPending} />
             ) : isPending ? (
@@ -125,7 +132,7 @@ export default function DocumentationListPage() {
                 <TableContainer>
                     <Table sx={{ minWidth: 800 }}>
                         {uniqueTags.map((tag) => {
-                            const filteredDocs = documentation.filter((doc) => doc.tag.includes(tag))
+                            const filteredDocs = normalizedDocs.filter((doc) => doc.tags.includes(tag))
                             const allSelectedInTag = filteredDocs.every((d) => selectedDocs.includes(d.id))
 
                             if (filteredDocs.length === 0) return null

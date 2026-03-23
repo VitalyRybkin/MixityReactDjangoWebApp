@@ -1,5 +1,5 @@
 import React from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useLocation, useNavigate } from 'react-router-dom'
 
 import { Box, CircularProgress, Divider, Grid, Typography } from '@mui/material'
 
@@ -18,6 +18,7 @@ const ObjectListView = ({
     emptyText = 'Список пуст',
 }) => {
     const navigate = useNavigate()
+    const location = useLocation()
 
     return (
         <Box sx={{ p: 3, width: '100%' }}>

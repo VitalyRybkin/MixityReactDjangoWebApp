@@ -1,8 +1,6 @@
 import { useQuery } from '@tanstack/react-query'
 
 import api from '../../api.js'
-import { carrierKeys } from '../logistic/carriers/carriers.queries.js'
-
 
 const unwrapList = (d) => {
     if (Array.isArray(d)) return d
@@ -22,7 +20,7 @@ const fetchDocumentation = async () => {
 
 export function useGetDocumentation() {
     return useQuery({
-        queryKey: carrierKeys.list(),
+        queryKey: coreKeys.list(),
         queryFn: fetchDocumentation,
     })
 }
