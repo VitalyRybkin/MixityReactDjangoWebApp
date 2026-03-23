@@ -3,19 +3,17 @@ import { Stack, Typography } from '@mui/material'
 
 import IconAction from './IconAction.jsx'
 
-const EmailLink = ({ email, sx }) => (
+const EmailLink = ({ email, onClick, label, title = 'Написать', sx }) => (
     <Stack direction="row" alignItems="center" spacing={0.5} sx={sx}>
         <Typography variant="body2" fontWeight={500}>
-            {email}
+            {label || email}
         </Typography>
 
         <IconAction
-            title="Написать"
+            title={title}
             stopPropagation
             preventDefault
-            onClick={() => {
-                window.location.href = `mailto:${email}`
-            }}
+            onClick={email ? () => (window.location.href = `mailto:${email}`) : onClick}
         >
             <EmailIcon fontSize="small" />
         </IconAction>

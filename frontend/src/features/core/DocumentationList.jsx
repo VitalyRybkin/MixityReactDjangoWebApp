@@ -1,10 +1,7 @@
 import React, { useState } from 'react'
 
-import DownloadIcon from '@mui/icons-material/Download'
-import EmailIcon from '@mui/icons-material/Email'
 import {
     Box,
-    Button,
     Checkbox,
     CircularProgress,
     Divider,
@@ -18,9 +15,11 @@ import {
     Typography,
 } from '@mui/material'
 
+import api from '../../api.js'
 import AppBreadcrumbs from '../../components/AppBreadcrumbs.jsx'
 import ErrorState from '../../components/ui/ErrorState.jsx'
-import AddAction from '../../components/ui/buttons/AddAction.jsx'
+import DownloadAction from '../../components/ui/buttons/DownloadAction.jsx'
+import EmailLink from '../../components/ui/buttons/EmailLink.jsx'
 
 import { useGetDocumentation } from './core.queries.js'
 
@@ -35,19 +34,30 @@ export default function DocumentationListPage() {
         setSelectedDocs((prev) => (prev.includes(id) ? prev.filter((item) => item !== id) : [...prev, id]))
     }
 
-    const handleDownloadAll = () => {
-        selectedDocs.forEach((id) => {
-            const doc = documentation.find((d) => d.id === id)
-            if (doc && doc.file) {
-                const link = document.createElement('a')
-                link.href = doc.file
-                link.download = doc.title || 'document'
-                link.target = '_blank'
-                document.body.appendChild(link)
-                link.click()
-                document.body.removeChild(link)
-            }
-        })
+    const handleDownloadAll = async () => {
+        if (!selectedDocs.length) return
+
+        try {
+            const response = await api.post(
+                '/api/core/documentation/download-zip/',
+                { ids: selectedDocs },
+                { responseType: 'blob' },
+            )
+
+            const blob = new Blob([response.data], { type: 'application/zip' })
+            const url = window.URL.createObjectURL(blob)
+
+            const link = document.createElement('a')
+            link.href = url
+            link.download = 'documents.zip'
+            document.body.appendChild(link)
+            link.click()
+            document.body.removeChild(link)
+
+            window.URL.revokeObjectURL(url)
+        } catch (error) {
+            console.error('Ошибка при скачивании архива:', error)
+        }
     }
 
     const handleSendEmail = () => {
@@ -58,9 +68,7 @@ export default function DocumentationListPage() {
                 const doc = documentation.find((d) => d.id === id)
                 if (!doc) return null
 
-                const correctedUrl = doc.public_url.replace('/docs/', '/api/core/docs/')
-
-                return `${index + 1}. ${doc.title}\n   ${correctedUrl}`
+                return `${index + 1}. ${doc.title}\n   ${doc.public_url}`
             })
             .filter(Boolean)
             .join('\n\n')
@@ -88,27 +96,10 @@ export default function DocumentationListPage() {
                 <Typography variant="h4">Документация</Typography>
 
                 <Stack direction="row" spacing={2}>
-                    {selectedDocs.length > 0 && (
-                        <>
-                            <Button
-                                variant="outlined"
-                                startIcon={<EmailIcon />}
-                                onClick={handleSendEmail}
-                                sx={{ borderRadius: 2 }}
-                            >
-                                Отправить ссылки ({selectedDocs.length})
-                            </Button>
-
-                            <Button
-                                variant="contained"
-                                startIcon={<DownloadIcon />}
-                                onClick={handleDownloadAll}
-                                sx={{ borderRadius: 2 }}
-                            >
-                                Скачать файлы
-                            </Button>
-                        </>
-                    )}
+                    <>
+                        <EmailLink title="Отправить" onClick={handleSendEmail} />
+                        <DownloadAction onClick={handleDownloadAll} />
+                    </>
                 </Stack>
             </Box>
 
@@ -165,7 +156,12 @@ export default function DocumentationListPage() {
                                             <TableRow
                                                 key={doc.id}
                                                 hover
-                                                onClick={() => window.open(doc.file, '_blank')}
+                                                onClick={() =>
+                                                    window.open(
+                                                        doc.public_url.replace('/docs/', '/api/core/docs/'),
+                                                        '_blank',
+                                                    )
+                                                }
                                                 sx={{ cursor: 'pointer' }}
                                             >
                                                 <TableCell padding="checkbox">
@@ -179,17 +175,6 @@ export default function DocumentationListPage() {
                                                     />
                                                 </TableCell>
                                                 <TableCell>{doc.title || 'Без названия'}</TableCell>
-                                                <TableCell align="right">
-                                                    <Stack direction="row" spacing={1} justifyContent="flex-end">
-                                                        <AddAction
-                                                            href={doc.file}
-                                                            target="_blank"
-                                                            rel="noopener noreferrer"
-                                                            iconSize="small"
-                                                            onClick={(e) => e.stopPropagation()}
-                                                        />
-                                                    </Stack>
-                                                </TableCell>
                                             </TableRow>
                                         ))}
                                     </TableBody>
