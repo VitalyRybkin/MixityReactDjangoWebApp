@@ -2,6 +2,7 @@ import { Navigate, Route, Routes } from 'react-router-dom'
 
 import ProtectedRoute from './components/routing/ProtectedRoute.jsx'
 import { ACCESS_TOKEN, REFRESH_TOKEN } from './constants.js'
+import DocumentationListPage from './features/core/DocumentationList.jsx'
 import CarrierDetailPage from './features/logistic/carriers/CarrierDetail.jsx'
 import CarrierFormPage from './features/logistic/carriers/CarrierForm.jsx'
 import CarriersList from './features/logistic/carriers/CarriersList.jsx'
@@ -56,6 +57,8 @@ function App() {
                 <Route path="/warehouses/:id" element={<WarehouseInfoPage />} />
                 <Route path="/warehouses/:id/edit" element={<WarehouseFormPage />} />
                 <Route path="/warehouses/:id/map" element={<WarehouseMapUploadPage />} />
+
+                <Route path="/documentation" element={<DocumentationListPage />} />
             </Route>
 
             {/* 404 */}
