@@ -6,6 +6,10 @@ from rest_framework.permissions import AllowAny
 from core.models import Documentation
 from core.serializers import DocumentationSerializer
 
+from django.shortcuts import get_object_or_404
+from django.http import FileResponse, Http404
+from django.views import View
+
 
 class DocsListAPIView(generics.ListAPIView):
     """
@@ -14,6 +18,18 @@ class DocsListAPIView(generics.ListAPIView):
     queryset = Documentation.objects.all()
     serializer_class = DocumentationSerializer
     permission_classes = [AllowAny]
+
+class DocumentationDetailView(View):
+    """
+    View to serve documentation files.
+    """
+    def get(self, request, pk):
+        doc = get_object_or_404(Documentation, pk=pk)
+
+        if not doc.file:
+            raise Http404("Файл не найден")
+
+        return FileResponse(doc.file.open("rb"), as_attachment=False)
 
 
 
