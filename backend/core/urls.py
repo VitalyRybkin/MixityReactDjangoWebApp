@@ -1,9 +1,9 @@
 from django.urls import path
 
-from core.views import DocsListAPIView
+from core.views import DocsListAPIView, doc_page
 
 app_name = "core"
 
 urlpatterns = [
-    path("docs", DocsListAPIView.as_view(), name="docs")
+    path("documentation/", DocsListAPIView.as_view(), name="documentation"),
 ]

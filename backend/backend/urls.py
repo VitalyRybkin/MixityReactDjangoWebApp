@@ -6,7 +6,10 @@ from drf_spectacular.views import SpectacularSwaggerView, SpectacularAPIView
 from rest_framework.permissions import AllowAny
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 
+from core.views import doc_page
+
 urlpatterns = [
+    path("", doc_page, name="home"),
     path("admin/", admin.site.urls),
 
     # API

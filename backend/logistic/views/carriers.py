@@ -7,6 +7,7 @@ from rest_framework.permissions import AllowAny
 from rest_framework.request import Request
 from rest_framework.response import Response
 
+from core.mixins import SoftDeleteResponseMixin
 from core.openapi.base_views import (
     BaseGenericAPIView,
     BaseListAPIView,
@@ -63,7 +64,7 @@ class CarrierListCreateAPIView(CarrierBaseAPIView, BaseListCreateAPIView):
 
 
 class CarrierRetrieveUpdateDestroyAPIView(
-    CarrierBaseAPIView, BaseRetrieveUpdateDestroyAPIView
+    SoftDeleteResponseMixin, CarrierBaseAPIView, BaseRetrieveUpdateDestroyAPIView
 ):
     """
     Handles retrieving, updating, or deleting a `Carrier` object.
@@ -79,16 +80,6 @@ class CarrierRetrieveUpdateDestroyAPIView(
     schema_tags = ["Carrier"]
     read_serializer_class = CarrierSerializer
     write_serializer_class = CarrierSerializer
-
-    def perform_destroy(self, instance: Carrier) -> None:
-        instance.is_active = False
-        instance.save(update_fields=["is_active"])
-
-    def destroy(self, request: Request, *args: Any, **kwargs: Any) -> Response:
-        instance = self.get_object()
-        self.perform_destroy(instance)
-        serializer = self.get_serializer(instance)
-        return Response(serializer.data, status=status.HTTP_200_OK)
 
 
 class CarrierResourcesAPIView(BaseGenericAPIView):

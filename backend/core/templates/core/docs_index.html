@@ -1,0 +1,31 @@
+{% extends "core/base.html" %}
+
+{% block title %}API Documentation{% endblock %}
+
+{% block content %}
+    <header class="header">
+        <h1 class="title">API Documentation</h1>
+        <p class="subtitle">
+            Browse available API modules and open Swagger or schema endpoints.
+        </p>
+    </header>
+
+    <section class="grid">
+        {% for doc in docs %}
+            <a href="{{ doc.url }}" class="card">
+                <h2 class="card-title">{{ doc.title }}</h2>
+                <div class="card-url">{{ doc.url }}</div>
+                <div class="card-action">Open →</div>
+            </a>
+        {% empty %}
+            <div class="card">
+                <h2 class="card-title">No documentation available</h2>
+                <div class="card-url">No registered documentation routes were found.</div>
+            </div>
+        {% endfor %}
+    </section>
+
+    <div class="footer">
+        Generated from registered Django URL names.
+    </div>
+{% endblock %}
