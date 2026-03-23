@@ -1,131 +1,89 @@
-import os
-import zipfile
-from io import BytesIO
 from typing import Any
 
+from django.http import FileResponse, HttpResponse, HttpRequest
+from django.shortcuts import get_object_or_404
 from django.shortcuts import render
-from django.urls import reverse, NoReverseMatch
+from drf_spectacular.utils import extend_schema, OpenApiResponse
 from rest_framework import generics
 from rest_framework.permissions import AllowAny
 from rest_framework.views import APIView
 
 from core.models import Documentation
-from core.serializers import DocumentationSerializer
+from core.openapi.base_views import BaseListAPIView, BaseGenericAPIView, BaseCreateAPIView
+from core.serializers import DocumentationSerializer, DocumentationBulkDownloadRequestSerializer
+from core.services.docs_index import build_docs_index_sections
+from core.services.documentation_files import get_documentation_file_parts, build_documents_zip
 
-from django.shortcuts import get_object_or_404
-from django.http import FileResponse, Http404, HttpResponse, HttpRequest
-from django.views import View
 
-
-class DocsListAPIView(generics.ListAPIView):
+class DocumentsListAPIView(BaseListAPIView, generics.ListAPIView):
     """
     API view to list all documents.
     """
+    resource_name = "Documentation"
+    schema_tags = ["Documentation"]
+    read_serializer_class = DocumentationSerializer
+
     queryset = Documentation.objects.all()
     serializer_class = DocumentationSerializer
     permission_classes = [AllowAny]
 
-class DocumentationDetailView(View):
+
+class DocumentationDetailView(BaseGenericAPIView, APIView):
     """
-    View to serve documentation files.
+    View to serve documentation file inline.
     """
+    resource_name = "Documentation"
+    schema_tags = ["Documentation"]
+    read_serializer_class = DocumentationSerializer
+    permission_classes = [AllowAny]
+
     def get(self, request: HttpRequest, pk: int) -> FileResponse:
         doc = get_object_or_404(Documentation, pk=pk)
+        file_obj, _filename = get_documentation_file_parts(doc)
 
-        if not doc.file:
-            raise Http404("Файл не найден")
+        return FileResponse(file_obj, as_attachment=False)
 
-        return FileResponse(doc.file.open("rb"), as_attachment=False)
-
-class DocumentationDownloadView(View):
+class DocumentationDownloadView(BaseGenericAPIView, APIView):
     """
-    View to serve documentation files.
+    View to download a documentation file.
     """
+    resource_name = "Documentation load"
+    schema_tags = ["Documentation"]
+    read_serializer_class = DocumentationSerializer
+
+    permission_classes = [AllowAny]
+
     def get(self, request: HttpRequest, pk: int) -> FileResponse:
         doc = get_object_or_404(Documentation, pk=pk)
-
-        if not doc.file:
-            raise Http404("Файл не найден")
-
-        filename = os.path.basename(doc.file.name)
+        file_obj, filename = get_documentation_file_parts(doc)
 
         return FileResponse(
-            doc.file.open("rb"),
+            file_obj,
             as_attachment=True,
             filename=filename,
         )
 
-class DocumentationBulkDownloadView(APIView):
+class DocumentationBulkDownloadView(BaseCreateAPIView, generics.GenericAPIView):
     """
     View to serve multiple documentation files as a zip archive.
     """
+    resource_name = "Documentation bulk download"
+    schema_tags = ["Documentation"]
+    read_serializer_class = DocumentationBulkDownloadRequestSerializer
     permission_classes = [AllowAny]
+    serializer_class = DocumentationBulkDownloadRequestSerializer
 
-    def post(self, request: HttpRequest, *args:Any, **kwargs: Any) -> HttpResponse:
-        """
-        Handle POST request to download multiple documents as a zip archive.
-        """
-        ids = request.data.get("ids", [])
+    def post(self, request: HttpRequest, *args: Any, **kwargs: Any) -> HttpResponse:
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
 
-        if not isinstance(ids, list) or not ids:
-            return HttpResponse("Не переданы ids документов", status=400)
-
-        documents_map = {
-            doc.id: doc for doc in Documentation.objects.filter(id__in=ids)
-        }
-        ordered_documents = [documents_map[doc_id] for doc_id in ids if doc_id in documents_map]
-
-        if not ordered_documents:
-            raise Http404("Документы не найдены")
-
-        zip_buffer = BytesIO()
-
-        with zipfile.ZipFile(zip_buffer, "w", zipfile.ZIP_DEFLATED) as zip_file:
-            used_names = set()
-
-            for doc in ordered_documents:
-                if not doc.file:
-                    continue
-
-                original_name = os.path.basename(doc.file.name)
-                name, ext = os.path.splitext(original_name)
-
-                safe_name = original_name
-                counter = 1
-                while safe_name in used_names:
-                    safe_name = f"{name}_{counter}{ext}"
-                    counter += 1
-
-                used_names.add(safe_name)
-
-                with doc.file.open("rb") as f:
-                    zip_file.writestr(safe_name, f.read())
-
-        zip_buffer.seek(0)
+        ids = serializer.validated_data["ids"]
+        zip_buffer = build_documents_zip(ids)
 
         response = HttpResponse(zip_buffer.getvalue(), content_type="application/zip")
         response["Content-Disposition"] = 'attachment; filename="documents.zip"'
         return response
 
 def doc_page(request: HttpRequest) -> HttpResponse:
-    sections = {
-        "Catalog Documentation": "swagger-catalog",
-        "Logistic Documentation": "swagger-logistic",
-        "Stock Documentation": "swagger-stock",
-        "Contacts Documentation": "swagger-contacts",
-        "Core Documentation": "swagger-core",
-        "Full API Schema (JSON)": "schema-json",
-    }
-
-    docs = []
-
-    for title, url_name in sections.items():
-        try:
-            docs.append({
-                "title": title,
-                "url": reverse(url_name),
-            })
-        except NoReverseMatch:
-            continue
-
+    docs = build_docs_index_sections()
     return render(request, "core/docs_index.html", {"docs": docs})

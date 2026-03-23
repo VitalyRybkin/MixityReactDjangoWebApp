@@ -25,3 +25,10 @@ class DocumentationSerializer(serializers.ModelSerializer):
         if not request:
             return None
         return request.build_absolute_uri(reverse("doc-download", args=[obj.id]))
+
+class DocumentationBulkDownloadRequestSerializer(serializers.Serializer):
+    ids = serializers.ListField(
+        child=serializers.IntegerField(min_value=1),
+        allow_empty=False,
+        required=True,
+    )
