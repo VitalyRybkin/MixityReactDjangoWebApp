@@ -2,6 +2,7 @@ from typing import Any, Dict
 
 from contacts.factories import ContactFactory, PhoneNumberFactory
 from contacts.models import Contact
+from contacts.serializers import ContactSerializer
 from core.tests.base_test_case import BaseAPIMixin
 from core.tests.utils import FieldSpec
 from logistic.tests.factories import CarrierFactory
@@ -22,6 +23,9 @@ class TestContactAPICreate(BaseAPIMixin):
         "email": FieldSpec("email", str),
         "position": FieldSpec("position", str),
     }
+    
+    def get_serializer(self):
+        return ContactSerializer()
 
     def test_create_contact(self) -> None:
         """Test that we can create a new contact."""
@@ -76,7 +80,7 @@ class TestContactAPICreate(BaseAPIMixin):
             "lastName": temp.last_name,
             "email": temp.email,
             "position": temp.position,
-            "phoneNumbers": [{"phoneNumber": phone.phone_number}],
+            "phoneNumbers": [{"phoneNumber": str(phone.phone_number)}],
             "carrier": getattr(temp.carrier, "id", None),
             "warehouse": getattr(temp.warehouse, "id", None),
         }

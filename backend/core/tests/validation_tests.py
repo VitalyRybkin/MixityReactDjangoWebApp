@@ -65,8 +65,11 @@ class ValidationContractMixin(_Base):
             msg=f"API should return 400 if field '{field_name}' is missing",
         )
 
+        serializer = self.get_serializer()
+        label = serializer.fields.get(field_name).label if serializer.fields.get(field_name) else field_name
+
         error_found = any(
-            (field_name in error or "Наименование" in error)
+            (field_name.lower() in error.lower() or label.lower() in error.lower())
             for error in response.data
         )
 
