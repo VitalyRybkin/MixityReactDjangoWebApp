@@ -86,7 +86,7 @@ export default function ColorModeProvider({ children }) {
                                   paper: '#ffffff',
                               },
                               text: {
-                                  primary: '#0f172a',
+                                  primary: '#172b67',
                                   secondary: '#475569',
                               },
                               divider: 'rgba(15, 23, 42, 0.08)',
@@ -109,7 +109,7 @@ export default function ColorModeProvider({ children }) {
 
                 typography: {
                     fontFamily: [
-                        'Inter',
+                        'Ubuntu',
                         'system-ui',
                         '-apple-system',
                         'Segoe UI',
@@ -194,10 +194,11 @@ export default function ColorModeProvider({ children }) {
                     MuiTableCell: {
                         styleOverrides: {
                             head: {
-                                fontWeight: 600,
+                                fontWeight: 500,
                                 fontSize: '0.875rem',
                             },
                             body: {
+                                fontWeight: 300,
                                 fontSize: '0.875rem',
                             },
                         },
