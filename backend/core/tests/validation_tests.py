@@ -163,26 +163,18 @@ class ValidationContractMixin(_Base):
                 self._logger_success(api_field, "duplicate")
 
     def _test_field_validation(
-        self,
-        cases: list[tuple[dict[str, object], int, str | None]],
+            self,
+            cases: list[tuple[dict[str, object], int, str | None]],
     ) -> None:
         """
-        Tests field validation for a given model using provided test cases. Each case specifies
-        a payload, expected HTTP status code, and optionally an expected error field. This
-        method ensures that data is correctly validated before creation.
-
-        Parameters:
-            cases (list[tuple[dict[str, object], int, str | None]]): Test cases with payload,
-            expected status, and optional error field.
-
-        Returns:
-            None
+        Tests field validation for a given model using provided test cases.
         """
         self._logger_header(f"VALIDATION: Field validation for {self.model.__name__}")
 
         for payload, expected_status, expected_error_field in cases:
             field_name, field_value = next(iter(payload.items()))
             with self.subTest(payload=payload):
+                # Очистка перед тестом
                 self.model.objects.filter(**{field_name: field_value}).delete()
                 response = self.client.post(self.url, data=payload, format="json")
 
@@ -194,21 +186,26 @@ class ValidationContractMixin(_Base):
                     )
 
                 if expected_status == 400 and expected_error_field:
-                    self.assertIn(
-                        expected_error_field,
-                        response.data,
+                    error_found = any(
+                        expected_error_field.lower() in error.lower()
+                        for error in response.data
+                    )
+                    self.assertTrue(
+                        error_found,
                         msg=f"Expected error on '{expected_error_field}', got: {response.data}",
                     )
 
                 print(f"    {self.COLOR['SUB']}✓ Payload: {payload}{self.COLOR['END']}")
+
                 if response.status_code == 201:
                     print(
                         f"      {self.COLOR['OK']}✓ Created {self.model.__name__}{self.COLOR['END']}"
                     )
 
                 if response.status_code == 400:
-                    error_fields = ", ".join(response.data.keys())
+                    # Исправлено: response.data теперь список, поэтому просто выводим его
+                    error_info = ", ".join(response.data)
                     print(
-                        f"      {self.COLOR['ERR']}✗ {self.COLOR['OK']}Validation failed on fields: [{error_fields}]. "
+                        f"      {self.COLOR['ERR']}✗ {self.COLOR['OK']}Validation failed: [{error_info}]. "
                         f"{self.model.__name__} not created.{self.COLOR['END']}"
                     )

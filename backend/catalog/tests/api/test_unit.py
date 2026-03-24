@@ -1,5 +1,6 @@
 from typing import Any, Dict
 
+from catalog.api.serializers.unit_serializers import UnitSerializer
 from catalog.models import AppUnit
 from catalog.tests.api.factories import UnitFactory
 from core.tests.base_test_case import BaseAPIMixin
@@ -30,6 +31,8 @@ class UnitBaseTest:
         "toKgFactor": FieldSpec("to_kg_factor", float, required=True),
     }
 
+    def get_serializer(self):
+        return UnitSerializer()
 
 class TestUnitAPIList(UnitBaseTest, BaseAPIMixin):
     """
