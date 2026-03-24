@@ -3,7 +3,8 @@ from typing import Any, Dict
 from contacts.factories import ContactFactory, PhoneNumberFactory
 from contacts.models import Contact
 from contacts.serializers import ContactSerializer
-from core.tests.base_test_case import BaseAPIMixin
+from contacts.views import ContactListCreateAPIView
+from core.tests.base_test_case import BaseAPIMixin, BaseModelTestCase
 from core.tests.utils import FieldSpec
 from logistic.tests.factories import CarrierFactory
 from stock.tests.factories import WarehouseFactory
@@ -84,6 +85,19 @@ class TestContactAPICreate(BaseAPIMixin):
             "carrier": getattr(temp.carrier, "id", None),
             "warehouse": getattr(temp.warehouse, "id", None),
         }
+
+
+class TestContactListCreateAPIView(BaseModelTestCase):
+
+    _factory = ContactFactory
+
+    def test_queryset_contract(self) -> None:
+        ContactFactory.create_batch(3)
+
+        self.assert_queryset_contract(
+            ContactListCreateAPIView,
+            expected_prefetches=["phone_numbers"],
+        )
 
 
 class TestCarrierContactsList(BaseAPIMixin):

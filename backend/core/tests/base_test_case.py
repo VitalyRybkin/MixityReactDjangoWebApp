@@ -11,6 +11,7 @@ from core.tests.field_matching_tests import FieldContractMixin
 from core.tests.model_tests import ModelContractMixin
 from core.tests.utils import TestLoggingMixin, UploadSpec, ValidationFieldSpec
 from core.tests.validation_tests import ValidationContractMixin
+from core.tests.view_tests import TestViewQuerysetContractMixin
 from core.tests.visibility_tests import (
     ActiveVisibilityContractMixin,
     ReadOnlyActiveFieldContractMixin,
@@ -86,8 +87,7 @@ class BaseAPITestCase(
 BaseAPIMixin = BaseAPITestCase
 
 
-class BaseModelTestCase(APITestCase, TestLoggingMixin):
-    __test__ = False
+class BaseModelTestCase(APITestCase, TestLoggingMixin, TestViewQuerysetContractMixin):
 
     _model: Any = None
     _factory: Any = None
