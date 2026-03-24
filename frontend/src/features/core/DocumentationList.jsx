@@ -192,6 +192,7 @@ export default function DocumentationListPage() {
                                                     />
                                                 </TableCell>
                                                 <TableCell>{doc.title || 'Без названия'}</TableCell>
+                                                <TableCell>{doc.status || '-'}</TableCell>
                                             </TableRow>
                                         ))}
                                     </TableBody>
