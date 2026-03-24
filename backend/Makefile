@@ -23,7 +23,7 @@ test-cov:
 	uv run pytest --ds=backend.settings -rs --cov=$(if $(app),$(app),) $(if $(app),$(app),)/ --cov-report=term-missing
 
 coverage:
-	$(UV) pytest --cov
+	uv run pytest --cov
 
 # ---- FORMATTING & LINTING ----
 

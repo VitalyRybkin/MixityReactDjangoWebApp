@@ -3,6 +3,7 @@ from typing import Any, Dict
 from core.tests.base_test_case import BaseAPIMixin
 from core.tests.utils import FieldSpec
 from logistic.models import Carrier, Driver
+from logistic.serializers.driver_serializers import DriverSerializer
 from logistic.tests.factories import CarrierFactory, DriverFactory
 
 
@@ -35,9 +36,12 @@ class DriverBaseTest:
 
 
 class TestDriverAPIList(DriverBaseTest, BaseAPIMixin):
-    url_name = "logistic:driver_list_create"
+    url_name = "logistic:drivers_list_create"
 
     __test__ = True
+
+    def get_serializer(self) -> DriverSerializer:
+        return DriverSerializer()
 
     def test_get_list(self) -> None:
         self._get_list_logic()
@@ -66,7 +70,7 @@ class TestDriverAPIList(DriverBaseTest, BaseAPIMixin):
 
         return {
             "fullName": temp.full_name,
-            "phone": temp.phone,
+            "phone": str(temp.phone),
             "passportNumber": temp.passport_number,
             "passportIssueDate": temp.passport_issue_date,
             "passportEmittedBy": temp.passport_emitted_by,

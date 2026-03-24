@@ -31,8 +31,9 @@ class UnitBaseTest:
         "toKgFactor": FieldSpec("to_kg_factor", float, required=True),
     }
 
-    def get_serializer(self):
+    def get_serializer(self) -> UnitSerializer:
         return UnitSerializer()
+
 
 class TestUnitAPIList(UnitBaseTest, BaseAPIMixin):
     """

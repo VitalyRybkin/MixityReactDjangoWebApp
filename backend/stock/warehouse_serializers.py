@@ -14,9 +14,9 @@ class WarehouseListCreateSerializer(serializers.ModelSerializer):
         validators=[
             validators.UniqueValidator(
                 queryset=Warehouse.objects.active(),
-                message="Склад с таким именем существует."
+                message="Склад с таким именем существует.",
             )
-        ]
+        ],
     )
     directions = serializers.ImageField(required=False, allow_null=True)
     phone = PhoneNumberField(

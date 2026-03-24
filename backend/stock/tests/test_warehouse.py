@@ -45,7 +45,7 @@ class TestWarehouseAPIList(WarehouseBaseTest, BaseAPIMixin):
 
     url_name = "stock:warehouse_list_create"
 
-    def get_serializer(self):
+    def get_serializer(self) -> WarehouseListCreateSerializer:
         return WarehouseListCreateSerializer()
 
     def test_get_list(self) -> None:

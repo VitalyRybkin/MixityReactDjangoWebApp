@@ -71,9 +71,11 @@ class Driver(models.Model):
 
     def save(self, *args: Any, **kwargs: Any) -> None:
         if self.passport_number:
-            self.passport_number = self.passport_number.replace(" ", "")
+            self.passport_number = str(self.passport_number).replace(" ", "")
+
         if self.phone:
-            self.phone = self.phone.replace(" ", "")
+            self.phone = str(self.phone).replace(" ", "")
+
         super().save(*args, **kwargs)
 
     def __str__(self) -> str:

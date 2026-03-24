@@ -208,13 +208,12 @@ class CrudContractMixin(_Base):
         resp = self.client.patch(self.url, data={}, format="multipart")
         self.assertEqual(resp.status_code, status.HTTP_400_BAD_REQUEST)
         error_found = any(
-            (spec.field_name.lower() in error.lower())
-            for error in resp.data
+            (spec.field_name.lower() in error.lower()) for error in resp.data
         )
 
         self.assertTrue(
             error_found,
-            msg=f"Expected field '{spec.field_name}' in errors, but got: {resp.data}"
+            msg=f"Expected field '{spec.field_name}' in errors, but got: {resp.data}",
         )
 
         print(
@@ -274,13 +273,11 @@ class CrudContractMixin(_Base):
         error_text = "Provide exactly one of 'carrier' or 'warehouse'"
 
         error_found = any(
-            (error_text in err or "non_field_errors" in err)
-            for err in resp.data
+            (error_text in err or "non_field_errors" in err) for err in resp.data
         )
 
         self.assertTrue(
-            error_found,
-            msg=f"Expected XOR validation error, but got: {resp.data}"
+            error_found, msg=f"Expected XOR validation error, but got: {resp.data}"
         )
         print(
             f"      {self.COLOR['OK']}✓ Correctly rejected double parent assignment.{self.COLOR['END']}"

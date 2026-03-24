@@ -6,6 +6,11 @@ from typing import Any, Dict
 from core.tests.base_test_case import BaseAPIMixin
 from core.tests.utils import FieldSpec
 from logistic.models import Carrier, Truck, TruckCapacity, TruckType
+from logistic.serializers.truck_serializers import (
+    TruckCapacityWriteSerializer,
+    TruckSerializer,
+    TruckTypeSerializer,
+)
 from logistic.tests.factories import (
     CarrierFactory,
     TruckCapacityFactory,
@@ -37,6 +42,9 @@ class TruckTypeBaseTest:
         "truckType": FieldSpec("name", str, required=True, unique=True),
         "description": FieldSpec("description", str),
     }
+
+    def get_serializer(self) -> TruckTypeSerializer:
+        return TruckTypeSerializer()
 
 
 class TestTruckTypeAPIList(TruckTypeBaseTest, BaseAPIMixin):
@@ -130,6 +138,9 @@ class TruckCapacityBaseTest:
         "capacity": FieldSpec("capacity", Decimal, required=True),
         "description": FieldSpec("description", str),
     }
+
+    def get_serializer(self) -> TruckCapacityWriteSerializer:
+        return TruckCapacityWriteSerializer()
 
 
 class TestTruckCapacityAPIList(TruckCapacityBaseTest, BaseAPIMixin):
@@ -227,6 +238,9 @@ class TruckBaseTest:
         "description": FieldSpec("description", str),
     }
 
+    def get_serializer(self) -> TruckSerializer:
+        return TruckSerializer()
+
 
 class TestTruckAPIList(TruckBaseTest, BaseAPIMixin):
     """
@@ -261,7 +275,7 @@ class TestTruckAPIList(TruckBaseTest, BaseAPIMixin):
 
     def test_str_method(self) -> None:
         truck = self.obj
-        expected = f"Авто: {truck.truck_type}, {truck.capacity}, {truck.carrier}"
+        expected = f"{truck.license_plate} ({truck.truck_type})"
         self._str_method_logic(expected)
 
     def payload_generator(self) -> Dict[str, Any]:
@@ -303,8 +317,7 @@ class TestTruckRetrieveUpdate(TruckBaseTest, BaseAPIMixin):
         self._retrieve_object_by_id_not_found()
 
     def test_patch_logic(self) -> None:
-        truck = TruckFactory.create()
-        payload = {"licensePlate": f"{truck.license_plate}-new"}
+        payload = {"licensePlate": "В777ОР77"}
         self._patch_logic(payload)
 
     def test_delete_logic(self) -> None:

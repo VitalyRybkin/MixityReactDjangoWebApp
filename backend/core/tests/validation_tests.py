@@ -3,6 +3,7 @@ from typing import TYPE_CHECKING, Any, Dict
 from uuid import UUID
 
 from django.db import models
+from rest_framework.serializers import Serializer
 
 from core.tests.utils import coerce_fieldspec
 
@@ -38,6 +39,22 @@ class ValidationContractMixin(_Base):
 
     fields_map: Dict[str, Any] = {}
 
+    def get_serializer(self) -> Serializer:
+        """
+        Retrieves the serializer instance defined by the ``serializer_class`` attribute.
+
+        :return: An instance of the serializer defined by the ``serializer_class`` attribute.
+        :rtype: Serializer
+
+        :raises AttributeError: If the ``serializer_class`` attribute is missing or not set.
+        """
+        if hasattr(self, "serializer_class") and self.serializer_class:
+            return self.serializer_class()
+        raise AttributeError(
+            f"Тест {self.__class__.__name__} должен иметь атрибут 'serializer_class' "
+            "или переопределять метод 'get_serializer()'"
+        )
+
     def _validation_error_logic(
         self, field_name: str, payload: dict, msg: str = "required"
     ) -> None:
@@ -59,26 +76,27 @@ class ValidationContractMixin(_Base):
 
         response = self.client.post(self.url, data=invalid_payload, format="json")
 
-        self.assertEqual(
-            response.status_code,
-            400,
-            msg=f"API should return 400 if field '{field_name}' is missing",
-        )
+        self.assertEqual(response.status_code, 400)
 
         serializer = self.get_serializer()
-        label = serializer.fields.get(field_name).label if serializer.fields.get(field_name) else field_name
+        field_obj = serializer.fields.get(field_name)
+
+        search_terms = {field_name.lower()}
+        if field_obj:
+            if field_obj.label:
+                search_terms.add(str(field_obj.label).lower())
+            if hasattr(field_obj, "label_name"):  # на всякий случай
+                search_terms.add(str(field_obj.label_name).lower())
 
         error_found = any(
-            (field_name.lower() in error.lower() or label.lower() in error.lower())
+            any(term in error.lower() for term in search_terms)
             for error in response.data
         )
 
         self.assertTrue(
             error_found,
-            msg=f"Response should contain an error for field '{field_name}'. Got: {response.data}",
+            msg=f"Field '{field_name}' (labels: {search_terms}) not found in errors: {response.data}",
         )
-
-        self._logger_success(field_name, msg)
 
     def _test_all_mandatory_fields(self, valid_payload: dict) -> None:
         """
@@ -151,9 +169,9 @@ class ValidationContractMixin(_Base):
                 label = serializer.fields[api_field].label or api_field
 
                 error_found = (
-                        api_field in response.data or
-                        "non_field_errors" in response.data or
-                        any((api_field in err or label in err) for err in response.data)
+                    api_field in response.data
+                    or "non_field_errors" in response.data
+                    or any((api_field in err or label in err) for err in response.data)
                 )
 
                 self.assertTrue(
@@ -163,8 +181,8 @@ class ValidationContractMixin(_Base):
                 self._logger_success(api_field, "duplicate")
 
     def _test_field_validation(
-            self,
-            cases: list[tuple[dict[str, object], int, str | None]],
+        self,
+        cases: list[tuple[dict[str, object], int, str | None]],
     ) -> None:
         """
         Tests field validation for a given model using provided test cases.

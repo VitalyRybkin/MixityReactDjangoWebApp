@@ -28,6 +28,7 @@ class CarrierFactory(factory.django.DjangoModelFactory):
     address = factory.Faker("address")
     description = factory.Faker("text")
     is_active = True
+    phone = factory.Faker("numerify", text="+79#########")
 
 
 class TruckFactory(factory.django.DjangoModelFactory):
@@ -36,7 +37,7 @@ class TruckFactory(factory.django.DjangoModelFactory):
 
     carrier = factory.SubFactory(CarrierFactory)
     truck_type = factory.SubFactory(TruckTypeFactory)
-    license_plate = factory.Faker("license_plate")
+    license_plate = factory.Faker("numerify", text="А###ВС77")
     capacity = factory.SubFactory(TruckCapacityFactory)
     description = factory.Faker("text")
 
@@ -46,7 +47,7 @@ class DriverFactory(factory.django.DjangoModelFactory):
         model = Driver
 
     carrier = factory.SubFactory(CarrierFactory)
-    phone = "+79991234567"
+    phone = factory.Faker("numerify", text="+79#########")
     full_name = factory.Faker("name")
     passport_number = "1234 567890"
     passport_issue_date = factory.Faker("date")

@@ -12,7 +12,7 @@ class WarehouseFactory(factory.django.DjangoModelFactory):
     name = factory.Faker("word")
     organization = factory.Faker("company")
     address = factory.Faker("address")
-    phone = factory.Faker('numerify', text='+79#########')
+    phone = factory.Faker("numerify", text="+79#########")
     directions = None
     is_active = True
 

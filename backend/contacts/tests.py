@@ -23,8 +23,8 @@ class TestContactAPICreate(BaseAPIMixin):
         "email": FieldSpec("email", str),
         "position": FieldSpec("position", str),
     }
-    
-    def get_serializer(self):
+
+    def get_serializer(self) -> ContactSerializer:
         return ContactSerializer()
 
     def test_create_contact(self) -> None:

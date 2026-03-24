@@ -6,6 +6,7 @@ import pytest
 from core.tests.base_test_case import BaseAPIMixin
 from core.tests.utils import FieldSpec
 from logistic.models import Carrier
+from logistic.serializers.carrier_serializers import CarrierSerializer
 from logistic.tests.factories import CarrierFactory, DriverFactory, TruckFactory
 
 logger = logging.getLogger(__name__)
@@ -34,7 +35,11 @@ class CarrierBaseTest:
         "address": FieldSpec("address", str),
         "description": FieldSpec("description", str),
         "isActive": FieldSpec("is_active", bool),
+        "phone": FieldSpec("phone", str),
     }
+
+    def get_serializer(self) -> CarrierSerializer:
+        return CarrierSerializer()
 
 
 class TestCarrierAPIList(CarrierBaseTest, BaseAPIMixin):
@@ -81,6 +86,7 @@ class TestCarrierAPIList(CarrierBaseTest, BaseAPIMixin):
             "name": temp_data.name,
             "fullName": temp_data.full_name,
             "isActive": temp_data.is_active,
+            "phone": str(temp_data.phone),
         }
         return payload
 
