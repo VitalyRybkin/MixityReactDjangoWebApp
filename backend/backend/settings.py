@@ -113,6 +113,7 @@ if 'test' in sys.argv or 'pytest' in sys.modules or 'PYTEST_RUNNING' in os.envir
         'default': {
             'ENGINE': 'django.db.backends.sqlite3',
             'NAME': ':memory:',
+            'OPTIONS': {},
         }
     }
 else:
@@ -138,15 +139,15 @@ else:
 DATABASES["default"]["CONN_HEALTH_CHECKS"] = True
 DATABASES["default"]["CONN_MAX_AGE"] = 0
 
-DATABASES["default"]["OPTIONS"].update({
-    "connect_timeout": 10,
-    "keepalives": 1,
-    "keepalives_idle": 30,
-    "keepalives_interval": 10,
-    "keepalives_count": 5,
-})
-
-DATABASES["default"]["OPTIONS"]["application_name"] = "django-dev"
+if DATABASES["default"]["ENGINE"] == "django.db.backends.postgresql":
+    DATABASES["default"].setdefault("OPTIONS", {}).update({
+        "connect_timeout": 10,
+        "keepalives": 1,
+        "keepalives_idle": 30,
+        "keepalives_interval": 10,
+        "keepalives_count": 5,
+        "application_name": "django-dev",
+    })
 
 # Password validation
 # https://docs.djangoproject.com/en/5.2/ref/settings/#auth-password-validators

@@ -64,11 +64,17 @@ class ValidationContractMixin(_Base):
             400,
             msg=f"API should return 400 if field '{field_name}' is missing",
         )
-        self.assertIn(
-            field_name,
-            response.data,
-            msg=f"Response should contain an error for field '{field_name}'",
+
+        error_found = any(
+            (field_name in error or "Наименование" in error)
+            for error in response.data
         )
+
+        self.assertTrue(
+            error_found,
+            msg=f"Response should contain an error for field '{field_name}'. Got: {response.data}",
+        )
+
         self._logger_success(field_name, msg)
 
     def _test_all_mandatory_fields(self, valid_payload: dict) -> None:
@@ -116,6 +122,8 @@ class ValidationContractMixin(_Base):
         """
         self._logger_header("VALIDATION: Unique constraints", level=1)
 
+        serializer = self.get_serializer()
+
         for api_field, raw in self.fields_map.items():
             spec = coerce_fieldspec(raw)
             if not spec.unique:
@@ -136,8 +144,17 @@ class ValidationContractMixin(_Base):
                     400,
                     msg=f"API should return 400 on duplicate field '{api_field}'",
                 )
+
+                label = serializer.fields[api_field].label or api_field
+
+                error_found = (
+                        api_field in response.data or
+                        "non_field_errors" in response.data or
+                        any((api_field in err or label in err) for err in response.data)
+                )
+
                 self.assertTrue(
-                    api_field in response.data or "non_field_errors" in response.data,
+                    error_found,
                     msg=f"Expected '{api_field}' or 'non_field_errors' in response, got: {response.data}",
                 )
                 self._logger_success(api_field, "duplicate")

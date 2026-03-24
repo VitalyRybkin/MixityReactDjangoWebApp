@@ -4,6 +4,7 @@ from core.tests.base_test_case import BaseAPIMixin
 from core.tests.utils import FieldSpec, UploadSpec
 from stock.models import Warehouse
 from stock.tests.factories import WarehouseFactory, WarehouseMapFactory
+from stock.warehouse_serializers import WarehouseListCreateSerializer
 
 
 class WarehouseBaseTest:
@@ -17,10 +18,11 @@ class WarehouseBaseTest:
     factory = WarehouseFactory
     fields_map = {
         "id": FieldSpec("id", int),
-        "name": FieldSpec("name", str),
+        "name": FieldSpec("name", str, required=True, unique=True),
         "address": FieldSpec("address", str),
         "organization": FieldSpec("organization", str),
-        "phoneNumber": FieldSpec("phone_number", str),
+        "phone": FieldSpec("phone", str),
+        "isActive": FieldSpec("is_active", bool),
     }
 
 
@@ -42,6 +44,9 @@ class TestWarehouseAPIList(WarehouseBaseTest, BaseAPIMixin):
     __test__ = True
 
     url_name = "stock:warehouse_list_create"
+
+    def get_serializer(self):
+        return WarehouseListCreateSerializer()
 
     def test_get_list(self) -> None:
         """Test the logic for retrieving a list of warehouses."""
@@ -67,6 +72,10 @@ class TestWarehouseAPIList(WarehouseBaseTest, BaseAPIMixin):
         wh = self.obj
         self._str_method_logic(f"{wh.name} - {wh.address}")
 
+    def test_active_stock(self) -> None:
+        """Test the logic for ensuring active warehouses are only returned in the list."""
+        self._assert_active_only_in_list()
+
     def payload_generator(self) -> Dict[str, Any]:
         """Generates a payload for warehouse creation tests."""
         temp = self.factory.build()
@@ -75,7 +84,7 @@ class TestWarehouseAPIList(WarehouseBaseTest, BaseAPIMixin):
             "name": temp.name,
             "organization": temp.organization,
             "address": temp.address,
-            "phoneNumber": temp.phone_number,
+            "phone": str(temp.phone),
             "directions": None,
         }
 

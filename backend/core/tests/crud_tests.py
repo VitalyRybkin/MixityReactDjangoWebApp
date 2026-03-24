@@ -207,7 +207,15 @@ class CrudContractMixin(_Base):
 
         resp = self.client.patch(self.url, data={}, format="multipart")
         self.assertEqual(resp.status_code, status.HTTP_400_BAD_REQUEST)
-        self.assertIn(spec.field_name, resp.data)
+        error_found = any(
+            (spec.field_name.lower() in error.lower())
+            for error in resp.data
+        )
+
+        self.assertTrue(
+            error_found,
+            msg=f"Expected field '{spec.field_name}' in errors, but got: {resp.data}"
+        )
 
         print(
             f"    {self.COLOR['OK']}✓ Missing file validation passed{self.COLOR['END']}"

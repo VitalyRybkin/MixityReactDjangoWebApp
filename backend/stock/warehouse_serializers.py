@@ -1,20 +1,30 @@
 from typing import Any
 
 from phonenumber_field.serializerfields import PhoneNumberField
-from rest_framework import serializers
+from rest_framework import serializers, validators
 
 from core.validators import validate_ru_phone
 from stock.models import Warehouse
 
 
 class WarehouseListCreateSerializer(serializers.ModelSerializer):
-    name = serializers.CharField(required=True, label="Наименование")
+    name = serializers.CharField(
+        required=True,
+        label="Наименование",
+        validators=[
+            validators.UniqueValidator(
+                queryset=Warehouse.objects.active(),
+                message="Склад с таким именем существует."
+            )
+        ]
+    )
     directions = serializers.ImageField(required=False, allow_null=True)
     phone = PhoneNumberField(
         region="RU",
         label="Номер телефона",
         error_messages={"invalid": "Введите корректный номер в формате +79991234567."},
     )
+    isActive = serializers.BooleanField(source="is_active", read_only=True)
 
     class Meta:
         model = Warehouse
@@ -26,6 +36,7 @@ class WarehouseListCreateSerializer(serializers.ModelSerializer):
             "address",
             "phone",
             "directions",
+            "isActive",
         ]
 
     def validate_phone(self, value: Any) -> Any:

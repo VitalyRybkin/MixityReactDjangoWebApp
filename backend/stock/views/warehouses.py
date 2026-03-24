@@ -21,7 +21,7 @@ class BaseWarehouseGenericAPIView(generics.GenericAPIView):
     Base view for warehouse operations.
     """
 
-    queryset = Warehouse.objects.all()
+    queryset = Warehouse.objects.active()
     permission_classes = [AllowAny]
     serializer_class = WarehouseListCreateSerializer
 
