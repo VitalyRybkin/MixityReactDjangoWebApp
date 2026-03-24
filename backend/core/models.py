@@ -29,6 +29,7 @@ class Documentation(models.Model):
 
     title = models.CharField(max_length=255)
     file = models.FileField(upload_to="docs")
+    status = models.CharField(max_length=25,blank=True, null=True)
     tag = models.CharField(max_length=255, choices=[(tag, tag) for tag in ALLOWED_TAGS], default=ALLOWED_TAGS[0],)
 
     class Meta:

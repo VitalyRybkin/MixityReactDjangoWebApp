@@ -54,6 +54,7 @@ class DocumentationAdmin(BaseAdmin):
     list_display = (
         "title",
         "file",
+        "status",
         "tag",
     )
 

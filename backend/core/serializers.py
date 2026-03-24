@@ -12,7 +12,7 @@ class DocumentationSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Documentation
-        fields = ["id", "title", "tag", "public_url", "download_url"]
+        fields = ["id", "title", "tag", "status", "public_url", "download_url"]
 
     def get_public_url(self, obj: Documentation) -> Any | None:
         request = self.context.get("request")
