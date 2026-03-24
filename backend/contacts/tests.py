@@ -1,7 +1,7 @@
-from typing import Any, Dict
+from typing import Any, Dict, List
 
 from contacts.factories import ContactFactory, PhoneNumberFactory
-from contacts.models import Contact
+from contacts.models import Contact, PhoneNumber
 from contacts.serializers import ContactSerializer
 from contacts.views import ContactListCreateAPIView
 from core.tests.base_test_case import BaseAPIMixin
@@ -9,6 +9,14 @@ from core.tests.base_view_test_case import BaseViewTestCase
 from core.tests.utils import FieldSpec
 from logistic.tests.factories import CarrierFactory
 from stock.tests.factories import WarehouseFactory
+
+
+def _extract_phone_numbers_from_db(obj: Any) -> List[str]:
+    return list(obj.phone_numbers.values_list("phone_number", flat=True))
+
+
+def _extract_phone_numbers_from_payload(payload: Dict[str, Any]) -> List[str]:
+    return [item["phoneNumber"] for item in payload["phoneNumbers"]]
 
 
 class TestContactAPICreate(BaseAPIMixin):
@@ -71,6 +79,75 @@ class TestContactAPICreate(BaseAPIMixin):
             end=" ",
         )
         self._create_invalid_xor_both(payload)
+
+    def test_phone_numbers_validation(self) -> None:
+        payload = {
+            "firstName": "Zachary",
+            "phoneNumbers": [
+                {"phoneNumber": "+79219212121"},
+                {"phoneNumber": "+79219212121"},
+            ],
+        }
+
+        pn_cases = [
+            (payload, 400, "Номера телефонов не должны дублироваться."),
+        ]
+
+        self._test_nested_field_validation(pn_cases, "phoneNumbers")
+
+    def test_unique_phone_numbers(self) -> None:
+        payload = self.payload_generator()
+
+        contact = self.factory.create(
+            first_name=payload["firstName"],
+        )
+
+        for item in payload["phoneNumbers"]:
+            PhoneNumber.objects.create(
+                contact=contact,
+                phone_number=item["phoneNumber"],
+            )
+
+        self._test_unique_fields(
+            payload, "Номера телефонов: Такой номер телефона уже существует."
+        )
+
+    def test_update_should_allow_same_phone_numbers(self) -> None:
+        payload = self.payload_generator()
+
+        contact = self.factory.create(
+            first_name=payload["firstName"],
+            last_name=payload.get("lastName"),
+        )
+
+        for item in payload["phoneNumbers"]:
+            PhoneNumber.objects.create(
+                contact=contact,
+                phone_number=item["phoneNumber"],
+            )
+
+        self._test_update_should_preserve_same_values(
+            payload,
+            contact,
+            db_extractor=_extract_phone_numbers_from_db,
+            payload_extractor=_extract_phone_numbers_from_payload,
+        )
+
+    def test_update_should_fail_if_phone_belongs_to_another_contact(self) -> None:
+        payload = self.payload_generator()
+
+        contact1 = self.factory.create(first_name=payload["firstName"])
+        for item in payload["phoneNumbers"]:
+            PhoneNumber.objects.create(
+                contact=contact1,
+                phone_number=item["phoneNumber"],
+            )
+
+        contact2 = self.factory.create(first_name="Another")
+
+        self._test_update_should_fail_on_repeated_field_value(
+            payload, contact2, expected_error="Такой номер телефона уже существует."
+        )
 
     def payload_generator(self, temp: Any = None) -> Dict[str, Any]:
         if temp is None:

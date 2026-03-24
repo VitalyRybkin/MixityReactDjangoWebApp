@@ -110,7 +110,13 @@ class TestLoggingMixin(_Base):
 
     def _logger_success(self, field_name: str, msg: str) -> None:
         """Prints a formatted success message with a color-coded field name."""
-        print(f"      {self.COLOR['OK']}✓ {field_name:12} | {msg}{self.COLOR['END']}")
+        print(f"      {self.COLOR['OK']}✓ {field_name} | {msg}{self.COLOR['END']}")
+
+    def _logger_error(self, field_name: str, msg: str) -> None:
+        """Prints a formatted error message with a color-coded field name."""
+        print(
+            f"      {self.COLOR['ERR']}✗ {self.COLOR['OK']}{field_name} | {msg}{self.COLOR['END']}"
+        )
 
 
 @dataclass(frozen=True)

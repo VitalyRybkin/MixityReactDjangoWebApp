@@ -1,5 +1,5 @@
 from decimal import Decimal
-from typing import TYPE_CHECKING, Any, Dict
+from typing import TYPE_CHECKING, Any, Callable, Dict, List
 from uuid import UUID
 
 from django.db import models
@@ -178,7 +178,7 @@ class ValidationContractMixin(_Base):
                     error_found,
                     msg=f"Expected '{api_field}' or 'non_field_errors' in response, got: {response.data}",
                 )
-                self._logger_success(api_field, "duplicate")
+                self._logger_success(api_field, "Duplicated")
 
     def _test_field_validation(
         self,
@@ -192,7 +192,6 @@ class ValidationContractMixin(_Base):
         for payload, expected_status, expected_error_field in cases:
             field_name, field_value = next(iter(payload.items()))
             with self.subTest(payload=payload):
-                # Очистка перед тестом
                 self.model.objects.filter(**{field_name: field_value}).delete()
                 response = self.client.post(self.url, data=payload, format="json")
 
@@ -216,14 +215,122 @@ class ValidationContractMixin(_Base):
                 print(f"    {self.COLOR['SUB']}✓ Payload: {payload}{self.COLOR['END']}")
 
                 if response.status_code == 201:
-                    print(
-                        f"      {self.COLOR['OK']}✓ Created {self.model.__name__}{self.COLOR['END']}"
-                    )
+                    self._logger_success(field_name, f"✓ Created {self.model.__name__}")
 
                 if response.status_code == 400:
-                    # Исправлено: response.data теперь список, поэтому просто выводим его
                     error_info = ", ".join(response.data)
-                    print(
-                        f"      {self.COLOR['ERR']}✗ {self.COLOR['OK']}Validation failed: [{error_info}]. "
-                        f"{self.model.__name__} not created.{self.COLOR['END']}"
+                    self._logger_error(
+                        field_name,
+                        f"Validation failed: [{error_info}] - {self.model.__name__} not created.",
                     )
+
+    from typing import Any, Mapping, Sequence
+
+    def _test_nested_field_validation(
+        self,
+        cases: Sequence[tuple[Mapping[str, Any], int, str | None]],
+        nested_field: str,
+    ) -> None:
+        self._logger_header(
+            f"VALIDATION: Nested field validation for {self.model.__name__}"
+        )
+
+        for payload, expected_status, expected_error_text in cases:
+            with self.subTest(payload=payload):
+                response = self.client.post(self.url, data=payload, format="json")
+
+                if response.status_code != expected_status:
+                    self.fail(
+                        f"Expected {expected_status} but got {response.status_code}\n"
+                        f"Payload: {payload}\n"
+                        f"Errors: {response.data}"
+                    )
+
+                if expected_status == 400 and expected_error_text:
+                    errors = [str(error) for error in response.data]
+                    error_found = any(
+                        expected_error_text.lower() in error.lower() for error in errors
+                    )
+                    self.assertTrue(
+                        error_found,
+                        msg=(
+                            f"Expected error containing '{expected_error_text}', "
+                            f"got: {response.data}"
+                        ),
+                    )
+
+                self._logger_success(
+                    self.model.__name__,
+                    f"Expected validation result confirmed for nested field: {nested_field}",
+                )
+
+    def _test_unique_fields(
+        self,
+        payload: Dict[str, Any],
+        expected_error: str,
+    ) -> None:
+        self._logger_header(f"VALIDATION: Unique fields for {self.model.__name__}")
+        response = self.client.post(self.url, data=payload, format="json")
+
+        self.assertEqual(response.status_code, 400)
+
+        self.assertTrue(
+            any(expected_error in error for error in response.data),
+            msg=f"Unexpected errors: {response.data}",
+        )
+        self._logger_error(
+            self.model.__name__, f"Unique fields validation failed: {expected_error}"
+        )
+
+    def _test_update_should_preserve_same_values(
+        self,
+        payload: Dict[str, Any],
+        obj: Any,
+        db_extractor: Callable[[Any], List[str]],
+        payload_extractor: Callable[[Dict[str, Any]], List[str]],
+    ) -> None:
+        """
+        Test that updating an object with the same field values does not raise validation errors.
+        """
+        self._logger_header(
+            f"VALIDATION: Update should allow same field values for {self.model.__name__}"
+        )
+
+        url = f"{self.url}{obj.id}/"
+
+        response = self.client.put(url, data=payload, format="json")
+
+        self.assertEqual(response.status_code, 200)
+
+        obj.refresh_from_db()
+
+        db_values = db_extractor(obj)
+        payload_values = payload_extractor(payload)
+
+        self.assertCountEqual(db_values, payload_values)
+
+        self._logger_success(
+            self.model.__name__,
+            "Update with same field values succeeded",
+        )
+
+    def _test_update_should_fail_on_repeated_field_value(
+        self, payload: Dict[str, Any], obj: Any, expected_error: str
+    ) -> None:
+        self._logger_header(
+            f"VALIDATION: Update should fail on repeated field values for {self.model.__name__}"
+        )
+        url = f"{self.url}{obj.id}/"
+
+        response = self.client.put(url, data=payload, format="json")
+
+        self.assertEqual(response.status_code, 400)
+        self.assertTrue(
+            any(expected_error in str(error) for error in response.data),
+            msg=f"Unexpected errors: {response.data}",
+        )
+
+        self._logger_error(
+            self.model.__name__,
+            f"Update with repeated field values failed: {expected_error}",
+        )
