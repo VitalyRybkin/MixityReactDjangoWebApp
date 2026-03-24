@@ -22,7 +22,7 @@ from catalog.tests.api.factories import (
     SpecificationGroupFactory,
     UnitFactory,
 )
-from core.tests.base_test_case import BaseModelTestCase
+from core.tests.base_model_test_case import BaseModelTestCase
 from core.tests.utils import ValidationFieldSpec
 
 

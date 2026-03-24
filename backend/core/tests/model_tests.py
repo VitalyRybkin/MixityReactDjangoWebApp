@@ -28,6 +28,4 @@ class ModelContractMixin(_Base):
         """
         self._logger_header(f"METHOD: __str__ for {self.model.__name__}")
         self.assertEqual(str(self.obj), expected_output)
-        print(
-            f"    {self.COLOR['OK']}✓ String matches: {expected_output}{self.COLOR['END']}"
-        )
+        self._logger_success(f"{str(self.obj)!r}", "String matches expected")

@@ -4,7 +4,8 @@ from contacts.factories import ContactFactory, PhoneNumberFactory
 from contacts.models import Contact
 from contacts.serializers import ContactSerializer
 from contacts.views import ContactListCreateAPIView
-from core.tests.base_test_case import BaseAPIMixin, BaseModelTestCase
+from core.tests.base_test_case import BaseAPIMixin
+from core.tests.base_view_test_case import BaseViewTestCase
 from core.tests.utils import FieldSpec
 from logistic.tests.factories import CarrierFactory
 from stock.tests.factories import WarehouseFactory
@@ -87,15 +88,14 @@ class TestContactAPICreate(BaseAPIMixin):
         }
 
 
-class TestContactListCreateAPIView(BaseModelTestCase):
-
+class TestContactListCreateAPIView(BaseViewTestCase):
     _factory = ContactFactory
+    _view_class = ContactListCreateAPIView
 
     def test_queryset_contract(self) -> None:
-        ContactFactory.create_batch(3)
+        self._factory.create_batch(3)
 
-        self.assert_queryset_contract(
-            ContactListCreateAPIView,
+        self._assert_queryset_contract(
             expected_prefetches=["phone_numbers"],
         )
 
