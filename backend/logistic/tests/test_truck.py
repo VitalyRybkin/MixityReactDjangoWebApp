@@ -6,6 +6,7 @@ from typing import Any, Dict
 from core.tests.base_test_case import BaseAPIMixin
 from core.tests.utils import FieldSpec
 from logistic.models import Carrier, Truck, TruckCapacity, TruckType
+from logistic.routes import TruckCapacityRoutes, TruckRoutes, TruckTypeRoutes
 from logistic.serializers.truck_serializers import (
     TruckCapacityWriteSerializer,
     TruckSerializer,
@@ -60,7 +61,7 @@ class TestTruckTypeAPIList(TruckTypeBaseTest, BaseAPIMixin):
 
     __test__ = True
 
-    url_name = "logistic:truck_types_list_create"
+    url_name = f"logistic:{TruckTypeRoutes.LIST_CREATE.name}"
 
     def test_get_list(self) -> None:
         self._get_list_logic()
@@ -107,7 +108,7 @@ class TestTruckTypeRetrieveUpdate(TruckTypeBaseTest, BaseAPIMixin):
 
     __test__ = True
 
-    pk_url_name = "logistic:truck_types_details"
+    pk_url_name = f"logistic:{TruckTypeRoutes.DETAIL.name}"
 
     def test_retrieve_update_logic(self) -> None:
         self._retrieve_object_by_id()
@@ -156,7 +157,7 @@ class TestTruckCapacityAPIList(TruckCapacityBaseTest, BaseAPIMixin):
 
     __test__ = True
 
-    url_name = "logistic:truck_capacities_list_create"
+    url_name = f"logistic:{TruckCapacityRoutes.LIST_CREATE.name}"
 
     def test_get_list(self) -> None:
         self._get_list_logic()
@@ -201,7 +202,7 @@ class TestTruckCapacityRetrieveUpdate(TruckCapacityBaseTest, BaseAPIMixin):
 
     __test__ = True
 
-    pk_url_name = "logistic:truck_capacities_details"
+    pk_url_name = f"logistic:{TruckCapacityRoutes.DETAIL.name}"
 
     def test_retrieve_update_logic(self) -> None:
         self._retrieve_object_by_id()
@@ -254,7 +255,7 @@ class TestTruckAPIList(TruckBaseTest, BaseAPIMixin):
         url_name (str): The endpoint name for trucks list and create operations.
     """
 
-    url_name = "logistic:trucks_list_create"
+    url_name = f"logistic:{TruckRoutes.LIST_CREATE.name}"
 
     __test__ = True
 
@@ -318,7 +319,7 @@ class TestTruckRetrieveUpdate(TruckBaseTest, BaseAPIMixin):
 
     __test__ = True
 
-    pk_url_name = "logistic:truck_details"
+    pk_url_name = f"logistic:{TruckRoutes.DETAIL.name}"
 
     def test_retrieve_update_logic(self) -> None:
         self._retrieve_object_by_id()

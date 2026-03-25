@@ -1,35 +1,33 @@
 from django.urls import path
 
-from catalog.api.views.products import (
+from .routes import ProductRoutes, UnitRoutes
+from .views.products import (
     ProductListCreateAPIView,
     ProductRetrieveUpdateDestroyAPIView,
 )
-from catalog.api.views.units import (
-    UnitListCreateAPIView,
-    UnitRetrieveUpdateDestroyAPIView,
-)
+from .views.units import UnitListCreateAPIView, UnitRetrieveUpdateDestroyAPIView
 
 app_name = "catalog"
 
 urlpatterns = [
     path(
-        "unit/",
+        UnitRoutes.LIST_CREATE.path,
         UnitListCreateAPIView.as_view(),
-        name="unit_list_create",
+        name=UnitRoutes.LIST_CREATE.name,
     ),
     path(
-        "unit/<int:pk>/",
+        UnitRoutes.DETAIL.path,
         UnitRetrieveUpdateDestroyAPIView.as_view(),
-        name="unit_details",
+        name=UnitRoutes.DETAIL.name,
     ),
     path(
-        "product/",
+        ProductRoutes.LIST_CREATE.path,
         ProductListCreateAPIView.as_view(),
-        name="product_list_create",
+        name=ProductRoutes.LIST_CREATE.name,
     ),
     path(
-        "product/<int:pk>/",
+        ProductRoutes.DETAIL.path,
         ProductRetrieveUpdateDestroyAPIView.as_view(),
-        name="product_details",
+        name=ProductRoutes.DETAIL.name,
     ),
 ]

@@ -1,3 +1,4 @@
+from catalog.api.routes import ProductRoutes
 from catalog.models import Product
 from catalog.tests.api.factories import ProductFactory
 from core.tests.base_test_case import BaseAPIMixin
@@ -6,7 +7,7 @@ from core.tests.utils import FieldSpec
 
 class TestProductAPIList(BaseAPIMixin):
     __test__ = True
-    url_name = "catalog:product_list_create"
+    url_name = f"catalog:{ProductRoutes.LIST_CREATE.name}"
     model = Product
     factory = ProductFactory
     fields_map = {

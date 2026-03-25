@@ -6,6 +6,7 @@ import pytest
 from core.tests.base_test_case import BaseAPIMixin
 from core.tests.utils import FieldSpec
 from logistic.models import Carrier
+from logistic.routes import CarrierRoutes
 from logistic.serializers.carrier_serializers import CarrierSerializer
 from logistic.tests.factories import CarrierFactory, DriverFactory, TruckFactory
 
@@ -55,7 +56,7 @@ class TestCarrierAPIList(CarrierBaseTest, BaseAPIMixin):
 
     __test__ = True
 
-    url_name = "logistic:carrier_list_create"
+    url_name = f"logistic:{CarrierRoutes.LIST_CREATE.name}"
 
     def test_get_list(self) -> None:
         self._get_list_logic()
@@ -104,7 +105,7 @@ class TestCarrierRetrieveUpdate(CarrierBaseTest, BaseAPIMixin):
 
     __test__ = True
 
-    pk_url_name = "logistic:carrier_details"
+    pk_url_name = f"logistic:{CarrierRoutes.DETAIL.name}"
 
     def test_retrieve_update_logic(self) -> None:
         self._retrieve_object_by_id()
@@ -139,7 +140,7 @@ class TestCarrierResources(BaseAPIMixin):
     """
 
     __test__ = True
-    pk_url_name = "logistic:carrier_resources"
+    pk_url_name = f"logistic:{CarrierRoutes.RESOURCES.name}"
     factory = CarrierFactory
 
     def test_retrieve_resources(self) -> None:
@@ -163,7 +164,7 @@ class TestCarrierDriverList(BaseAPIMixin):
     """
 
     __test__ = True
-    pk_url_name = "logistic:carrier_drivers"
+    pk_url_name = f"logistic:{CarrierRoutes.DRIVERS.name}"
     factory = CarrierFactory
 
     def test_get_list(self) -> None:
@@ -185,7 +186,7 @@ class TestCarrierTruckList(BaseAPIMixin):
     """
 
     __test__ = True
-    pk_url_name = "logistic:carrier_trucks"
+    pk_url_name = f"logistic:{CarrierRoutes.TRUCKS.name}"
     factory = CarrierFactory
 
     def test_get_list(self) -> None:

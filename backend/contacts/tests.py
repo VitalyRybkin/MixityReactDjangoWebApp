@@ -2,12 +2,15 @@ from typing import Any, Dict, List
 
 from contacts.factories import ContactFactory, PhoneNumberFactory
 from contacts.models import Contact, PhoneNumber
+from contacts.routes import ContactRoutes
 from contacts.serializers import ContactSerializer
 from contacts.views import ContactListCreateAPIView
 from core.tests.base_test_case import BaseAPIMixin
 from core.tests.base_view_test_case import BaseViewTestCase
 from core.tests.utils import FieldSpec
+from logistic.routes import CarrierRoutes
 from logistic.tests.factories import CarrierFactory
+from stock.routes import WarehouseRoutes
 from stock.tests.factories import WarehouseFactory
 
 
@@ -24,7 +27,7 @@ class TestContactAPICreate(BaseAPIMixin):
 
     model = Contact
     factory = ContactFactory
-    url_name = "contacts:create_contact"
+    url_name = f"contacts:{ContactRoutes.LIST_CREATE.name}"
 
     fields_map = {
         "id": FieldSpec("id", int),
@@ -179,7 +182,7 @@ class TestContactListCreateAPIView(BaseViewTestCase):
 
 class TestCarrierContactsList(BaseAPIMixin):
     __test__ = True
-    pk_url_name = "logistic:carrier_contacts"
+    pk_url_name = f"logistic:{CarrierRoutes.CONTACTS.name}"
     factory = CarrierFactory
 
     def test_get_list(self) -> None:
@@ -189,7 +192,7 @@ class TestCarrierContactsList(BaseAPIMixin):
 
 class TestWarehouseContactsList(BaseAPIMixin):
     __test__ = True
-    pk_url_name = "stock:warehouse_contacts"
+    pk_url_name = f"stock:{WarehouseRoutes.CONTACTS.name}"
     factory = WarehouseFactory
 
     def test_get_list(self) -> None:

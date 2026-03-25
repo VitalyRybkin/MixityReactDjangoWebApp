@@ -1,6 +1,13 @@
 from django.urls import path
 
 from contacts.views import CarrierContactListAPIView
+from logistic.routes import (
+    CarrierRoutes,
+    DriverRoutes,
+    TruckCapacityRoutes,
+    TruckRoutes,
+    TruckTypeRoutes,
+)
 from logistic.views.carriers import (
     CarrierDriverListAPIView,
     CarrierListCreateAPIView,
@@ -25,73 +32,73 @@ app_name = "logistic"
 
 urlpatterns = [
     path(
-        "carriers/",
+        CarrierRoutes.LIST_CREATE.path,
         CarrierListCreateAPIView.as_view(),
-        name="carrier_list_create",
+        name=CarrierRoutes.LIST_CREATE.name,
     ),
     path(
-        "carriers/<int:pk>/",
+        CarrierRoutes.DETAIL.path,
         CarrierRetrieveUpdateDestroyAPIView.as_view(),
-        name="carrier_details",
+        name=CarrierRoutes.DETAIL.name,
     ),
     path(
-        "carriers/<int:pk>/resources/",
+        CarrierRoutes.RESOURCES.path,
         CarrierResourcesAPIView.as_view(),
-        name="carrier_resources",
+        name=CarrierRoutes.RESOURCES.name,
     ),
     path(
-        "carriers/<int:pk>/contacts/",
+        CarrierRoutes.CONTACTS.path,
         CarrierContactListAPIView.as_view(),
-        name="carrier_contacts",
+        name=CarrierRoutes.CONTACTS.name,
     ),
     path(
-        "carriers/<int:pk>/trucks/",
+        CarrierRoutes.TRUCKS.path,
         CarrierTruckListAPIView.as_view(),
-        name="carrier_trucks",
+        name=CarrierRoutes.TRUCKS.name,
     ),
     path(
-        "carriers/<int:pk>/drivers/",
+        CarrierRoutes.DRIVERS.path,
         CarrierDriverListAPIView.as_view(),
-        name="carrier_drivers",
+        name=CarrierRoutes.DRIVERS.name,
     ),
     path(
-        "trucks/",
+        TruckRoutes.LIST_CREATE.path,
         TruckListCreateAPIView.as_view(),
-        name="trucks_list_create",
+        name=TruckRoutes.LIST_CREATE.name,
     ),
     path(
-        "trucks/<int:pk>/",
+        TruckRoutes.DETAIL.path,
         TruckRetrieveUpdateDestroyAPIView.as_view(),
-        name="truck_details",
+        name=TruckRoutes.DETAIL.name,
     ),
     path(
-        "truck_capacities/",
+        TruckCapacityRoutes.LIST_CREATE.path,
         TruckCapacitiesListCreateAPIView.as_view(),
-        name="truck_capacities_list_create",
+        name=TruckCapacityRoutes.LIST_CREATE.name,
     ),
     path(
-        "truck_capacities/<int:pk>/",
+        TruckCapacityRoutes.DETAIL.path,
         TruckCapacitiesRetrieveUpdateDestroyAPIView.as_view(),
-        name="truck_capacities_details",
+        name=TruckCapacityRoutes.DETAIL.name,
     ),
     path(
-        "truck_types/",
+        TruckTypeRoutes.LIST_CREATE.path,
         TruckTypesListCreateAPIView.as_view(),
-        name="truck_types_list_create",
+        name=TruckTypeRoutes.LIST_CREATE.name,
     ),
     path(
-        "truck_types/<int:pk>/",
+        TruckTypeRoutes.DETAIL.path,
         TruckTypeRetrieveUpdateDestroyAPIView.as_view(),
-        name="truck_types_details",
+        name=TruckTypeRoutes.DETAIL.name,
     ),
     path(
-        "drivers/",
+        DriverRoutes.LIST_CREATE.path,
         DriverListCreateAPIView.as_view(),
-        name="drivers_list_create",
+        name=DriverRoutes.LIST_CREATE.name,
     ),
     path(
-        "drivers/<int:pk>/",
+        DriverRoutes.DETAIL.path,
         DriverRetrieveUpdateDestroyAPIView.as_view(),
-        name="driver_details",
+        name=DriverRoutes.DETAIL.name,
     ),
 ]

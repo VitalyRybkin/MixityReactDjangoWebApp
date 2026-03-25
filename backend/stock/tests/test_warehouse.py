@@ -3,6 +3,7 @@ from typing import Any, Dict
 from core.tests.base_test_case import BaseAPIMixin
 from core.tests.utils import FieldSpec, UploadSpec
 from stock.models import Warehouse
+from stock.routes import WarehouseRoutes
 from stock.tests.factories import WarehouseFactory, WarehouseMapFactory
 from stock.warehouse_serializers import WarehouseListCreateSerializer
 
@@ -43,7 +44,7 @@ class TestWarehouseAPIList(WarehouseBaseTest, BaseAPIMixin):
 
     __test__ = True
 
-    url_name = "stock:warehouse_list_create"
+    url_name = f"stock:{WarehouseRoutes.LIST_CREATE.name}"
 
     def get_serializer(self) -> WarehouseListCreateSerializer:
         return WarehouseListCreateSerializer()
@@ -100,7 +101,7 @@ class TestWarehouseRetrieveUpdate(WarehouseBaseTest, BaseAPIMixin):
     """
 
     __test__ = True
-    pk_url_name = "stock:warehouse_details"
+    pk_url_name = f"stock:{WarehouseRoutes.DETAIL.name}"
 
     def test_retrieve_update_logic(self) -> None:
         """Test the logic for retrieving and updating warehouse details."""
@@ -114,7 +115,7 @@ class TestWarehouseRetrieveUpdate(WarehouseBaseTest, BaseAPIMixin):
 class TestWarehouseUploadMap(BaseAPIMixin):
 
     __test__ = True
-    pk_url_name = "stock:warehouse_map"
+    pk_url_name = f"stock:{WarehouseRoutes.MAP.name}"
     upload_file_spec = UploadSpec(field_name="directions", upload_to="maps/")
 
     model = Warehouse

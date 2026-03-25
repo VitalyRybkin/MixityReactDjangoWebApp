@@ -3,6 +3,7 @@ from typing import Any, Dict
 from core.tests.base_test_case import BaseAPIMixin
 from core.tests.utils import FieldSpec
 from logistic.models import Carrier, Driver
+from logistic.routes import DriverRoutes
 from logistic.serializers.driver_serializers import DriverSerializer
 from logistic.tests.factories import CarrierFactory, DriverFactory
 
@@ -36,7 +37,7 @@ class DriverBaseTest:
 
 
 class TestDriverAPIList(DriverBaseTest, BaseAPIMixin):
-    url_name = "logistic:drivers_list_create"
+    url_name = f"logistic:{DriverRoutes.LIST_CREATE.name}"
 
     __test__ = True
 

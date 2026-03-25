@@ -1,6 +1,7 @@
 from django.urls import path
 
 from contacts.views import WarehouseContactListAPIView
+from stock.routes import WarehouseRoutes
 from stock.views.warehouses import (
     WarehouseListCreateAPIView,
     WarehouseRetrieveUpdateDestroyAPIView,
@@ -11,23 +12,23 @@ app_name = "stock"
 
 urlpatterns = [
     path(
-        "",
+        WarehouseRoutes.LIST_CREATE.path,
         WarehouseListCreateAPIView.as_view(),
-        name="warehouse_list_create",
+        name=WarehouseRoutes.LIST_CREATE.name,
     ),
     path(
-        "<int:pk>/",
+        WarehouseRoutes.DETAIL.path,
         WarehouseRetrieveUpdateDestroyAPIView.as_view(),
-        name="warehouse_details",
+        name=WarehouseRoutes.DETAIL.name,
     ),
     path(
-        "<int:pk>/contacts/",
+        WarehouseRoutes.CONTACTS.path,
         WarehouseContactListAPIView.as_view(),
-        name="warehouse_contacts",
+        name=WarehouseRoutes.CONTACTS.name,
     ),
     path(
-        "<int:pk>/map/",
+        WarehouseRoutes.MAP.path,
         WarehouseUploadMapAPIView.as_view(),
-        name="warehouse_map",
+        name=WarehouseRoutes.MAP.name,
     ),
 ]

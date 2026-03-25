@@ -1,5 +1,6 @@
 from django.urls import path
 
+from .routes import DocumentationRoutes
 from .views import (
     DocumentsListAPIView,
     DocumentationDetailView,
@@ -8,8 +9,8 @@ from .views import (
 )
 
 urlpatterns = [
-    path("documentation/", DocumentsListAPIView.as_view(), name="docs-list"),
-    path("documentation/<int:pk>/", DocumentationDetailView.as_view(), name="doc-detail"),
-    path("documentation/<int:pk>/download/", DocumentationDownloadView.as_view(), name="doc-download"),
-    path("documentation/download-zip/", DocumentationBulkDownloadView.as_view(), name="doc-download-zip"),
+    path(DocumentationRoutes.LIST.path, DocumentsListAPIView.as_view(), name=DocumentationRoutes.LIST.name,),
+    path(DocumentationRoutes.DETAIL.path, DocumentationDetailView.as_view(), name=DocumentationRoutes.DETAIL.name,),
+    path(DocumentationRoutes.DOWNLOAD.path, DocumentationDownloadView.as_view(), name=DocumentationRoutes.DOWNLOAD.name,),
+    path(DocumentationRoutes.DOWNLOAD_ZIP.path, DocumentationBulkDownloadView.as_view(), name=DocumentationRoutes.DOWNLOAD_ZIP.name,),
 ]

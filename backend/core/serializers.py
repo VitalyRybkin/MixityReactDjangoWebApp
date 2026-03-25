@@ -4,6 +4,7 @@ from django.urls import reverse
 from rest_framework import serializers
 
 from .models import Documentation
+from .routes import DocumentationRoutes
 
 
 class DocumentationSerializer(serializers.ModelSerializer):
@@ -18,13 +19,13 @@ class DocumentationSerializer(serializers.ModelSerializer):
         request = self.context.get("request")
         if not request:
             return None
-        return request.build_absolute_uri(reverse("doc-detail", args=[obj.id]))
+        return request.build_absolute_uri(reverse(DocumentationRoutes.DETAIL.name, args=[obj.id]))
 
     def get_download_url(self, obj: Documentation) -> Any | None:
         request = self.context.get("request")
         if not request:
             return None
-        return request.build_absolute_uri(reverse("doc-download", args=[obj.id]))
+        return request.build_absolute_uri(reverse(DocumentationRoutes.DOWNLOAD.name, args=[obj.id]))
 
 class DocumentationBulkDownloadRequestSerializer(serializers.Serializer):
     ids = serializers.ListField(

@@ -1,5 +1,6 @@
 from typing import Any, Dict
 
+from catalog.api.routes import UnitRoutes
 from catalog.api.serializers.unit_serializers import UnitSerializer
 from catalog.models import AppUnit
 from catalog.tests.api.factories import UnitFactory
@@ -47,7 +48,7 @@ class TestUnitAPIList(UnitBaseTest, BaseAPIMixin):
     """
 
     __test__ = True
-    url_name = "catalog:unit_list_create"
+    url_name = f"catalog:{UnitRoutes.LIST_CREATE.name}"
 
     def test_get_list(self) -> None:
         """Test the logic for retrieving a list of units."""
@@ -96,7 +97,7 @@ class TestUnitRetrieveUpdate(UnitBaseTest, BaseAPIMixin):
     """
 
     __test__ = True
-    pk_url_name = "catalog:unit_details"
+    pk_url_name = f"catalog:{UnitRoutes.DETAIL.name}"
 
     def test_retrieve_update_logic(self) -> None:
         """Test the logic for retrieving and updating a unit."""
@@ -119,7 +120,7 @@ class TestUnitFiledValidation(UnitBaseTest, BaseAPIMixin):
     """
 
     __test__ = True
-    url_name = "catalog:unit_list_create"
+    url_name = f"catalog:{UnitRoutes.LIST_CREATE.name}"
 
     def test_fields_validation(self) -> None:
         """Test the field validation logic for unit creation."""
