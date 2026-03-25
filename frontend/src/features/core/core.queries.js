@@ -2,25 +2,41 @@ import { useQuery } from '@tanstack/react-query'
 
 import api from '../../api.js'
 
-const unwrapList = (d) => {
-    if (Array.isArray(d)) return d
-    if (Array.isArray(d?.results)) return d.results
+import { documentationApiPaths } from './documentationApiPaths.js'
+
+const unwrapList = (data) => {
+    if (Array.isArray(data)) return data
+    if (Array.isArray(data?.results)) return data.results
     throw new Error('Expected list response')
 }
 
-export const coreKeys = {
-    all: ['core'],
-    list: () => ['core', 'list'],
+export const documentationKeys = {
+    all: ['documentation'],
+    list: () => ['documentation', 'list'],
+    detail: (id) => ['documentation', 'detail', String(id)],
 }
 
-const fetchDocumentation = async () => {
-    const res = await api.get('/api/core/documentation/')
+export const fetchDocumentation = async () => {
+    const res = await api.get(documentationApiPaths.list())
     return unwrapList(res.data)
+}
+
+export const fetchDocumentationDetail = async (id) => {
+    const res = await api.get(documentationApiPaths.detail(id))
+    return res.data
 }
 
 export function useGetDocumentation() {
     return useQuery({
-        queryKey: coreKeys.list(),
+        queryKey: documentationKeys.list(),
         queryFn: fetchDocumentation,
+    })
+}
+
+export function useGetDocumentationDetail(id) {
+    return useQuery({
+        queryKey: documentationKeys.detail(id),
+        queryFn: () => fetchDocumentationDetail(id),
+        enabled: Boolean(id),
     })
 }

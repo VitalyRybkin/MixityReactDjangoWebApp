@@ -3,6 +3,8 @@ import { useParams } from 'react-router-dom'
 import ObjectDetailWithContactList from '../../../pages/shared/ObjectDetailWithContactList.jsx'
 import { emailValue } from '../../../utils/emailValue.jsx'
 
+import { carrierApiPaths } from './carrierApiPaths.js'
+
 export default function CarrierDetailPage() {
     const { id } = useParams()
     const carrierId = Number(id)
@@ -12,8 +14,8 @@ export default function CarrierDetailPage() {
             id={id}
             label="Грузоперевозчик"
             editTo={(id) => `/carriers/${id}/edit`}
-            entityUrl={(id) => `/api/logistic/carriers/${id}/`}
-            contactsUrl={(id) => `/api/logistic/carriers/${id}/contacts/`}
+            entityUrl={(id) => carrierApiPaths.detail(id)}
+            contactsUrl={(id) => carrierApiPaths.contacts(id)}
             ownerType="carrier"
             ownerId={carrierId}
             fields={(c) => [

@@ -22,6 +22,7 @@ import DownloadAction from '../../components/ui/buttons/DownloadAction.jsx'
 import EmailLink from '../../components/ui/buttons/EmailLink.jsx'
 
 import { useGetDocumentation } from './core.queries.js'
+import { documentationApiPaths } from './documentationApiPaths.js'
 
 export default function DocumentationListPage() {
     const { data: documentation = [], isPending, error, refetch } = useGetDocumentation()
@@ -50,7 +51,7 @@ export default function DocumentationListPage() {
 
         try {
             const response = await api.post(
-                '/api/core/documentation/download-zip/',
+                documentationApiPaths.downloadZip(),
                 { ids: selectedDocs },
                 { responseType: 'blob' },
             )

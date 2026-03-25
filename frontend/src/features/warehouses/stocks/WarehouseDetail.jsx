@@ -8,6 +8,7 @@ import EditAction from '../../../components/ui/buttons/EditAction.jsx'
 import ViewAction from '../../../components/ui/buttons/ViewAction.jsx'
 import ObjectDetailWithContactList from '../../../pages/shared/ObjectDetailWithContactList.jsx'
 import { emailValue } from '../../../utils/emailValue.jsx'
+import { warehouseApiPaths } from '../warehousePaths.js'
 
 export default function WarehouseDetailPage() {
     const { id } = useParams()
@@ -19,8 +20,8 @@ export default function WarehouseDetailPage() {
             id={id}
             label="Склад"
             editTo={(id) => `/warehouses/${id}/edit`}
-            entityUrl={(id) => `/api/stock/${id}/`}
-            contactsUrl={(id) => `/api/stock/${id}/contacts/`}
+            entityUrl={(id) => warehouseApiPaths.detail(id)}
+            contactsUrl={(id) => warehouseApiPaths.contacts(id)}
             ownerType="warehouse"
             ownerId={warehouseId}
             fields={(w) => [

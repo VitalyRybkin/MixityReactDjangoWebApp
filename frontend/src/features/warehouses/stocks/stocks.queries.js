@@ -1,5 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+
 import api from '../../../api.js'
+import { warehouseApiPaths } from '../warehousePaths.js'
 
 const unwrapList = (d) => {
     if (Array.isArray(d)) return d
@@ -13,33 +15,33 @@ export const warehouseKeys = {
     contacts: (id) => ['warehouse', String(id), 'contacts'],
 }
 
-const fetchWarehouses = async () => {
-    const res = await api.get('/api/stock/')
+export const fetchWarehouses = async () => {
+    const res = await api.get(warehouseApiPaths.listCreate())
     return unwrapList(res.data)
 }
 
-const fetchWarehouse = async (id) => {
-    const res = await api.get(`/api/stock/${id}/`)
+export const fetchWarehouse = async (id) => {
+    const res = await api.get(warehouseApiPaths.detail(id))
     return res.data
 }
 
-const fetchWarehouseContacts = async (id) => {
-    const res = await api.get(`/api/stock/${id}/contacts/`)
+export const fetchWarehouseContacts = async (id) => {
+    const res = await api.get(warehouseApiPaths.contacts(id))
     return unwrapList(res.data)
 }
 
-const createWarehouse = async (payload) => {
-    const res = await api.post('/api/stock/', payload)
+export const createWarehouse = async (payload) => {
+    const res = await api.post(warehouseApiPaths.listCreate(), payload)
     return res.data
 }
 
-const updateWarehouse = async ({ id, payload }) => {
-    const res = await api.patch(`/api/stock/${id}/`, payload)
+export const updateWarehouse = async ({ id, payload }) => {
+    const res = await api.patch(warehouseApiPaths.detail(id), payload)
     return res.data
 }
 
-const deleteWarehouse = async (id) => {
-    await api.delete(`/api/stock/${id}/`)
+export const deleteWarehouse = async (id) => {
+    await api.delete(warehouseApiPaths.detail(id))
     return id
 }
 

@@ -5,6 +5,7 @@ import { Alert, Box, Button, Card, CardContent, Stack, Typography } from '@mui/m
 
 import api from '../../../api.js'
 import AppBreadcrumbs from '../../../components/AppBreadcrumbs.jsx'
+import { warehouseApiPaths } from '../warehousePaths.js'
 
 export default function WarehouseMapUploadPage() {
     const { id } = useParams()
@@ -30,7 +31,7 @@ export default function WarehouseMapUploadPage() {
             const formData = new FormData()
             formData.append('directions', file)
 
-            await api.patch(`/api/stock/${id}/map/`, formData, {
+            await api.patch(warehouseApiPaths.map(), formData, {
                 headers: { 'Content-Type': 'multipart/form-data' },
             })
 

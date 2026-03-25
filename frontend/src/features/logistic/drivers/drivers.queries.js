@@ -2,9 +2,11 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 
 import api from '../../../api.js'
 
-const unwrapList = (d) => {
-    if (Array.isArray(d)) return d
-    if (Array.isArray(d?.results)) return d.results
+import { driverApiPaths } from './driverApiPaths.js'
+
+const unwrapList = (data) => {
+    if (Array.isArray(data)) return data
+    if (Array.isArray(data?.results)) return data.results
     throw new Error('Expected list response')
 }
 
@@ -16,27 +18,27 @@ export const driverKeys = {
 }
 
 export const fetchCarrierDrivers = async (carrierId) => {
-    const res = await api.get(`/api/logistic/carriers/${carrierId}/drivers/`)
+    const res = await api.get(driverApiPaths.carrierList(carrierId))
     return unwrapList(res.data)
 }
 
 const fetchDriver = async (id) => {
-    const res = await api.get(`/api/logistic/drivers/${id}/`)
+    const res = await api.get(driverApiPaths.detail(id))
     return res.data
 }
 
-const createDriver = async ({ payload }) => {
-    const res = await api.post('/api/logistic/drivers/', payload)
+const createDriver = async (payload) => {
+    const res = await api.post(driverApiPaths.listCreate(), payload)
     return res.data
 }
 
 const updateDriver = async ({ id, payload }) => {
-    const res = await api.patch(`/api/logistic/drivers/${id}/`, payload)
+    const res = await api.patch(driverApiPaths.detail(id), payload)
     return res.data
 }
 
 const deleteDriver = async ({ id }) => {
-    await api.delete(`/api/logistic/drivers/${id}/`)
+    await api.delete(driverApiPaths.detail(id))
     return id
 }
 
@@ -64,7 +66,7 @@ export function useCreateDriver() {
         onSuccess: async (data, variables) => {
             await queryClient.invalidateQueries({ queryKey: driverKeys.all })
 
-            const carrierId = data?.carrier ?? variables?.payload?.carrier
+            const carrierId = data?.carrier ?? variables?.carrier
             if (carrierId) {
                 await queryClient.invalidateQueries({
                     queryKey: driverKeys.list(carrierId),

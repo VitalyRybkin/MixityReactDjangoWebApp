@@ -2,6 +2,8 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 
 import api from '../../../api.js'
 
+import { carrierApiPaths } from './carrierApiPaths.js'
+
 const unwrapList = (d) => {
     if (Array.isArray(d)) return d
     if (Array.isArray(d?.results)) return d.results
@@ -13,35 +15,53 @@ export const carrierKeys = {
     list: () => ['carriers', 'list'],
     detail: (id) => ['carriers', 'detail', String(id)],
     contacts: (id) => ['carriers', 'detail', String(id), 'contacts'],
+    resources: (id) => ['carriers', 'detail', String(id), 'resources'],
+    trucks: (id) => ['carriers', 'detail', String(id), 'trucks'],
+    drivers: (id) => ['carriers', 'detail', String(id), 'drivers'],
 }
 
-const fetchCarriers = async () => {
-    const res = await api.get('/api/logistic/carriers/')
+export const fetchCarriers = async () => {
+    const res = await api.get(carrierApiPaths.listCreate())
     return unwrapList(res.data)
 }
 
-const fetchCarrier = async (id) => {
-    const res = await api.get(`/api/logistic/carriers/${id}/`)
+export const fetchCarrier = async (id) => {
+    const res = await api.get(carrierApiPaths.detail(id))
     return res.data
 }
 
-const fetchCarrierContacts = async (id) => {
-    const res = await api.get(`/api/logistic/carriers/${id}/contacts/`)
+export const fetchCarrierContacts = async (id) => {
+    const res = await api.get(carrierApiPaths.contacts(id))
     return unwrapList(res.data)
 }
 
-const createCarrier = async (payload) => {
-    const res = await api.post('/api/logistic/carriers/', payload)
+// export const fetchCarrierResources = async (id) => {
+//     const res = await api.get(carrierApiPaths.resources(id))
+//     return res.data
+// }
+//
+// export const fetchCarrierTrucks = async (id) => {
+//     const res = await api.get(carrierApiPaths.trucks(id))
+//     return unwrapList(res.data)
+// }
+//
+// export const fetchCarrierDrivers = async (id) => {
+//     const res = await api.get(carrierApiPaths.drivers(id))
+//     return unwrapList(res.data)
+// }
+
+export const createCarrier = async (payload) => {
+    const res = await api.post(carrierApiPaths.listCreate(), payload)
     return res.data
 }
 
-const updateCarrier = async ({ id, payload }) => {
-    const res = await api.patch(`/api/logistic/carriers/${id}/`, payload)
+export const updateCarrier = async ({ id, payload }) => {
+    const res = await api.patch(carrierApiPaths.detail(id), payload)
     return res.data
 }
 
-const deleteCarrier = async ({ id }) => {
-    await api.delete(`/api/logistic/carriers/${id}/`)
+export const deleteCarrier = async (id) => {
+    await api.delete(carrierApiPaths.detail(id))
     return id
 }
 
@@ -102,6 +122,7 @@ export function useDeleteCarrier() {
             await queryClient.invalidateQueries({ queryKey: carrierKeys.all })
             queryClient.removeQueries({ queryKey: carrierKeys.detail(id) })
             queryClient.removeQueries({ queryKey: carrierKeys.contacts(id) })
+            queryClient.removeQueries({ queryKey: carrierKeys.resources(id) })
         },
     })
 }

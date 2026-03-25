@@ -2,6 +2,8 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 
 import api from '../../../api.js'
 
+import { truckApiPaths, truckCapacityApiPaths, truckTypeApiPaths } from './truckApiPaths.js'
+
 const unwrapList = (d) => {
     if (Array.isArray(d)) return d
     if (Array.isArray(d?.results)) return d.results
@@ -28,67 +30,67 @@ export const truckTypeKeys = {
 }
 
 export const fetchCarrierTrucks = async (carrierId) => {
-    const res = await api.get(`/api/logistic/carriers/${carrierId}/trucks/`)
+    const res = await api.get(truckApiPaths.carrierList(carrierId))
     return unwrapList(res.data)
 }
 
 const fetchTruck = async (id) => {
-    const res = await api.get(`/api/logistic/trucks/${id}/`)
+    const res = await api.get(truckApiPaths.detail(id))
     return res.data
 }
 
-const createTruck = async ({ payload }) => {
-    const res = await api.post('/api/logistic/trucks/', payload)
+const createTruck = async (payload) => {
+    const res = await api.post(truckApiPaths.listCreate(), payload)
     return res.data
 }
 
 const updateTruck = async ({ id, payload }) => {
-    const res = await api.patch(`/api/logistic/trucks/${id}/`, payload)
+    const res = await api.patch(truckApiPaths.detail(id), payload)
     return res.data
 }
 
-const deleteTruck = async ({ id }) => {
-    await api.delete(`/api/logistic/trucks/${id}/`)
+const deleteTruck = async (id) => {
+    await api.delete(truckApiPaths.detail(id))
     return id
 }
 
 const fetchTruckCapacities = async () => {
-    const res = await api.get('/api/logistic/truck_capacities/')
+    const res = await api.get(truckCapacityApiPaths.listCreate())
     return unwrapList(res.data)
 }
 
 const fetchTruckCapacity = async (id) => {
-    const res = await api.get(`/api/logistic/truck_capacities/${id}/`)
+    const res = await api.get(truckCapacityApiPaths.detail(id))
     return res.data
 }
 
 const createTruckCapacity = async (payload) => {
-    const res = await api.post('/api/logistic/truck_capacities/', payload)
+    const res = await api.post(truckCapacityApiPaths.listCreate(), payload)
     return res.data
 }
 
 const updateTruckCapacity = async ({ id, payload }) => {
-    const res = await api.patch(`/api/logistic/truck_capacities/${id}/`, payload)
+    const res = await api.patch(truckCapacityApiPaths.detail(id), payload)
     return res.data
 }
 
 const fetchTruckTypes = async () => {
-    const res = await api.get('/api/logistic/truck_types/')
+    const res = await api.get(truckTypeApiPaths.listCreate())
     return unwrapList(res.data)
 }
 
 const fetchTruckType = async (id) => {
-    const res = await api.get(`/api/logistic/truck_types/${id}/`)
+    const res = await api.get(truckTypeApiPaths.detail(id))
     return res.data
 }
 
 const createTruckType = async (payload) => {
-    const res = await api.post('/api/logistic/truck_types/', payload)
+    const res = await api.post(truckTypeApiPaths.listCreate(), payload)
     return res.data
 }
 
 const updateTruckType = async ({ id, payload }) => {
-    const res = await api.patch(`/api/logistic/truck_types/${id}/`, payload)
+    const res = await api.patch(truckTypeApiPaths.detail(id), payload)
     return res.data
 }
 
