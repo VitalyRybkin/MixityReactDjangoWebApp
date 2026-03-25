@@ -273,6 +273,16 @@ class TestTruckAPIList(TruckBaseTest, BaseAPIMixin):
         payload = self.payload_generator()
         self._test_all_mandatory_fields(payload)
 
+    def test_license_plate_validation(self) -> None:
+        payload = self.payload_generator()
+        payload["licensePlate"] = "invalid"
+
+        cases = [
+            (payload, 400, "Введите в формате - А123ВС77"),
+        ]
+
+        self._test_field_validation(cases)
+
     def test_str_method(self) -> None:
         truck = self.obj
         expected = f"{truck.license_plate} ({truck.truck_type})"

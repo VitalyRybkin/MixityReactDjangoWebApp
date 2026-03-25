@@ -1,5 +1,6 @@
+import re
 from decimal import Decimal
-from typing import TYPE_CHECKING, Any, Callable, Dict, List
+from typing import TYPE_CHECKING, Any, Callable, Dict, List, Mapping, Sequence
 from uuid import UUID
 
 from django.db import models
@@ -182,7 +183,7 @@ class ValidationContractMixin(_Base):
 
     def _test_field_validation(
         self,
-        cases: list[tuple[dict[str, object], int, str | None]],
+        cases: Sequence[tuple[Mapping[str, Any], int, str | None]],
     ) -> None:
         """
         Tests field validation for a given model using provided test cases.
@@ -192,7 +193,14 @@ class ValidationContractMixin(_Base):
         for payload, expected_status, expected_error_field in cases:
             field_name, field_value = next(iter(payload.items()))
             with self.subTest(payload=payload):
-                self.model.objects.filter(**{field_name: field_value}).delete()
+                result = re.sub(
+                    r"([A-Z])", lambda x: "_" + x.group(1).lower(), field_name
+                )
+                model_fields = {f.name for f in self.model._meta.fields}
+
+                if result in model_fields and not isinstance(field_value, (list, dict)):
+                    self.model.objects.filter(**{result: field_value}).delete()
+
                 response = self.client.post(self.url, data=payload, format="json")
 
                 if response.status_code != expected_status:
@@ -212,15 +220,13 @@ class ValidationContractMixin(_Base):
                         msg=f"Expected error on '{expected_error_field}', got: {response.data}",
                     )
 
-                print(f"    {self.COLOR['SUB']}✓ Payload: {payload}{self.COLOR['END']}")
-
                 if response.status_code == 201:
-                    self._logger_success(field_name, f"✓ Created {self.model.__name__}")
+                    self._logger_success(result, f"✓ Created {self.model.__name__}")
 
                 if response.status_code == 400:
                     error_info = ", ".join(response.data)
                     self._logger_error(
-                        field_name,
+                        result,
                         f"Validation failed: [{error_info}] - {self.model.__name__} not created.",
                     )
 
