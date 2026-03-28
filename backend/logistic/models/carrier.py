@@ -18,7 +18,7 @@ class Carrier(models.Model):
 
     Attributes:
         name (str): The name of the carrier.
-        full_name (str, optional): The full name of the carrier. This field is optional.
+        organization (str, optional): The full name of the carrier. This field is optional.
         address (str, optional): The address of the carrier's headquarters. This field is optional.
         description (str, optional): A description of the carrier, its services, or any
             additional relevant information. This field is optional and can
@@ -28,7 +28,7 @@ class Carrier(models.Model):
     """
 
     name = models.CharField(max_length=100, unique=True)
-    full_name = models.CharField(max_length=255, null=True, blank=True)
+    organization = models.CharField(max_length=255, null=True, blank=True)
     address = models.CharField(max_length=255, null=True, blank=True)
     description = models.TextField(null=True, blank=True)
     phone = PhoneNumberField(

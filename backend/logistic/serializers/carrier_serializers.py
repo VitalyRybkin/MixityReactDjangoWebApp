@@ -33,7 +33,7 @@ class CarrierSerializer(serializers.ModelSerializer):
     """
 
     isActive = serializers.BooleanField(source="is_active", read_only=True)
-    fullName = serializers.CharField(source="full_name")
+    # fullName = serializers.CharField(source="full_name")
     trucks = TruckBaseReadSerializer(many=True, read_only=True)
     phone = PhoneNumberField(
         region="RU",
@@ -46,7 +46,7 @@ class CarrierSerializer(serializers.ModelSerializer):
         fields = [
             "id",
             "name",
-            "fullName",
+            "organization",
             "address",
             "description",
             "phone",

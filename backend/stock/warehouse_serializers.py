@@ -36,6 +36,7 @@ class WarehouseListCreateSerializer(serializers.ModelSerializer):
             "address",
             "phone",
             "directions",
+            "description",
             "isActive",
         ]
 

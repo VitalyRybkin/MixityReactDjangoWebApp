@@ -19,6 +19,9 @@ class Warehouse(models.Model):
         email (str, optional): The contact email address of the warehouse.
         phone (PhoneNumberField): The unique phone number associated with the warehouse. It
             must conform to international phone number standards.
+        description (str, optional): A description of the warehouse, its services, or any
+            additional relevant information. This field is optional and can
+            be left blank.
         directions (ImageField, optional): An image file representing directions or a map
             to the warehouse location. The image is uploaded to the "maps" directory.
 
@@ -29,6 +32,7 @@ class Warehouse(models.Model):
     name = models.CharField(max_length=255, unique=True)
     organization = models.CharField(max_length=255, blank=True, null=True)
     address = models.CharField(max_length=255, blank=True, null=True)
+
     email = models.EmailField(blank=True, null=True)
     phone = PhoneNumberField(
         region="RU",
@@ -37,6 +41,8 @@ class Warehouse(models.Model):
         null=True,
     )
     directions = models.ImageField(upload_to="maps", null=True, blank=True)
+    description = models.TextField(null=True, blank=True)
+
     is_active = models.BooleanField(default=True)
 
     objects = ActiveQuerySet.as_manager()
