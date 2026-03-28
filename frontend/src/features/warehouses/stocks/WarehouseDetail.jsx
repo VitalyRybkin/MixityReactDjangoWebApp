@@ -30,6 +30,7 @@ export default function WarehouseDetailPage() {
                 { label: 'Адрес', value: w?.address },
                 { label: 'Телефон', value: w?.phoneNumber },
                 { label: 'Email', value: emailValue(w?.email) },
+                { label: 'Примечание', value: w?.description },
                 {
                     label: 'Схема проезда',
                     value: w?.directions ? (

@@ -20,7 +20,7 @@ export default function CarrierDetailPage() {
             ownerId={carrierId}
             fields={(c) => [
                 { label: 'Наименование', value: c?.name },
-                { label: 'Полное наименование', value: c?.fullName },
+                { label: 'Полное наименование', value: c?.organization },
                 { label: 'Адрес', value: c?.address },
                 { label: 'Телефон', value: c?.phone },
                 { label: 'Email', value: emailValue(c?.email) },

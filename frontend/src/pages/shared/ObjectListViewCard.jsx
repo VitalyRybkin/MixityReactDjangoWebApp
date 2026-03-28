@@ -11,8 +11,8 @@ import EmailLink from '../../components/ui/buttons/EmailLink.jsx'
 import IconAction from '../../components/ui/buttons/IconAction.jsx'
 import ViewAction from '../../components/ui/buttons/ViewAction.jsx'
 
-const ObjectListViewCard = ({ title, subtitle, extra, email, phone, fileUrl, to, onDelete }) => {
-    const hasTextBefore = Boolean(subtitle || extra || email)
+const ObjectListViewCard = ({ title, subtitle, address, email, phone, fileUrl, to, onDelete }) => {
+    const hasTextBefore = Boolean(subtitle || address || email)
     const navigate = useNavigate()
     const location = useLocation()
 
@@ -39,7 +39,7 @@ const ObjectListViewCard = ({ title, subtitle, extra, email, phone, fileUrl, to,
                     <Box sx={{ display: 'flex', alignItems: 'center', color: 'text.secondary', fontSize: '0.875rem' }}>
                         {subtitle && <Box component="span">{subtitle}</Box>}
 
-                        {extra && (
+                        {address && (
                             <>
                                 {subtitle && (
                                     <Divider
@@ -48,13 +48,13 @@ const ObjectListViewCard = ({ title, subtitle, extra, email, phone, fileUrl, to,
                                         sx={{ mx: 2, height: 14, alignSelf: 'center' }}
                                     />
                                 )}
-                                <Box component="span">{extra}</Box>
+                                <Box component="span">{address}</Box>
                             </>
                         )}
 
                         {email && (
                             <>
-                                {(subtitle || extra) && (
+                                {(subtitle || address) && (
                                     <Divider
                                         orientation="vertical"
                                         flexItem
@@ -67,7 +67,7 @@ const ObjectListViewCard = ({ title, subtitle, extra, email, phone, fileUrl, to,
 
                         {phone && (
                             <>
-                                {(subtitle || extra) && (
+                                {(subtitle || address) && (
                                     <Divider
                                         orientation="vertical"
                                         flexItem

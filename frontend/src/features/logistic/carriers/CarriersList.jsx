@@ -46,8 +46,8 @@ export default function CarriersList() {
                     <ObjectListViewCard
                         key={w.id}
                         title={w.name}
-                        subtitle={w.fullName}
-                        extra={w.address}
+                        subtitle={w.organization}
+                        address={w.address}
                         email={w.email}
                         phone={w.phone}
                         to={`/carriers/${w.id}`}

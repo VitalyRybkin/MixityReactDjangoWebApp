@@ -46,7 +46,7 @@ export default function WarehousesList() {
                     <ObjectListViewCard
                         title={w.name}
                         subtitle={w.organization}
-                        extra={w.address}
+                        address={w.address}
                         email={w.email}
                         phone={w.phone}
                         fileUrl={w.directions}
