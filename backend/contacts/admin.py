@@ -1,7 +1,7 @@
 from django.contrib import admin
 
+from common.admin import BaseAdmin
 from contacts.models import Contact, PhoneNumber
-from core.admin import BaseAdmin
 
 
 class PhoneNumberInline(admin.TabularInline):

@@ -1,7 +1,7 @@
 from django.contrib import admin
 
+from common.admin import BaseAdmin
 from contacts.admin import ContactInline
-from core.admin import BaseAdmin
 from stock.models import Warehouse
 
 

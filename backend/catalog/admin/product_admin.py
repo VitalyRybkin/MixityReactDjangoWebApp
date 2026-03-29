@@ -9,7 +9,7 @@ from catalog.models import (
     ProductSpecName,
     SpecificationGroup,
 )
-from core.admin import BaseAdmin
+from common.admin import BaseAdmin
 
 
 @admin.register(ProductGroup)

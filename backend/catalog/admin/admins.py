@@ -1,7 +1,7 @@
 from django.contrib import admin
 
 from catalog.models import AppUnit
-from core.admin import BaseAdmin
+from common.admin import BaseAdmin
 
 
 @admin.register(AppUnit)

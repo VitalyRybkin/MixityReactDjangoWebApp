@@ -41,7 +41,7 @@ REST_FRAMEWORK = {
         "rest_framework.permissions.IsAuthenticated",
     ],
     "DEFAULT_SCHEMA_CLASS": "drf_spectacular.openapi.AutoSchema",
-    "EXCEPTION_HANDLER": "core.exceptions.custom_exception_handler",
+    "EXCEPTION_HANDLER": "core.api.exceptions.custom_exception_handler",
 }
 
 SIMPLE_JWT = {
@@ -65,6 +65,7 @@ INSTALLED_APPS = [
     "logistic.apps.LogisticConfig",
     "core.apps.CoreConfig",
     "contacts.apps.ContactsConfig",
+    "common.apps.CommonConfig",
     "drf_spectacular",
     "drf_spectacular_sidecar",
     'django_cleanup.apps.CleanupConfig',

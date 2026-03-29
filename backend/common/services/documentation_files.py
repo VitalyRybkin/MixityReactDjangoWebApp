@@ -1,14 +1,14 @@
 import os
 import zipfile
 from io import BytesIO
-from typing import BinaryIO
 
+from django.db.models.fields.files import FieldFile
 from django.http import Http404
 
-from core.models.models import Documentation
+from common.models import Documentation
 
 
-def get_documentation_file_parts(doc: Documentation) -> tuple[BinaryIO, str]:
+def get_documentation_file_parts(doc: Documentation) -> tuple[FieldFile, str]:
     if not doc.file:
         raise Http404("Файл не найден")
 
@@ -16,10 +16,10 @@ def get_documentation_file_parts(doc: Documentation) -> tuple[BinaryIO, str]:
 
 
 def get_ordered_documents(ids: list[int]) -> list[Documentation]:
-    documents_map = {
-        doc.id: doc for doc in Documentation.objects.filter(id__in=ids)
-    }
-    ordered_documents = [documents_map[doc_id] for doc_id in ids if doc_id in documents_map]
+    documents_map = {doc.id: doc for doc in Documentation.objects.filter(id__in=ids)}
+    ordered_documents = [
+        documents_map[doc_id] for doc_id in ids if doc_id in documents_map
+    ]
 
     if not ordered_documents:
         raise Http404("Документы не найдены")

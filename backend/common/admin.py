@@ -16,8 +16,8 @@ class BaseAdmin(admin.ModelAdmin):
         request: HttpRequest,
         message: Any,
         level: Union[int, str] = messages.SUCCESS,
-        extra_tags: str = '',
-        fail_silently: bool = False
+        extra_tags: str = "",
+        fail_silently: bool = False,
     ) -> None:
         """
         Displays a custom success, informational, or error message to the user, typically used within
@@ -38,12 +38,12 @@ class BaseAdmin(admin.ModelAdmin):
         msg_str = str(message)
         verbose_name = self.model._meta.verbose_name.capitalize()
 
-        if 'was added successfully' in msg_str:
-            message = f'✅ {verbose_name} успешно добавлен(а)!'
-        elif 'was changed successfully' in msg_str:
-            message = f'📝 {verbose_name} успешно обновлен(а)!'
-        elif 'was deleted successfully' in msg_str:
-            message = f'🗑️ {verbose_name} удален(а).'
+        if "was added successfully" in msg_str:
+            message = f"✅ {verbose_name} успешно добавлен(а)!"
+        elif "was changed successfully" in msg_str:
+            message = f"📝 {verbose_name} успешно обновлен(а)!"
+        elif "was deleted successfully" in msg_str:
+            message = f"🗑️ {verbose_name} удален(а)."
 
         return super().message_user(request, message, level, extra_tags, fail_silently)
 
@@ -57,13 +57,7 @@ class DocumentationAdmin(BaseAdmin):
         "tag",
     )
 
+
 @admin.register(Organisation)
 class OrganizationAdmin(BaseAdmin):
-    list_display = (
-        "short_name",
-        "full_name",
-        "address",
-        "inn",
-        "kpp",
-        "ceo_name"
-    )
+    list_display = ("short_name", "full_name", "address", "inn", "kpp", "ceo_name")

@@ -1,6 +1,6 @@
 from django.contrib import admin
 
-from core.admin import BaseAdmin
+from common.admin import BaseAdmin
 from logistic.models import Driver
 
 

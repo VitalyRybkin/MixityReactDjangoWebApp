@@ -6,7 +6,7 @@ from drf_spectacular.views import SpectacularSwaggerView, SpectacularAPIView
 from rest_framework.permissions import AllowAny
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 
-from core.views import doc_page
+from common.views import doc_page
 
 urlpatterns = [
     path("", doc_page, name="home"),
@@ -20,7 +20,7 @@ urlpatterns = [
     path("api/catalog/", include("catalog.api.urls")),
     path("api/stock/", include("stock.urls")),
     path("api/contacts/", include("contacts.urls")),
-    path("api/core/", include("core.urls")),
+    path("api/common/", include("common.urls")),
 
     # DRF session login (optional, for browsable API)
     path("api/auth/", include("rest_framework.urls")),
@@ -106,19 +106,19 @@ urlpatterns = [
 
     # Documentation OpenAPI
     path(
-      "api/schema/core/",
+      "api/schema/common/",
       SpectacularAPIView.as_view(
           permission_classes=[AllowAny],
-          urlconf="core.schema_urls",
+          urlconf="common.schema_urls",
       ),
-      name="schema-core",
+      name="schema-common",
     ),
     path(
-      "api/docs/core/",
+      "api/docs/common/",
       SpectacularSwaggerView.as_view(
-          url_name="schema-core",
+          url_name="schema-common",
           permission_classes=[AllowAny],
       ),
-      name="swagger-core",
+      name="swagger-common",
     ),
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

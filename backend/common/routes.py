@@ -1,4 +1,4 @@
-from .routing import ApiRoute
+from core.routing import ApiRoute
 
 
 class DocumentationRoutes:
