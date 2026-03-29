@@ -5,7 +5,7 @@ from phonenumber_field.serializerfields import PhoneNumberField
 from rest_framework import serializers
 
 from contacts.models import Contact, PhoneNumber
-from core.validators import validate_ru_phone
+from core.validators.validators import validate_ru_phone
 from logistic.models import Carrier
 from stock.models import Warehouse
 

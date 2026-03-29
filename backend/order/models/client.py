@@ -8,6 +8,7 @@ class ActiveQuerySet(models.QuerySet):
     def active(self) -> "ActiveQuerySet":
         return self.filter(is_active=True)
 
+
 class Client(ContactDetailsMixin, ActiveMixin):
     name = models.CharField(max_length=100, unique=True)
 

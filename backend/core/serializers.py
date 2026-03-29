@@ -3,7 +3,7 @@ from typing import Any
 from django.urls import reverse
 from rest_framework import serializers
 
-from .models import Documentation
+from .models.models import Documentation
 from .routes import DocumentationRoutes
 
 

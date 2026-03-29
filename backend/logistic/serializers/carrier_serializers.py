@@ -3,7 +3,7 @@ from typing import Any
 from phonenumber_field.serializerfields import PhoneNumberField
 from rest_framework import serializers
 
-from core.validators import validate_ru_phone
+from core.validators.validators import validate_ru_phone
 from logistic.models import Carrier
 from logistic.serializers.driver_serializers import DriverSerializer
 from logistic.serializers.truck_serializers import (

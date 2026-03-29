@@ -5,7 +5,7 @@ from typing import BinaryIO
 
 from django.http import Http404
 
-from core.models import Documentation
+from core.models.models import Documentation
 
 
 def get_documentation_file_parts(doc: Documentation) -> tuple[BinaryIO, str]:

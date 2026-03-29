@@ -1,10 +1,9 @@
 from typing import Any, Union
 
-from django.http import HttpRequest
-from rest_framework.request import Request
-
-from core.models import Documentation, Organisation
 from django.contrib import admin, messages
+from django.http import HttpRequest
+
+from core.models.models import Documentation, Organisation
 
 
 class BaseAdmin(admin.ModelAdmin):

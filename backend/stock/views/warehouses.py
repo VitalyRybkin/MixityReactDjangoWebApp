@@ -2,7 +2,7 @@ from rest_framework import generics
 from rest_framework.parsers import FormParser, MultiPartParser
 from rest_framework.permissions import AllowAny
 
-from core.mixins import SoftDeleteResponseMixin
+from core.api.mixins import SoftDeleteResponseMixin
 from core.openapi import ERRORS_DETAIL
 from core.openapi.base_views import (
     BaseListCreateAPIView,

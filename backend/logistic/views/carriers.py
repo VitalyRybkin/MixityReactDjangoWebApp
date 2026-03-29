@@ -7,7 +7,7 @@ from rest_framework.permissions import AllowAny
 from rest_framework.request import Request
 from rest_framework.response import Response
 
-from core.mixins import SoftDeleteResponseMixin
+from core.api.mixins import SoftDeleteResponseMixin
 from core.openapi.base_views import (
     BaseGenericAPIView,
     BaseListAPIView,

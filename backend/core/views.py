@@ -8,7 +8,7 @@ from rest_framework import generics
 from rest_framework.permissions import AllowAny
 from rest_framework.views import APIView
 
-from core.models import Documentation
+from core.models.models import Documentation
 from core.openapi.base_views import BaseListAPIView, BaseGenericAPIView, BaseCreateAPIView
 from core.serializers import DocumentationSerializer, DocumentationBulkDownloadRequestSerializer
 from core.services.docs_index import build_docs_index_sections
