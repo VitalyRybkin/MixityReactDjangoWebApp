@@ -3,7 +3,7 @@ from typing import Any, Union
 from django.contrib import admin, messages
 from django.http import HttpRequest
 
-from core.models.models import Documentation, Organisation
+from common.models import Documentation, Organisation
 
 
 class BaseAdmin(admin.ModelAdmin):
