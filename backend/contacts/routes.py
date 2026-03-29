@@ -1,4 +1,4 @@
-from core.routing import ApiRoute
+from core.api.routing import ApiRoute
 
 
 class ContactRoutes:
