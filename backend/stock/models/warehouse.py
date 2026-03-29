@@ -1,6 +1,7 @@
 from django.db import models
-from phonenumber_field.modelfields import PhoneNumberField
-from phonenumber_field.validators import validate_international_phonenumber
+
+from core.models.active_mixin import ActiveMixin
+from core.models.contact_info_mixin import ContactDetailsMixin
 
 
 class ActiveQuerySet(models.QuerySet):
@@ -8,7 +9,7 @@ class ActiveQuerySet(models.QuerySet):
         return self.filter(is_active=True)
 
 
-class Warehouse(models.Model):
+class Warehouse(ContactDetailsMixin, ActiveMixin):
     """
     Represents a warehouse in the catalog system.
 
@@ -30,23 +31,8 @@ class Warehouse(models.Model):
     """
 
     name = models.CharField(max_length=255, unique=True)
-    organization = models.CharField(max_length=255, blank=True, null=True)
-    address = models.CharField(max_length=255, blank=True, null=True)
-
-    email = models.EmailField(blank=True, null=True)
-    phone = PhoneNumberField(
-        region="RU",
-        validators=[validate_international_phonenumber],
-        blank=True,
-        null=True,
-    )
     directions = models.ImageField(upload_to="maps", null=True, blank=True)
     description = models.TextField(null=True, blank=True)
-
-    is_active = models.BooleanField(default=True)
-
-    objects = ActiveQuerySet.as_manager()
-    all_objects = models.Manager()
 
     class Meta:
         db_table = "catalog_warehouse"

@@ -1,6 +1,7 @@
 from django.db import models
-from phonenumber_field.modelfields import PhoneNumberField
-from phonenumber_field.validators import validate_international_phonenumber
+
+from core.models.active_mixin import ActiveMixin
+from core.models.contact_info_mixin import ContactDetailsMixin
 
 
 class ActiveQuerySet(models.QuerySet):
@@ -8,7 +9,7 @@ class ActiveQuerySet(models.QuerySet):
         return self.filter(is_active=True)
 
 
-class Carrier(models.Model):
+class Carrier(ContactDetailsMixin, ActiveMixin):
     """
     Represents a carrier, typically a transportation company.
 
@@ -28,20 +29,7 @@ class Carrier(models.Model):
     """
 
     name = models.CharField(max_length=100, unique=True)
-    organization = models.CharField(max_length=255, null=True, blank=True)
-    address = models.CharField(max_length=255, null=True, blank=True)
     description = models.TextField(null=True, blank=True)
-    phone = PhoneNumberField(
-        region="RU",
-        validators=[validate_international_phonenumber],
-        null=True,
-        blank=True,
-    )
-    email = models.EmailField(null=True, blank=True)
-    is_active = models.BooleanField(default=True)
-
-    objects = ActiveQuerySet.as_manager()
-    all_objects = models.Manager()
 
     class Meta:
         indexes = [models.Index(fields=["is_active", "name"])]
