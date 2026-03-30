@@ -2,7 +2,7 @@ import { Navigate, Route, Routes } from 'react-router-dom'
 
 import ProtectedRoute from './components/routing/ProtectedRoute.jsx'
 import { ACCESS_TOKEN, REFRESH_TOKEN } from './constants.js'
-import DocumentationListPage from './features/core/DocumentationList.jsx'
+import DocumentationListPage from './features/common/DocumentationList.jsx'
 import CarrierDetailPage from './features/logistic/carriers/CarrierDetail.jsx'
 import CarrierFormPage from './features/logistic/carriers/CarrierForm.jsx'
 import CarriersList from './features/logistic/carriers/CarriersList.jsx'

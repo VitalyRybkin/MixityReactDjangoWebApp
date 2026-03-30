@@ -8,7 +8,7 @@ import EditAction from '../../../components/ui/buttons/EditAction.jsx'
 import ViewAction from '../../../components/ui/buttons/ViewAction.jsx'
 import ObjectDetailWithContactList from '../../../pages/shared/ObjectDetailWithContactList.jsx'
 import { emailValue } from '../../../utils/emailValue.jsx'
-import { warehouseApiPaths } from '../warehousePaths.js'
+import { warehouseApiPaths } from '../warehouseApiPaths.js'
 
 export default function WarehouseDetailPage() {
     const { id } = useParams()

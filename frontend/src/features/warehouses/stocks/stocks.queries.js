@@ -1,7 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 
 import api from '../../../api.js'
-import { warehouseApiPaths } from '../warehousePaths.js'
+import { warehouseApiPaths } from '../warehouseApiPaths.js'
 
 const unwrapList = (d) => {
     if (Array.isArray(d)) return d

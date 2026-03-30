@@ -21,7 +21,7 @@ import ErrorState from '../../components/ui/ErrorState.jsx'
 import DownloadAction from '../../components/ui/buttons/DownloadAction.jsx'
 import EmailLink from '../../components/ui/buttons/EmailLink.jsx'
 
-import { useGetDocumentation } from './core.queries.js'
+import { useGetDocumentation } from './common.queries.js'
 import { documentationApiPaths } from './documentationApiPaths.js'
 
 export default function DocumentationListPage() {
@@ -176,7 +176,7 @@ export default function DocumentationListPage() {
                                                 hover
                                                 onClick={() =>
                                                     window.open(
-                                                        doc.public_url.replace('/docs/', '/api/core/docs/'),
+                                                        doc.public_url.replace('/docs/', '/api/common/docs/'),
                                                         '_blank',
                                                     )
                                                 }

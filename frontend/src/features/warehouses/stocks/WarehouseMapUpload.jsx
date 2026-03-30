@@ -5,7 +5,7 @@ import { Alert, Box, Button, Card, CardContent, Stack, Typography } from '@mui/m
 
 import api from '../../../api.js'
 import AppBreadcrumbs from '../../../components/AppBreadcrumbs.jsx'
-import { warehouseApiPaths } from '../warehousePaths.js'
+import { warehouseApiPaths } from '../warehouseApiPaths.js'
 
 export default function WarehouseMapUploadPage() {
     const { id } = useParams()
