@@ -12,7 +12,7 @@ import { useCreateCarrier, useGetCarrier, useUpdateCarrier } from './carriers.qu
 
 const emptyForm = {
     name: '',
-    fullName: '',
+    organization: '',
     address: '',
     phone: '',
     email: '',
@@ -44,7 +44,7 @@ export default function CarrierFormPage() {
         if (carrier) {
             setForm({
                 name: carrier.name ?? '',
-                fullName: carrier.fullName ?? '',
+                organization: carrier.organization ?? '',
                 address: carrier.address ?? '',
                 phone: carrier.phone ?? '',
                 email: carrier.email ?? '',
@@ -104,7 +104,7 @@ export default function CarrierFormPage() {
             <AppBreadcrumbs dynamicLabels={{ id: carrier?.name }} />
             <Paper sx={{ p: 3, borderRadius: 3 }}>
                 <Typography variant="h5" color="text.secondary" sx={{ mb: 2 }}>
-                    {isEdit ? `Редактировать ${form.fullName || ''}` : 'Создать грузоперевозчика'}
+                    {isEdit ? `Редактировать ${form.organization || ''}` : 'Создать грузоперевозчика'}
                 </Typography>
 
                 {error && (
@@ -118,7 +118,7 @@ export default function CarrierFormPage() {
                         <TextField label="Наименование" value={form.name} onChange={onChange('name')} fullWidth />
                         <TextField
                             label="Полное наименование"
-                            value={form.fullName}
+                            value={form.organization}
                             onChange={onChange('fullName')}
                             fullWidth
                         />

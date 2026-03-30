@@ -45,7 +45,7 @@ export default function CarrierDriverListPage() {
     const handleDelete = (driver) => {
         askConfirm({
             title: 'Удалить водителя?',
-            text: `Вы действительно хотите удалить "${driver?.fullName}"?`,
+            text: `Вы действительно хотите удалить "${driver?.organization}"?`,
             confirmText: 'Удалить',
             cancelText: 'Отмена',
             confirmColor: 'error',
@@ -110,7 +110,7 @@ export default function CarrierDriverListPage() {
                             {drivers.length > 0 ? (
                                 drivers.map((driver) => (
                                     <TableRow key={driver.id} hover>
-                                        <TableCell>{driver.fullName || '—'}</TableCell>
+                                        <TableCell>{driver.organization || '—'}</TableCell>
                                         <TableCell align="right">
                                             <Stack direction="row" spacing={1} justifyContent="flex-end">
                                                 <EditAction

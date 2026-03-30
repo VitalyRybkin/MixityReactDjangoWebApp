@@ -51,7 +51,7 @@ export default function DriverFormPage() {
 
         if (driver) {
             setForm({
-                fullName: String(driver.fullName ?? driver.full_name ?? ''),
+                fullName: String(driver.organization ?? driver.full_name ?? ''),
                 passportNumber: String(driver.passportNumber ?? driver.passport_number ?? ''),
                 passportIssueDate: String(driver.passportIssueDate ?? driver.passport_issue_date ?? ''),
                 passportEmittedBy: String(driver.passportEmittedBy ?? driver.passport_emitted_by ?? ''),

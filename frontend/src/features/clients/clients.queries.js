@@ -1,6 +1,8 @@
-import api from "../../api.js";
-import { clientApiPaths } from "./clientApiPaths.js";
-import {useMutation, useQuery, useQueryClient} from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+
+import api from '../../api.js'
+
+import { clientApiPaths } from './clientApiPaths.js'
 
 const unwrapList = (data) => {
     if (Array.isArray(data)) return data
@@ -46,7 +48,7 @@ export function useGetClients() {
     })
 }
 
-export function useGetClientDetail(id) {
+export function useGetClient(id) {
     return useQuery({
         queryKey: clientKeys.detail(id),
         queryFn: () => fetchClientDetail(id),
@@ -60,7 +62,7 @@ export function useCreateClient() {
     return useMutation({
         mutationFn: createClient,
         onSuccess: async () => {
-            await queryClient.invalidateQueries({queryKey: clientKeys.all})
+            await queryClient.invalidateQueries({ queryKey: clientKeys.all })
         },
     })
 }
@@ -71,8 +73,8 @@ export function useUpdateClient() {
     return useMutation({
         mutationFn: updateClient,
         onSuccess: async (_, variables) => {
-            await queryClient.invalidateQueries({queryKey: clientKeys.all})
-            await queryClient.invalidateQueries({queryKey: clientKeys.detail(variables.id)})
+            await queryClient.invalidateQueries({ queryKey: clientKeys.all })
+            await queryClient.invalidateQueries({ queryKey: clientKeys.detail(variables.id) })
         },
     })
 }
@@ -83,9 +85,9 @@ export function useDeleteClient() {
     return useMutation({
         mutationFn: deleteClient,
         onSuccess: async (id) => {
-            await queryClient.invalidateQueries({queryKey: clientKeys.all})
-            queryClient.removeQueries({queryKey: clientKeys.detail(id)})
-            queryClient.removeQueries({queryKey: clientKeys.contacts(id)})
+            await queryClient.invalidateQueries({ queryKey: clientKeys.all })
+            queryClient.removeQueries({ queryKey: clientKeys.detail(id) })
+            queryClient.removeQueries({ queryKey: clientKeys.contacts(id) })
         },
     })
 }

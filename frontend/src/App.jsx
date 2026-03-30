@@ -2,6 +2,9 @@ import { Navigate, Route, Routes } from 'react-router-dom'
 
 import ProtectedRoute from './components/routing/ProtectedRoute.jsx'
 import { ACCESS_TOKEN, REFRESH_TOKEN } from './constants.js'
+import ClientDetailPage from './features/clients/ClientDetail.jsx'
+import ClientFormPage from './features/clients/ClientForm.jsx'
+import ClientsList from './features/clients/ClientsList.jsx'
 import DocumentationListPage from './features/common/DocumentationList.jsx'
 import CarrierDetailPage from './features/logistic/carriers/CarrierDetail.jsx'
 import CarrierFormPage from './features/logistic/carriers/CarrierForm.jsx'
@@ -57,6 +60,10 @@ function App() {
                 <Route path="/warehouses/:id" element={<WarehouseInfoPage />} />
                 <Route path="/warehouses/:id/edit" element={<WarehouseFormPage />} />
                 <Route path="/warehouses/:id/map" element={<WarehouseMapUploadPage />} />
+
+                <Route path="/clients" element={<ClientsList />} />
+                <Route path="/clients/create" element={<ClientFormPage />} />
+                <Route path="/clients/:id" element={<ClientDetailPage />} />
 
                 <Route path="/documentation" element={<DocumentationListPage />} />
             </Route>
