@@ -21,6 +21,7 @@ urlpatterns = [
     path("api/stock/", include("stock.urls")),
     path("api/contacts/", include("contacts.urls")),
     path("api/common/", include("common.urls")),
+    path("api/orders/", include("order.urls")),
 
     # DRF session login (optional, for browsable API)
     path("api/auth/", include("rest_framework.urls")),
@@ -120,5 +121,23 @@ urlpatterns = [
           permission_classes=[AllowAny],
       ),
       name="swagger-common",
+    ),
+
+    # Client-only  OpenAPI
+    path(
+      "api/schema/client/",
+      SpectacularAPIView.as_view(
+          permission_classes=[AllowAny],
+          urlconf="order.schema_urls",
+      ),
+      name="schema-client",
+    ),
+    path(
+      "api/docs/client/",
+      SpectacularSwaggerView.as_view(
+          url_name="schema-client",
+          permission_classes=[AllowAny],
+      ),
+      name="swagger-client",
     ),
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
