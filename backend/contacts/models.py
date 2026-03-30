@@ -1,5 +1,4 @@
 from django.db import models
-from django.db.models import Q
 from phonenumber_field.modelfields import PhoneNumberField
 from phonenumber_field.validators import validate_international_phonenumber
 
@@ -24,7 +23,7 @@ class PhoneNumber(models.Model):
     )
 
     contact = models.ForeignKey(
-        "Contact", on_delete=models.CASCADE, related_name="phone_numbers"
+        "contacts.Contact", on_delete=models.CASCADE, related_name="phone_numbers"
     )
 
     class Meta:
@@ -71,6 +70,20 @@ class Contact(models.Model):
         blank=True,
         related_name="contacts",
     )
+    client = models.ForeignKey(
+        "order.Client",
+        on_delete=models.CASCADE,
+        null=True,
+        blank=True,
+        related_name="contacts",
+    )
+    construction_object = models.ForeignKey(
+        "order.ConstructionObject",
+        on_delete=models.CASCADE,
+        null=True,
+        blank=True,
+        related_name="contacts",
+    )
 
     class Meta:
         verbose_name = "Контакт"
@@ -78,8 +91,30 @@ class Contact(models.Model):
         constraints = [
             models.CheckConstraint(
                 check=(
-                    (Q(carrier__isnull=False) & Q(warehouse__isnull=True))
-                    | (Q(carrier__isnull=True) & Q(warehouse__isnull=False))
+                    models.Q(
+                        carrier__isnull=False,
+                        warehouse__isnull=True,
+                        client__isnull=True,
+                        construction_object__isnull=True,
+                    )
+                    | models.Q(
+                        carrier__isnull=True,
+                        warehouse__isnull=False,
+                        client__isnull=True,
+                        construction_object__isnull=True,
+                    )
+                    | models.Q(
+                        carrier__isnull=True,
+                        warehouse__isnull=True,
+                        client__isnull=False,
+                        construction_object__isnull=True,
+                    )
+                    | models.Q(
+                        carrier__isnull=True,
+                        warehouse__isnull=True,
+                        client__isnull=True,
+                        construction_object__isnull=False,
+                    )
                 ),
                 name="contact_belongs_to_exactly_one_parent",
             )

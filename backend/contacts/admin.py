@@ -16,6 +16,14 @@ class ContactInline(admin.TabularInline):
     extra = 0
 
 
+class WarehouseContactInline(ContactInline):
+    fk_name = "warehouse"
+
+
+class CarrierContactInline(ContactInline):
+    fk_name = "carrier"
+
+
 @admin.register(Contact)
 class ContactAdmin(BaseAdmin):
     inlines = (PhoneNumberInline,)
@@ -25,6 +33,8 @@ class ContactAdmin(BaseAdmin):
         "last_name",
         "carrier",
         "warehouse",
+        "client",
+        "construction_object",
     ]
     list_display_links = ("first_name", "last_name")
     ordering = ("first_name", "last_name")

@@ -66,6 +66,7 @@ INSTALLED_APPS = [
     "core.apps.CoreConfig",
     "contacts.apps.ContactsConfig",
     "common.apps.CommonConfig",
+    "order.apps.OrderConfig",
     "drf_spectacular",
     "drf_spectacular_sidecar",
     'django_cleanup.apps.CleanupConfig',

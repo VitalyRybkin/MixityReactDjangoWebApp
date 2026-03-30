@@ -1,7 +1,7 @@
 from django.contrib import admin
 
 from common.admin import BaseAdmin
-from contacts.admin import ContactInline
+from contacts.admin import CarrierContactInline
 from logistic.admin.driver_admin import DriverInline
 from logistic.models import Carrier, Truck
 
@@ -26,4 +26,4 @@ class CarrierAdmin(BaseAdmin):
     verbose_name = "Carrier"
     verbose_name_plural = "Carriers"
 
-    inlines = [TruckInline, ContactInline, DriverInline]
+    inlines = [TruckInline, CarrierContactInline, DriverInline]

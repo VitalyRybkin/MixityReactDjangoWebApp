@@ -13,6 +13,7 @@ class Customer(ContactDetailsMixin, ActiveMixin):
     name = models.CharField(max_length=100, unique=True)
 
     class Meta:
+        app_label = "order"
         verbose_name = "Заказчик"
         verbose_name_plural = "Заказчики"
 
