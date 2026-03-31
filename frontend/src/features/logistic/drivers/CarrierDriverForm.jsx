@@ -99,7 +99,7 @@ export default function DriverFormPage() {
             value = normalizePhoneInput(value)
             setPhoneError(validatePhoneValue(value))
         }
-        setForm((prev) => ({ ...prev, [field]: e.target.value }))
+        setForm((prev) => ({ ...prev, [field]: value }))
     }
 
     if (loading) {

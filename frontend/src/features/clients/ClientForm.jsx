@@ -4,8 +4,8 @@ import { useLocation, useNavigate, useParams } from 'react-router-dom'
 import { Box, CircularProgress } from '@mui/material'
 
 import { firstError } from '../../utils/apiError.js'
+import { normalizeEmailInput, validateEmailValue } from '../../utils/email.js'
 import { normalizePhoneInput, validatePhoneValue } from '../../utils/phone.js'
-import { createCarrier, updateCarrier } from '../logistic/carriers/carriers.queries.js'
 
 import { useCreateClient, useGetClient, useUpdateClient } from './clients.queries.js'
 
@@ -28,8 +28,12 @@ export default function ClientFormPage() {
     const createClient = useCreateClient()
     const updateClient = useUpdateClient()
 
+    const saving = createClient.isPending || updateClient.isPending
+
     const [error, setError] = useState('')
     const [phoneError, setPhoneError] = useState('')
+    const [emailError, setEmailError] = useState('')
+
     const [form, setForm] = useState(emptyForm)
 
     useEffect(() => {
@@ -59,20 +63,27 @@ export default function ClientFormPage() {
 
     const onChange = (field) => (e) => {
         let value = e.target.value
+
         if (field === 'phone') {
             value = normalizePhoneInput(value)
             setPhoneError(validatePhoneValue(value))
         }
-        setForm((prev) => ({ ...prev, [field]: e.target.value }))
-    }
+        if (field === 'email') {
+            value = normalizeEmailInput(value)
+            setEmailError(validateEmailValue(value))
+        }
 
+        setForm((prev) => ({ ...prev, [field]: value }))
+    }
     const validateBeforeSubmit = () => {
-        const currentPhoneError = validatePhoneValue(form.phone)
-        setPhoneError(currentPhoneError)
-        return !currentPhoneError
-    }
+        const phoneErr = validatePhoneValue(form.phone)
 
-    const saving = createCarrier.isPending || updateCarrier.isPending
+        const emailErr = validateEmailValue(form.email)
+        setPhoneError(phoneErr)
+
+        setEmailError(emailErr)
+        return !phoneErr && !emailErr
+    }
 
     const onSubmit = async (e) => {
         e.preventDefault()

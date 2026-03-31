@@ -66,7 +66,7 @@ export default function CarrierFormPage() {
             value = normalizePhoneInput(value)
             setPhoneError(validatePhoneValue(value))
         }
-        setForm((prev) => ({ ...prev, [field]: e.target.value }))
+        setForm((prev) => ({ ...prev, [field]: value }))
     }
 
     const validateBeforeSubmit = () => {
@@ -119,7 +119,7 @@ export default function CarrierFormPage() {
                         <TextField
                             label="Полное наименование"
                             value={form.organization}
-                            onChange={onChange('fullName')}
+                            onChange={onChange('organization')}
                             fullWidth
                         />
                         <TextField label="Адрес" value={form.address} onChange={onChange('address')} fullWidth />
