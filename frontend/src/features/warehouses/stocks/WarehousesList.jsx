@@ -20,10 +20,12 @@ export default function WarehousesList() {
         showSnackbar,
     })
 
+    const deleteWarehouseMutation = useDeleteWarehouse()
+
     const handleDeleteWarehouse = (warehouse) => {
         confirmDelete({
             item: warehouse,
-            mutateAsync: useDeleteWarehouse.mutateAsync,
+            mutateAsync: deleteWarehouseMutation.mutateAsync,
             refetch,
             title: 'Удалить склад?',
             text: (item) => `Вы действительно хотите удалить "${item.name}"?`,

@@ -20,10 +20,12 @@ export default function ClientsList() {
         showSnackbar,
     })
 
+    const deleteClientMutation = useDeleteClient()
+
     const handleDeleteClient = (client) => {
         confirmDelete({
             item: client,
-            mutateAsync: useDeleteClient.mutateAsync,
+            mutateAsync: deleteClientMutation.mutateAsync,
             refetch,
             title: 'Удалить клиента?',
             text: (item) => `Вы действительно хотите удалить "${item.name}"?`,

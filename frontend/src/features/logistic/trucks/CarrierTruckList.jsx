@@ -44,10 +44,12 @@ export default function CarrierTruckListPage() {
 
     const confirmDelete = useConfirmDelete({ askConfirm, showSnackbar })
 
+    const deleteCarrierTruckMutation = useDeleteCarrierTruck()
+
     const handleDeleteTruck = (truck) => {
         confirmDelete({
             item: truck,
-            mutateAsync: useDeleteCarrierTruck.mutateAsync,
+            mutateAsync: deleteCarrierTruckMutation.mutateAsync,
             refetch,
             title: 'Удалить автотранспорт?',
             text: (item) => `Вы действительно хотите удалить "${item.truckType?.truckType}"?`,

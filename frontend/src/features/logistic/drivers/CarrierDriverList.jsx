@@ -44,10 +44,12 @@ export default function CarrierDriverListPage() {
 
     const confirmDelete = useConfirmDelete({ askConfirm, showSnackbar })
 
+    const deleteDriverMutation = useDeleteDriver()
+
     const handleDeleteDriver = (driver) => {
         confirmDelete({
             item: driver,
-            mutateAsync: useDeleteDriver.mutateAsync,
+            mutateAsync: deleteDriverMutation.mutateAsync,
             refetch,
             title: 'Удалить водителя?',
             text: (item) => `Вы действительно хотите удалить "${item.fullName}"?`,

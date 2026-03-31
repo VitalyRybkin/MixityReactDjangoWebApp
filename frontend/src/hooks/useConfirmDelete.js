@@ -1,5 +1,7 @@
 import { useCallback } from 'react'
 
+import { firstError } from '../utils/apiError.js'
+
 export const useConfirmDelete = ({ askConfirm, showSnackbar }) => {
     return useCallback(
         ({
@@ -39,12 +41,14 @@ export const useConfirmDelete = ({ askConfirm, showSnackbar }) => {
 
                         await refetch?.()
                     } catch (error) {
+                        console.error('Delete error:', error)
+
                         if (onError) {
                             await onError(error, item)
                             return
                         }
 
-                        showSnackbar(errorMessage, 'error')
+                        showSnackbar(firstError(error) || errorMessage, 'error')
                     }
                 },
             })

@@ -5,7 +5,6 @@ import { useConfirmDelete } from '../../../hooks/useConfirmDelete.js'
 import useSnackbar from '../../../hooks/useSnackbar.js'
 import ObjectListView from '../../../pages/shared/ObjectListView.jsx'
 import ObjectListViewCard from '../../../pages/shared/ObjectListViewCard.jsx'
-import { useDeleteWarehouse } from '../../warehouses/stocks/stocks.queries.js'
 
 import { useDeleteCarrier, useGetCarriers } from './carriers.queries.js'
 
@@ -18,10 +17,12 @@ export default function CarriersList() {
 
     const confirmDelete = useConfirmDelete({ askConfirm, showSnackbar })
 
+    const deleteCarrierMutation = useDeleteCarrier()
+
     const handleDeleteCarrier = (carrier) => {
         confirmDelete({
             item: carrier,
-            mutateAsync: useDeleteWarehouse.mutateAsync,
+            mutateAsync: deleteCarrierMutation.mutateAsync,
             refetch,
             title: 'Удалить перевозчика?',
             text: (item) => `Вы действительно хотите удалить "${item.name}"?`,
