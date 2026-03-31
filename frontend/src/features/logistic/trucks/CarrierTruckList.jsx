@@ -24,6 +24,7 @@ import EditAction from '../../../components/ui/buttons/EditAction.jsx'
 import AppSnackbar from '../../../components/ui/feedback/AppSnackbar.jsx'
 import ConfirmDialog from '../../../components/ui/feedback/ConfirmDialog.jsx'
 import useConfirm from '../../../hooks/useConfirm.js'
+import { useConfirmDelete } from '../../../hooks/useConfirmDelete.js'
 import useSnackbar from '../../../hooks/useSnackbar.js'
 
 import { useDeleteCarrierTruck, useGetCarrierTrucks } from './trucks.queries.js'
@@ -34,7 +35,6 @@ export default function CarrierTruckListPage() {
     const navigate = useNavigate()
     const { id } = useParams()
     const { data: trucks = [], isPending, error, refetch } = useGetCarrierTrucks(id)
-    const deleteTruck = useDeleteCarrierTruck()
 
     const location = useLocation()
     const entity = location.state?.entity
@@ -42,22 +42,16 @@ export default function CarrierTruckListPage() {
     const { confirm, askConfirm, closeConfirm, handleConfirm } = useConfirm()
     const { snack, showSnackbar, closeSnackbar } = useSnackbar()
 
-    const handleDelete = (truck) => {
-        askConfirm({
-            title: 'Удалить автотраспорт?',
-            text: `Вы действительно хотите удалить "${truck.truckType?.truckType}"?`,
-            confirmText: 'Удалить',
-            cancelText: 'Отмена',
-            confirmColor: 'error',
-            onConfirm: async () => {
-                try {
-                    await deleteTruck.mutateAsync(truck.id)
-                    showSnackbar('Авторанспорт удален', 'success')
-                    await refetch()
-                } catch {
-                    showSnackbar('Ошибка удаления!', 'error')
-                }
-            },
+    const confirmDelete = useConfirmDelete({ askConfirm, showSnackbar })
+
+    const handleDeleteTruck = (truck) => {
+        confirmDelete({
+            item: truck,
+            mutateAsync: useDeleteCarrierTruck.mutateAsync,
+            refetch,
+            title: 'Удалить автотранспорт?',
+            text: (item) => `Вы действительно хотите удалить "${item.truckType?.truckType}"?`,
+            successMessage: 'Автотранспорт удален!',
         })
     }
 
@@ -124,7 +118,7 @@ export default function CarrierTruckListPage() {
                                                     }
                                                     icon={<EditIcon fontSize="small" />}
                                                 />
-                                                <DeleteAction onClick={() => handleDelete(truck)} />
+                                                <DeleteAction onClick={() => handleDeleteTruck(truck)} />
                                             </Stack>
                                         </TableCell>
                                     </TableRow>

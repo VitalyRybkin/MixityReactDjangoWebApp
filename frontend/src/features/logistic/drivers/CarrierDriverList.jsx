@@ -24,6 +24,7 @@ import EditAction from '../../../components/ui/buttons/EditAction.jsx'
 import AppSnackbar from '../../../components/ui/feedback/AppSnackbar.jsx'
 import ConfirmDialog from '../../../components/ui/feedback/ConfirmDialog.jsx'
 import useConfirm from '../../../hooks/useConfirm.js'
+import { useConfirmDelete } from '../../../hooks/useConfirmDelete.js'
 import useSnackbar from '../../../hooks/useSnackbar.js'
 
 import { useDeleteDriver, useGetDrivers } from './drivers.queries.js'
@@ -34,7 +35,6 @@ export default function CarrierDriverListPage() {
     const navigate = useNavigate()
     const { id } = useParams()
     const { data: drivers = [], isPending, error, refetch } = useGetDrivers(id)
-    const deleteDriver = useDeleteDriver()
 
     const location = useLocation()
     const entity = location.state?.entity
@@ -42,22 +42,16 @@ export default function CarrierDriverListPage() {
     const { confirm, askConfirm, closeConfirm, handleConfirm } = useConfirm()
     const { snack, showSnackbar, closeSnackbar } = useSnackbar()
 
-    const handleDelete = (driver) => {
-        askConfirm({
+    const confirmDelete = useConfirmDelete({ askConfirm, showSnackbar })
+
+    const handleDeleteDriver = (driver) => {
+        confirmDelete({
+            item: driver,
+            mutateAsync: useDeleteDriver.mutateAsync,
+            refetch,
             title: 'Удалить водителя?',
-            text: `Вы действительно хотите удалить "${driver?.organization}"?`,
-            confirmText: 'Удалить',
-            cancelText: 'Отмена',
-            confirmColor: 'error',
-            onConfirm: async () => {
-                try {
-                    await deleteDriver.mutateAsync(driver.id)
-                    showSnackbar('Авторанспорт удален', 'success')
-                    await refetch()
-                } catch {
-                    showSnackbar('Ошибка удаления!', 'error')
-                }
-            },
+            text: (item) => `Вы действительно хотите удалить "${item.fullName}"?`,
+            successMessage: 'Водитель удален!',
         })
     }
 
@@ -110,7 +104,7 @@ export default function CarrierDriverListPage() {
                             {drivers.length > 0 ? (
                                 drivers.map((driver) => (
                                     <TableRow key={driver.id} hover>
-                                        <TableCell>{driver.organization || '—'}</TableCell>
+                                        <TableCell>{driver.fullName || '—'}</TableCell>
                                         <TableCell align="right">
                                             <Stack direction="row" spacing={1} justifyContent="flex-end">
                                                 <EditAction
@@ -121,7 +115,7 @@ export default function CarrierDriverListPage() {
                                                     }
                                                     icon={<EditIcon fontSize="small" />}
                                                 />
-                                                <DeleteAction onClick={() => handleDelete(driver)} />
+                                                <DeleteAction onClick={() => handleDeleteDriver(driver)} />
                                             </Stack>
                                         </TableCell>
                                     </TableRow>

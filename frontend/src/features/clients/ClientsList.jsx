@@ -1,6 +1,7 @@
 import AppSnackbar from '../../components/ui/feedback/AppSnackbar.jsx'
 import ConfirmDialog from '../../components/ui/feedback/ConfirmDialog.jsx'
 import useConfirm from '../../hooks/useConfirm.js'
+import { useConfirmDelete } from '../../hooks/useConfirmDelete.js'
 import useSnackbar from '../../hooks/useSnackbar.js'
 import ObjectListView from '../../pages/shared/ObjectListView.jsx'
 import ObjectListViewCard from '../../pages/shared/ObjectListViewCard.jsx'
@@ -14,22 +15,19 @@ export default function ClientsList() {
     const { confirm, askConfirm, closeConfirm, handleConfirm } = useConfirm()
     const { snack, showSnackbar, closeSnackbar } = useSnackbar()
 
-    const handleDelete = (client) => {
-        askConfirm({
+    const confirmDelete = useConfirmDelete({
+        askConfirm,
+        showSnackbar,
+    })
+
+    const handleDeleteClient = (client) => {
+        confirmDelete({
+            item: client,
+            mutateAsync: useDeleteClient.mutateAsync,
+            refetch,
             title: 'Удалить клиента?',
-            text: `Вы действительно хотите удалить "${client.name}"?`,
-            confirmText: 'Удалить',
-            cancelText: 'Отмена',
-            confirmColor: 'error',
-            onConfirm: async () => {
-                try {
-                    await deleteClient.mutateAsync(client.id)
-                    showSnackbar('Клиент удален', 'success')
-                    await refetch()
-                } catch {
-                    showSnackbar('Ошибка удаления!', 'error')
-                }
-            },
+            text: (item) => `Вы действительно хотите удалить "${item.name}"?`,
+            successMessage: 'Клиент удален!',
         })
     }
 
@@ -51,7 +49,7 @@ export default function ClientsList() {
                         email={c.email}
                         phone={c.phone}
                         to={`/clients/${c.id}`}
-                        onDelete={() => handleDelete(c)}
+                        onDelete={() => handleDeleteClient(c)}
                     />
                 )}
             />
