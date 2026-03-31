@@ -63,4 +63,16 @@ export const routes = [
         path: '/warehouses/:id/map',
         breadcrumb: 'Схема проезда',
     },
+    {
+        path: '/clients',
+        breadcrumb: 'Клиенты',
+    },
+    {
+        path: '/clients/create',
+        breadcrumb: 'Создать',
+    },
+    {
+        path: '/clients/:id',
+        breadcrumb: 'Карточка',
+    },
 ]

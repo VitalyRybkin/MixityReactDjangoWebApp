@@ -1,10 +1,12 @@
 import React, { useEffect, useState } from 'react'
 import { useLocation, useNavigate, useParams } from 'react-router-dom'
 
-import { Box, CircularProgress } from '@mui/material'
+import { Alert, Box, CircularProgress, Paper, Stack, TextField, Typography } from '@mui/material'
 
+import AppBreadcrumbs from '../../components/AppBreadcrumbs.jsx'
+import FormActions from '../../components/ui/FormActions.jsx'
 import { firstError } from '../../utils/apiError.js'
-import { normalizeEmailInput, validateEmailValue } from '../../utils/email.js'
+import { EMAIL_HINT, normalizeEmailInput, validateEmailValue } from '../../utils/email.js'
 import { normalizePhoneInput, validatePhoneValue } from '../../utils/phone.js'
 
 import { useCreateClient, useGetClient, useUpdateClient } from './clients.queries.js'
@@ -107,5 +109,52 @@ export default function ClientFormPage() {
 
     if (isEdit && loadingClient) return <CircularProgress />
 
-    return <Box sx={{ p: 3, maxWidth: 700 }}></Box>
+    return (
+        <Box sx={{ p: 3, maxWidth: 700 }}>
+            <AppBreadcrumbs dynamicLabels={{ id: client?.name }} />
+            <Paper sx={{ p: 3, borderRadius: 3 }}>
+                <Typography variant="h5" color="text.secondary" sx={{ mb: 2 }}>
+                    {isEdit ? `Редактировать ${form.organization || ''}` : 'Создать клиента'}
+                </Typography>
+
+                {error && (
+                    <Alert severity="error" sx={{ mb: 2 }}>
+                        {error}
+                    </Alert>
+                )}
+                <Box component="form" onSubmit={onSubmit}>
+                    <Stack spacing={2}>
+                        <TextField label="Наименование" value={form.name} onChange={onChange('name')} fullWidth />
+                        <TextField
+                            label="Наименование организации"
+                            value={form.organization}
+                            onChange={onChange('organization')}
+                            fullWidth
+                        />
+                        <TextField label="Адрес" value={form.address} onChange={onChange('address')} fullWidth />
+                        <TextField
+                            label="Телефон"
+                            value={form.phone}
+                            onChange={onChange('phone')}
+                            fullWidth
+                            error={Boolean(phoneError)}
+                            helperText={phoneError || 'Формат: +79991234567'}
+                            placeholder="+79991234567"
+                        />
+                        <TextField
+                            label="Эл. почта"
+                            value={form.email}
+                            onChange={onChange('email')}
+                            error={Boolean(emailError)}
+                            helperText={emailError || EMAIL_HINT}
+                            placeholder="name@example.com"
+                            fullWidth
+                        />
+
+                        <FormActions saving={saving} onCancel={() => navigate(backPath)} />
+                    </Stack>
+                </Box>
+            </Paper>
+        </Box>
+    )
 }
