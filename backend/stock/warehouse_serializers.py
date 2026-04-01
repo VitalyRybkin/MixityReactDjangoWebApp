@@ -23,6 +23,8 @@ class WarehouseListCreateSerializer(serializers.ModelSerializer):
         region="RU",
         label="Номер телефона",
         error_messages={"invalid": "Введите корректный номер в формате +79991234567."},
+        allow_blank=True,
+        allow_null=True,
     )
     isActive = serializers.BooleanField(source="is_active", read_only=True)
 

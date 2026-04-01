@@ -1,5 +1,6 @@
 from rest_framework.permissions import AllowAny
 
+from core.api.mixins import SoftDeleteResponseMixin
 from core.openapi.base_views import (
     BaseListCreateAPIView,
     BaseRetrieveUpdateDestroyAPIView,
@@ -23,7 +24,9 @@ class ClientListCreateAPIView(BaseListCreateAPIView):
     permission_classes = [AllowAny]
 
 
-class ClientRetrieveUpdateDestroyAPIView(BaseRetrieveUpdateDestroyAPIView):
+class ClientRetrieveUpdateDestroyAPIView(
+    SoftDeleteResponseMixin, BaseRetrieveUpdateDestroyAPIView
+):
     """
     Handles the retrieval, update, and deletion of individual Client resources.
     """
