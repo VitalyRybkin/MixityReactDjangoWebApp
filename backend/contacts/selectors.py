@@ -3,17 +3,23 @@ from django.db.models import QuerySet
 from contacts.models import Contact
 
 
-def get_contacts_qs() -> QuerySet[Contact]:
-    return Contact.objects.all().prefetch_related("phone_numbers").order_by("id")
+class ContactSelector:
+    @staticmethod
+    def get_base_qs() -> QuerySet[Contact]:
+        return Contact.objects.prefetch_related("phone_numbers").order_by("id")
 
+    @classmethod
+    def by_warehouse(cls, warehouse_id: int) -> QuerySet[Contact]:
+        return cls.get_base_qs().filter(warehouse_id=warehouse_id)
 
-def get_contacts_by_warehouse(warehouse_id: int) -> QuerySet[Contact]:
-    return get_contacts_qs().filter(warehouse_id=warehouse_id)
+    @classmethod
+    def by_carrier(cls, carrier_id: int) -> QuerySet[Contact]:
+        return cls.get_base_qs().filter(carrier_id=carrier_id)
 
+    @classmethod
+    def by_client(cls, client_id: int) -> QuerySet[Contact]:
+        return cls.get_base_qs().filter(client_id=client_id)
 
-def get_contacts_by_carrier(carrier_id: int) -> QuerySet[Contact]:
-    return get_contacts_qs().filter(carrier_id=carrier_id)
-
-
-def get_contacts_by_client(client_id: int) -> QuerySet[Contact]:
-    return get_contacts_qs().filter(client_id=client_id)
+    @classmethod
+    def by_customer(cls, customer_id: int) -> QuerySet[Contact]:
+        return cls.get_base_qs().filter(customer_id=customer_id)

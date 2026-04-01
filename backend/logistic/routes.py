@@ -2,6 +2,10 @@ from core.api.routing import ApiRoute
 
 
 class CarrierRoutes:
+    """
+    Routes for managing Carrier resources.
+    """
+
     LIST_CREATE = ApiRoute("carriers/", "carrier_list_create")
     DETAIL = ApiRoute("carriers/<int:pk>/", "carrier_detail")
     RESOURCES = ApiRoute("carriers/<int:pk>/resources/", "carrier_resources")
@@ -11,20 +15,36 @@ class CarrierRoutes:
 
 
 class TruckRoutes:
+    """
+    Routes for managing Truck resources.
+    """
+
     LIST_CREATE = ApiRoute("trucks/", "truck_list_create")
     DETAIL = ApiRoute("trucks/<int:pk>/", "truck_detail")
 
 
 class TruckCapacityRoutes:
+    """
+    Routes for managing Truck Capacity resources.
+    """
+
     LIST_CREATE = ApiRoute("truck_capacities/", "truck_capacity_list_create")
     DETAIL = ApiRoute("truck_capacities/<int:pk>/", "truck_capacity_detail")
 
 
-class TruckTypeRoutes:
+class TruckTypeRoutes(ApiRoute):
+    """
+    Routes for managing Truck Type resources.
+    """
+
     LIST_CREATE = ApiRoute("truck_types/", "truck_type_list_create")
     DETAIL = ApiRoute("truck_types/<int:pk>/", "truck_type_detail")
 
 
-class DriverRoutes:
+class DriverRoutes(ApiRoute):
+    """
+    Routes for managing Driver resources.
+    """
+
     LIST_CREATE = ApiRoute("drivers/", "driver_list_create")
     DETAIL = ApiRoute("drivers/<int:pk>/", "driver_detail")

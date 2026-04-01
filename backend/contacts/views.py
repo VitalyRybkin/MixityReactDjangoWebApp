@@ -2,11 +2,7 @@ from django.db.models import QuerySet
 from rest_framework.permissions import AllowAny
 
 from contacts.models import Contact
-from contacts.selectors import (
-    get_contacts_by_carrier,
-    get_contacts_by_warehouse,
-    get_contacts_qs,
-)
+from contacts.selectors import ContactSelector
 from contacts.serializers import ContactSerializer
 from core.openapi.base_views import (
     BaseListAPIView,
@@ -39,7 +35,7 @@ class WarehouseContactListAPIView(BaseListAPIView):
     serializer_class = ContactSerializer
 
     def get_queryset(self) -> QuerySet[Contact]:
-        return get_contacts_by_warehouse(self.kwargs["pk"])
+        return ContactSelector.by_warehouse(self.kwargs["pk"])
 
 
 class CarrierContactListAPIView(BaseListAPIView):
@@ -66,7 +62,7 @@ class CarrierContactListAPIView(BaseListAPIView):
     serializer_class = ContactSerializer
 
     def get_queryset(self) -> QuerySet[Contact]:
-        return get_contacts_by_carrier(self.kwargs["pk"])
+        return ContactSelector.by_carrier(self.kwargs["pk"])
 
 
 class ContactListCreateAPIView(BaseListCreateAPIView):
@@ -96,7 +92,7 @@ class ContactListCreateAPIView(BaseListCreateAPIView):
     serializer_class = ContactSerializer
 
     def get_queryset(self) -> QuerySet[Contact]:
-        return get_contacts_qs()
+        return ContactSelector.get_base_qs()
 
 
 class ContactRetrieveUpdateAPIView(BaseRetrieveUpdateDestroyAPIView):
@@ -120,7 +116,7 @@ class ContactRetrieveUpdateAPIView(BaseRetrieveUpdateDestroyAPIView):
     schema_tags = ["Contacts"]
     permission_classes = [AllowAny]
 
-    queryset = get_contacts_qs()
+    queryset = ContactSelector.get_base_qs()
     read_serializer_class = ContactSerializer
     write_serializer_class = ContactSerializer
     serializer_class = ContactSerializer

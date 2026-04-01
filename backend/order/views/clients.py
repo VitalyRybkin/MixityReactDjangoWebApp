@@ -2,7 +2,7 @@ from django.db.models import QuerySet
 from rest_framework.permissions import AllowAny
 
 from contacts.models import Contact
-from contacts.selectors import get_contacts_by_client
+from contacts.selectors import ContactSelector
 from contacts.serializers import ContactSerializer
 from core.api.mixins import SoftDeleteResponseMixin
 from core.openapi.base_views import (
@@ -52,10 +52,10 @@ class ClientContactListAPIView(BaseListAPIView):
     """
 
     resource_name = "Contact"
-    schema_tags = ["Carrier"]
+    schema_tags = ["Client"]
     permission_classes = [AllowAny]
     read_serializer_class = ContactSerializer
     serializer_class = ContactSerializer
 
     def get_queryset(self) -> QuerySet[Contact]:
-        return get_contacts_by_client(self.kwargs["pk"])
+        return ContactSelector.by_client(self.kwargs["pk"])

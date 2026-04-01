@@ -123,21 +123,21 @@ urlpatterns = [
       name="swagger-common",
     ),
 
-    # Client-only  OpenAPI
+    # Client/Customer-only  OpenAPI
     path(
-      "api/schema/client/",
+      "api/schema/client-customer/",
       SpectacularAPIView.as_view(
           permission_classes=[AllowAny],
           urlconf="order.schema_urls",
       ),
-      name="schema-client",
+      name="schema-client-customer",
     ),
     path(
-      "api/docs/client/",
+      "api/docs/client-customer/",
       SpectacularSwaggerView.as_view(
-          url_name="schema-client",
+          url_name="schema-client-customer",
           permission_classes=[AllowAny],
       ),
-      name="swagger-client",
+      name="swagger-client-customer",
     ),
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
