@@ -35,6 +35,8 @@ class CarrierSerializer(serializers.ModelSerializer):
         region="RU",
         label="Номер телефона",
         error_messages={"invalid": "Введите корректный номер в формате +79991234567."},
+        allow_null=True,
+        allow_blank=True,
     )
 
     class Meta:
