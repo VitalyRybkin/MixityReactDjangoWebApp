@@ -1,7 +1,12 @@
+from django.db.models import QuerySet
 from rest_framework.permissions import AllowAny
 
+from contacts.models import Contact
+from contacts.selectors import get_contacts_by_client
+from contacts.serializers import ContactSerializer
 from core.api.mixins import SoftDeleteResponseMixin
 from core.openapi.base_views import (
+    BaseListAPIView,
     BaseListCreateAPIView,
     BaseRetrieveUpdateDestroyAPIView,
 )
@@ -39,3 +44,18 @@ class ClientRetrieveUpdateDestroyAPIView(
 
     serializer_class = ClientSerializer
     permission_classes = [AllowAny]
+
+
+class ClientContactListAPIView(BaseListAPIView):
+    """
+    Represents an API view for listing client contacts.
+    """
+
+    resource_name = "Contact"
+    schema_tags = ["Carrier"]
+    permission_classes = [AllowAny]
+    read_serializer_class = ContactSerializer
+    serializer_class = ContactSerializer
+
+    def get_queryset(self) -> QuerySet[Contact]:
+        return get_contacts_by_client(self.kwargs["pk"])

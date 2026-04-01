@@ -14,3 +14,7 @@ class ClientRoutes(ApiRoute):
         "clients/<int:pk>/",
         "client_detail",
     )
+    CONTACTS = ApiRoute(
+        "clients/<int:pk>/contacts/",
+        "client_contacts",
+    )
