@@ -64,6 +64,7 @@ function App() {
                 <Route path="/clients" element={<ClientsList />} />
                 <Route path="/clients/create" element={<ClientFormPage />} />
                 <Route path="/clients/:id" element={<ClientDetailPage />} />
+                <Route path="/clients/:id/edit" element={<ClientFormPage />} />
 
                 <Route path="/documentation" element={<DocumentationListPage />} />
             </Route>

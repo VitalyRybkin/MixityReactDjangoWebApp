@@ -114,7 +114,11 @@ export default function ContactCreateUpdate({ open, mode, ownerType, ownerId, in
     const buildPayload = () => {
         const id = Number(ownerId)
 
-        const owner = ownerType === 'warehouse' ? { warehouse: id, carrier: null } : { carrier: id, warehouse: null }
+        const owner = {
+            warehouse: ownerType === 'warehouse' ? id : null,
+            carrier: ownerType === 'carrier' ? id : null,
+            client: ownerType === 'client' ? id : null,
+        }
 
         return {
             firstName: form.firstName.trim(),
