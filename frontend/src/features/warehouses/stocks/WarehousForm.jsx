@@ -1,13 +1,12 @@
-import React, { useEffect, useState } from 'react'
+import React, { useEffect } from 'react'
 import { useLocation, useNavigate, useParams } from 'react-router-dom'
 
 import { Alert, Box, CircularProgress, Paper, Stack, TextField, Typography } from '@mui/material'
 
 import AppBreadcrumbs from '../../../components/AppBreadcrumbs.jsx'
 import FormActions from '../../../components/ui/FormActions.jsx'
-import { firstError } from '../../../utils/apiError.js'
-import { EMAIL_HINT, normalizeEmailInput, validateEmailValue } from '../../../utils/email.js'
-import { normalizePhoneInput, validatePhoneValue } from '../../../utils/phone.js'
+import { useFormLogic } from '../../../hooks/useEntityForm.js'
+import { EMAIL_HINT } from '../../../utils/email.js'
 
 import { useCreateWarehouse, useUpdateWarehouse, useWarehouse } from './stocks.queries.js'
 
@@ -32,11 +31,6 @@ export default function WarehouseFormPage() {
     const updateWarehouse = useUpdateWarehouse()
 
     const saving = createWarehouse.isPending || updateWarehouse.isPending
-
-    const [error, setError] = useState('')
-    const [phoneError, setPhoneError] = useState('')
-    const [emailError, setEmailError] = useState('')
-    const [form, setForm] = useState(emptyForm)
 
     useEffect(() => {
         if (!isEdit) {
@@ -66,50 +60,15 @@ export default function WarehouseFormPage() {
         }
     }, [loadError])
 
-    const onChange = (field) => (e) => {
-        let value = e.target.value
-
-        if (field === 'phone') {
-            value = normalizePhoneInput(value)
-            setPhoneError(validatePhoneValue(value))
-        }
-        if (field === 'email') {
-            value = normalizeEmailInput(value)
-            setEmailError(validateEmailValue(value))
-        }
-
-        setForm((prev) => ({ ...prev, [field]: value }))
-    }
-
-    const validateBeforeSubmit = () => {
-        const phoneErr = validatePhoneValue(form.phone)
-        const emailErr = validateEmailValue(form.email)
-
-        setPhoneError(phoneErr)
-        setEmailError(emailErr)
-
-        return !phoneErr && !emailErr
-    }
-
-    const onSubmit = async (e) => {
-        e.preventDefault()
-        setError('')
-
-        if (!validateBeforeSubmit()) {
-            return
-        }
-
-        try {
-            if (isEdit) {
-                await updateWarehouse.mutateAsync({ id, payload: form })
-            } else {
-                await createWarehouse.mutateAsync(form)
-            }
-            navigate('/warehouses')
-        } catch (e2) {
-            setError(firstError(e2))
-        }
-    }
+    const { form, setForm, error, setError, phoneError, setPhoneError, emailError, setEmailError, onChange, onSubmit } =
+        useFormLogic({
+            isEdit,
+            id,
+            emptyForm,
+            updateMutation: updateWarehouse,
+            createMutation: createWarehouse,
+            redirectPath: '/warehouses',
+        })
 
     if (isEdit && loadingWarehouse) return <CircularProgress />
 

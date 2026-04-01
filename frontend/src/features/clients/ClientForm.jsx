@@ -1,13 +1,12 @@
-import React, { useEffect, useState } from 'react'
+import React, { useEffect } from 'react'
 import { useLocation, useNavigate, useParams } from 'react-router-dom'
 
 import { Alert, Box, CircularProgress, Paper, Stack, TextField, Typography } from '@mui/material'
 
 import AppBreadcrumbs from '../../components/AppBreadcrumbs.jsx'
 import FormActions from '../../components/ui/FormActions.jsx'
-import { firstError } from '../../utils/apiError.js'
-import { EMAIL_HINT, normalizeEmailInput, validateEmailValue } from '../../utils/email.js'
-import { normalizePhoneInput, validatePhoneValue } from '../../utils/phone.js'
+import { useFormLogic } from '../../hooks/useEntityForm.js'
+import { EMAIL_HINT } from '../../utils/email.js'
 
 import { useCreateClient, useGetClient, useUpdateClient } from './clients.queries.js'
 
@@ -32,16 +31,11 @@ export default function ClientFormPage() {
 
     const saving = createClient.isPending || updateClient.isPending
 
-    const [error, setError] = useState('')
-    const [phoneError, setPhoneError] = useState('')
-    const [emailError, setEmailError] = useState('')
-
-    const [form, setForm] = useState(emptyForm)
-
     useEffect(() => {
         if (!isEdit) {
             setForm(emptyForm)
             setPhoneError('')
+            setEmailError('')
             return
         }
 
@@ -54,8 +48,9 @@ export default function ClientFormPage() {
                 email: client.email ?? '',
             })
             setPhoneError('')
+            setEmailError('')
         }
-    }, [client, error])
+    }, [client, isEdit])
 
     useEffect(() => {
         if (loadError) {
@@ -63,49 +58,15 @@ export default function ClientFormPage() {
         }
     }, [loadError])
 
-    const onChange = (field) => (e) => {
-        let value = e.target.value
-
-        if (field === 'phone') {
-            value = normalizePhoneInput(value)
-            setPhoneError(validatePhoneValue(value))
-        }
-        if (field === 'email') {
-            value = normalizeEmailInput(value)
-            setEmailError(validateEmailValue(value))
-        }
-
-        setForm((prev) => ({ ...prev, [field]: value }))
-    }
-    const validateBeforeSubmit = () => {
-        const phoneErr = validatePhoneValue(form.phone)
-
-        const emailErr = validateEmailValue(form.email)
-        setPhoneError(phoneErr)
-
-        setEmailError(emailErr)
-        return !phoneErr && !emailErr
-    }
-
-    const onSubmit = async (e) => {
-        e.preventDefault()
-        setError('')
-
-        if (!validateBeforeSubmit()) {
-            return
-        }
-
-        try {
-            if (isEdit) {
-                await updateClient.mutateAsync({ id, payload: form })
-            } else {
-                await createClient.mutateAsync(form)
-            }
-            navigate('/carriers')
-        } catch (e2) {
-            setError(firstError(e2))
-        }
-    }
+    const { form, setForm, error, setError, phoneError, setPhoneError, emailError, setEmailError, onChange, onSubmit } =
+        useFormLogic({
+            isEdit,
+            id,
+            emptyForm,
+            updateMutation: updateClient,
+            createMutation: createClient,
+            redirectPath: '/clients',
+        })
 
     if (isEdit && loadingClient) return <CircularProgress />
 

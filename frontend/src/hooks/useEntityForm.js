@@ -1,97 +1,71 @@
-import { useCallback, useEffect } from 'react'
+import { useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 
-export const useEntityForm = ({
-    isEdit,
-    entity,
-    emptyForm,
-    setError,
-    loadError,
-    setForm,
-    resetErrors,
-    mapEntityToForm,
-    validators = {},
-    submitAction,
-    getLoadErrorMessage = (error) => error?.response?.data?.detail || 'Ошибка загрузки данных',
-    getSubmitErrorMessage,
-}) => {
-    useEffect(() => {
-        if (!isEdit) {
-            setForm(emptyForm)
-            resetErrors?.()
-            return
+import { firstError } from '../utils/apiError.js'
+import { normalizeEmailInput, validateEmailValue } from '../utils/email.js'
+import { normalizePhoneInput, validatePhoneValue } from '../utils/phone.js'
+
+export const useFormLogic = ({ isEdit, id, emptyForm, updateMutation, createMutation, redirectPath }) => {
+    const navigate = useNavigate()
+
+    const [form, setForm] = useState(emptyForm)
+    const [error, setError] = useState('')
+    const [phoneError, setPhoneError] = useState('')
+    const [emailError, setEmailError] = useState('')
+
+    const onChange = (field) => (e) => {
+        let value = e.target.value
+
+        if (field === 'phone') {
+            value = normalizePhoneInput(value)
+            setPhoneError(validatePhoneValue(value))
+        }
+        if (field === 'email') {
+            value = normalizeEmailInput(value)
+            setEmailError(validateEmailValue(value))
         }
 
-        if (entity) {
-            setForm(mapEntityToForm(entity))
-            resetErrors?.()
+        setForm((prev) => ({ ...prev, [field]: value }))
+    }
+
+    const validateBeforeSubmit = () => {
+        const phoneErr = validatePhoneValue(form.phone)
+        const emailErr = validateEmailValue(form.email)
+
+        setPhoneError(phoneErr)
+        setEmailError(emailErr)
+
+        return !phoneErr && !emailErr
+    }
+
+    const onSubmit = async (e) => {
+        if (e) e.preventDefault()
+        setError('')
+
+        if (!validateBeforeSubmit()) return
+
+        try {
+            if (isEdit) {
+                await updateMutation.mutateAsync({ id, payload: form })
+            } else {
+                await createMutation.mutateAsync(form)
+            }
+            navigate(redirectPath)
+        } catch (e2) {
+            setError(firstError(e2))
         }
-    }, [entity, isEdit, emptyForm, mapEntityToForm, resetErrors, setForm])
-
-    useEffect(() => {
-        if (loadError) {
-            setError(getLoadErrorMessage(loadError))
-        }
-    }, [getLoadErrorMessage, loadError, setError])
-
-    const onChange = useCallback(
-        (field) => (e) => {
-            const config = validators[field]
-            let value = e.target.value
-
-            if (config?.normalize) {
-                value = config.normalize(value)
-            }
-
-            if (config?.validate && config?.setError) {
-                config.setError(config.validate(value))
-            }
-
-            setForm((prev) => ({ ...prev, [field]: value }))
-        },
-        [setForm, validators],
-    )
-
-    const validateBeforeSubmit = useCallback(
-        (form) => {
-            let hasErrors = false
-
-            Object.entries(validators).forEach(([field, config]) => {
-                if (!config?.validate || !config?.setError) return
-
-                const error = config.validate(form[field])
-                config.setError(error)
-
-                if (error) {
-                    hasErrors = true
-                }
-            })
-
-            return !hasErrors
-        },
-        [validators],
-    )
-
-    const onSubmit = useCallback(
-        async (e, form) => {
-            e.preventDefault()
-            setError('')
-
-            if (!validateBeforeSubmit(form)) {
-                return
-            }
-
-            try {
-                await submitAction(form)
-            } catch (error) {
-                setError(getSubmitErrorMessage(error))
-            }
-        },
-        [getSubmitErrorMessage, setError, submitAction, validateBeforeSubmit],
-    )
+    }
 
     return {
+        form,
+        setForm,
+        error,
+        setError,
+        phoneError,
+        setPhoneError,
+        emailError,
+        setEmailError,
         onChange,
         onSubmit,
-        validateBeforeSubmit,
     }
 }

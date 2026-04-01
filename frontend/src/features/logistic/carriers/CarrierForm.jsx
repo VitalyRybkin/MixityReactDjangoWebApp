@@ -1,12 +1,12 @@
-import React, { useEffect, useState } from 'react'
+import React, { useEffect } from 'react'
 import { useLocation, useNavigate, useParams } from 'react-router-dom'
 
 import { Alert, Box, CircularProgress, Paper, Stack, TextField, Typography } from '@mui/material'
 
 import AppBreadcrumbs from '../../../components/AppBreadcrumbs.jsx'
 import FormActions from '../../../components/ui/FormActions.jsx'
-import { firstError } from '../../../utils/apiError.js'
-import { normalizePhoneInput, validatePhoneValue } from '../../../utils/phone.js'
+import { useFormLogic } from '../../../hooks/useEntityForm.js'
+import { EMAIL_HINT } from '../../../utils/email.js'
 
 import { useCreateCarrier, useGetCarrier, useUpdateCarrier } from './carriers.queries.js'
 
@@ -30,14 +30,13 @@ export default function CarrierFormPage() {
     const createCarrier = useCreateCarrier()
     const updateCarrier = useUpdateCarrier()
 
-    const [error, setError] = useState('')
-    const [phoneError, setPhoneError] = useState('')
-    const [form, setForm] = useState(emptyForm)
+    const saving = createCarrier.isPending || updateCarrier.isPending
 
     useEffect(() => {
         if (!isEdit) {
             setForm(emptyForm)
             setPhoneError('')
+            setEmailError('')
             return
         }
 
@@ -51,6 +50,7 @@ export default function CarrierFormPage() {
                 description: carrier.description ?? '',
             })
             setPhoneError('')
+            setEmailError('')
         }
     }, [carrier, isEdit])
 
@@ -60,42 +60,15 @@ export default function CarrierFormPage() {
         }
     }, [loadError])
 
-    const onChange = (field) => (e) => {
-        let value = e.target.value
-        if (field === 'phone') {
-            value = normalizePhoneInput(value)
-            setPhoneError(validatePhoneValue(value))
-        }
-        setForm((prev) => ({ ...prev, [field]: value }))
-    }
-
-    const validateBeforeSubmit = () => {
-        const currentPhoneError = validatePhoneValue(form.phone)
-        setPhoneError(currentPhoneError)
-        return !currentPhoneError
-    }
-
-    const saving = createCarrier.isPending || updateCarrier.isPending
-
-    const onSubmit = async (e) => {
-        e.preventDefault()
-        setError('')
-
-        if (!validateBeforeSubmit()) {
-            return
-        }
-
-        try {
-            if (isEdit) {
-                await updateCarrier.mutateAsync({ id, payload: form })
-            } else {
-                await createCarrier.mutateAsync(form)
-            }
-            navigate('/carriers')
-        } catch (e2) {
-            setError(firstError(e2))
-        }
-    }
+    const { form, setForm, error, setError, phoneError, setPhoneError, emailError, setEmailError, onChange, onSubmit } =
+        useFormLogic({
+            isEdit,
+            id,
+            emptyForm,
+            updateMutation: updateCarrier,
+            createMutation: createCarrier,
+            redirectPath: '/carriers',
+        })
 
     if (isEdit && loadingCarrier) return <CircularProgress />
 
@@ -132,7 +105,15 @@ export default function CarrierFormPage() {
                             helperText={phoneError || 'Формат: +79991234567'}
                             placeholder="+79991234567"
                         />
-                        <TextField label="Эл. почта" value={form.email} onChange={onChange('email')} fullWidth />
+                        <TextField
+                            label="Эл. почта"
+                            value={form.email}
+                            onChange={onChange('email')}
+                            error={Boolean(emailError)}
+                            helperText={emailError || EMAIL_HINT}
+                            placeholder="name@example.com"
+                            fullWidth
+                        />
                         <TextField
                             label="Примечание"
                             value={form.description}
