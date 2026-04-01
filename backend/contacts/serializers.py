@@ -138,39 +138,26 @@ class ContactSerializer(serializers.ModelSerializer):
 
     def validate(self, attrs: dict[str, Any]) -> dict[str, Any]:
         """
-        Validates the input dictionary to ensure only one of the 'carrier' or 'warehouse' fields
-        is provided or updated. It raises a validation error if neither or both fields are present.
-
-        Parameters:
-            attrs: dict[str, Any]
-                The input dictionary containing fields to be validated.
-
-        Returns:
-            dict[str, Any]: The validated dictionary.
-
-        Raises:
-            serializers.ValidationError: Raised when neither 'carrier' nor 'warehouse' is
-            provided, or when both are provided simultaneously.
+        Validates the input dictionary to ensure exactly one of the 'carrier', 'warehouse', 'client',
+        or 'customer' fields is provided or updated.
+        Raises a validation error if none or more than one of these fields are present.
         """
-        carrier = attrs.get("carrier")
-        warehouse = attrs.get("warehouse")
-        client = attrs.get("client")
 
-        if self.instance is not None:
-            carrier = carrier if "carrier" in attrs else self.instance.carrier
-            warehouse = warehouse if "warehouse" in attrs else self.instance.warehouse
-            client = client if "client" in attrs else self.instance.client
-
-        if (carrier is None and warehouse is None and client is None) or (
-            carrier is not None and warehouse is not None and client is not None
-        ):
-            raise serializers.ValidationError(
-                {
-                    "non_field_errors": [
-                        "Provide exactly one of 'carrier', 'warehouse', or 'client'."
-                    ]
-                }
+        def get_val(field: str) -> Any:
+            return (
+                attrs[field] if field in attrs else getattr(self.instance, field, None)
             )
+
+        fields = ["carrier", "warehouse", "client", "customer"]
+        values = [get_val(f) for f in fields]
+
+        filled_count = sum(v is not None for v in values)
+
+        if filled_count != 1:
+            raise serializers.ValidationError(
+                {"non_field_errors": [f"Provide exactly one of {', '.join(fields)}."]}
+            )
+
         return attrs
 
     @classmethod

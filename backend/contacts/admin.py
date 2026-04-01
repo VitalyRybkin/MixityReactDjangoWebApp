@@ -34,7 +34,7 @@ class ContactAdmin(BaseAdmin):
         "carrier",
         "warehouse",
         "client",
-        "construction_object",
+        "customer",
     ]
     list_display_links = ("first_name", "last_name")
     ordering = ("first_name", "last_name")

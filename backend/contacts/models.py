@@ -77,8 +77,8 @@ class Contact(models.Model):
         blank=True,
         related_name="contacts",
     )
-    construction_object = models.ForeignKey(
-        "order.ConstructionObject",
+    customer = models.ForeignKey(
+        "order.Customer",
         on_delete=models.CASCADE,
         null=True,
         blank=True,
@@ -95,30 +95,52 @@ class Contact(models.Model):
                         carrier__isnull=False,
                         warehouse__isnull=True,
                         client__isnull=True,
-                        construction_object__isnull=True,
+                        customer__isnull=True,
                     )
                     | models.Q(
                         carrier__isnull=True,
                         warehouse__isnull=False,
                         client__isnull=True,
-                        construction_object__isnull=True,
+                        customer__isnull=True,
                     )
                     | models.Q(
                         carrier__isnull=True,
                         warehouse__isnull=True,
                         client__isnull=False,
-                        construction_object__isnull=True,
+                        customer__isnull=True,
                     )
                     | models.Q(
                         carrier__isnull=True,
                         warehouse__isnull=True,
                         client__isnull=True,
-                        construction_object__isnull=False,
+                        customer__isnull=False,
                     )
                 ),
                 name="contact_belongs_to_exactly_one_parent",
             )
         ]
+        indexes = [
+            models.Index(
+                fields=["carrier"],
+                name="idx_carrier_not_null",
+                condition=models.Q(carrier__isnull=False),
+            ),
+            models.Index(
+                fields=["warehouse"],
+                name="idx_warehouse_not_null",
+                condition=models.Q(warehouse__isnull=False),
+            ),
+            models.Index(
+                fields=["client"],
+                name="idx_client_not_null",
+                condition=models.Q(client__isnull=False),
+            ),
+            models.Index(
+                fields=["customer"],
+                name="idx_customer_not_null",
+                condition=models.Q(customer__isnull=False),
+            ),
+        ]
 
     def __str__(self) -> str:
-        return f"{self.first_name} {self.last_name}"
+        return f"Контакт: {self.first_name} {self.last_name}"

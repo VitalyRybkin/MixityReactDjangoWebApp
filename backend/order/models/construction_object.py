@@ -16,3 +16,7 @@ class ConstructionObject(ActiveMixin):
         app_label = "order"
         verbose_name = "Объект"
         verbose_name_plural = "Объекты"
+        indexes = [
+            models.Index(fields=["customer"]),
+            models.Index(fields=["name"]),
+        ]
