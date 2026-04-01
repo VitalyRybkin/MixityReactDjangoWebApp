@@ -7,6 +7,7 @@ from rest_framework import serializers
 from contacts.models import Contact, PhoneNumber
 from core.validators.validators import validate_ru_phone
 from logistic.models import Carrier
+from order.models import Client
 from stock.models import Warehouse
 
 
@@ -70,6 +71,9 @@ class ContactSerializer(serializers.ModelSerializer):
     warehouse = serializers.PrimaryKeyRelatedField(
         queryset=Warehouse.objects.all(), required=False, allow_null=True
     )
+    client = serializers.PrimaryKeyRelatedField(
+        queryset=Client.objects.all(), required=False, allow_null=True
+    )
 
     class Meta:
         model = Contact
@@ -82,6 +86,7 @@ class ContactSerializer(serializers.ModelSerializer):
             "phoneNumbers",
             "carrier",
             "warehouse",
+            "client",
         ]
 
     def validate_phoneNumbers(
@@ -149,18 +154,20 @@ class ContactSerializer(serializers.ModelSerializer):
         """
         carrier = attrs.get("carrier")
         warehouse = attrs.get("warehouse")
+        client = attrs.get("client")
 
         if self.instance is not None:
             carrier = carrier if "carrier" in attrs else self.instance.carrier
             warehouse = warehouse if "warehouse" in attrs else self.instance.warehouse
+            client = client if "client" in attrs else self.instance.client
 
-        if (carrier is None and warehouse is None) or (
-            carrier is not None and warehouse is not None
+        if (carrier is None and warehouse is None and client is None) or (
+            carrier is not None and warehouse is not None and client is not None
         ):
             raise serializers.ValidationError(
                 {
                     "non_field_errors": [
-                        "Provide exactly one of 'carrier' or 'warehouse'."
+                        "Provide exactly one of 'carrier', 'warehouse', or 'client'."
                     ]
                 }
             )
