@@ -2,6 +2,7 @@ import React, { useState } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
 
 import { Edit as EditIcon } from '@mui/icons-material'
+import ConstructionIcon from '@mui/icons-material/Construction'
 import LocalShippingIcon from '@mui/icons-material/LocalShipping'
 import PersonIcon from '@mui/icons-material/Person'
 import { Box, Card, CardContent, CircularProgress, Divider, Stack, Typography } from '@mui/material'
@@ -184,6 +185,18 @@ export default function ObjectDetailWithContactList({
                                         })
                                     }
                                     icon={<LocalShippingIcon fontSize="small" />}
+                                />
+                            )}
+
+                            {ownerType === 'customer' && entity && (
+                                <EditAction
+                                    title="Объекты"
+                                    onClick={() =>
+                                        navigate(editTo(id).replace('edit', 'construction_objects'), {
+                                            state: { entity },
+                                        })
+                                    }
+                                    icon={<ConstructionIcon fontSize="small" />}
                                 />
                             )}
                         </Stack>

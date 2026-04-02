@@ -57,6 +57,11 @@ export const deleteCustomer = async (id) => {
     return id
 }
 
+export const deleteCustomerObject = async (id) => {
+    await api.delete(customerApiPaths.detail(id))
+    return id
+}
+
 // --- HOOKS ---
 
 export function useGetCustomers() {
@@ -110,6 +115,22 @@ export function useDeleteCustomer() {
         onSuccess: async (id) => {
             await queryClient.invalidateQueries({ queryKey: customerKeys.list() })
             queryClient.removeQueries({ queryKey: customerKeys.detail(id) })
+        },
+    })
+}
+
+export function useDeleteCustomerObject() {
+    const queryClient = useQueryClient()
+    return useMutation({
+        mutationFn: deleteCustomerObject,
+        onSuccess: (id, variables) => {
+            queryClient.removeQueries({ queryKey: customerKeys.detail(id) })
+            const customerId = variables?.customerId
+            const promises = [queryClient.invalidateQueries({ queryKey: customerKeys.all })]
+            if (customerId) {
+                promises.push(queryClient.invalidateQueries({ queryKey: customerKeys.list(customerId) }))
+            }
+            return Promise.all(promises)
         },
     })
 }

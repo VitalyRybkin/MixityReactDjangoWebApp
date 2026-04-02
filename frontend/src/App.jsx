@@ -8,6 +8,7 @@ import ClientsList from './features/clients/ClientsList.jsx'
 import DocumentationListPage from './features/common/DocumentationList.jsx'
 import CustomerDetailPage from './features/customers/CustomerDetail.jsx'
 import CustomerFormPage from './features/customers/CustomerForm.jsx'
+import CustomerObjectListPage from './features/customers/CustomerObjectList.jsx'
 import CustomersList from './features/customers/CustomersList.jsx'
 import CarrierDetailPage from './features/logistic/carriers/CarrierDetail.jsx'
 import CarrierFormPage from './features/logistic/carriers/CarrierForm.jsx'
@@ -73,6 +74,7 @@ function App() {
                 <Route path="/customers/create" element={<CustomerFormPage />} />
                 <Route path="/customers/:id" element={<CustomerDetailPage />} />
                 <Route path="/customers/:id/edit" element={<CustomerFormPage />} />
+                <Route path="/customers/:id/construction_objects" element={<CustomerObjectListPage />} />
 
                 <Route path="/documentation" element={<DocumentationListPage />} />
             </Route>
