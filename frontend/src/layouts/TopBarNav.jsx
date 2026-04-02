@@ -29,6 +29,10 @@ const TopBarNav = () => {
                 Клиенты
             </Button>
 
+            <Button component={NavLink} to="/customers" color="inherit" sx={buttonSx}>
+                Заказчики
+            </Button>
+
             <Button component={NavLink} to="/documentation" color="inherit" sx={buttonSx}>
                 Документация
             </Button>

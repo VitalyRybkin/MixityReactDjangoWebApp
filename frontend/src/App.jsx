@@ -6,6 +6,9 @@ import ClientDetailPage from './features/clients/ClientDetail.jsx'
 import ClientFormPage from './features/clients/ClientForm.jsx'
 import ClientsList from './features/clients/ClientsList.jsx'
 import DocumentationListPage from './features/common/DocumentationList.jsx'
+import CustomerDetailPage from './features/customers/CustomerDetail.jsx'
+import CustomerFormPage from './features/customers/CustomerForm.jsx'
+import CustomersList from './features/customers/CustomersList.jsx'
 import CarrierDetailPage from './features/logistic/carriers/CarrierDetail.jsx'
 import CarrierFormPage from './features/logistic/carriers/CarrierForm.jsx'
 import CarriersList from './features/logistic/carriers/CarriersList.jsx'
@@ -65,6 +68,11 @@ function App() {
                 <Route path="/clients/create" element={<ClientFormPage />} />
                 <Route path="/clients/:id" element={<ClientDetailPage />} />
                 <Route path="/clients/:id/edit" element={<ClientFormPage />} />
+
+                <Route path="/customers" element={<CustomersList />} />
+                <Route path="/customers/create" element={<CustomerFormPage />} />
+                <Route path="/customers/:id" element={<CustomerDetailPage />} />
+                <Route path="/customers/:id/edit" element={<CustomerFormPage />} />
 
                 <Route path="/documentation" element={<DocumentationListPage />} />
             </Route>

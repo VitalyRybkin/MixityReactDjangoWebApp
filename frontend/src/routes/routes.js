@@ -75,4 +75,16 @@ export const routes = [
         path: '/clients/:id',
         breadcrumb: 'Карточка',
     },
+    {
+        path: '/customers',
+        breadcrumb: 'Заказчики',
+    },
+    {
+        path: '/customers/create',
+        breadcrumb: 'Создать',
+    },
+    {
+        path: '/customers/:id',
+        breadcrumb: 'Карточка',
+    },
 ]
