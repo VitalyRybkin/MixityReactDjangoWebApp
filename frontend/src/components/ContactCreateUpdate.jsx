@@ -118,6 +118,7 @@ export default function ContactCreateUpdate({ open, mode, ownerType, ownerId, in
             warehouse: ownerType === 'warehouse' ? id : null,
             carrier: ownerType === 'carrier' ? id : null,
             client: ownerType === 'client' ? id : null,
+            customer: ownerType === 'customer' ? id : null,
         }
 
         return {

@@ -7,7 +7,7 @@ from rest_framework import serializers
 from contacts.models import Contact, PhoneNumber
 from core.validators.validators import validate_ru_phone
 from logistic.models import Carrier
-from order.models import Client
+from order.models import Client, Customer
 from stock.models import Warehouse
 
 
@@ -75,6 +75,10 @@ class ContactSerializer(serializers.ModelSerializer):
         queryset=Client.objects.all(), required=False, allow_null=True
     )
 
+    customer = serializers.PrimaryKeyRelatedField(
+        queryset=Customer.objects.all(), required=False, allow_null=True
+    )
+
     class Meta:
         model = Contact
         fields = [
@@ -87,6 +91,7 @@ class ContactSerializer(serializers.ModelSerializer):
             "carrier",
             "warehouse",
             "client",
+            "customer",
         ]
 
     def validate_phoneNumbers(
