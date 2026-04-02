@@ -4,23 +4,27 @@ import api from '../../api.js'
 
 import { clientApiPaths } from './clientApiPaths.js'
 
+// --- UTILS ---
 const unwrapList = (data) => {
     if (Array.isArray(data)) return data
     if (Array.isArray(data?.results)) return data.results
-    throw new Error('Expected list response')
+    return []
 }
 
+// --- QUERY KEYS ---
 export const clientKeys = {
-    all: ['clients'],
-    list: () => ['client', 'list'],
-    detail: (id) => ['client', 'detail', String(id)],
-    contacts: (id) => ['client', String(id), 'contacts'],
+    all: ['client'],
+    list: () => [...clientKeys.all, 'list'],
+    detail: (id) => [...clientKeys.all, 'detail', String(id)],
+    contacts: (id) => [...clientKeys.all, 'detail', String(id), 'contacts'],
 }
 
+// --- API FUNCTIONS ---
 export const fetchClients = async () => {
     const res = await api.get(clientApiPaths.listCreate())
     return unwrapList(res.data)
 }
+
 export const fetchClientDetail = async (id) => {
     const res = await api.get(clientApiPaths.detail(id))
     return res.data
@@ -41,6 +45,8 @@ export const deleteClient = async (id) => {
     return id
 }
 
+// --- HOOKS ---
+
 export function useGetClients() {
     return useQuery({
         queryKey: clientKeys.list(),
@@ -58,36 +64,34 @@ export function useGetClient(id) {
 
 export function useCreateClient() {
     const queryClient = useQueryClient()
-
     return useMutation({
         mutationFn: createClient,
-        onSuccess: async () => {
-            await queryClient.invalidateQueries({ queryKey: clientKeys.all })
+        onSuccess: () => {
+            return queryClient.invalidateQueries({ queryKey: clientKeys.all })
         },
     })
 }
 
 export function useUpdateClient() {
     const queryClient = useQueryClient()
-
     return useMutation({
         mutationFn: updateClient,
-        onSuccess: async (_, variables) => {
-            await queryClient.invalidateQueries({ queryKey: clientKeys.all })
-            await queryClient.invalidateQueries({ queryKey: clientKeys.detail(variables.id) })
+        onSuccess: (_, variables) => {
+            return Promise.all([
+                queryClient.invalidateQueries({ queryKey: clientKeys.list() }),
+                queryClient.invalidateQueries({ queryKey: clientKeys.detail(variables.id) }),
+            ])
         },
     })
 }
 
 export function useDeleteClient() {
     const queryClient = useQueryClient()
-
     return useMutation({
         mutationFn: deleteClient,
-        onSuccess: async (id) => {
-            await queryClient.invalidateQueries({ queryKey: clientKeys.all })
+        onSuccess: (id) => {
             queryClient.removeQueries({ queryKey: clientKeys.detail(id) })
-            queryClient.removeQueries({ queryKey: clientKeys.contacts(id) })
+            return queryClient.invalidateQueries({ queryKey: clientKeys.list() })
         },
     })
 }

@@ -4,31 +4,34 @@ import api from '../../../api.js'
 
 import { truckApiPaths, truckCapacityApiPaths, truckTypeApiPaths } from './truckApiPaths.js'
 
+// --- UTILS ---
 const unwrapList = (d) => {
     if (Array.isArray(d)) return d
     if (Array.isArray(d?.results)) return d.results
-    throw new Error('Expected list response')
+    return []
 }
 
+// --- QUERY KEYS ---
 export const truckKeys = {
     all: ['trucks'],
-    lists: () => ['trucks', 'list'],
-    list: (carrierId) => ['trucks', 'list', 'carrier', String(carrierId)],
-    detail: (id) => ['trucks', 'detail', String(id)],
+    lists: () => [...truckKeys.all, 'list'],
+    list: (carrierId) => [...truckKeys.lists(), 'carrier', String(carrierId)],
+    detail: (id) => [...truckKeys.all, 'detail', String(id)],
 }
 
 export const truckCapacityKeys = {
     all: ['truck-capacities'],
-    lists: () => ['truck-capacities', 'list'],
-    detail: (id) => ['truck-capacities', 'detail', String(id)],
+    lists: () => [...truckCapacityKeys.all, 'list'],
+    detail: (id) => [...truckCapacityKeys.all, 'detail', String(id)],
 }
 
 export const truckTypeKeys = {
     all: ['truck-types'],
-    lists: () => ['truck-types', 'list'],
-    detail: (id) => ['truck-types', 'detail', String(id)],
+    lists: () => [...truckTypeKeys.all, 'list'],
+    detail: (id) => [...truckTypeKeys.all, 'detail', String(id)],
 }
 
+// --- API FUNCTIONS ---
 export const fetchCarrierTrucks = async (carrierId) => {
     const res = await api.get(truckApiPaths.carrierList(carrierId))
     return unwrapList(res.data)
@@ -94,6 +97,9 @@ const updateTruckType = async ({ id, payload }) => {
     return res.data
 }
 
+// --- HOOKS ---
+
+// TRUCKS
 export function useGetCarrierTrucks(carrierId) {
     return useQuery({
         queryKey: truckKeys.list(carrierId),
@@ -112,67 +118,56 @@ export function useGetTruck(id) {
 
 export function useCreateTruck() {
     const queryClient = useQueryClient()
-
     return useMutation({
         mutationFn: createTruck,
-        onSuccess: async (data, variables) => {
-            await queryClient.invalidateQueries({ queryKey: truckKeys.all })
-
-            const carrierId = data?.carrier ?? variables?.payload?.carrier
+        onSuccess: (data, variables) => {
+            const carrierId = data?.carrier ?? variables?.carrier
+            const promises = [queryClient.invalidateQueries({ queryKey: truckKeys.all })]
             if (carrierId) {
-                await queryClient.invalidateQueries({
-                    queryKey: truckKeys.list(carrierId),
-                })
+                promises.push(queryClient.invalidateQueries({ queryKey: truckKeys.list(carrierId) }))
             }
+            return Promise.all(promises)
         },
     })
 }
 
 export function useUpdateTruck() {
     const queryClient = useQueryClient()
-
     return useMutation({
         mutationFn: updateTruck,
-        onSuccess: async (data, variables) => {
-            await queryClient.invalidateQueries({ queryKey: truckKeys.all })
-            await queryClient.invalidateQueries({
-                queryKey: truckKeys.detail(variables.id),
-            })
-
+        onSuccess: (data, variables) => {
             const carrierId = data?.carrier ?? variables?.payload?.carrier
+            const promises = [
+                queryClient.invalidateQueries({ queryKey: truckKeys.all }),
+                queryClient.invalidateQueries({ queryKey: truckKeys.detail(variables.id) }),
+            ]
             if (carrierId) {
-                await queryClient.invalidateQueries({
-                    queryKey: truckKeys.list(carrierId),
-                })
+                promises.push(queryClient.invalidateQueries({ queryKey: truckKeys.list(carrierId) }))
             }
+            return Promise.all(promises)
         },
     })
 }
 
 export function useDeleteCarrierTruck() {
     const queryClient = useQueryClient()
-
     return useMutation({
         mutationFn: deleteTruck,
-        onSuccess: async (id, variables) => {
-            await queryClient.invalidateQueries({ queryKey: truckKeys.all })
+        onSuccess: (id, variables) => {
             queryClient.removeQueries({ queryKey: truckKeys.detail(id) })
-
             const carrierId = variables?.carrierId
+            const promises = [queryClient.invalidateQueries({ queryKey: truckKeys.all })]
             if (carrierId) {
-                await queryClient.invalidateQueries({
-                    queryKey: truckKeys.list(carrierId),
-                })
+                promises.push(queryClient.invalidateQueries({ queryKey: truckKeys.list(carrierId) }))
             }
+            return Promise.all(promises)
         },
     })
 }
 
+// CAPACITIES
 export function useGetTruckCapacities() {
-    return useQuery({
-        queryKey: truckCapacityKeys.lists(),
-        queryFn: fetchTruckCapacities,
-    })
+    return useQuery({ queryKey: truckCapacityKeys.lists(), queryFn: fetchTruckCapacities })
 }
 
 export function useGetTruckCapacity(id) {
@@ -185,34 +180,28 @@ export function useGetTruckCapacity(id) {
 
 export function useCreateTruckCapacity() {
     const queryClient = useQueryClient()
-
     return useMutation({
         mutationFn: createTruckCapacity,
-        onSuccess: async () => {
-            await queryClient.invalidateQueries({ queryKey: truckCapacityKeys.all })
-        },
+        onSuccess: () => queryClient.invalidateQueries({ queryKey: truckCapacityKeys.all }),
     })
 }
 
 export function useUpdateTruckCapacity() {
     const queryClient = useQueryClient()
-
     return useMutation({
         mutationFn: updateTruckCapacity,
-        onSuccess: async (_, variables) => {
-            await queryClient.invalidateQueries({ queryKey: truckCapacityKeys.all })
-            await queryClient.invalidateQueries({
-                queryKey: truckCapacityKeys.detail(variables.id),
-            })
+        onSuccess: (_, variables) => {
+            return Promise.all([
+                queryClient.invalidateQueries({ queryKey: truckCapacityKeys.all }),
+                queryClient.invalidateQueries({ queryKey: truckCapacityKeys.detail(variables.id) }),
+            ])
         },
     })
 }
 
+// TYPES
 export function useGetTruckTypes() {
-    return useQuery({
-        queryKey: truckTypeKeys.lists(),
-        queryFn: fetchTruckTypes,
-    })
+    return useQuery({ queryKey: truckTypeKeys.lists(), queryFn: fetchTruckTypes })
 }
 
 export function useGetTruckType(id) {
@@ -225,25 +214,21 @@ export function useGetTruckType(id) {
 
 export function useCreateTruckType() {
     const queryClient = useQueryClient()
-
     return useMutation({
         mutationFn: createTruckType,
-        onSuccess: async () => {
-            await queryClient.invalidateQueries({ queryKey: truckTypeKeys.all })
-        },
+        onSuccess: () => queryClient.invalidateQueries({ queryKey: truckTypeKeys.all }),
     })
 }
 
 export function useUpdateTruckType() {
     const queryClient = useQueryClient()
-
     return useMutation({
         mutationFn: updateTruckType,
-        onSuccess: async (_, variables) => {
-            await queryClient.invalidateQueries({ queryKey: truckTypeKeys.all })
-            await queryClient.invalidateQueries({
-                queryKey: truckTypeKeys.detail(variables.id),
-            })
+        onSuccess: (_, variables) => {
+            return Promise.all([
+                queryClient.invalidateQueries({ queryKey: truckTypeKeys.all }),
+                queryClient.invalidateQueries({ queryKey: truckTypeKeys.detail(variables.id) }),
+            ])
         },
     })
 }

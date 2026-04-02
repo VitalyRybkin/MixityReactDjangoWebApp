@@ -3,18 +3,22 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import api from '../../../api.js'
 import { warehouseApiPaths } from '../warehouseApiPaths.js'
 
+// --- UTILS ---
 const unwrapList = (d) => {
     if (Array.isArray(d)) return d
     if (Array.isArray(d?.results)) return d.results
-    throw new Error('Expected list response')
+    return []
 }
 
+// --- QUERY KEYS ---
 export const warehouseKeys = {
     all: ['warehouses'],
-    detail: (id) => ['warehouse', String(id)],
-    contacts: (id) => ['warehouse', String(id), 'contacts'],
+    list: () => [...warehouseKeys.all, 'list'],
+    detail: (id) => [...warehouseKeys.all, 'detail', String(id)],
+    contacts: (id) => [...warehouseKeys.detail(id), 'contacts'],
 }
 
+// --- API FUNCTIONS ---
 export const fetchWarehouses = async () => {
     const res = await api.get(warehouseApiPaths.listCreate())
     return unwrapList(res.data)
@@ -45,9 +49,11 @@ export const deleteWarehouse = async (id) => {
     return id
 }
 
+// --- HOOKS ---
+
 export function useWarehouses() {
     return useQuery({
-        queryKey: warehouseKeys.all,
+        queryKey: warehouseKeys.list(),
         queryFn: fetchWarehouses,
     })
 }
@@ -70,38 +76,34 @@ export function useWarehouseContacts(id) {
 
 export function useCreateWarehouse() {
     const queryClient = useQueryClient()
-
     return useMutation({
         mutationFn: createWarehouse,
-        onSuccess: async () => {
-            await queryClient.invalidateQueries({ queryKey: warehouseKeys.all })
+        onSuccess: () => {
+            return queryClient.invalidateQueries({ queryKey: warehouseKeys.all })
         },
     })
 }
 
 export function useUpdateWarehouse() {
     const queryClient = useQueryClient()
-
     return useMutation({
         mutationFn: updateWarehouse,
-        onSuccess: async (_, variables) => {
-            await queryClient.invalidateQueries({ queryKey: warehouseKeys.all })
-            await queryClient.invalidateQueries({
-                queryKey: warehouseKeys.detail(variables.id),
-            })
+        onSuccess: (_, variables) => {
+            return Promise.all([
+                queryClient.invalidateQueries({ queryKey: warehouseKeys.list() }),
+                queryClient.invalidateQueries({ queryKey: warehouseKeys.detail(variables.id) }),
+            ])
         },
     })
 }
 
 export function useDeleteWarehouse() {
     const queryClient = useQueryClient()
-
     return useMutation({
         mutationFn: deleteWarehouse,
-        onSuccess: async (id) => {
-            await queryClient.invalidateQueries({ queryKey: warehouseKeys.all })
+        onSuccess: (id) => {
             queryClient.removeQueries({ queryKey: warehouseKeys.detail(id) })
-            queryClient.removeQueries({ queryKey: warehouseKeys.contacts(id) })
+            return queryClient.invalidateQueries({ queryKey: warehouseKeys.list() })
         },
     })
 }

@@ -4,22 +4,25 @@ import api from '../../../api.js'
 
 import { carrierApiPaths } from './carrierApiPaths.js'
 
+// --- UTILS ---
 const unwrapList = (d) => {
     if (Array.isArray(d)) return d
     if (Array.isArray(d?.results)) return d.results
-    throw new Error('Expected list response')
+    return []
 }
 
+// --- QUERY KEYS ---
 export const carrierKeys = {
     all: ['carriers'],
-    list: () => ['carriers', 'list'],
-    detail: (id) => ['carriers', 'detail', String(id)],
-    contacts: (id) => ['carriers', 'detail', String(id), 'contacts'],
-    resources: (id) => ['carriers', 'detail', String(id), 'resources'],
-    trucks: (id) => ['carriers', 'detail', String(id), 'trucks'],
-    drivers: (id) => ['carriers', 'detail', String(id), 'drivers'],
+    list: () => [...carrierKeys.all, 'list'],
+    detail: (id) => [...carrierKeys.all, 'detail', String(id)],
+    contacts: (id) => [...carrierKeys.detail(id), 'contacts'],
+    resources: (id) => [...carrierKeys.detail(id), 'resources'],
+    trucks: (id) => [...carrierKeys.detail(id), 'trucks'],
+    drivers: (id) => [...carrierKeys.detail(id), 'drivers'],
 }
 
+// --- API FUNCTIONS ---
 export const fetchCarriers = async () => {
     const res = await api.get(carrierApiPaths.listCreate())
     return unwrapList(res.data)
@@ -35,21 +38,6 @@ export const fetchCarrierContacts = async (id) => {
     return unwrapList(res.data)
 }
 
-// export const fetchCarrierResources = async (id) => {
-//     const res = await api.get(carrierApiPaths.resources(id))
-//     return res.data
-// }
-//
-// export const fetchCarrierTrucks = async (id) => {
-//     const res = await api.get(carrierApiPaths.trucks(id))
-//     return unwrapList(res.data)
-// }
-//
-// export const fetchCarrierDrivers = async (id) => {
-//     const res = await api.get(carrierApiPaths.drivers(id))
-//     return unwrapList(res.data)
-// }
-
 export const createCarrier = async (payload) => {
     const res = await api.post(carrierApiPaths.listCreate(), payload)
     return res.data
@@ -64,6 +52,8 @@ export const deleteCarrier = async (id) => {
     await api.delete(carrierApiPaths.detail(id))
     return id
 }
+
+// --- HOOKS ---
 
 export function useGetCarriers() {
     return useQuery({
@@ -90,39 +80,34 @@ export function useGetCarrierContacts(id) {
 
 export function useCreateCarrier() {
     const queryClient = useQueryClient()
-
     return useMutation({
         mutationFn: createCarrier,
-        onSuccess: async () => {
-            await queryClient.invalidateQueries({ queryKey: carrierKeys.all })
+        onSuccess: () => {
+            return queryClient.invalidateQueries({ queryKey: carrierKeys.all })
         },
     })
 }
 
 export function useUpdateCarrier() {
     const queryClient = useQueryClient()
-
     return useMutation({
         mutationFn: updateCarrier,
-        onSuccess: async (_, variables) => {
-            await queryClient.invalidateQueries({ queryKey: carrierKeys.all })
-            await queryClient.invalidateQueries({
-                queryKey: carrierKeys.detail(variables.id),
-            })
+        onSuccess: (_, variables) => {
+            return Promise.all([
+                queryClient.invalidateQueries({ queryKey: carrierKeys.list() }),
+                queryClient.invalidateQueries({ queryKey: carrierKeys.detail(variables.id) }),
+            ])
         },
     })
 }
 
 export function useDeleteCarrier() {
     const queryClient = useQueryClient()
-
     return useMutation({
         mutationFn: deleteCarrier,
-        onSuccess: async (id) => {
-            await queryClient.invalidateQueries({ queryKey: carrierKeys.all })
+        onSuccess: (id) => {
             queryClient.removeQueries({ queryKey: carrierKeys.detail(id) })
-            queryClient.removeQueries({ queryKey: carrierKeys.contacts(id) })
-            queryClient.removeQueries({ queryKey: carrierKeys.resources(id) })
+            return queryClient.invalidateQueries({ queryKey: carrierKeys.list() })
         },
     })
 }
