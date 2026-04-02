@@ -1,11 +1,6 @@
-import { useNavigate, useParams } from 'react-router-dom'
+import { useParams } from 'react-router-dom'
 
-import { Edit as EditIcon } from '@mui/icons-material'
-import { Stack } from '@mui/material'
-
-import AddAction from '../../../components/ui/buttons/AddAction.jsx'
-import EditAction from '../../../components/ui/buttons/EditAction.jsx'
-import ViewAction from '../../../components/ui/buttons/ViewAction.jsx'
+import useLoadImage from '../../../hooks/useLoadImage.jsx'
 import ObjectDetailWithContactList from '../../../pages/shared/ObjectDetailWithContactList.jsx'
 import { emailValue } from '../../../utils/emailValue.jsx'
 import { warehouseApiPaths } from '../warehouseApiPaths.js'
@@ -13,8 +8,7 @@ import { warehouseApiPaths } from '../warehouseApiPaths.js'
 export default function WarehouseDetailPage() {
     const { id } = useParams()
     const warehouseId = Number(id)
-    const navigate = useNavigate()
-
+    const { renderActions } = useLoadImage()
     return (
         <ObjectDetailWithContactList
             id={id}
@@ -33,17 +27,9 @@ export default function WarehouseDetailPage() {
                 { label: 'Примечание', value: w?.description },
                 {
                     label: 'Схема проезда',
-                    value: w?.directions ? (
-                        <Stack direction="row" spacing={1} flexWrap="wrap">
-                            <ViewAction onClick={() => window.open(w.directions, '_blank', 'noopener,noreferrer')} />
-                            <EditAction
-                                onClick={() => navigate(`/warehouses/${w.id}/map`, { state: { warehouse: w.name } })}
-                                icon={<EditIcon fontSize="small" />}
-                            />
-                        </Stack>
-                    ) : (
-                        <AddAction onClick={() => navigate(`/warehouses/${w.id}/map`)} />
-                    ),
+                    value: renderActions(w?.directions, `/warehouses/${w?.id}/map`, w?.directions, {
+                        state: { warehouse: w?.name },
+                    }),
                 },
             ]}
         />

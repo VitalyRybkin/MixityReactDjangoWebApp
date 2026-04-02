@@ -6,6 +6,7 @@ import { Alert, Box, CircularProgress, Paper, Stack, TextField, Typography } fro
 import AppBreadcrumbs from '../../../components/AppBreadcrumbs.jsx'
 import FormActions from '../../../components/ui/FormActions.jsx'
 import { useFormLogic } from '../../../hooks/useEntityForm.js'
+import useLoadImage from '../../../hooks/useLoadImage.jsx'
 import { EMAIL_HINT } from '../../../utils/email.js'
 
 import { useCreateWarehouse, useUpdateWarehouse, useWarehouse } from './stocks.queries.js'
@@ -32,6 +33,8 @@ export default function WarehouseFormPage() {
 
     const saving = createWarehouse.isPending || updateWarehouse.isPending
 
+    const { renderActions } = useLoadImage()
+
     useEffect(() => {
         if (!isEdit) {
             setForm(emptyForm)
@@ -48,6 +51,7 @@ export default function WarehouseFormPage() {
                 phone: warehouse.phone ?? '',
                 email: warehouse.email ?? '',
                 descriptions: warehouse.descriptions ?? '',
+                directions: warehouse.directions ?? '',
             })
             setPhoneError('')
             setEmailError('')
@@ -122,6 +126,17 @@ export default function WarehouseFormPage() {
                             multiline
                             minRows={3}
                         />
+                        <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
+                            <Typography variant="caption" color="text.secondary">
+                                Схема проезда
+                            </Typography>
+                            {renderActions(
+                                form?.directions,
+                                `/warehouses/${warehouse?.id}/map`,
+                                warehouse?.directions,
+                                { state: { warehouse: warehouse?.name } },
+                            )}
+                        </Box>
 
                         <FormActions saving={saving} onCancel={() => navigate(backPath)} />
                     </Stack>
