@@ -1,14 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 
 import api from '../../api.js'
-
-// --- API PATHS ---
-export const customerApiPaths = {
-    listCreate: () => '/api/orders/customers/',
-    detail: (id) => `/api/orders/customers/${id}/`,
-    contacts: (id) => `/api/orders/customers/${id}/contacts/`,
-    construction_objects: (id) => `/api/orders/customers/${id}/construction_objects/`,
-}
+import {constructionObjectsApiPaths, customerApiPaths} from "./customerApiPaths.js";
 
 // --- UTILS ---
 const unwrapList = (data) => {
@@ -37,8 +30,13 @@ export const fetchCustomerDetail = async (id) => {
     return res.data
 }
 
+export const fetchCustomerObjectDetail = async (id, objectId) => {
+    const res = await api.get(constructionObjectsApiPaths.detail(id, objectId))
+    return res.data
+}
+
 export const fetchCustomerObjects = async (id) => {
-    const res = await api.get(customerApiPaths.construction_objects(id))
+    const res = await api.get(constructionObjectsApiPaths.listCreate(id))
     return unwrapList(res.data)
 }
 
@@ -62,6 +60,16 @@ export const deleteCustomerObject = async (id) => {
     return id
 }
 
+export const createConstructionObject = async (payload) => {
+    const res = await api.post(constructionObjectsApiPaths.listCreate(), payload)
+    return res.data
+}
+
+export const updateConstructionObject = async ({ id, objectId, payload }) => {
+    const res = await api.patch(constructionObjectsApiPaths.detail(id, objectId), payload)
+    return res.data
+}
+
 // --- HOOKS ---
 
 export function useGetCustomers() {
@@ -79,11 +87,45 @@ export function useGetCustomer(id) {
     })
 }
 
+export function useGetCustomerObject(id, objectId) {
+    return useQuery({
+        queryKey: [...customerKeys.detail(id), objectId],
+        queryFn: () => {
+            if (!objectId) return null;
+            return fetchCustomerObjectDetail(id, objectId);
+        },
+        enabled: Boolean(id && objectId),
+    })
+}
+
 export function useGetCustomerObjects(id) {
     return useQuery({
         queryKey: customerKeys.objects(id),
         queryFn: () => fetchCustomerObjects(id),
         enabled: Boolean(id),
+    })
+}
+
+export function useCreateCustomerObject() {
+    const queryClient = useQueryClient()
+    return useMutation({
+        mutationFn: createConstructionObject,
+        onSuccess: async () => {
+            await queryClient.invalidateQueries({ queryKey: customerKeys.all })
+        },
+    })
+}
+
+export function useUpdateCustomerObject() {
+    const queryClient = useQueryClient()
+    return useMutation({
+        mutationFn: (variables) => updateConstructionObject(variables),
+        onSuccess: async (data, variables) => {
+            await queryClient.invalidateQueries({ queryKey: customerKeys.list() })
+            await queryClient.invalidateQueries({
+                queryKey: [...customerKeys.detail(variables.id), variables.objectId]
+            })
+        },
     })
 }
 
@@ -125,7 +167,7 @@ export function useDeleteCustomerObject() {
         mutationFn: deleteCustomerObject,
         onSuccess: (id, variables) => {
             queryClient.removeQueries({ queryKey: customerKeys.detail(id) })
-            const customerId = variables?.customerId
+            const customerId = variables?.id
             const promises = [queryClient.invalidateQueries({ queryKey: customerKeys.all })]
             if (customerId) {
                 promises.push(queryClient.invalidateQueries({ queryKey: customerKeys.list(customerId) }))

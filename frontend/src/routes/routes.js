@@ -87,4 +87,12 @@ export const routes = [
         path: '/customers/:id',
         breadcrumb: 'Карточка',
     },
+    {
+        path: '/customers/:id/construction_objects',
+        breadcrumb: 'Объекты',
+    },
+    {
+        path: '/customers/:id/customer_objects/create',
+        breadcrumb: 'Создать объект',
+    },
 ]
