@@ -4,10 +4,10 @@ from phonenumber_field.serializerfields import PhoneNumberField
 from rest_framework import serializers
 
 from core.validators.validators import validate_ru_phone
-from order.models import Customer
+from order.models import Customer, ConstructionObject
 
 
-class CustomerListCreateSerializer(serializers.ModelSerializer):
+class CustomerSerializer(serializers.ModelSerializer):
     name = serializers.CharField(
         required=True,
         label="Наименование",
@@ -38,3 +38,14 @@ class CustomerListCreateSerializer(serializers.ModelSerializer):
         Validate phone number format and length.
         """
         return validate_ru_phone(value)
+
+class BaseCustomerSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = ConstructionObject
+        fields = ["id", "name", "address"]
+
+class CustomerObjectsSerializer(BaseCustomerSerializer):
+    customer = serializers.PrimaryKeyRelatedField(read_only=True)
+
+    class Meta(BaseCustomerSerializer.Meta): # Наследуем Meta
+        fields = BaseCustomerSerializer.Meta.fields + ["customer"]

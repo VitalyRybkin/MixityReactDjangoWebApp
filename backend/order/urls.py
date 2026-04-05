@@ -1,6 +1,7 @@
 from django.urls import path
 
-from order.routes import ClientRoutes, CustomerRoutes
+from order.routes import ClientRoutes, CustomerRoutes, ConstructionObjectsRoutes
+from order.serializers.customer_serializers import CustomerObjectsSerializer
 from order.views.clients import (
     ClientContactListAPIView,
     ClientListCreateAPIView,
@@ -9,7 +10,7 @@ from order.views.clients import (
 from order.views.customers import (
     CustomerContactListAPIView,
     CustomerListCreateAPIView,
-    CustomerRetrieveUpdateDestroyAPIView,
+    CustomerRetrieveUpdateDestroyAPIView, CustomerObjectsListCreateAPIView, CustomerObjectRetrieveUpdateDestroyAPIView,
 )
 
 app_name = "order"
@@ -44,5 +45,15 @@ urlpatterns = [
         CustomerRoutes.CONTACTS.path,
         CustomerContactListAPIView.as_view(),
         name=CustomerRoutes.CONTACTS.name,
+    ),
+    path(
+        ConstructionObjectsRoutes.LIST_CREATE.path,
+        CustomerObjectsListCreateAPIView.as_view(),
+        name=ConstructionObjectsRoutes.LIST_CREATE.name,
+    ),
+    path(
+        ConstructionObjectsRoutes.DETAIL.path,
+        CustomerObjectRetrieveUpdateDestroyAPIView.as_view(),
+        name=ConstructionObjectsRoutes.DETAIL.name,
     )
 ]

@@ -22,3 +22,11 @@ class CustomerRoutes:
     CONSTRUCTIONS = ApiRoute(
         "customers/<int:pk>/constructions/", "customer_constructions"
     )
+
+
+class ConstructionObjectsRoutes:
+    """
+    Routes for managing Construction objects associated with Customers.
+    """
+    LIST_CREATE= ApiRoute("customers/<int:pk>/construction_objects/", "customer_objects_list_create")
+    DETAIL = ApiRoute("customers/<int:pk>/construction_objects/<int:object_pk>/", "customer_object_detail")
