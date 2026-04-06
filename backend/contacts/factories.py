@@ -9,10 +9,14 @@ class ContactFactory(factory.django.DjangoModelFactory):
         is_carrier = factory.Trait(
             carrier=factory.SubFactory("logistic.tests.factories.CarrierFactory"),
             warehouse=None,
+            client=None,
+            customer=None,
         )
         is_warehouse = factory.Trait(
             warehouse=factory.SubFactory("stock.tests.factories.WarehouseFactory"),
             carrier=None,
+            client=None,
+            customer=None,
         )
 
     first_name = factory.Faker("first_name")
@@ -21,6 +25,8 @@ class ContactFactory(factory.django.DjangoModelFactory):
 
     carrier = factory.SubFactory("logistic.tests.factories.CarrierFactory")
     warehouse = None
+    client = None
+    customer = None
 
 
 class PhoneNumberFactory(factory.django.DjangoModelFactory):

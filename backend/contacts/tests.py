@@ -10,6 +10,7 @@ from core.tests.base_view_test_case import BaseViewTestCase
 from core.tests.utils import FieldSpec
 from logistic.routes import CarrierRoutes
 from logistic.tests.factories import CarrierFactory
+from order.routes import ClientRoutes, CustomerRoutes
 from order.tests.factories import ClientFactory, CustomerFactory
 from stock.routes import WarehouseRoutes
 from stock.tests.factories import WarehouseFactory
@@ -178,6 +179,17 @@ class TestContactAPICreate(BaseAPIMixin):
         }
 
 
+class TestContactAPIDelete(BaseAPIMixin):
+    __test__ = True
+
+    model = Contact
+    factory = ContactFactory
+    pk_url_name = f"contacts:{ContactRoutes.DETAIL.name}"
+
+    def test_delete_contact(self) -> None:
+        self._delete_logic(expected_status=204)
+
+
 class TestContactListCreateAPIView(BaseViewTestCase):
     _factory = ContactFactory
     _view_class = ContactListCreateAPIView
@@ -206,5 +218,31 @@ class TestWarehouseContactsList(BaseAPIMixin):
     factory = WarehouseFactory
 
     def test_get_list(self) -> None:
-        ContactFactory.create_batch(3, warehouse=self.obj, carrier=None)
+        ContactFactory.create_batch(
+            3, warehouse=self.obj, carrier=None, client=None, customer=None
+        )
+        self._get_pk_list_logic(expected_contacts=3)
+
+
+class TestClientContactsList(BaseAPIMixin):
+    __test__ = True
+    pk_url_name = f"order:{ClientRoutes.CONTACTS.name}"
+    factory = ClientFactory
+
+    def test_get_list(self) -> None:
+        ContactFactory.create_batch(
+            3, client=self.obj, carrier=None, warehouse=None, customer=None
+        )
+        self._get_pk_list_logic(expected_contacts=3)
+
+
+class TestCustomerContactsList(BaseAPIMixin):
+    __test__ = True
+    pk_url_name = f"order:{CustomerRoutes.CONTACTS.name}"
+    factory = CustomerFactory
+
+    def test_get_list(self) -> None:
+        ContactFactory.create_batch(
+            3, client=None, carrier=None, warehouse=None, customer=self.obj
+        )
         self._get_pk_list_logic(expected_contacts=3)

@@ -108,8 +108,3 @@ def update_contact(instance: Contact, validated_data: dict[str, Any]) -> Contact
         replace_contact_phone_numbers(instance, phone_numbers_data or [])
 
     return instance
-
-
-@transaction.atomic
-def delete_contact(instance: Contact) -> None:
-    instance.delete()
