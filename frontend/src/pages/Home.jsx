@@ -1,7 +1,10 @@
-import { useState } from 'react'
+import React, { useState } from 'react'
 import ChevronLeftIcon from '@mui/icons-material/ChevronLeft'
 import ChevronRightIcon from '@mui/icons-material/ChevronRight'
-import { Box, Button, Container, Paper, Tooltip, Typography } from '@mui/material'
+import {Box, Button, Container, Divider, Tooltip, Typography} from '@mui/material'
+import AppBreadcrumbs from "../components/AppBreadcrumbs.jsx";
+import AddAction from "../components/ui/buttons/AddAction.jsx";
+import {useNavigate} from "react-router-dom";
 
 const SIDEBAR_WIDTH = 280
 const TOPBAR_HEIGHT = 64
@@ -69,6 +72,8 @@ const sx = {
 
 const Home = () => {
     const [open, setOpen] = useState(true)
+    const navigate = useNavigate()
+
 
     return (
         <Box sx={sx.page}>
@@ -106,25 +111,15 @@ const Home = () => {
             </Box>
 
             <Box sx={{ ...sx.content, ...(open ? sx.contentWithSidebar : {}) }}>
-                <Container>
-                    <Box sx={sx.wrapper}>
-                        <Paper
-                            elevation={0}
-                            sx={{
-                                ...sx.card,
-                                border: '1px solid',
-                                borderColor: 'divider',
-                            }}
-                        >
-                            <Typography variant="h4" sx={sx.title}>
-                                Welcome to the Home Page
-                            </Typography>
-
-                            <Typography color="text.secondary">
-                                This is the home page of our application.
-                            </Typography>
-                        </Paper>
+                <Container maxWidth="xl" sx={{ mt: 1 }}>
+                    <AppBreadcrumbs />
+                    <Box sx={{ p: 3, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                        <Typography variant="h4" gutterBottom fontWeight={600}>
+                            Заявки
+                        </Typography>
+                        <AddAction onClick={() => navigate("/", { state: { from: location.pathname } })} />
                     </Box>
+                    <Divider sx={{ mb: 1 }} />
                 </Container>
             </Box>
         </Box>
