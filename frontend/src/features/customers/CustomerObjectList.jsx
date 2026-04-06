@@ -4,7 +4,7 @@ import { useLocation, useNavigate, useParams } from 'react-router-dom'
 import {
     Box,
     CircularProgress,
-    Divider,
+    Divider, Stack,
     Table,
     TableBody,
     TableCell,
@@ -24,8 +24,11 @@ import { useConfirmDelete } from '../../hooks/useConfirmDelete.js'
 import useSnackbar from '../../hooks/useSnackbar.js'
 
 import { useDeleteCustomerObject, useGetCustomerObjects } from './customers.queries.js'
+import EditAction from "../../components/ui/buttons/EditAction.jsx";
+import {Edit as EditIcon} from "@mui/icons-material";
+import DeleteAction from "../../components/ui/buttons/DeleteAction.jsx";
 
-const tableHeaders = ['Тип', 'Грузоподъемность', 'Госномер', 'Примечание', '']
+const tableHeaders = ['Наименование', 'Адрес', '']
 
 export default function CustomerObjectListPage() {
     const navigate = useNavigate()
@@ -63,7 +66,7 @@ export default function CustomerObjectListPage() {
                 </Typography>
                 <AddAction
                     onClick={() =>
-                        navigate(`/customers/${entity?.id}/customer_objects/create`, {
+                        navigate(`/customers/${entity?.id}/construction_objects/create`, {
                             state: { entity },
                         })
                     }
@@ -100,7 +103,23 @@ export default function CustomerObjectListPage() {
 
                         <TableBody>
                             {customer_objects.length > 0 ? (
-                                customer_objects.map((truck) => <TableRow key={truck.id} hover></TableRow>)
+                                customer_objects.map((co) => <TableRow key={co.id} hover>
+                                    <TableCell>{co.name}</TableCell>
+                                    <TableCell>{co.address}</TableCell>
+                                    <TableCell align="right">
+                                        <Stack direction="row" spacing={1} justifyContent="flex-end">
+                                            <EditAction
+                                                onClick={() =>
+                                                    navigate(`/customers/${id}/construction_objects/${co.id}/edit`, {
+                                                        state: { entity },
+                                                    })
+                                                }
+                                                icon={<EditIcon fontSize="small" />}
+                                            />
+                                            <DeleteAction onClick={() => handleDeleteObject(co)} />
+                                        </Stack>
+                                    </TableCell>
+                                </TableRow>)
                             ) : (
                                 <TableRow>
                                     <TableCell

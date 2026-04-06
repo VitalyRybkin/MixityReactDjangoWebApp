@@ -17,7 +17,9 @@ const ObjectListViewCard = ({ title, subtitle, address, email, phone, fileUrl, t
     const location = useLocation()
 
     return (
-        <Card sx={{ width: '100%', mb: 0 }}>
+        <Card sx={{ width: '100%', mb: 0,                 bgcolor: 'background.paper',
+            border: '1px solid',
+            borderColor: 'divider', }}>
             <CardActionArea component="div" onClick={() => navigate(to)} sx={{ cursor: 'pointer' }}>
                 <CardContent>
                     <Stack direction="row" justifyContent="space-between" alignItems="center">

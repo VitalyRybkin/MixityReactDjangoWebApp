@@ -14,7 +14,7 @@ const TopBarNav = () => {
     return (
         <Stack direction="row" spacing={2} sx={{ ml: 3 }}>
             <Button component={NavLink} to="/" color="inherit" sx={buttonSx}>
-                Заявки
+                Главная
             </Button>
 
             <Button component={NavLink} to="/carriers" color="inherit" sx={buttonSx}>

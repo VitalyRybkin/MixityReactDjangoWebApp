@@ -2,5 +2,9 @@ export const customerApiPaths = {
     listCreate: () => '/api/orders/customers/',
     detail: (id) => `/api/orders/customers/${id}/`,
     contacts: (id) => `/api/orders/customers/${id}/contacts/`,
-    construction_objects: (id) => `/api/orders/customers/${id}/construction_objects/`,
+}
+
+export const constructionObjectsApiPaths = {
+    listCreate: (id) => `/api/orders/customers/${id}/construction_objects/`,
+    detail: (id, objectId) => `/api/orders/customers/${id}/construction_objects/${objectId}/`,
 }
