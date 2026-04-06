@@ -26,6 +26,7 @@ import Home from './pages/Home.jsx'
 import Login from './pages/Login.jsx'
 import NotFound from './pages/NotFound.jsx'
 import ConstructionObjectFormPage from "./features/customers/ConstructionObjectForm.jsx";
+import FullWidthLayout from "./layouts/FullWidthLayout.jsx";
 
 function Logout() {
     localStorage.removeItem(ACCESS_TOKEN)
@@ -48,7 +49,7 @@ function App() {
                     </ProtectedRoute>
                 }
             >
-                <Route path="/" element={<Home />} />
+                {/*<Route path="/" element={<Home />} />*/}
                 <Route path="/carriers" element={<CarriersList />} />
                 <Route path="/carriers/create" element={<CarrierFormPage />} />
                 <Route path="/carriers/:id" element={<CarrierDetailPage />} />
@@ -80,6 +81,17 @@ function App() {
                 <Route path="/customers/:id/construction_objects/create" element={<ConstructionObjectFormPage />} />
 
                 <Route path="/documentation" element={<DocumentationListPage />} />
+            </Route>
+
+            {/* Protected pages with full-width layout */}
+            <Route
+                element={
+                    <ProtectedRoute>
+                        <FullWidthLayout />
+                    </ProtectedRoute>
+                }
+            >
+                <Route path="/" element={<Home />} />
             </Route>
 
             {/* 404 */}
