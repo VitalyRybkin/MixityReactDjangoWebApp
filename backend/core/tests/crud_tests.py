@@ -270,7 +270,7 @@ class CrudContractMixin(_Base):
         resp = self.client.post(self.url, data=payload, format="json")
 
         self.assertEqual(resp.status_code, 400)
-        error_text = "Provide exactly one of 'carrier' or 'warehouse'"
+        error_text = "Provide exactly one of carrier, warehouse, client, customer."
 
         error_found = any(
             (error_text in err or "non_field_errors" in err) for err in resp.data

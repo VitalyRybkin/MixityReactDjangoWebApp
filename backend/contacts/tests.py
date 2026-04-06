@@ -10,6 +10,7 @@ from core.tests.base_view_test_case import BaseViewTestCase
 from core.tests.utils import FieldSpec
 from logistic.routes import CarrierRoutes
 from logistic.tests.factories import CarrierFactory
+from order.tests.factories import ClientFactory, CustomerFactory
 from stock.routes import WarehouseRoutes
 from stock.tests.factories import WarehouseFactory
 
@@ -65,17 +66,26 @@ class TestContactAPICreate(BaseAPIMixin):
     def test_str_method(self) -> None:
         """Test the string representation of a contact object."""
         contact = self.obj
-        expected = f"{contact.first_name} {contact.last_name}"
+        expected = f"Контакт: {contact.first_name} {contact.last_name}"
         self._str_method_logic(expected)
 
     def test_invalid_xor_both(self) -> None:
         """Test that we can't create a contact with both a carrier and warehouse."""
         carrier = CarrierFactory.create()
         warehouse = WarehouseFactory.create()
+        client = ClientFactory.create()
+        customer = CustomerFactory.create()
 
         temp = self.factory.build()
         payload = self.payload_generator(temp)
-        payload.update({"carrier": carrier.id, "warehouse": warehouse.id})
+        payload.update(
+            {
+                "carrier": carrier.id,
+                "warehouse": warehouse.id,
+                "client": client.id,
+                "customer": customer.id,
+            }
+        )
         print(
             f"\n{self.COLOR['OK']}▶ Testing: create CONTACT with {self.COLOR['OK']}both CARRIER and WAREHOUSE"
             f"{self.COLOR['END']}:",

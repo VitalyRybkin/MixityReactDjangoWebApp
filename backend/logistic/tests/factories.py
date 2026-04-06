@@ -24,7 +24,7 @@ class CarrierFactory(factory.django.DjangoModelFactory):
         model = Carrier
 
     name = factory.Faker("company")
-    full_name = factory.Faker("company")
+    organization = factory.Faker("company")
     address = factory.Faker("address")
     description = factory.Faker("text")
     is_active = True

@@ -32,7 +32,7 @@ class CarrierBaseTest:
     fields_map = {
         "id": FieldSpec("id", int),
         "name": FieldSpec("name", str, required=True, unique=True),
-        "fullName": FieldSpec("full_name", str, required=True),
+        "organization": FieldSpec("organization", str),
         "address": FieldSpec("address", str),
         "description": FieldSpec("description", str),
         "isActive": FieldSpec("is_active", bool),
@@ -85,7 +85,7 @@ class TestCarrierAPIList(CarrierBaseTest, BaseAPIMixin):
 
         payload = {
             "name": temp_data.name,
-            "fullName": temp_data.full_name,
+            "organization": temp_data.organization,
             "isActive": temp_data.is_active,
             "phone": str(temp_data.phone),
         }

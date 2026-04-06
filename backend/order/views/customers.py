@@ -1,6 +1,9 @@
+from typing import Any
+
 from django.db.models import QuerySet
 from rest_framework import generics
 from rest_framework.permissions import AllowAny
+from rest_framework.serializers import BaseSerializer
 
 from contacts.models import Contact
 from contacts.selectors import ContactSelector
@@ -11,8 +14,11 @@ from core.openapi.base_views import (
     BaseListCreateAPIView,
     BaseRetrieveUpdateDestroyAPIView,
 )
-from order.models import Customer, ConstructionObject
-from order.serializers.customer_serializers import CustomerSerializer, CustomerObjectsSerializer
+from order.models import ConstructionObject, Customer
+from order.serializers.customer_serializers import (
+    CustomerObjectsSerializer,
+    CustomerSerializer,
+)
 
 
 class BaseCustomerGenericAPIView(generics.GenericAPIView):
@@ -79,11 +85,12 @@ class CustomerObjectsListCreateAPIView(BaseListCreateAPIView):
 
     serializer_class = CustomerObjectsSerializer
 
-    def get_queryset(self):
+    def get_queryset(self) -> QuerySet[ConstructionObject]:
         return ConstructionObject.objects.active().filter(customer_id=self.kwargs["pk"])
 
-    def perform_create(self, serializer):
+    def perform_create(self, serializer: BaseSerializer[Any]) -> None:
         serializer.save(customer_id=self.kwargs["pk"])
+
 
 class CustomerObjectRetrieveUpdateDestroyAPIView(BaseRetrieveUpdateDestroyAPIView):
     """
@@ -100,7 +107,5 @@ class CustomerObjectRetrieveUpdateDestroyAPIView(BaseRetrieveUpdateDestroyAPIVie
 
     lookup_url_kwarg = "object_pk"
 
-    def get_queryset(self):
-        return ConstructionObject.objects.filter(
-            customer_id=self.kwargs["pk"]
-        )
+    def get_queryset(self) -> QuerySet[ConstructionObject]:
+        return ConstructionObject.objects.filter(customer_id=self.kwargs["pk"])
