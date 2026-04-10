@@ -22,7 +22,7 @@ class OrderResourcesAPIView(BaseGenericAPIView):
 
     def get(self, request: Request, *args: Any, **kwargs: Any) -> Response:
         clients = Client.objects.active()
-        customers = Customer.objects.active()
+        customers = Customer.objects.active().prefetch_related("customer_objects")
 
         serializer = self.get_serializer(
             {

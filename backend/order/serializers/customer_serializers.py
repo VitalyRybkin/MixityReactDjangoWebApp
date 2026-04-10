@@ -40,14 +40,14 @@ class CustomerSerializer(serializers.ModelSerializer):
         return validate_ru_phone(value)
 
 
-class BaseCustomerSerializer(serializers.ModelSerializer):
+class BaseCustomerObjectsSerializer(serializers.ModelSerializer):
     class Meta:
         model = ConstructionObject
         fields = ["id", "name", "address"]
 
 
-class CustomerObjectsSerializer(BaseCustomerSerializer):
+class CustomerObjectsSerializer(BaseCustomerObjectsSerializer):
     customer = serializers.PrimaryKeyRelatedField(read_only=True)
 
-    class Meta(BaseCustomerSerializer.Meta):  # Наследуем Meta
-        fields = BaseCustomerSerializer.Meta.fields + ["customer"]
+    class Meta(BaseCustomerObjectsSerializer.Meta):
+        fields = BaseCustomerObjectsSerializer.Meta.fields + ["customer"]
