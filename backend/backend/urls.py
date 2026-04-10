@@ -21,7 +21,9 @@ urlpatterns = [
     path("api/stock/", include("stock.urls")),
     path("api/contacts/", include("contacts.urls")),
     path("api/common/", include("common.urls")),
-    path("api/orders/", include("order.urls")),
+    path("api/orders/", include("order.urls.clients")),
+    path("api/orders/", include("order.urls.customers")),
+    path("api/orders/", include("order.urls.orders")),
 
     # DRF session login (optional, for browsable API)
     path("api/auth/", include("rest_framework.urls")),
@@ -123,21 +125,57 @@ urlpatterns = [
       name="swagger-common",
     ),
 
-    # Client/Customer-only  OpenAPI
+    # Client-only OpenAPI
     path(
-      "api/schema/client-customer/",
+      "api/schema/client/",
       SpectacularAPIView.as_view(
           permission_classes=[AllowAny],
-          urlconf="order.schema_urls",
+          urlconf="order.schema_clients_urls",
       ),
-      name="schema-client-customer",
+      name="schema-client",
     ),
     path(
-      "api/docs/client-customer/",
+      "api/docs/client/",
       SpectacularSwaggerView.as_view(
-          url_name="schema-client-customer",
+          url_name="schema-client",
           permission_classes=[AllowAny],
       ),
-      name="swagger-client-customer",
+      name="swagger-client",
+    ),
+
+    # Customer-only OpenAPI
+    path(
+      "api/schema/customer/",
+      SpectacularAPIView.as_view(
+          permission_classes=[AllowAny],
+          urlconf="order.schema_customers_urls",
+      ),
+      name="schema-customer",
+    ),
+    path(
+      "api/docs/customer/",
+      SpectacularSwaggerView.as_view(
+          url_name="schema-customer",
+          permission_classes=[AllowAny],
+      ),
+      name="swagger-customer",
+    ),
+
+    # Order-only OpenAPI
+    path(
+      "api/schema/orders/",
+      SpectacularAPIView.as_view(
+          permission_classes=[AllowAny],
+          urlconf="order.schema_orders_urls",
+      ),
+      name="schema-order",
+    ),
+    path(
+      "api/docs/orders/",
+      SpectacularSwaggerView.as_view(
+          url_name="schema-order",
+          permission_classes=[AllowAny],
+      ),
+      name="swagger-order",
     ),
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

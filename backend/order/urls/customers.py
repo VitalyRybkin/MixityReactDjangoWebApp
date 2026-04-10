@@ -1,11 +1,6 @@
 from django.urls import path
 
-from order.routes import ClientRoutes, ConstructionObjectsRoutes, CustomerRoutes
-from order.views.clients import (
-    ClientContactListAPIView,
-    ClientListCreateAPIView,
-    ClientRetrieveUpdateDestroyAPIView,
-)
+from order.routes import ConstructionObjectsRoutes, CustomerRoutes
 from order.views.customers import (
     CustomerContactListAPIView,
     CustomerListCreateAPIView,
@@ -14,24 +9,9 @@ from order.views.customers import (
     CustomerRetrieveUpdateDestroyAPIView,
 )
 
-app_name = "order"
+app_name = "order_customers"
 
 urlpatterns = [
-    path(
-        ClientRoutes.LIST_CREATE.path,
-        ClientListCreateAPIView.as_view(),
-        name=ClientRoutes.LIST_CREATE.name,
-    ),
-    path(
-        ClientRoutes.DETAIL.path,
-        ClientRetrieveUpdateDestroyAPIView.as_view(),
-        name=ClientRoutes.DETAIL.name,
-    ),
-    path(
-        ClientRoutes.CONTACTS.path,
-        ClientContactListAPIView.as_view(),
-        name=ClientRoutes.CONTACTS.name,
-    ),
     path(
         CustomerRoutes.LIST_CREATE.path,
         CustomerListCreateAPIView.as_view(),

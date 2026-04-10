@@ -36,3 +36,9 @@ class ConstructionObjectsRoutes:
         "customers/<int:pk>/construction_objects/<int:object_pk>/",
         "customer_object_detail",
     )
+
+
+class OrderRoutes:
+    LIST_CREATE = ApiRoute("", "order_list_create")
+    DETAIL = ApiRoute("<int:pk>/", "order_detail")
+    RESOURCES = ApiRoute("api/orders/resources/", "order_resources")
