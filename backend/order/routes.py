@@ -41,4 +41,4 @@ class ConstructionObjectsRoutes:
 class OrderRoutes:
     LIST_CREATE = ApiRoute("", "order_list_create")
     DETAIL = ApiRoute("<int:pk>/", "order_detail")
-    RESOURCES = ApiRoute("api/orders/resources/", "order_resources")
+    RESOURCES = ApiRoute("resources/", "order_resources")

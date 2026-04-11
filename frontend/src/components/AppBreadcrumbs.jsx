@@ -1,6 +1,8 @@
 import React from 'react'
-import { Breadcrumbs, Link, Typography } from '@mui/material'
 import { Link as RouterLink, matchPath, useLocation } from 'react-router-dom'
+
+import { Breadcrumbs, Link, Typography } from '@mui/material'
+
 import { routes } from '../routes/routes'
 
 function normalizePath(path) {
@@ -27,9 +29,7 @@ export default function AppBreadcrumbs({ dynamicLabels = {} }) {
 
     const crumbs = urls
         .map((url) => {
-            const matchedRoute = sortedRoutes.find((route) =>
-                matchPath({ path: route.path, end: true }, url)
-            )
+            const matchedRoute = sortedRoutes.find((route) => matchPath({ path: route.path, end: true }, url))
 
             if (!matchedRoute) return null
 
@@ -47,7 +47,7 @@ export default function AppBreadcrumbs({ dynamicLabels = {} }) {
         .filter(Boolean)
 
     return (
-        <Breadcrumbs sx={{ mb: 4 }}>
+        <Breadcrumbs sx={{ mb: 0 }}>
             <Link component={RouterLink} underline="hover" color="inherit" to="/">
                 Главная
             </Link>
@@ -60,13 +60,7 @@ export default function AppBreadcrumbs({ dynamicLabels = {} }) {
                         {crumb.label}
                     </Typography>
                 ) : (
-                    <Link
-                        key={crumb.to}
-                        component={RouterLink}
-                        underline="hover"
-                        color="inherit"
-                        to={crumb.to}
-                    >
+                    <Link key={crumb.to} component={RouterLink} underline="hover" color="inherit" to={crumb.to}>
                         {crumb.label}
                     </Link>
                 )

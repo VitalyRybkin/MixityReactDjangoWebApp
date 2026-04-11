@@ -1,10 +1,12 @@
 import React, { useState } from 'react'
+import { useNavigate } from 'react-router-dom'
+
 import ChevronLeftIcon from '@mui/icons-material/ChevronLeft'
 import ChevronRightIcon from '@mui/icons-material/ChevronRight'
-import {Box, Button, Container, Divider, Tooltip, Typography} from '@mui/material'
-import AppBreadcrumbs from "../components/AppBreadcrumbs.jsx";
-import AddAction from "../components/ui/buttons/AddAction.jsx";
-import {useNavigate} from "react-router-dom";
+import { Box, Button, Container, Divider, Tooltip, Typography } from '@mui/material'
+
+import AppBreadcrumbs from '../components/AppBreadcrumbs.jsx'
+import AddAction from '../components/ui/buttons/AddAction.jsx'
 
 const SIDEBAR_WIDTH = 280
 const TOPBAR_HEIGHT = 64
@@ -60,10 +62,6 @@ const sx = {
         maxWidth: 700,
         width: '100%',
     },
-    title: {
-        fontWeight: 700,
-        mb: 2,
-    },
     wrapper: {
         display: 'flex',
         justifyContent: 'center',
@@ -74,19 +72,13 @@ const Home = () => {
     const [open, setOpen] = useState(true)
     const navigate = useNavigate()
 
-
     return (
         <Box sx={sx.page}>
             <Box sx={sx.sidebar(open)}>
                 {open ? (
                     <>
                         <Tooltip title="Закрыть" placement="bottom" arrow>
-                            <Button
-                                variant="outlined"
-                                onClick={() => setOpen(false)}
-                                fullWidth
-                                sx={sx.closeButton}
-                            >
+                            <Button variant="outlined" onClick={() => setOpen(false)} fullWidth sx={sx.closeButton}>
                                 <ChevronLeftIcon />
                             </Button>
                         </Tooltip>
@@ -98,11 +90,7 @@ const Home = () => {
                 ) : (
                     <Box sx={sx.collapsedButtonWrapper}>
                         <Tooltip title="Открыть" placement="right" arrow>
-                            <Button
-                                variant="outlined"
-                                onClick={() => setOpen(true)}
-                                sx={sx.collapsedButton}
-                            >
+                            <Button variant="outlined" onClick={() => setOpen(true)} sx={sx.collapsedButton}>
                                 <ChevronRightIcon fontSize="small" />
                             </Button>
                         </Tooltip>
@@ -117,7 +105,7 @@ const Home = () => {
                         <Typography variant="h4" gutterBottom fontWeight={600}>
                             Заявки
                         </Typography>
-                        <AddAction onClick={() => navigate("/", { state: { from: location.pathname } })} />
+                        <AddAction onClick={() => navigate('/orders/create', { state: { from: location.pathname } })} />
                     </Box>
                     <Divider sx={{ mb: 1 }} />
                 </Container>

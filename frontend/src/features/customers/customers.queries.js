@@ -1,7 +1,8 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 
 import api from '../../api.js'
-import {constructionObjectsApiPaths, customerApiPaths} from "./customerApiPaths.js";
+
+import { constructionObjectsApiPaths, customerApiPaths } from './customerApiPaths.js'
 
 // --- UTILS ---
 const unwrapList = (data) => {
@@ -12,7 +13,7 @@ const unwrapList = (data) => {
 
 // --- QUERY KEYS ---
 export const customerKeys = {
-    all: ['customer'], // Базовый ключ для всех запросов клиента
+    all: ['customer'],
     list: () => [...customerKeys.all, 'list'],
     detail: (id) => [...customerKeys.all, 'detail', String(id)],
     contacts: (id) => [...customerKeys.all, 'detail', String(id), 'contacts'],
@@ -91,8 +92,8 @@ export function useGetCustomerObject(id, objectId) {
     return useQuery({
         queryKey: [...customerKeys.detail(id), objectId],
         queryFn: () => {
-            if (!objectId) return null;
-            return fetchCustomerObjectDetail(id, objectId);
+            if (!objectId) return null
+            return fetchCustomerObjectDetail(id, objectId)
         },
         enabled: Boolean(id && objectId),
     })
@@ -123,7 +124,7 @@ export function useUpdateCustomerObject() {
         onSuccess: async (data, variables) => {
             await queryClient.invalidateQueries({ queryKey: customerKeys.list() })
             await queryClient.invalidateQueries({
-                queryKey: [...customerKeys.detail(variables.id), variables.objectId]
+                queryKey: [...customerKeys.detail(variables.id), variables.objectId],
             })
         },
     })

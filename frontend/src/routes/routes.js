@@ -95,4 +95,8 @@ export const routes = [
         path: '/customers/:id/customer_objects/create',
         breadcrumb: 'Создать объект',
     },
+    {
+        path: '/orders/create',
+        breadcrumb: 'Заявка',
+    },
 ]
