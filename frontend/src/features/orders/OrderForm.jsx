@@ -12,22 +12,37 @@ import {
     MenuItem,
     Paper,
     Select,
+    Stack,
     TextField,
     Typography,
 } from '@mui/material'
 
 import AppBreadcrumbs from '../../components/AppBreadcrumbs.jsx'
 import ErrorState from '../../components/ui/ErrorState.jsx'
+import CancelAction from '../../components/ui/buttons/CancelAction.jsx'
+import SaveAction from '../../components/ui/buttons/SaveAction.jsx'
 import { useFormLogic } from '../../hooks/useEntityForm.js'
 
 import { useCreateOrder, useGetOrder, useGetOrderResources, useUpdateOrder } from './orders.queries.js'
 
+const today = new Date()
+const tomorrow = new Date(today)
+tomorrow.setDate(today.getDate() + 1)
+
 const emptyForm = {
     id: '',
     created_at: '',
-    delivery_date: '',
+    delivery_date: tomorrow.toISOString().split('T')[0],
     client: '',
     customer: '',
+    status: 'Черновик',
+}
+
+const orderStatus = {
+    Черновик: 'draft',
+    Создан: 'created',
+    'В процессе': 'in_progress',
+    Завершен: 'completed',
 }
 
 export default function OrderFormPage() {
@@ -42,7 +57,9 @@ export default function OrderFormPage() {
 
     const [client, setClient] = useState('')
     const [customer, setCustomer] = useState(null)
-    const [object, setObject] = useState(null)
+    const [objects, setObjects] = useState(null)
+    const [contacts, setContacts] = useState(null)
+    const [status, setStatus] = useState('Черновик')
 
     const saving = createOrder.isPending || updateOrder.isPending
 
@@ -66,10 +83,13 @@ export default function OrderFormPage() {
         <Box sx={{ pt: 1, px: 3, pb: 3 }}>
             <AppBreadcrumbs />
             <Paper sx={{ p: 3, borderRadius: 3 }}>
-                <Typography variant="h5" color="text.secondary" sx={{ mb: 0 }}>
-                    {isEdit ? `Редактировать заявку №${form.id || ''}` : 'Создать заявку'}
-                </Typography>
-
+                <Stack direction="row" spacing={2} alignItems="center" sx={{ mb: 0 }}>
+                    <Typography variant="h5" color="text.secondary" sx={{ flexGrow: 1, whiteSpace: 'nowrap' }}>
+                        {isEdit ? `Редактировать заказ №${form.id || ''}` : 'Создать заказ'}
+                    </Typography>
+                    <SaveAction onClick={() => navigate('/')} />
+                    <CancelAction onClick={() => navigate('/')} />
+                </Stack>
                 {error && (
                     <Alert severity="error" sx={{ mb: 2 }}>
                         {error}
@@ -88,49 +108,101 @@ export default function OrderFormPage() {
             ) : (
                 <>
                     {' '}
-                    <FormControl fullWidth variant="outlined" sx={{ mb: 2 }}>
-                        <InputLabel htmlFor="client-id-input">Клиент</InputLabel>
-                        <Select
-                            label="Клиент"
-                            value={client}
-                            onChange={(e) => setClient(e.target.value)}
-                            inputProps={{
-                                id: 'client-id-input',
+                    <Stack spacing={2} direction="row" sx={{ mb: 0, alignItems: 'flex-start' }}>
+                        <Stack spacing={2} sx={{ flex: 1 }}>
+                            <Stack direction="row" spacing={2} alignItems="center">
+                                <TextField
+                                    label="Дата доставки"
+                                    type="date"
+                                    size="small"
+                                    value={form.delivery_date}
+                                    onChange={(e) => setForm({ ...form, delivery_date: e.target.value })}
+                                />
+                                <FormControl variant="outlined" size="small" sx={{ flexGrow: 1 }}>
+                                    <InputLabel id="status-label">Статус</InputLabel>
+                                    <Select
+                                        labelId="status-label"
+                                        label="Статус"
+                                        value={status}
+                                        onChange={(e) => setStatus(e.target.value)}
+                                    >
+                                        {Object.keys(orderStatus).map((item) => (
+                                            <MenuItem key={item} value={item}>
+                                                {item}
+                                            </MenuItem>
+                                        ))}
+                                    </Select>
+                                </FormControl>
+                            </Stack>
+
+                            <FormControl fullWidth variant="outlined" size="small">
+                                <InputLabel id="client-label">Клиент</InputLabel>
+                                <Select
+                                    labelId="client-label"
+                                    label="Клиент"
+                                    value={client}
+                                    onChange={(e) => setClient(e.target.value)}
+                                >
+                                    {(order_resources?.clients || []).map((item) => (
+                                        <MenuItem key={item.id} value={item.id}>
+                                            {item.name}
+                                        </MenuItem>
+                                    ))}
+                                </Select>
+                            </FormControl>
+                        </Stack>
+
+                        <Box
+                            component="fieldset"
+                            sx={{
+                                flex: 1,
+                                border: '1px solid',
+                                borderColor: 'divider',
+                                borderRadius: 1,
+                                p: 2,
+                                m: 0,
+                                display: 'flex',
+                                flexDirection: 'column',
+                                gap: 2,
+                                '&:hover': {
+                                    borderColor: 'text.secondary',
+                                },
                             }}
                         >
-                            {(order_resources?.clients || []).map((item) => (
-                                <MenuItem key={item.id} value={item.id}>
-                                    {item.name}
-                                </MenuItem>
-                            ))}
-                        </Select>
-                    </FormControl>
-                    <Autocomplete
-                        options={order_resources?.customers || []}
-                        getOptionLabel={(option) => option.name || ''}
-                        value={customer}
-                        isOptionEqualToValue={(option, value) => option.id === value?.id}
-                        onChange={(event, newValue) => {
-                            setCustomer(newValue)
-                            setObject(null)
-                        }}
-                        noOptionsText="Заказчик не найден"
-                        renderInput={(params) => <TextField {...params} label="Заказчик" />}
-                        sx={{ mb: 2 }}
-                    />
-                    <Autocomplete
-                        options={customer?.customer_objects || []}
-                        getOptionLabel={(option) => (option ? `${option.name} (${option.address})` : '')}
-                        value={object}
-                        isOptionEqualToValue={(option, value) => option.id === value?.id}
-                        onChange={(event, newValue) => {
-                            setObject(newValue)
-                        }}
-                        disabled={!customer}
-                        noOptionsText={customer ? 'У этого заказчика нет объектов' : 'Сначала выберите заказчика'}
-                        renderInput={(params) => <TextField {...params} label="Объект / Адрес" />}
-                        sx={{ mb: 2 }}
-                    />
+                            <Typography
+                                component="legend"
+                                variant="caption"
+                                sx={{
+                                    px: 1,
+                                    color: 'text.secondary',
+                                    fontWeight: 'medium',
+                                }}
+                            >
+                                Данные заказчика
+                            </Typography>
+
+                            <Autocomplete
+                                size="small"
+                                options={order_resources?.customers || []}
+                                getOptionLabel={(option) => option.name || ''}
+                                value={customer}
+                                onChange={(event, newValue) => {
+                                    setCustomer(newValue)
+                                    setObjects(null)
+                                }}
+                                renderInput={(params) => <TextField {...params} label="Заказчик" />}
+                            />
+                            <Autocomplete
+                                size="small"
+                                options={customer?.customer_objects || []}
+                                getOptionLabel={(option) => (option ? `${option.name} [ ${option.address} ]` : '')}
+                                value={objects}
+                                onChange={(event, newValue) => setObjects(newValue)}
+                                disabled={!customer}
+                                renderInput={(params) => <TextField {...params} label="Объект / Адрес" />}
+                            />
+                        </Box>
+                    </Stack>
                 </>
             )}
         </Box>
