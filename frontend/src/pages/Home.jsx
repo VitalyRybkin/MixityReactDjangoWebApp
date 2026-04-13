@@ -69,7 +69,7 @@ const sx = {
 }
 
 const Home = () => {
-    const [open, setOpen] = useState(true)
+    const [open, setOpen] = useState(false)
     const navigate = useNavigate()
 
     return (

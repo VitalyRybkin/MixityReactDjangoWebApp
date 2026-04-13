@@ -17,6 +17,8 @@ import {
 } from '@mui/material'
 import { TimePicker } from '@mui/x-date-pickers'
 
+import dayjs from 'dayjs'
+
 import AppBreadcrumbs from '../../components/AppBreadcrumbs.jsx'
 import ErrorState from '../../components/ui/ErrorState.jsx'
 import CancelAction from '../../components/ui/buttons/CancelAction.jsx'
@@ -32,12 +34,12 @@ tomorrow.setDate(today.getDate() + 1)
 const emptyForm = {
     id: '',
     created_at: '',
-    delivery_date: tomorrow.toISOString().split('T')[0],
-    delivery_from: '10:00',
-    delivery_to: '18:00',
+    deliveryDate: tomorrow.toISOString().split('T')[0],
+    deliveryFrom: null,
+    deliveryTo: null,
     client: '',
     customer: '',
-    status: 'Черновик',
+    status: 'draft',
     description: '',
 }
 
@@ -57,7 +59,7 @@ const fieldsetStyles = {
     m: 0,
     display: 'flex',
     flexDirection: 'column',
-    gap: 3.2,
+    gap: 2.1,
     '&:hover': {
         borderColor: 'text.secondary',
     },
@@ -73,10 +75,6 @@ export default function OrderFormPage() {
     const createOrder = useCreateOrder()
     const updateOrder = useUpdateOrder()
 
-    const [client, setClient] = useState('')
-    const [customer, setCustomer] = useState(null)
-    const [objects, setObjects] = useState(null)
-    const [contacts, setContacts] = useState([])
     const saving = createOrder.isPending || updateOrder.isPending
 
     const { form, setForm, error, setError, onChange, onSubmit } = useFormLogic({
@@ -87,13 +85,16 @@ export default function OrderFormPage() {
         createMutation: createOrder,
         redirectPath: '/',
     })
-    //
-    // useEffect(() => {
-    //     if (!isEdit) {
-    //         setForm(emptyForm)
-    //         return
-    //     }
-    // })
+
+    useEffect(() => {
+        if (isEdit && form.deliveryFrom && typeof form.deliveryFrom === 'string') {
+            setForm((prev) => ({
+                ...prev,
+                deliveryFrom: dayjs(form.deliveryFrom, 'HH:mm'),
+                deliveryTo: dayjs(form.deliveryTo, 'HH:mm'),
+            }))
+        }
+    }, [isEdit])
 
     return (
         <Box sx={{ p: 3, width: '100%' }}>
@@ -130,7 +131,7 @@ export default function OrderFormPage() {
             ) : (
                 <>
                     {' '}
-                    <Stack spacing={2} direction="row" sx={{ mb: 0, alignItems: 'flex-start' }}>
+                    <Stack spacing={2} direction="row" sx={{ mb: 0, alignItems: 'stretch' }}>
                         <Box component="fieldset" sx={fieldsetStyles}>
                             <Typography
                                 component="legend"
@@ -149,23 +150,15 @@ export default function OrderFormPage() {
                                         label="Дата доставки"
                                         type="date"
                                         size="small"
-                                        value={form.delivery_date}
-                                        onChange={(e) =>
-                                            setForm({ ...form, delivery_date: orderStatus[e.target.value] })
-                                        }
+                                        value={form.deliveryDate}
+                                        onChange={onChange('deliveryDate')}
                                     />
                                     <FormControl variant="outlined" size="small" sx={{ flexGrow: 1 }}>
                                         <InputLabel id="status-label">Статус</InputLabel>
-                                        <Select
-                                            labelId="status-label"
-                                            label="Статус"
-                                            value="Черновик"
-                                            // onChange={(e) => setStatus(e.target.value)}
-                                            onChange={(e) => setForm({ ...form, status: e.target.value })}
-                                        >
-                                            {Object.keys(orderStatus).map((item) => (
-                                                <MenuItem key={item} value={item}>
-                                                    {item}
+                                        <Select label="Статус" value={form.status || ''} onChange={onChange('status')}>
+                                            {Object.entries(orderStatus).map(([label, value]) => (
+                                                <MenuItem key={value} value={value}>
+                                                    {label}
                                                 </MenuItem>
                                             ))}
                                         </Select>
@@ -176,17 +169,17 @@ export default function OrderFormPage() {
                                         label="Время доставки c:"
                                         ampm={false}
                                         format="HH:mm"
+                                        value={form.deliveryFrom || null}
+                                        onChange={onChange('deliveryFrom')}
                                         slotProps={{ textField: { fullWidth: true } }}
-                                        // value={value}
-                                        // onChange={(newValue) => setValue(newValue)}
                                     />
                                     <TimePicker
                                         label="до:"
                                         ampm={false}
                                         format="HH:mm"
+                                        value={form.deliveryTo || null}
+                                        onChange={onChange('deliveryTo')}
                                         slotProps={{ textField: { fullWidth: true } }}
-                                        // value={value}
-                                        // onChange={(newValue) => setValue(newValue)}
                                     />
                                 </Stack>
 
@@ -195,8 +188,8 @@ export default function OrderFormPage() {
                                     <Select
                                         labelId="client-label"
                                         label="Клиент"
-                                        value={client}
-                                        onChange={(e) => setClient(e.target.value)}
+                                        value={form.client || ''}
+                                        onChange={onChange('client')}
                                     >
                                         {(order_resources?.clients || []).map((item) => (
                                             <MenuItem key={item.id} value={item.id}>
@@ -225,52 +218,49 @@ export default function OrderFormPage() {
                                 size="small"
                                 options={order_resources?.customers || []}
                                 getOptionLabel={(option) => option.name || ''}
-                                value={customer}
+                                value={form.customer || null}
                                 onChange={(event, newValue) => {
-                                    setCustomer(newValue)
-                                    setObjects(null)
-                                    setContacts([])
+                                    onChange('customer')(newValue)
+                                    onChange('object')(null)
+                                    onChange('contacts')([])
                                 }}
                                 renderInput={(params) => <TextField {...params} label="Заказчик" />}
                             />
+
                             <Autocomplete
                                 size="small"
-                                options={customer?.customer_objects || []}
+                                options={form.customer?.customer_objects || []}
                                 getOptionLabel={(option) => (option ? `${option.name} [ ${option.address} ]` : '')}
-                                value={objects}
-                                onChange={(event, newValue) => setObjects(newValue)}
-                                disabled={!customer}
+                                value={form.object || null}
+                                onChange={(event, newValue) => onChange('object')(newValue)}
+                                disabled={!form.customer}
                                 renderInput={(params) => <TextField {...params} label="Объект / Адрес" />}
                             />
+
                             <Autocomplete
                                 multiple
-                                size="small"
-                                options={customer?.contacts || []}
-                                filterSelectedOptions
-                                disabled={!customer}
+                                options={form.customer?.contacts || []}
                                 isOptionEqualToValue={(option, value) => option.id === value.id}
+                                value={form.contacts || []}
+                                onChange={(event, newValue) => onChange('contacts')(newValue)}
+                                disabled={!form.customer}
                                 getOptionLabel={(option) => {
+                                    if (!option || typeof option !== 'object') return ''
+
                                     const name = `${option.firstName || ''} ${option.lastName || ''}`.trim()
                                     const phones = option.phoneNumbers?.map((p) => p.phoneNumber).join(', ') || ''
-                                    return `${name} ${phones ? `- [ ${phones} ]` : ''}`
+
+                                    return `${name} ${phones ? `- [ ${phones} ]` : ''}`.trim() || 'Без имени'
                                 }}
-                                value={contacts || []}
-                                onChange={(event, newValue) => setContacts(newValue)}
-                                renderInput={(params) => (
-                                    <TextField
-                                        {...params}
-                                        label="Контакты заказчика"
-                                        placeholder={contacts?.length === 0 ? 'Выберите контакты' : ''}
-                                    />
-                                )}
+                                renderInput={(params) => <TextField {...params} label="Контакты заказчика" />}
                             />
                         </Box>
                     </Stack>
                     <TextField
                         size="small"
                         label="Примечание"
-                        value={form.description}
-                        onChange={(e) => setForm({ ...form, description: e.target.value })}
+                        value={form.description || ''}
+                        onChange={onChange('description')}
                         multiline
                         rows={4}
                         fullWidth

@@ -1,9 +1,22 @@
-import { useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 
-import { firstError } from '../utils/apiError.js'
-import { normalizeEmailInput, validateEmailValue } from '../utils/email.js'
-import { normalizePhoneInput, validatePhoneValue } from '../utils/phone.js'
+
+
+import { firstError } from '../utils/apiError.js';
+import { normalizeEmailInput, validateEmailValue } from '../utils/email.js';
+import { normalizePhoneInput, validatePhoneValue } from '../utils/phone.js';
+
+
+
+
+
+
+
+
+
+
+
 
 export const useFormLogic = ({ isEdit, id, emptyForm, updateMutation, createMutation, redirectPath }) => {
     const navigate = useNavigate()
@@ -14,7 +27,7 @@ export const useFormLogic = ({ isEdit, id, emptyForm, updateMutation, createMuta
     const [emailError, setEmailError] = useState('')
 
     const onChange = (field) => (e) => {
-        let value = e.target.value
+        let value = e?.target ? e.target.value : e
 
         if (field === 'phone') {
             value = normalizePhoneInput(value)

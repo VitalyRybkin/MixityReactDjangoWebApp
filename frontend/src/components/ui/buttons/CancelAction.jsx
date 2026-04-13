@@ -7,7 +7,7 @@ import IconAction from './IconAction.jsx'
 export default function CancelAction({ ...props }) {
     return (
         <IconAction title="Отменить" {...props}>
-            <CancelOutlinedIcon fontSize="small" />
+            <CancelOutlinedIcon fontSize="small" sx={{ color: 'error.main' }} />{' '}
         </IconAction>
     )
 }

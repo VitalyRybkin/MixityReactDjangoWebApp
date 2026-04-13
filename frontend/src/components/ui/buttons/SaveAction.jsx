@@ -1,13 +1,13 @@
 import React from 'react'
 
-import SaveOutlinedIcon from '@mui/icons-material/SaveOutlined'
+import SaveAltIcon from '@mui/icons-material/SaveAlt'
 
 import IconAction from './IconAction.jsx'
 
 export default function SaveAction({ ...props }) {
     return (
         <IconAction title="Сохранить" {...props}>
-            <SaveOutlinedIcon fontSize="small" />
+            <SaveAltIcon fontSize="small" sx={{ color: 'success.main' }} />
         </IconAction>
     )
 }
