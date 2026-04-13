@@ -1,5 +1,6 @@
 from django.conf import settings
 from django.db import models
+from django.db.models import ManyToManyField
 
 
 class Order(models.Model):
@@ -14,6 +15,14 @@ class Order(models.Model):
 
     delivery_date = models.DateField(
         null=True, blank=True, verbose_name="Дата доставки"
+    )
+
+    delivery_from = models.DateTimeField(
+        null=True, blank=True, verbose_name="Доставка с"
+    )
+
+    delivery_to = models.DateTimeField(
+        null=True, blank=True, verbose_name="Доставка по"
     )
 
     client = models.ForeignKey(
@@ -51,6 +60,14 @@ class Order(models.Model):
         null=True,
         verbose_name="Кто создал",
     )
+
+    description = models.TextField(
+        null=True,
+        blank=True,
+        verbose_name="Описание",
+    )
+
+    contacts = ManyToManyField("contacts.Contact", blank=True)
 
     class Meta:
         verbose_name = "Заказ"

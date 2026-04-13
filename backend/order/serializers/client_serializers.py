@@ -33,4 +33,12 @@ class ClientSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Client
-        fields = "__all__"
+        fields = [
+            "id",
+            "name",
+            "organization",
+            "address",
+            "phone",
+            "email",
+            "isActive"
+        ]
