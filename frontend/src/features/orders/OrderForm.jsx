@@ -45,6 +45,21 @@ const orderStatus = {
     Завершен: 'completed',
 }
 
+const fieldsetStyles = {
+    flex: 1,
+    border: '1px solid',
+    borderColor: 'divider',
+    borderRadius: 1,
+    p: 2,
+    m: 0,
+    display: 'flex',
+    flexDirection: 'column',
+    gap: 2,
+    '&:hover': {
+        borderColor: 'text.secondary',
+    },
+}
+
 export default function OrderFormPage() {
     const { id } = useParams()
     const isEdit = Boolean(id)
@@ -152,23 +167,7 @@ export default function OrderFormPage() {
                             </FormControl>
                         </Stack>
 
-                        <Box
-                            component="fieldset"
-                            sx={{
-                                flex: 1,
-                                border: '1px solid',
-                                borderColor: 'divider',
-                                borderRadius: 1,
-                                p: 2,
-                                m: 0,
-                                display: 'flex',
-                                flexDirection: 'column',
-                                gap: 2,
-                                '&:hover': {
-                                    borderColor: 'text.secondary',
-                                },
-                            }}
-                        >
+                        <Box component="fieldset" sx={fieldsetStyles}>
                             <Typography
                                 component="legend"
                                 variant="caption"
@@ -189,6 +188,7 @@ export default function OrderFormPage() {
                                 onChange={(event, newValue) => {
                                     setCustomer(newValue)
                                     setObjects(null)
+                                    setContacts(null)
                                 }}
                                 renderInput={(params) => <TextField {...params} label="Заказчик" />}
                             />
@@ -200,6 +200,19 @@ export default function OrderFormPage() {
                                 onChange={(event, newValue) => setObjects(newValue)}
                                 disabled={!customer}
                                 renderInput={(params) => <TextField {...params} label="Объект / Адрес" />}
+                            />
+                            <Autocomplete
+                                size="small"
+                                options={customer?.contacts || []}
+                                getOptionLabel={(option) =>
+                                    option
+                                        ? `${option.firstName} ${option.lastName} - [ ${option.phoneNumbers.join(', ')} ]`
+                                        : ''
+                                }
+                                value={contacts}
+                                onChange={(event, newValue) => setContacts(newValue)}
+                                disabled={!customer}
+                                renderInput={(params) => <TextField {...params} label="Контакт" />}
                             />
                         </Box>
                     </Stack>
