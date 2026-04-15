@@ -1,6 +1,8 @@
 from rest_framework import serializers
 
 from contacts.serializers import ContactSerializer
+from order.models import Client, Customer, Order
+from order.order_services.order_create_service import create_order
 from order.serializers.client_serializers import ClientSerializer
 from order.serializers.customer_serializers import (
     BaseCustomerObjectsSerializer,
@@ -24,3 +26,25 @@ class CustomerListSerializer(CustomerSerializer):
 class OrderResourcesSerializer(serializers.Serializer):
     clients = ClientListSerializer(many=True, read_only=True)
     customers = CustomerListSerializer(many=True, read_only=True)
+
+
+class OrderReadSerializer(serializers.ModelSerializer):
+    id = serializers.IntegerField()
+    client = ClientListSerializer()
+    customer = CustomerListSerializer()
+
+    class Meta:
+        model = Order
+        fields = "__all__"
+
+
+class OrderWriteSerializer(serializers.ModelSerializer):
+    client = serializers.PrimaryKeyRelatedField(queryset=Client.objects.active())
+    customer = serializers.PrimaryKeyRelatedField(queryset=Customer.objects.active())
+
+    class Meta:
+        model = Order
+        fields = "__all__"
+
+    def create(self, validated_data: dict) -> Order:
+        return create_order(validated_data)
