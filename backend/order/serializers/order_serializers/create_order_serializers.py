@@ -47,4 +47,7 @@ class OrderWriteSerializer(serializers.ModelSerializer):
         fields = "__all__"
 
     def create(self, validated_data: dict) -> Order:
+        request = self.context.get("request")
+        if request and request.user and request.user.is_authenticated:
+            validated_data["user"] = request.user
         return create_order(validated_data)

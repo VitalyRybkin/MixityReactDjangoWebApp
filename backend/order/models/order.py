@@ -17,11 +17,11 @@ class Order(models.Model):
         null=True, blank=True, verbose_name="Дата доставки"
     )
 
-    delivery_from = models.DateTimeField(
+    delivery_from = models.TimeField(
         null=True, blank=True, verbose_name="Доставка с"
     )
 
-    delivery_to = models.DateTimeField(
+    delivery_to = models.TimeField(
         null=True, blank=True, verbose_name="Доставка по"
     )
 
@@ -67,7 +67,7 @@ class Order(models.Model):
         verbose_name="Описание",
     )
 
-    contacts = ManyToManyField("contacts.Contact", blank=True)
+    contacts = models.ManyToManyField("contacts.Contact", blank=True)
 
     class Meta:
         verbose_name = "Заказ"
