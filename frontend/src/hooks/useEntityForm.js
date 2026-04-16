@@ -1,24 +1,20 @@
-import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 
+import { firstError } from '../utils/apiError.js'
+import { normalizeEmailInput, validateEmailValue } from '../utils/email.js'
+import { normalizePhoneInput, validatePhoneValue } from '../utils/phone.js'
 
-
-import { firstError } from '../utils/apiError.js';
-import { normalizeEmailInput, validateEmailValue } from '../utils/email.js';
-import { normalizePhoneInput, validatePhoneValue } from '../utils/phone.js';
-
-
-
-
-
-
-
-
-
-
-
-
-export const useFormLogic = ({ isEdit, id, emptyForm, updateMutation, createMutation, redirectPath }) => {
+export const useFormLogic = ({
+    isEdit,
+    id,
+    emptyForm,
+    updateMutation,
+    createMutation,
+    redirectPath,
+    toPayload = (form) => form,
+    validate = () => true,
+}) => {
     const navigate = useNavigate()
 
     const [form, setForm] = useState(emptyForm)
@@ -33,6 +29,7 @@ export const useFormLogic = ({ isEdit, id, emptyForm, updateMutation, createMuta
             value = normalizePhoneInput(value)
             setPhoneError(validatePhoneValue(value))
         }
+
         if (field === 'email') {
             value = normalizeEmailInput(value)
             setEmailError(validateEmailValue(value))
@@ -42,13 +39,18 @@ export const useFormLogic = ({ isEdit, id, emptyForm, updateMutation, createMuta
     }
 
     const validateBeforeSubmit = () => {
-        const phoneErr = validatePhoneValue(form.phone)
-        const emailErr = validateEmailValue(form.email)
+        const hasPhoneField = Object.prototype.hasOwnProperty.call(form, 'phone')
+        const hasEmailField = Object.prototype.hasOwnProperty.call(form, 'email')
+
+        const phoneErr = hasPhoneField ? validatePhoneValue(form.phone) : ''
+        const emailErr = hasEmailField ? validateEmailValue(form.email) : ''
 
         setPhoneError(phoneErr)
         setEmailError(emailErr)
 
-        return !phoneErr && !emailErr
+        if (phoneErr || emailErr) return false
+
+        return validate(form)
     }
 
     const onSubmit = async (e) => {
@@ -57,11 +59,13 @@ export const useFormLogic = ({ isEdit, id, emptyForm, updateMutation, createMuta
 
         if (!validateBeforeSubmit()) return
 
+        const payload = toPayload(form)
+
         try {
             if (isEdit) {
-                await updateMutation.mutateAsync({ id, payload: form })
+                await updateMutation.mutateAsync({ id, payload })
             } else {
-                await createMutation.mutateAsync(form)
+                await createMutation.mutateAsync(payload)
             }
             navigate(redirectPath)
         } catch (e2) {
