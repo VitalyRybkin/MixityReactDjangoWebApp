@@ -4,9 +4,11 @@ import { useNavigate } from 'react-router-dom'
 import ChevronLeftIcon from '@mui/icons-material/ChevronLeft'
 import ChevronRightIcon from '@mui/icons-material/ChevronRight'
 import { Box, Button, Container, Divider, Tooltip, Typography } from '@mui/material'
+import { DataGrid } from '@mui/x-data-grid'
 
 import AppBreadcrumbs from '../components/AppBreadcrumbs.jsx'
 import AddAction from '../components/ui/buttons/AddAction.jsx'
+import { useGetOrders } from '../features/orders/orders.queries.js'
 
 const SIDEBAR_WIDTH = 280
 const TOPBAR_HEIGHT = 64
@@ -45,9 +47,6 @@ const sx = {
         p: 0,
         borderRadius: 1,
     },
-    closeButton: {
-        minWidth: 0,
-    },
     content: {
         transition: 'margin-left 0.3s ease',
         ml: `${COLLAPSED_WIDTH}px`,
@@ -56,21 +55,45 @@ const sx = {
     contentWithSidebar: {
         ml: `${SIDEBAR_WIDTH}px`,
     },
-    card: {
-        p: { xs: 4, md: 6 },
-        borderRadius: 4,
-        maxWidth: 700,
-        width: '100%',
-    },
-    wrapper: {
-        display: 'flex',
-        justifyContent: 'center',
-    },
 }
 
 const Home = () => {
     const [open, setOpen] = useState(false)
     const navigate = useNavigate()
+
+    const { data: orders, isPending: loadingOrders, error: loadError, refetch } = useGetOrders()
+
+    const rows = orders ?? []
+
+    const columns = [
+        { field: 'id', headerName: 'Заявка №', flex: 0.7 },
+        {
+            field: 'created_at',
+            headerName: 'Дата заявки',
+            flex: 1.2,
+            valueGetter: (_, row) => (row.created_at ? new Date(row.created_at).toLocaleString() : '—'),
+        },
+        {
+            field: 'client_name',
+            headerName: 'Клиент',
+            flex: 1.2,
+            valueGetter: (_, row) => row.client?.name ?? '—',
+        },
+        {
+            field: 'customer_name',
+            headerName: 'Контрагент',
+            flex: 1.2,
+            valueGetter: (_, row) => row.customer?.name ?? '—',
+        },
+        { field: 'delivery_date', headerName: 'Дата доставки', flex: 1 },
+        {
+            field: 'delivery_window',
+            headerName: 'Время доставки',
+            flex: 1,
+            valueGetter: (_, row) => `${row.delivery_from ?? '—'} – ${row.delivery_to ?? '—'}`,
+        },
+        { field: 'status', headerName: 'Статус', flex: 1 },
+    ]
 
     return (
         <Box sx={sx.page}>
@@ -108,6 +131,19 @@ const Home = () => {
                         <AddAction onClick={() => navigate('/orders/create', { state: { from: location.pathname } })} />
                     </Box>
                     <Divider sx={{ mb: 1 }} />
+                    <DataGrid
+                        rows={rows}
+                        columns={columns}
+                        loading={loadingOrders}
+                        getRowId={(row) => row.id}
+                        disableRowSelectionOnClick
+                        onRowClick={(params) => navigate(`/orders/${params.row.id}`)}
+                        sx={{
+                            '& .MuiDataGrid-row': {
+                                cursor: 'pointer',
+                            },
+                        }}
+                    />
                 </Container>
             </Box>
         </Box>
