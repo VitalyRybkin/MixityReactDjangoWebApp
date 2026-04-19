@@ -1,5 +1,6 @@
 from typing import Any
 
+from django.utils import timezone
 from rest_framework import status
 from rest_framework.permissions import AllowAny
 from rest_framework.request import Request
@@ -48,7 +49,15 @@ class OrderListCreateAPIView(BaseListCreateAPIView):
 
     permission_classes = [AllowAny]
 
-    queryset = Order.objects.all()
+    def get_queryset(self):
+        queryset = Order.objects.all()
+
+        date_from = self.request.query_params.get("date_from")
+        date_to = self.request.query_params.get("date_to")
+
+        queryset = queryset.filter(delivery_date__gte=date_from, delivery_date__lte=date_to)
+
+        return queryset
 
     def get_serializer_class(self) -> Any:
         if self.request.method == "POST":
