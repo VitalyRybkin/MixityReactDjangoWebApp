@@ -50,14 +50,26 @@ class OrderListCreateAPIView(BaseListCreateAPIView):
     permission_classes = [AllowAny]
 
     def get_queryset(self):
-        queryset = Order.objects.all()
+        queryset = Order.objects.select_related("client", "customer")
 
         date_from = self.request.query_params.get("date_from")
         date_to = self.request.query_params.get("date_to")
+        order_status = self.request.query_params.get("status")
+        customer_id = self.request.query_params.get("customer")
 
-        queryset = queryset.filter(delivery_date__gte=date_from, delivery_date__lte=date_to)
+        if date_from:
+            queryset = queryset.filter(delivery_date__gte=date_from)
 
-        return queryset
+        if date_to:
+            queryset = queryset.filter(delivery_date__lte=date_to)
+
+        if order_status:
+            queryset = queryset.filter(status=order_status)
+
+        if customer_id:
+            queryset = queryset.filter(customer_id=customer_id)
+
+        return queryset.order_by("-delivery_date", "-created_at")
 
     def get_serializer_class(self) -> Any:
         if self.request.method == "POST":
