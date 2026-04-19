@@ -1,3 +1,11 @@
+const ORDER_STATUS_LABELS = {
+    draft: 'Черновик',
+    created: 'Создана',
+    in_progress: 'В работе',
+    done: 'Завершена',
+    cancelled: 'Отменена',
+}
+
 export const getOrdersColumns = () => [
     { field: 'id', headerName: 'Заявка №', flex: 0.7 },
     {
@@ -25,5 +33,10 @@ export const getOrdersColumns = () => [
         flex: 1,
         valueGetter: (_, row) => `${row.delivery_from ?? '—'} – ${row.delivery_to ?? '—'}`,
     },
-    { field: 'status', headerName: 'Статус', flex: 1 },
+    {
+        field: 'status',
+        headerName: 'Статус',
+        flex: 1,
+        valueGetter: (_, row) => ORDER_STATUS_LABELS[row.status] ?? row.status ?? '—',
+    },
 ]

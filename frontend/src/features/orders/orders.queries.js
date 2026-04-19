@@ -26,11 +26,13 @@ export const fetchOrderResources = async () => {
     return res.data
 }
 
-export const fetchOrders = async ({ dateFrom, dateTo } = {}) => {
+export const fetchOrders = async ({ dateFrom, dateTo, status, customerId } = {}) => {
     const params = {}
 
     if (dateFrom) params.date_from = dateFrom
     if (dateTo) params.date_to = dateTo
+    if (status) params.status = status
+    if (customerId) params.customer = customerId
 
     const res = await api.get(orderApiPaths.listCreate(), { params })
     return unwrapList(res.data)
@@ -66,11 +68,17 @@ export function useGetOrderResources() {
 }
 
 export function useGetOrders(filters = {}) {
-    const { dateFrom = '', dateTo = '' } = filters
+    const { dateFrom = '', dateTo = '', status = '', customerId = '' } = filters
 
     return useQuery({
-        queryKey: orderKeys.list(dateFrom, dateTo),
-        queryFn: () => fetchOrders({ dateFrom, dateTo }),
+        queryKey: ['orders', dateFrom, dateTo, status, customerId],
+        queryFn: () =>
+            fetchOrders({
+                dateFrom,
+                dateTo,
+                status,
+                customerId,
+            }),
     })
 }
 

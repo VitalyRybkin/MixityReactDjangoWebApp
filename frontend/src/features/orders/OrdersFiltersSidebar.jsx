@@ -1,6 +1,6 @@
 import ChevronLeftIcon from '@mui/icons-material/ChevronLeft'
 import ChevronRightIcon from '@mui/icons-material/ChevronRight'
-import { Box, Button, Divider, TextField, Tooltip, Typography } from '@mui/material'
+import { Box, Button, Divider, MenuItem, TextField, Tooltip, Typography } from '@mui/material'
 
 const SIDEBAR_WIDTH = 300
 const TOPBAR_HEIGHT = 64
@@ -50,6 +50,15 @@ const rangePresetButtons = [
     { value: 'thisMonth', label: 'Этот месяц' },
 ]
 
+const dateFieldProps = {
+    fullWidth: true,
+    size: 'small',
+    margin: 'normal',
+    slotProps: {
+        inputLabel: { shrink: true },
+    },
+}
+
 export default function OrdersFiltersSidebar({
     open,
     setOpen,
@@ -58,6 +67,8 @@ export default function OrdersFiltersSidebar({
     preset,
     setPreset,
     onApply,
+    customers = [],
+    statusOptions = [],
 }) {
     return (
         <Box sx={ordersSidebarSx.sidebar(open)}>
@@ -72,6 +83,7 @@ export default function OrdersFiltersSidebar({
                     <Typography variant="h6" sx={{ mt: 3 }}>
                         Фильтры
                     </Typography>
+
                     <Divider sx={{ my: 2, mb: 0 }} />
 
                     <TextField
@@ -79,12 +91,7 @@ export default function OrdersFiltersSidebar({
                         type="date"
                         value={draftFilters.dateFrom}
                         onChange={(e) => setDraftFilters((prev) => ({ ...prev, dateFrom: e.target.value }))}
-                        fullWidth
-                        size="small"
-                        margin="normal"
-                        slotProps={{
-                            inputLabel: { shrink: true },
-                        }}
+                        {...dateFieldProps}
                     />
 
                     <TextField
@@ -92,15 +99,44 @@ export default function OrdersFiltersSidebar({
                         type="date"
                         value={draftFilters.dateTo}
                         onChange={(e) => setDraftFilters((prev) => ({ ...prev, dateTo: e.target.value }))}
+                        {...dateFieldProps}
+                    />
+
+                    <TextField
+                        label="Статус"
+                        select
+                        value={draftFilters.status}
+                        onChange={(e) => setDraftFilters((prev) => ({ ...prev, status: e.target.value }))}
                         fullWidth
                         size="small"
                         margin="normal"
-                        slotProps={{
-                            inputLabel: { shrink: true },
-                        }}
-                    />
+                    >
+                        <MenuItem value="">Все</MenuItem>
+                        {statusOptions.map((option) => (
+                            <MenuItem key={option.value} value={option.value}>
+                                {option.label}
+                            </MenuItem>
+                        ))}
+                    </TextField>
 
-                    <Button variant="contained" fullWidth onClick={onApply}>
+                    <TextField
+                        label="Контрагент"
+                        select
+                        value={draftFilters.customerId}
+                        onChange={(e) => setDraftFilters((prev) => ({ ...prev, customerId: e.target.value }))}
+                        fullWidth
+                        size="small"
+                        margin="normal"
+                    >
+                        <MenuItem value="">Все</MenuItem>
+                        {customers.map((customer) => (
+                            <MenuItem key={customer.id} value={customer.id}>
+                                {customer.name}
+                            </MenuItem>
+                        ))}
+                    </TextField>
+
+                    <Button variant="contained" fullWidth sx={{ mt: 1 }} onClick={onApply}>
                         Применить
                     </Button>
 

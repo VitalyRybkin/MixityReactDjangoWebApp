@@ -16,6 +16,13 @@ const SIDEBAR_WIDTH = 300
 const TOPBAR_HEIGHT = 64
 const COLLAPSED_WIDTH = 48
 
+const ORDER_STATUS_OPTIONS = [
+    { value: 'draft', label: 'Черновик' },
+    { value: 'created', label: 'Создана' },
+    { value: 'in_progress', label: 'В работе' },
+    { value: 'done', label: 'Завершена' },
+]
+
 const sx = {
     page: {
         minHeight: `calc(100vh - ${TOPBAR_HEIGHT}px)`,
@@ -41,20 +48,33 @@ const Home = () => {
     const [filters, setFilters] = useState({
         dateFrom: today,
         dateTo: today,
+        status: '',
+        customerId: '',
     })
     const [draftFilters, setDraftFilters] = useState({
         dateFrom: today,
         dateTo: today,
+        status: '',
+        customerId: '',
     })
 
-    const activeFilters = useMemo(() => {
-        return preset !== null ? getPresetRange(preset) : filters
-    }, [preset, filters])
+    const activeFilters =
+        preset !== null
+            ? {
+                  ...getPresetRange(preset),
+                  status: filters.status,
+                  customerId: filters.customerId,
+              }
+            : filters
 
-    const { data: orders, isPending: loadingOrders } = useGetOrders(activeFilters)
+    const { data: orders, isPending: loadingOrders, error: loadError, refetch } = useGetOrders(activeFilters)
 
     const rows = orders ?? []
     const columns = useMemo(() => getOrdersColumns(), [])
+
+    const customers = Array.from(
+        new Map(rows.filter((row) => row.customer).map((row) => [row.customer.id, row.customer])).values(),
+    )
 
     const handleApplyFilters = () => {
         setFilters(draftFilters)
@@ -71,6 +91,8 @@ const Home = () => {
                 preset={preset}
                 setPreset={setPreset}
                 onApply={handleApplyFilters}
+                customers={customers}
+                statusOptions={ORDER_STATUS_OPTIONS}
             />
 
             <Box sx={{ ...sx.content, ...(open ? sx.contentWithSidebar : {}) }}>
