@@ -14,9 +14,9 @@ const unwrapList = (data) => {
 // --- QUERY KEYS ---
 export const orderKeys = {
     all: ['order'],
-    list: () => [...orderKeys.all, 'list'],
+    list: (dateFrom, dateTo) => [...orderKeys.all, 'list', { dateFrom, dateTo }],
     detail: (id) => [...orderKeys.all, 'detail', String(id)],
-    resources: (id) => [...orderKeys.all, 'detail', String(id), 'resources'],
+    resources: () => [...orderKeys.all, 'resources'],
 }
 
 // --- API FUNCTIONS ---
@@ -26,8 +26,13 @@ export const fetchOrderResources = async () => {
     return res.data
 }
 
-export const fetchOrders = async () => {
-    const res = await api.get(orderApiPaths.listCreate())
+export const fetchOrders = async ({ dateFrom, dateTo } = {}) => {
+    const params = {}
+
+    if (dateFrom) params.date_from = dateFrom
+    if (dateTo) params.date_to = dateTo
+
+    const res = await api.get(orderApiPaths.listCreate(), { params })
     return unwrapList(res.data)
 }
 
@@ -60,10 +65,12 @@ export function useGetOrderResources() {
     })
 }
 
-export function useGetOrders() {
+export function useGetOrders(filters = {}) {
+    const { dateFrom = '', dateTo = '' } = filters
+
     return useQuery({
-        queryKey: orderKeys.list(),
-        queryFn: fetchOrders,
+        queryKey: orderKeys.list(dateFrom, dateTo),
+        queryFn: () => fetchOrders({ dateFrom, dateTo }),
     })
 }
 
