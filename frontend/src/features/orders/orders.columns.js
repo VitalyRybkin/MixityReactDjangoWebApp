@@ -6,32 +6,61 @@ const ORDER_STATUS_LABELS = {
     cancelled: 'Отменена',
 }
 
+const formatTime = (value) => {
+    if (!value) return '—'
+    return value.slice(0, 5)
+}
+
+const formatDateTime = (value) => {
+    if (!value) return '—'
+
+    const date = new Date(value)
+
+    const day = String(date.getDate()).padStart(2, '0')
+    const month = String(date.getMonth() + 1).padStart(2, '0')
+    const year = date.getFullYear()
+    const hours = String(date.getHours()).padStart(2, '0')
+    const minutes = String(date.getMinutes()).padStart(2, '0')
+
+    return `${day}.${month}.${year} [ ${hours}:${minutes} ]`
+}
+
 export const getOrdersColumns = () => [
-    { field: 'id', headerName: 'Заявка №', flex: 0.7 },
+    { field: 'id', headerName: 'Заявка №', flex: 0.4 },
     {
         field: 'created_at',
         headerName: 'Дата заявки',
-        flex: 1.2,
-        valueGetter: (_, row) => (row.created_at ? new Date(row.created_at).toLocaleString() : '—'),
+        flex: 0.8,
+        valueGetter: (_, row) => formatDateTime(row.created_at),
     },
     {
         field: 'client_name',
         headerName: 'Клиент',
-        flex: 1.2,
+        flex: 0.7,
         valueGetter: (_, row) => row.client?.name ?? '—',
     },
     {
         field: 'customer_name',
         headerName: 'Контрагент',
-        flex: 1.2,
+        flex: 1,
         valueGetter: (_, row) => row.customer?.name ?? '—',
     },
-    { field: 'delivery_date', headerName: 'Дата доставки', flex: 1 },
+    {
+        field: 'address',
+        headerName: 'Адрес',
+        flex: 1.2,
+        valueGetter: (_, row) => {
+            const customerObject = row.customer?.customer_objects?.find((item) => item.id === row.customer_object)
+
+            return customerObject?.address ?? '—'
+        },
+    },
+    { field: 'delivery_date', headerName: 'Дата доставки', flex: 0.7 },
     {
         field: 'delivery_window',
         headerName: 'Время доставки',
-        flex: 1,
-        valueGetter: (_, row) => `${row.delivery_from ?? '—'} – ${row.delivery_to ?? '—'}`,
+        flex: 0.8,
+        valueGetter: (_, row) => `${formatTime(row.delivery_from)} – ${formatTime(row.delivery_to)}`,
     },
     {
         field: 'status',
