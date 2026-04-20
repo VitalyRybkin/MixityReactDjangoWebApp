@@ -1,6 +1,17 @@
 import ChevronLeftIcon from '@mui/icons-material/ChevronLeft'
 import ChevronRightIcon from '@mui/icons-material/ChevronRight'
-import { Box, Button, Divider, MenuItem, TextField, Tooltip, Typography } from '@mui/material'
+import {
+    Box,
+    Button,
+    Divider,
+    FormControl,
+    InputLabel,
+    MenuItem,
+    Select,
+    TextField,
+    Tooltip,
+    Typography,
+} from '@mui/material'
 
 const SIDEBAR_WIDTH = 300
 const TOPBAR_HEIGHT = 64
@@ -64,9 +75,10 @@ export default function OrdersFiltersSidebar({
     setOpen,
     draftFilters,
     setDraftFilters,
-    preset,
-    setPreset,
     onApply,
+    onPresetClick,
+    selectedPreset,
+    onDraftFilterChange,
     customers = [],
     statusOptions = [],
 }) {
@@ -87,58 +99,60 @@ export default function OrdersFiltersSidebar({
                     <Divider sx={{ my: 2, mb: 0 }} />
 
                     <TextField
+                        id="orders-date-from"
+                        name="dateFrom"
                         label="C:"
                         type="date"
                         value={draftFilters.dateFrom}
-                        onChange={(e) => setDraftFilters((prev) => ({ ...prev, dateFrom: e.target.value }))}
+                        onChange={(e) => onDraftFilterChange('dateFrom', e.target.value)}
                         {...dateFieldProps}
                     />
 
                     <TextField
+                        id="orders-date-to"
+                        name="dateTo"
                         label="По:"
                         type="date"
                         value={draftFilters.dateTo}
-                        onChange={(e) => setDraftFilters((prev) => ({ ...prev, dateTo: e.target.value }))}
+                        onChange={(e) => onDraftFilterChange('dateTo', e.target.value)}
                         {...dateFieldProps}
                     />
 
-                    <TextField
-                        label="Статус"
-                        select
-                        value={draftFilters.status}
-                        onChange={(e) => setDraftFilters((prev) => ({ ...prev, status: e.target.value }))}
-                        fullWidth
-                        size="small"
-                        margin="normal"
-                    >
-                        <MenuItem value="">Все</MenuItem>
-                        {statusOptions.map((option) => (
-                            <MenuItem key={option.value} value={option.value}>
-                                {option.label}
-                            </MenuItem>
-                        ))}
-                    </TextField>
+                    <FormControl fullWidth size="small" margin="normal">
+                        <InputLabel id="orders-status-label">Статус</InputLabel>
+                        <Select
+                            labelId="orders-status-label"
+                            id="orders-status"
+                            value={draftFilters.status}
+                            label="Статус"
+                            onChange={(e) => setDraftFilters((prev) => ({ ...prev, status: e.target.value }))}
+                        >
+                            <MenuItem value="">Все</MenuItem>
+                            {statusOptions.map((option) => (
+                                <MenuItem key={option.value} value={option.value}>
+                                    {option.label}
+                                </MenuItem>
+                            ))}
+                        </Select>
+                    </FormControl>
 
-                    <TextField
-                        label="Контрагент"
-                        select
-                        value={draftFilters.customerId}
-                        onChange={(e) => setDraftFilters((prev) => ({ ...prev, customerId: e.target.value }))}
-                        fullWidth
-                        size="small"
-                        margin="normal"
-                    >
-                        <MenuItem value="">Все</MenuItem>
-                        {customers.map((customer) => (
-                            <MenuItem key={customer.id} value={customer.id}>
-                                {customer.name}
-                            </MenuItem>
-                        ))}
-                    </TextField>
-
-                    <Button variant="contained" fullWidth sx={{ mt: 1 }} onClick={onApply}>
-                        Применить
-                    </Button>
+                    <FormControl fullWidth size="small" margin="normal">
+                        <InputLabel id="orders-customer-label">Контрагент</InputLabel>
+                        <Select
+                            labelId="orders-customer-label"
+                            id="orders-customer"
+                            value={draftFilters.customerId}
+                            label="Контрагент"
+                            onChange={(e) => setDraftFilters((prev) => ({ ...prev, customerId: e.target.value }))}
+                        >
+                            <MenuItem value="">Все</MenuItem>
+                            {customers.map((customer) => (
+                                <MenuItem key={customer.id} value={customer.id}>
+                                    {customer.name}
+                                </MenuItem>
+                            ))}
+                        </Select>
+                    </FormControl>
 
                     <Divider sx={{ my: 2, mb: 0 }} />
 
@@ -146,8 +160,8 @@ export default function OrdersFiltersSidebar({
                         {quickPresetButtons.map((item) => (
                             <Button
                                 key={item.value}
-                                variant={preset === item.value ? 'contained' : 'outlined'}
-                                onClick={() => setPreset(item.value)}
+                                variant={selectedPreset === item.value ? 'contained' : 'outlined'}
+                                onClick={() => onPresetClick(item.value)}
                             >
                                 {item.label}
                             </Button>
@@ -156,17 +170,23 @@ export default function OrdersFiltersSidebar({
 
                     <Divider sx={{ my: 2, mb: 0 }} />
 
-                    <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap', mt: 2, mb: 2 }}>
+                    <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap', mt: 2 }}>
                         {rangePresetButtons.map((item) => (
                             <Button
                                 key={item.value}
-                                variant={preset === item.value ? 'contained' : 'outlined'}
-                                onClick={() => setPreset(item.value)}
+                                variant={selectedPreset === item.value ? 'contained' : 'outlined'}
+                                onClick={() => onPresetClick(item.value)}
                             >
                                 {item.label}
                             </Button>
                         ))}
                     </Box>
+
+                    <Divider sx={{ my: 2, mb: 1 }} />
+
+                    <Button variant="contained" fullWidth sx={{ mt: 1 }} onClick={onApply}>
+                        Применить
+                    </Button>
                 </>
             ) : (
                 <Box sx={ordersSidebarSx.collapsedButtonWrapper}>

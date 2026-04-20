@@ -7,7 +7,7 @@ import { DataGrid } from '@mui/x-data-grid'
 import AppBreadcrumbs from '../components/AppBreadcrumbs.jsx'
 import AddAction from '../components/ui/buttons/AddAction.jsx'
 import CustomPagination from '../features/orders/CustomPagination.jsx'
-import OrdersFiltersSidebar, { ordersSidebarSx } from '../features/orders/OrdersFiltersSidebar.jsx'
+import OrdersFiltersSidebar from '../features/orders/OrdersFiltersSidebar.jsx'
 import { getOrdersColumns } from '../features/orders/orders.columns.js'
 import { formatDate, getPresetRange } from '../features/orders/orders.date-filters.js'
 import { useGetOrders } from '../features/orders/orders.queries.js'
@@ -44,13 +44,14 @@ const Home = () => {
     const today = formatDate(new Date())
 
     const [open, setOpen] = useState(false)
-    const [preset, setPreset] = useState('today')
+
     const [filters, setFilters] = useState({
         dateFrom: today,
         dateTo: today,
         status: '',
         customerId: '',
     })
+
     const [draftFilters, setDraftFilters] = useState({
         dateFrom: today,
         dateTo: today,
@@ -58,16 +59,7 @@ const Home = () => {
         customerId: '',
     })
 
-    const activeFilters =
-        preset !== null
-            ? {
-                  ...getPresetRange(preset),
-                  status: filters.status,
-                  customerId: filters.customerId,
-              }
-            : filters
-
-    const { data: orders, isPending: loadingOrders, error: loadError, refetch } = useGetOrders(activeFilters)
+    const { data: orders, isPending: loadingOrders } = useGetOrders(filters)
 
     const rows = orders ?? []
     const columns = useMemo(() => getOrdersColumns(), [])
@@ -78,7 +70,31 @@ const Home = () => {
 
     const handleApplyFilters = () => {
         setFilters(draftFilters)
-        setPreset(null)
+    }
+
+    const [selectedPreset, setSelectedPreset] = useState('today')
+
+    const handlePresetClick = (preset) => {
+        const range = getPresetRange(preset)
+
+        setSelectedPreset(preset)
+
+        setDraftFilters((prev) => ({
+            ...prev,
+            dateFrom: range.dateFrom,
+            dateTo: range.dateTo,
+        }))
+    }
+
+    const handleDraftFilterChange = (field, value) => {
+        if (field === 'dateFrom' || field === 'dateTo') {
+            setSelectedPreset(null)
+        }
+
+        setDraftFilters((prev) => ({
+            ...prev,
+            [field]: value,
+        }))
     }
 
     return (
@@ -88,9 +104,10 @@ const Home = () => {
                 setOpen={setOpen}
                 draftFilters={draftFilters}
                 setDraftFilters={setDraftFilters}
-                preset={preset}
-                setPreset={setPreset}
                 onApply={handleApplyFilters}
+                onPresetClick={handlePresetClick}
+                selectedPreset={selectedPreset}
+                onDraftFilterChange={handleDraftFilterChange}
                 customers={customers}
                 statusOptions={ORDER_STATUS_OPTIONS}
             />
