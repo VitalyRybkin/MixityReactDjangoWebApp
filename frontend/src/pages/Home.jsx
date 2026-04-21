@@ -2,13 +2,14 @@ import React, { useMemo, useState } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
 
 import { Box, Container, Divider, Typography } from '@mui/material'
+import { ruRU } from '@mui/material/locale'
 import { DataGrid } from '@mui/x-data-grid'
 
 import AppBreadcrumbs from '../components/AppBreadcrumbs.jsx'
 import AddAction from '../components/ui/buttons/AddAction.jsx'
 import CustomPagination from '../features/orders/CustomPagination.jsx'
 import OrdersFiltersSidebar from '../features/orders/OrdersFiltersSidebar.jsx'
-import { getOrdersColumns } from '../features/orders/orders.columns.js'
+import { getOrdersColumns } from '../features/orders/orders.columns.jsx'
 import { formatDate, getPresetRange } from '../features/orders/orders.date-filters.js'
 import { useGetOrders } from '../features/orders/orders.queries.js'
 
@@ -143,6 +144,17 @@ const Home = () => {
                         }}
                         localeText={{
                             noRowsLabel: 'На выбранный период доставки заказов нет.',
+
+                            columnMenuSortAsc: 'Сортировать по возрастанию',
+                            columnMenuSortDesc: 'Сортировать по убыванию',
+                            columnMenuFilter: 'Фильтр',
+                            columnMenuHideColumn: 'Скрыть колонку',
+                            columnMenuManageColumns: 'Управление колонками',
+
+                            filterPanelAddFilter: 'Добавить фильтр',
+                            filterPanelDeleteIconLabel: 'Удалить',
+                            filterOperatorContains: 'содержит',
+                            filterOperatorEquals: 'равно',
                         }}
                         slots={{
                             pagination: CustomPagination,
