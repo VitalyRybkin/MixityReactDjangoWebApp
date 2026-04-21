@@ -100,7 +100,7 @@ run:
 	$(DJ) runserver
 
 migrate:
-	$(DJ) migrate $(if $(app),$(app),)
+	$(DJ) migrate $(if $(app),$(app),) $(if $(mig),$(mig),)
 
 show:
 	$(DJ) showmigrations

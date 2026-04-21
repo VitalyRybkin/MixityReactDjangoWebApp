@@ -1,9 +1,10 @@
 from django.conf import settings
+from django.core.validators import FileExtensionValidator
 from django.db import models
-from django.db.models import ManyToManyField
 
 
 class Order(models.Model):
+
     class Status(models.TextChoices):
         DRAFT = "draft", "Черновик"
         CREATED = "created", "Создан"
@@ -68,6 +69,14 @@ class Order(models.Model):
     )
 
     contacts = models.ManyToManyField("contacts.Contact", blank=True)
+
+    upd_pdf = models.FileField(
+        upload_to='docs/upd/%Y/',
+        validators=[FileExtensionValidator(allowed_extensions=['pdf'])],
+        verbose_name="УПД в формате PDF",
+        null=True, blank=True,
+        help_text="Загрузите копию УПД (только PDF файлы)",
+    )
 
     class Meta:
         verbose_name = "Заказ"
