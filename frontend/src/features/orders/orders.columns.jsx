@@ -1,6 +1,6 @@
 import { IconButton } from '@mui/material'
 
-import UploadAction from '../../components/ui/buttons/UploadAction.jsx'
+import DownAction from '../../components/ui/buttons/DownAction.jsx'
 import ViewAction from '../../components/ui/buttons/ViewAction.jsx'
 
 const ORDER_STATUS_LABELS = {
@@ -55,7 +55,7 @@ export const getOrdersColumns = () => [
         field: 'address',
         headerName: 'Адрес',
         flex: 1.2,
-        valueGetter: (_, row) => row.customer_object?.address ?? '—',
+        valueGetter: (_, row) => row.customer_object?.address ?? 'самовывоз',
     },
     { field: 'delivery_date', headerName: 'Дата доставки', flex: 0.7 },
     {
@@ -85,14 +85,13 @@ export const getOrdersColumns = () => [
                 if (hasUdpPdf) {
                     window.open(params.row.udp_pdf, '_blank')
                 } else {
-                    // your download/create action here
                     console.log('download or generate udp')
                 }
             }
 
             return (
                 <IconButton size="small" onClick={handleClick}>
-                    {hasUdpPdf ? <ViewAction title="Просмотр" /> : <UploadAction title="Загрузить" />}
+                    {hasUdpPdf ? <ViewAction title="Просмотр" /> : <DownAction title="Загрузить" />}
                 </IconButton>
             )
         },

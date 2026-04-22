@@ -2,7 +2,6 @@ import React, { useMemo, useState } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
 
 import { Box, Container, Divider, Typography } from '@mui/material'
-import { ruRU } from '@mui/material/locale'
 import { DataGrid } from '@mui/x-data-grid'
 
 import AppBreadcrumbs from '../components/AppBreadcrumbs.jsx'
@@ -145,16 +144,37 @@ const Home = () => {
                         localeText={{
                             noRowsLabel: 'На выбранный период доставки заказов нет.',
 
-                            columnMenuSortAsc: 'Сортировать по возрастанию',
-                            columnMenuSortDesc: 'Сортировать по убыванию',
-                            columnMenuFilter: 'Фильтр',
-                            columnMenuHideColumn: 'Скрыть колонку',
-                            columnMenuManageColumns: 'Управление колонками',
-
                             filterPanelAddFilter: 'Добавить фильтр',
                             filterPanelDeleteIconLabel: 'Удалить',
+                            filterPanelLinkOperator: 'Логика',
+                            filterPanelOperators: 'Операторы',
+                            filterPanelOperatorAnd: 'И',
+                            filterPanelOperatorOr: 'ИЛИ',
+                            filterPanelColumns: 'Колонки',
+                            filterPanelInputLabel: 'Значение',
+                            filterPanelInputPlaceholder: 'Значение фильтра',
+
                             filterOperatorContains: 'содержит',
+                            filterOperatorDoesNotContain: 'не содержит',
                             filterOperatorEquals: 'равно',
+                            filterOperatorDoesNotEqual: 'не равно',
+                            filterOperatorStartsWith: 'начинается с',
+                            filterOperatorEndsWith: 'заканчивается на',
+                            filterOperatorIs: 'равно (is)',
+                            filterOperatorNot: 'не равно (not)',
+                            filterOperatorAfter: 'после',
+                            filterOperatorOnOrAfter: 'в этот день или после',
+                            filterOperatorBefore: 'до',
+                            filterOperatorOnOrBefore: 'в этот день или до',
+                            filterOperatorIsEmpty: 'пусто',
+                            filterOperatorIsNotEmpty: 'не пусто',
+                            filterOperatorIsAnyOf: 'любой из',
+
+                            MuiTablePagination: {
+                                labelRowsPerPage: 'Строк на странице:',
+                                labelDisplayedRows: ({ from, to, count }) =>
+                                    `${from}–${to} из ${count !== -1 ? count : `более чем ${to}`}`,
+                            },
                         }}
                         slots={{
                             pagination: CustomPagination,
