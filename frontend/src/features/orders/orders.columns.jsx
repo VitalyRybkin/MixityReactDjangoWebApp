@@ -55,11 +55,7 @@ export const getOrdersColumns = () => [
         field: 'address',
         headerName: 'Адрес',
         flex: 1.2,
-        valueGetter: (_, row) => {
-            const customerObject = row.customer?.customer_objects?.find((item) => item.id === row.customer_object)
-
-            return customerObject?.address ?? 'самовывоз'
-        },
+        valueGetter: (_, row) => row.customer_object?.address ?? '—',
     },
     { field: 'delivery_date', headerName: 'Дата доставки', flex: 0.7 },
     {
