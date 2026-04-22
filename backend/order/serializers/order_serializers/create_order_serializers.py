@@ -30,8 +30,9 @@ class OrderResourcesSerializer(serializers.Serializer):
 
 class OrderReadSerializer(serializers.ModelSerializer):
     id = serializers.IntegerField()
-    client = ClientListSerializer()
-    customer = CustomerListSerializer()
+    client = ClientSerializer()
+    customer = CustomerSerializer()
+    customer_object = BaseCustomerObjectsSerializer()
 
     class Meta:
         model = Order

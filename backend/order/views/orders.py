@@ -1,6 +1,6 @@
 from typing import Any
 
-from django.utils import timezone
+from django.db.models import QuerySet
 from rest_framework import status
 from rest_framework.permissions import AllowAny
 from rest_framework.request import Request
@@ -49,7 +49,7 @@ class OrderListCreateAPIView(BaseListCreateAPIView):
 
     permission_classes = [AllowAny]
 
-    def get_queryset(self):
+    def get_queryset(self) -> QuerySet[Order]:
         queryset = Order.objects.select_related("client", "customer")
 
         date_from = self.request.query_params.get("date_from")

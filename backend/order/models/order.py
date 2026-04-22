@@ -18,13 +18,9 @@ class Order(models.Model):
         null=True, blank=True, verbose_name="Дата доставки"
     )
 
-    delivery_from = models.TimeField(
-        null=True, blank=True, verbose_name="Доставка с"
-    )
+    delivery_from = models.TimeField(null=True, blank=True, verbose_name="Доставка с")
 
-    delivery_to = models.TimeField(
-        null=True, blank=True, verbose_name="Доставка по"
-    )
+    delivery_to = models.TimeField(null=True, blank=True, verbose_name="Доставка по")
 
     client = models.ForeignKey(
         "order.Client",
@@ -71,10 +67,11 @@ class Order(models.Model):
     contacts = models.ManyToManyField("contacts.Contact", blank=True)
 
     upd_pdf = models.FileField(
-        upload_to='docs/upd/%Y/',
-        validators=[FileExtensionValidator(allowed_extensions=['pdf'])],
+        upload_to="docs/upd/%Y/",
+        validators=[FileExtensionValidator(allowed_extensions=["pdf"])],
         verbose_name="УПД в формате PDF",
-        null=True, blank=True,
+        null=True,
+        blank=True,
         help_text="Загрузите копию УПД (только PDF файлы)",
     )
 
