@@ -25,9 +25,7 @@ class PurchasePriceHistory(models.Model):
     """
 
     date = models.DateField(default=timezone.now)
-    purchase_price = models.DecimalField(
-        max_digits=10, decimal_places=2
-    )
+    purchase_price = models.DecimalField(max_digits=10, decimal_places=2)
     product = models.ForeignKey(
         "catalog.Product", on_delete=models.CASCADE, related_name="price_history"
     )

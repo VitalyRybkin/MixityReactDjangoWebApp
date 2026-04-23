@@ -6,6 +6,7 @@ from rest_framework.permissions import AllowAny
 from rest_framework.request import Request
 from rest_framework.response import Response
 
+from catalog.models import Product
 from core.openapi import ERRORS_DETAIL, ERRORS_DETAIL_WRITE
 from core.openapi.base_views import BaseGenericAPIView, BaseListCreateAPIView
 from order.models import Client, Customer, Order
@@ -14,6 +15,7 @@ from order.serializers.order_serializers.create_order_serializers import (
     OrderResourcesSerializer,
     OrderWriteSerializer,
 )
+from stock.models import Warehouse
 
 
 class OrderResourcesAPIView(BaseGenericAPIView):
@@ -27,11 +29,17 @@ class OrderResourcesAPIView(BaseGenericAPIView):
     def get(self, request: Request, *args: Any, **kwargs: Any) -> Response:
         clients = Client.objects.active()
         customers = Customer.objects.active().prefetch_related("customer_objects")
+        products = Product.objects.prefetch_related(
+            "unit_config", "product_pallets"
+        ).all()
+        warehouses = Warehouse.objects.active()
 
         serializer = self.get_serializer(
             {
                 "clients": clients,
                 "customers": customers,
+                "products": products,
+                "warehouses": warehouses,
             },
             context={"request": request},
         )

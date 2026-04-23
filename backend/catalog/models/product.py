@@ -3,7 +3,7 @@ from typing import Any
 
 from django.core.exceptions import ObjectDoesNotExist, ValidationError
 from django.db import models
-from django.db.models import QuerySet
+from django.db.models import Max, QuerySet
 
 from stock.models.warehouse import Warehouse
 
@@ -49,9 +49,33 @@ class Product(models.Model):
         verbose_name_plural = "Материалы"
 
     @property
-    def latest_price(self) -> Decimal | None:
-        latest_history = self.price_history.first()
-        return latest_history.purchase_price if latest_history else None
+    def latest_prices_by_warehouse(self) -> QuerySet:
+        """
+        Returns the latest prices for each warehouse.
+
+        Retrieves the most recent price records for each warehouse
+        based on the date field. The records are filtered to return only the price
+        data corresponding to the latest dates in each warehouse, ensuring that
+        duplicate entries are avoided. The resulting queryset is ordered by the
+        warehouse in ascending order and by the date in descending order within
+        each warehouse.
+
+        Returns:
+            QuerySet: A queryset containing the latest price records for each warehouse,
+            ordered by warehouse and descending date.
+
+        """
+        latest_dates = self.price_history.values("warehouse").annotate(
+            max_date=Max("date")
+        )
+        return (
+            self.price_history.filter(
+                date__in=[item["max_date"] for item in latest_dates],
+                warehouse__in=[item["warehouse"] for item in latest_dates],
+            )
+            .distinct("warehouse")
+            .order_by("warehouse", "-date")
+        )
 
     def allowed_order_unit_titles(self) -> list[str]:
         if self.is_piece_based:
@@ -63,6 +87,17 @@ class Product(models.Model):
         return AppUnit.objects.filter(title__in=titles)
 
     def _bag_kg(self) -> Decimal:
+        """
+        Calculates the weight in kilograms based on a specific configuration. It uses
+        predefined settings to determine the weight conversion factor. If the configuration is
+        missing, an error is raised.
+
+        Raises:
+            ValidationError: If the weight configuration for the object is not set.
+
+        Returns:
+            Decimal: The weight in kilograms derived from the configuration.
+        """
         try:
             config = self.unit_config
         except ObjectDoesNotExist:
@@ -74,6 +109,20 @@ class Product(models.Model):
         return Decimal(config.value)
 
     def _pallet_kg(self, warehouse: Warehouse) -> Decimal:
+        """
+        Calculates the total weight in kilograms of a pallet for a given warehouse.
+
+        Raises:
+            ValidationError: If no pallet configuration is found for the specified
+            warehouse.
+
+        Args:
+            warehouse (Warehouse): The warehouse for which the pallet weight is
+            calculated.
+
+        Returns:
+            Decimal: The total weight of a pallet in kilograms.
+        """
         try:
             pp = self.product_pallets.get(warehouse=warehouse)
         except ObjectDoesNotExist:

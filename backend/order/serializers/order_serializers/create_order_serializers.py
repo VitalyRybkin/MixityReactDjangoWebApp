@@ -1,5 +1,6 @@
 from rest_framework import serializers
 
+from catalog.serializers.product_serializers import ProductSerializer
 from contacts.serializers import ContactSerializer
 from order.models import Client, Customer, Order
 from order.order_services.order_create_service import create_order
@@ -8,6 +9,7 @@ from order.serializers.customer_serializers import (
     BaseCustomerObjectsSerializer,
     CustomerSerializer,
 )
+from stock.warehouse_serializers import WarehouseListCreateSerializer
 
 
 class ClientListSerializer(ClientSerializer):
@@ -23,9 +25,16 @@ class CustomerListSerializer(CustomerSerializer):
         fields = ["id", "name", "customer_objects", "contacts"]
 
 
+class WarehouseListSerializer(WarehouseListCreateSerializer):
+    class Meta(WarehouseListCreateSerializer.Meta):
+        fields = ["id", "name"]
+
+
 class OrderResourcesSerializer(serializers.Serializer):
     clients = ClientListSerializer(many=True, read_only=True)
     customers = CustomerListSerializer(many=True, read_only=True)
+    warehouses = WarehouseListSerializer(many=True, read_only=True)
+    products = ProductSerializer(many=True, read_only=True)
 
 
 class OrderReadSerializer(serializers.ModelSerializer):
