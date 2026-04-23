@@ -21,8 +21,8 @@ class ProductGroup(models.Model):
 
     class Meta:
         db_table = "catalog_product_group"
-        verbose_name = "Product Group"
-        verbose_name_plural = "Product Groups"
+        verbose_name = "Группа материалов"
+        verbose_name_plural = "Группы материалов"
 
     def __str__(self) -> str:
         return self.name

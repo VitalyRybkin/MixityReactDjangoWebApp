@@ -1,3 +1,4 @@
+from django.core.exceptions import ValidationError
 from django.db import models
 
 
@@ -13,10 +14,19 @@ class ProductPallet(models.Model):
     class Meta:
         constraints = [
             models.UniqueConstraint(
-                fields=["product", "warehouse"],
-                name="uniq_product_warehouse_pallet",
+                fields=["product", "warehouse"], name="uniq_product_warehouse_pallet"
             )
         ]
-        ordering = ["product", "warehouse"]
-        verbose_name = "Product Pallet"
-        verbose_name_plural = "Product Pallets"
+        verbose_name = "Паллета (складская)"
+        verbose_name_plural = "Паллеты (складские)"
+
+    def clean(self) -> None:
+        if self.items_per_pallet not in {40, 48}:
+            raise ValidationError(
+                {"items_per_pallet": "Допустимо только 40 или 48 штук."}
+            )
+
+    def __str__(self) -> str:
+        return (
+            f"{self.product.name} @ {self.warehouse.name}: {self.items_per_pallet} шт"
+        )

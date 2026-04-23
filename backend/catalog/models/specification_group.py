@@ -21,8 +21,8 @@ class SpecificationGroup(models.Model):
 
     class Meta:
         db_table = "catalog_specification_group"
-        verbose_name = "Specification Group"
-        verbose_name_plural = "Specification Groups"
+        verbose_name = "Группа показателей спецификации"
+        verbose_name_plural = "Группы показателей спецификации"
 
     def __str__(self) -> str:
         return self.name

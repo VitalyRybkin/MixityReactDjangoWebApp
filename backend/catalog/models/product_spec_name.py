@@ -12,8 +12,8 @@ class ProductSpecName(models.Model):
             "order",
         )
         db_table = "catalog_product_spec_name"
-        verbose_name = "Product Specification Name"
-        verbose_name_plural = "Product Specification Names"
+        verbose_name = "Наименование показателя спецификации"
+        verbose_name_plural = "Наименования показателей спецификации"
 
     def __str__(self) -> str:
         return self.title

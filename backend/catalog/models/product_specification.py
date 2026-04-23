@@ -47,8 +47,8 @@ class ProductSpecification(models.Model):
             )
         ]
         db_table = "catalog_specification"
-        verbose_name = "Product Specification"
-        verbose_name_plural = "Product Specifications"
+        verbose_name = "Значение показателя спецификации"
+        verbose_name_plural = "Значения показателей спецификации"
 
     def __str__(self) -> str:
         return f"{self.name} ({self.product.name})"

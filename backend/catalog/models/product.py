@@ -1,14 +1,12 @@
 from decimal import ROUND_CEILING, Decimal
 from typing import Any
 
-from django.core.exceptions import ValidationError
+from django.core.exceptions import ObjectDoesNotExist, ValidationError
 from django.db import models
 from django.db.models import QuerySet
 
 from stock.models.warehouse import Warehouse
 
-from .product_pallet import ProductPallet
-from .product_unit import ProductUnit
 from .unit import AppUnit
 
 
@@ -47,6 +45,13 @@ class Product(models.Model):
                 fields=["product_group", "name"], name="uniq_product_group_name"
             ),
         ]
+        verbose_name = "Материал"
+        verbose_name_plural = "Материалы"
+
+    @property
+    def latest_price(self) -> Decimal | None:
+        latest_history = self.price_history.first()
+        return latest_history.purchase_price if latest_history else None
 
     def allowed_order_unit_titles(self) -> list[str]:
         if self.is_piece_based:
@@ -58,43 +63,22 @@ class Product(models.Model):
         return AppUnit.objects.filter(title__in=titles)
 
     def _bag_kg(self) -> Decimal:
-        """
-        Calculates the weight in kilograms for a specific product unit.
-
-        Raises:
-            ValidationError: If the piece weight configuration (`piece_config`) is not set for the product.
-
-        Returns:
-            Decimal: The weight of the product in kilograms based on the `piece_config`.
-        """
         try:
-            rel = self.piece_config  # OneToOne from ProductUnit
-        except ProductUnit.DoesNotExist:
-            raise ValidationError("Piece weight is not set for this product.")
-        return Decimal(rel.kg_per_unit)
+            config = self.unit_config
+        except ObjectDoesNotExist:
+            raise ValidationError(f"Настройка веса не задана для {self.name}")
+
+        if config.unit.title == "ton":
+            return Decimal("1000")
+
+        return Decimal(config.value)
 
     def _pallet_kg(self, warehouse: Warehouse) -> Decimal:
-        """
-        Calculates the total weight of items on a pallet for a specific product in a given
-        warehouse.
-
-        Raises:
-            ValidationError: If the items per pallet configuration is not set for the product
-            in the specified warehouse.
-
-        Args:
-            warehouse (Warehouse): The warehouse for which to calculate the total pallet
-            weight.
-
-        Returns:
-            Decimal: The total weight of items on a pallet in kilograms.
-        """
         try:
-            pp = ProductPallet.objects.get(product=self, warehouse=warehouse)
-        except ProductPallet.DoesNotExist:
-            raise ValidationError(
-                "Items per pallet is not set for this product and warehouse."
-            )
+            pp = self.product_pallets.get(warehouse=warehouse)
+        except ObjectDoesNotExist:
+            raise ValidationError(f"Паллета не настроена для склада {warehouse}")
+
         return Decimal(pp.items_per_pallet) * self._bag_kg()
 
     def convert(

@@ -21,8 +21,8 @@ class DescriptionItem(models.Model):
     class Meta:
         ordering = ("order",)
         db_table = "catalog_description_item"
-        verbose_name = "Description Item"
-        verbose_name_plural = "Description Items"
+        verbose_name = "Пункт описания"
+        verbose_name_plural = "Пункты описания"
 
     def __str__(self) -> str:
         return self.title

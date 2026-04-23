@@ -1,4 +1,5 @@
 from django.db import models
+from django.utils import timezone
 
 
 class PurchasePriceHistory(models.Model):
@@ -23,20 +24,22 @@ class PurchasePriceHistory(models.Model):
         get_latest_by: Specifies 'date' as the field to use when retrieving the latest record.
     """
 
-    date = models.DateField(auto_now_add=True)
-    purchase_price = models.DecimalField(max_digits=5, decimal_places=2)
+    date = models.DateField(default=timezone.now)
+    purchase_price = models.DecimalField(
+        max_digits=10, decimal_places=2
+    )
     product = models.ForeignKey(
-        "catalog.Product", on_delete=models.CASCADE, related_name="price"
+        "catalog.Product", on_delete=models.CASCADE, related_name="price_history"
     )
     warehouse = models.ForeignKey(
-        "stock.Warehouse", on_delete=models.CASCADE, related_name="price"
+        "stock.Warehouse", on_delete=models.CASCADE, related_name="warehouse_prices"
     )
 
     class Meta:
         ordering = ["-date"]
         db_table = "catalog_purchase_price_history"
-        verbose_name = "Purchase Price History"
-        verbose_name_plural = "Purchase Price History"
+        verbose_name = "История цены"
+        verbose_name_plural = "История цен"
         unique_together = ("product", "warehouse", "date")
         get_latest_by = "date"
 

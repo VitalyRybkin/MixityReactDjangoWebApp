@@ -64,7 +64,16 @@ class Order(models.Model):
         verbose_name="Описание",
     )
 
-    contacts = models.ManyToManyField("contacts.Contact", blank=True)
+    contacts = models.ManyToManyField(
+        "contacts.Contact",
+        blank=True,
+    )
+
+    order_products = models.ManyToManyField(
+        "catalog.Product",
+        blank=True,
+        through="order.OrderItem",
+    )
 
     upd_pdf = models.FileField(
         upload_to="docs/upd/%Y/",
@@ -79,3 +88,6 @@ class Order(models.Model):
         verbose_name = "Заказ"
         verbose_name_plural = "Заказы"
         ordering = ["-created_at"]
+        indexes = [
+            models.Index(fields=["delivery_date", "delivery_from", "delivery_to"])
+        ]
