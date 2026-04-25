@@ -24,7 +24,7 @@ import ErrorState from '../../components/ui/ErrorState.jsx'
 import FormActions from '../../components/ui/FormActions.jsx'
 import { useFormLogic } from '../../hooks/useEntityForm.js'
 
-import { useCreateOrder, useGetOrderResources, useUpdateOrder } from './orders.queries.js'
+import { useCreateOrder, useGetOrder, useGetOrderResources, useUpdateOrder } from './orders.queries.js'
 
 const today = new Date()
 const tomorrow = new Date(today)
@@ -47,7 +47,7 @@ const emptyForm = {
 const orderStatus = {
     draft: 'Черновик',
     created: 'Создан',
-    in_progress: 'В процессе',
+    in_progress: 'В работе',
     completed: 'Завершен',
 }
 
@@ -81,14 +81,21 @@ export default function OrderFormPage() {
     const isEdit = Boolean(id)
     const navigate = useNavigate()
 
-    const { data: order_resources, isPending: loadingOrder, error: loadError, refetch } = useGetOrderResources()
+    const {
+        data: order_resources,
+        isPending: loadingResources,
+        error: loadResourceError,
+        refetch,
+    } = useGetOrderResources({ enabled: !isEdit })
+
+    const { data: order, isPending: loadingOrder, error: loadOrderError } = useGetOrder(id)
 
     const createOrder = useCreateOrder()
     const updateOrder = useUpdateOrder()
 
     const saving = createOrder.isPending || updateOrder.isPending
 
-    const { form, setForm, error, onChange, onSubmit } = useFormLogic({
+    const { form, setForm, error, setError, onChange, onSubmit } = useFormLogic({
         isEdit,
         id,
         emptyForm,
@@ -99,16 +106,30 @@ export default function OrderFormPage() {
     })
 
     useEffect(() => {
-        if (!isEdit) return
-
-        if (form.delivery_from && typeof form.delivery_from === 'string') {
-            setForm((prev) => ({
-                ...prev,
-                delivery_from: dayjs(prev.delivery_from, 'HH:mm'),
-                delivery_to: prev.delivery_to ? dayjs(prev.delivery_to, 'HH:mm') : null,
-            }))
+        if (loadResourceError) {
+            setError(loadResourceError?.response?.data?.detail || 'Ошибка загрузки данных')
         }
-    }, [isEdit, form.delivery_from, setForm])
+        if (loadOrderError) {
+            setError(loadOrderError?.response?.data?.detail || 'Ошибка загрузки данных')
+        }
+    }, [loadOrderError])
+
+    useEffect(() => {
+        if (!isEdit || !order) return
+        setForm({
+            id: order.id,
+            status: order.status,
+            created_at: order.created_at,
+            delivery_date: order.delivery_date,
+            delivery_from: order.delivery_from ? dayjs(order.delivery_from, 'HH:mm') : null,
+            delivery_to: order.delivery_to ? dayjs(order.delivery_to, 'HH:mm') : null,
+            client: order.client?.id ?? '',
+            customer: order.customer,
+            customer_object: order.customer_object,
+        })
+    }, [isEdit, order, setForm])
+
+    if (isEdit && loadingOrder) return <CircularProgress />
 
     return (
         <Box sx={{ p: 3, width: '100%' }}>
@@ -138,9 +159,9 @@ export default function OrderFormPage() {
 
                 <Divider sx={{ mb: 3 }} />
 
-                {loadError ? (
-                    <ErrorState error={loadError} onRetry={refetch} loading={loadingOrder} />
-                ) : loadingOrder ? (
+                {loadResourceError ? (
+                    <ErrorState error={loadResourceError} onRetry={refetch} loading={loadingResources} />
+                ) : loadingResources ? (
                     <Box sx={{ py: 6, display: 'flex', justifyContent: 'center' }}>
                         <CircularProgress />
                     </Box>

@@ -179,7 +179,7 @@ const Home = () => {
                         slots={{
                             pagination: CustomPagination,
                         }}
-                        onRowClick={(params) => navigate(`/orders/${params.row.id}`)}
+                        onRowClick={(params) => navigate(`/orders/${params.row.id}/edit`)}
                         sx={{
                             '& .MuiDataGrid-row': {
                                 cursor: 'pointer',

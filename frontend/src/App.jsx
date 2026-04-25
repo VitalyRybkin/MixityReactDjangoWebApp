@@ -85,6 +85,7 @@ function App() {
                 <Route path="/customers/:id/construction_objects/create" element={<ConstructionObjectFormPage />} />
 
                 <Route path="/orders/create" element={<OrderFormPage />} />
+                <Route path="/orders/:id/edit" element={<OrderFormPage />} />
 
                 <Route path="/documentation" element={<DocumentationListPage />} />
             </Route>

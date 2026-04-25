@@ -60,10 +60,11 @@ export const deleteOrder = async (id) => {
 
 // --- HOOKS ---
 
-export function useGetOrderResources() {
+export function useGetOrderResources(options = {}) {
     return useQuery({
         queryKey: orderKeys.resources(),
         queryFn: fetchOrderResources,
+        ...options,
     })
 }
 
