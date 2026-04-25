@@ -1,7 +1,7 @@
 from django.urls import path
 
 from order.routes import OrderRoutes
-from order.views.orders import OrderListCreateAPIView, OrderResourcesAPIView
+from order.views.orders import OrderListCreateAPIView, OrderResourcesAPIView, OrderRetrieveUpdateDestroyAPIView
 
 app_name = "order_orders"
 
@@ -16,4 +16,5 @@ urlpatterns = [
         OrderResourcesAPIView.as_view(),
         name=OrderRoutes.RESOURCES.name,
     ),
+    path(OrderRoutes.DETAIL.path, OrderRetrieveUpdateDestroyAPIView.as_view(), name=OrderRoutes.DETAIL.name,),
 ]

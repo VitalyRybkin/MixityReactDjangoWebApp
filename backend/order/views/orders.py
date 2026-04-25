@@ -8,7 +8,7 @@ from rest_framework.response import Response
 
 from catalog.models import Product
 from core.openapi import ERRORS_DETAIL, ERRORS_DETAIL_WRITE
-from core.openapi.base_views import BaseGenericAPIView, BaseListCreateAPIView
+from core.openapi.base_views import BaseGenericAPIView, BaseListCreateAPIView, BaseRetrieveUpdateDestroyAPIView
 from order.models import Client, Customer, Order
 from order.serializers.order_serializers.create_order_serializers import (
     OrderReadSerializer,
@@ -83,3 +83,15 @@ class OrderListCreateAPIView(BaseListCreateAPIView):
         if self.request.method == "POST":
             return self.write_serializer_class
         return self.read_serializer_class
+
+class OrderRetrieveUpdateDestroyAPIView(BaseRetrieveUpdateDestroyAPIView):
+    resource_name = "Order"
+    schema_tags = ["Order"]
+    read_serializer_class = OrderReadSerializer
+    write_serializer_class = OrderWriteSerializer
+    errors_read = ERRORS_DETAIL
+    errors_write = ERRORS_DETAIL_WRITE
+
+    permission_classes = [AllowAny]
+    serializer_class = OrderReadSerializer
+    queryset = Order.objects.all()
