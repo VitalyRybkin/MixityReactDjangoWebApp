@@ -66,6 +66,12 @@ const fieldsetStyles = {
     },
 }
 
+const toTimeValue = (time) => {
+    if (!time) return null
+
+    return dayjs(`1970-01-01T${time}`)
+}
+
 const toOrderPayload = (form) => ({
     ...form,
     client: form.client || null,
@@ -86,9 +92,14 @@ export default function OrderFormPage() {
         isPending: loadingResources,
         error: loadResourceError,
         refetch,
-    } = useGetOrderResources({ enabled: !isEdit })
+    } = useGetOrderResources({ enabled: true })
 
-    const { data: order, isPending: loadingOrder, error: loadOrderError } = useGetOrder(id)
+    const {
+        data: order,
+        isPending: loadingOrder,
+        error: loadOrderError,
+        refetch: refetchOrder,
+    } = useGetOrder(id, { enabled: isEdit })
 
     const createOrder = useCreateOrder()
     const updateOrder = useUpdateOrder()
@@ -108,32 +119,57 @@ export default function OrderFormPage() {
     useEffect(() => {
         if (loadResourceError) {
             setError(loadResourceError?.response?.data?.detail || 'Ошибка загрузки данных')
+            return
         }
+
         if (loadOrderError) {
-            setError(loadOrderError?.response?.data?.detail || 'Ошибка загрузки данных')
+            setError(loadOrderError?.response?.data?.detail || 'Ошибка загрузки заказа')
         }
-    }, [loadOrderError])
+    }, [loadResourceError, loadOrderError, setError])
 
     useEffect(() => {
-        if (!isEdit || !order) return
-        setForm({
-            id: order.id,
-            status: order.status,
-            created_at: order.created_at,
-            delivery_date: order.delivery_date,
-            delivery_from: order.delivery_from ? dayjs(order.delivery_from, 'HH:mm') : null,
-            delivery_to: order.delivery_to ? dayjs(order.delivery_to, 'HH:mm') : null,
-            client: order.client?.id ?? '',
-            customer: order.customer,
-            customer_object: order.customer_object,
-        })
-    }, [isEdit, order, setForm])
+        if (!isEdit || !order || !order_resources) return
 
-    if (isEdit && loadingOrder) return <CircularProgress />
+        const customerId = order.customer?.id ?? order.customer ?? null
+        const customerObjectId = order.customer_object?.id ?? order.customer_object ?? null
+
+        const selectedCustomer = order_resources.customers?.find((customer) => customer.id === customerId) ?? null
+
+        const selectedCustomerObject =
+            selectedCustomer?.customer_objects?.find((obj) => obj.id === customerObjectId) ?? null
+
+        const contactIds = new Set(
+            (order.contacts ?? []).map((contact) => (typeof contact === 'object' ? contact.id : contact)),
+        )
+
+        const selectedContacts = selectedCustomer?.contacts?.filter((contact) => contactIds.has(contact.id)) ?? []
+
+        setForm({
+            id: order.id ?? '',
+            status: order.status ?? 'draft',
+            created_at: order.created_at ?? '',
+            delivery_date: order.delivery_date ?? '',
+            delivery_from: toTimeValue(order.delivery_from),
+            delivery_to: toTimeValue(order.delivery_to),
+
+            client: order.client?.id ?? order.client ?? '',
+
+            customer: selectedCustomer,
+            customer_object: selectedCustomerObject,
+            contacts: selectedContacts,
+
+            description: order.description ?? '',
+        })
+    }, [isEdit, order, order_resources, setForm])
+
+    const isLoadingPage = loadingResources || !order_resources || (isEdit && (loadingOrder || !order))
+
+    const pageLoadError = loadResourceError || loadOrderError
 
     return (
         <Box sx={{ p: 3, width: '100%' }}>
             <AppBreadcrumbs />
+
             <form onSubmit={onSubmit}>
                 <Box sx={{ p: 3, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                     <Typography
@@ -159,9 +195,16 @@ export default function OrderFormPage() {
 
                 <Divider sx={{ mb: 3 }} />
 
-                {loadResourceError ? (
-                    <ErrorState error={loadResourceError} onRetry={refetch} loading={loadingResources} />
-                ) : loadingResources ? (
+                {pageLoadError ? (
+                    <ErrorState
+                        error={pageLoadError}
+                        onRetry={() => {
+                            refetch()
+                            if (isEdit) refetchOrder()
+                        }}
+                        loading={loadingResources || loadingOrder}
+                    />
+                ) : isLoadingPage ? (
                     <Box sx={{ py: 6, display: 'flex', justifyContent: 'center' }}>
                         <CircularProgress />
                     </Box>
@@ -187,7 +230,7 @@ export default function OrderFormPage() {
                                             label="Дата доставки"
                                             type="date"
                                             size="small"
-                                            value={form.delivery_date}
+                                            value={form.delivery_date || ''}
                                             onChange={onChange('delivery_date')}
                                             slotProps={{ inputLabel: { shrink: true } }}
                                             sx={{ flex: 1 }}
@@ -195,6 +238,7 @@ export default function OrderFormPage() {
 
                                         <FormControl variant="outlined" size="small" sx={{ flex: 1 }}>
                                             <InputLabel id="status-label">Статус</InputLabel>
+
                                             <Select
                                                 labelId="status-label"
                                                 label="Статус"
@@ -216,7 +260,12 @@ export default function OrderFormPage() {
                                             ampm={false}
                                             format="HH:mm"
                                             value={form.delivery_from || null}
-                                            onChange={onChange('delivery_from')}
+                                            onChange={(newValue) => {
+                                                setForm((prev) => ({
+                                                    ...prev,
+                                                    delivery_from: newValue,
+                                                }))
+                                            }}
                                             slotProps={{ textField: { fullWidth: true, size: 'small' } }}
                                         />
 
@@ -225,20 +274,28 @@ export default function OrderFormPage() {
                                             ampm={false}
                                             format="HH:mm"
                                             value={form.delivery_to || null}
-                                            onChange={onChange('delivery_to')}
+                                            onChange={(newValue) => {
+                                                setForm((prev) => ({
+                                                    ...prev,
+                                                    delivery_to: newValue,
+                                                }))
+                                            }}
                                             slotProps={{ textField: { fullWidth: true, size: 'small' } }}
                                         />
                                     </Stack>
 
                                     <FormControl fullWidth variant="outlined" size="small">
                                         <InputLabel id="client-label">Клиент</InputLabel>
+
                                         <Select
                                             labelId="client-label"
                                             label="Клиент"
                                             value={form.client || ''}
                                             onChange={onChange('client')}
                                         >
-                                            {(order_resources?.clients || []).map((item) => (
+                                            <MenuItem value="">Не выбран</MenuItem>
+
+                                            {order_resources.clients.map((item) => (
                                                 <MenuItem key={item.id} value={item.id}>
                                                     {item.name}
                                                 </MenuItem>
@@ -263,14 +320,17 @@ export default function OrderFormPage() {
 
                                 <Autocomplete
                                     size="small"
-                                    options={order_resources?.customers || []}
+                                    options={order_resources.customers || []}
                                     getOptionLabel={(option) => option?.name || ''}
                                     isOptionEqualToValue={(option, value) => option.id === value.id}
                                     value={form.customer || null}
                                     onChange={(event, newValue) => {
-                                        onChange('customer')(newValue)
-                                        onChange('customer_object')(null)
-                                        onChange('contacts')([])
+                                        setForm((prev) => ({
+                                            ...prev,
+                                            customer: newValue,
+                                            customer_object: null,
+                                            contacts: [],
+                                        }))
                                     }}
                                     renderInput={(params) => <TextField {...params} label="Заказчик" />}
                                 />
@@ -282,11 +342,14 @@ export default function OrderFormPage() {
                                     isOptionEqualToValue={(option, value) => option.id === value.id}
                                     value={form.customer_object || null}
                                     onChange={(event, newValue) => {
-                                        onChange('customer_object')(newValue)
+                                        setForm((prev) => ({
+                                            ...prev,
+                                            customer_object: newValue,
+                                        }))
                                     }}
                                     disabled={!form.customer}
                                     renderInput={(params) => <TextField {...params} label="Объект / Адрес" />}
-                                    noOptionsText={'Нет объектов для этого заказчика'}
+                                    noOptionsText="Нет объектов для этого заказчика"
                                 />
 
                                 <Autocomplete
@@ -294,7 +357,12 @@ export default function OrderFormPage() {
                                     options={form.customer?.contacts || []}
                                     isOptionEqualToValue={(option, value) => option.id === value.id}
                                     value={form.contacts || []}
-                                    onChange={(event, newValue) => onChange('contacts')(newValue)}
+                                    onChange={(event, newValue) => {
+                                        setForm((prev) => ({
+                                            ...prev,
+                                            contacts: newValue,
+                                        }))
+                                    }}
                                     disabled={!form.customer}
                                     getOptionLabel={(option) => {
                                         if (!option || typeof option !== 'object') return ''
@@ -306,7 +374,7 @@ export default function OrderFormPage() {
                                         return `${name}${phones ? ` - [ ${phones} ]` : ''}`.trim() || 'Без имени'
                                     }}
                                     renderInput={(params) => <TextField {...params} label="Контакты заказчика" />}
-                                    noOptionsText={'Нет контактов для этого заказчика'}
+                                    noOptionsText="Нет контактов для этого заказчика"
                                 />
                             </Box>
                         </Stack>

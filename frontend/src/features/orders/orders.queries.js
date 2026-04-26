@@ -83,11 +83,12 @@ export function useGetOrders(filters = {}) {
     })
 }
 
-export function useGetOrder(id) {
+export function useGetOrder(id, options = {}) {
     return useQuery({
         queryKey: orderKeys.detail(id),
         queryFn: () => fetchOrderDetail(id),
-        enabled: Boolean(id),
+        ...options,
+        enabled: Boolean(id) && options.enabled !== false,
     })
 }
 

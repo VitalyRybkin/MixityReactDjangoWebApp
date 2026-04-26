@@ -4,8 +4,11 @@ import { useLocation, useNavigate } from 'react-router-dom'
 import { Box, Container, Divider, Typography } from '@mui/material'
 import { DataGrid } from '@mui/x-data-grid'
 
+import dayjs from 'dayjs'
+
 import AppBreadcrumbs from '../components/AppBreadcrumbs.jsx'
 import AddAction from '../components/ui/buttons/AddAction.jsx'
+import { useGetCustomers } from '../features/customers/customers.queries.js'
 import CustomPagination from '../features/orders/CustomPagination.jsx'
 import OrdersFiltersSidebar from '../features/orders/OrdersFiltersSidebar.jsx'
 import { getOrdersColumns } from '../features/orders/orders.columns.jsx'
@@ -37,6 +40,30 @@ const sx = {
     },
 }
 
+const STORAGE_KEY = 'orders_filters_cache'
+
+const saveFiltersToStorage = (filters) => {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(filters))
+}
+
+const loadFiltersFromStorage = (defaults) => {
+    const saved = localStorage.getItem(STORAGE_KEY)
+    if (!saved) return defaults
+
+    try {
+        const parsed = JSON.parse(saved)
+        return {
+            ...defaults,
+            ...parsed,
+            dateFrom: parsed.dateFrom ? dayjs(parsed.dateFrom).format('YYYY-MM-DD') : defaults.dateFrom,
+            dateTo: parsed.dateTo ? dayjs(parsed.dateTo).format('YYYY-MM-DD') : defaults.dateTo,
+        }
+    } catch (e) {
+        console.error('Error parsing filters', e)
+        return defaults
+    }
+}
+
 const Home = () => {
     const navigate = useNavigate()
     const location = useLocation()
@@ -45,56 +72,58 @@ const Home = () => {
 
     const [open, setOpen] = useState(false)
 
-    const [filters, setFilters] = useState({
+    const initialDefaults = {
         dateFrom: today,
         dateTo: today,
         status: '',
         customerId: '',
-    })
+        selectedPreset: 'today',
+    }
 
-    const [draftFilters, setDraftFilters] = useState({
-        dateFrom: today,
-        dateTo: today,
-        status: '',
-        customerId: '',
-    })
+    const savedData = useMemo(() => loadFiltersFromStorage(initialDefaults), [])
 
-    const { data: orders, isPending: loadingOrders } = useGetOrders(filters)
+    const [selectedPreset, setSelectedPreset] = useState(savedData.selectedPreset)
+    const [filters, setFilters] = useState(savedData)
+    const [draftFilters, setDraftFilters] = useState(savedData)
+
+    const formattedFilters = {
+        ...filters,
+        dateFrom: filters.dateFrom ? dayjs(filters.dateFrom).format('YYYY-MM-DD') : '',
+        dateTo: filters.dateTo ? dayjs(filters.dateTo).format('YYYY-MM-DD') : '',
+    }
+
+    const { data: orders, isPending: loadingOrders } = useGetOrders(formattedFilters)
+    const { data: customers, isPending: loadingCustomers } = useGetCustomers()
 
     const rows = orders ?? []
     const columns = useMemo(() => getOrdersColumns(), [])
 
-    const customers = Array.from(
-        new Map(rows.filter((row) => row.customer).map((row) => [row.customer.id, row.customer])).values(),
-    )
-
     const handleApplyFilters = () => {
         setFilters(draftFilters)
+        saveFiltersToStorage(draftFilters)
+        // setOpen(false)
     }
-
-    const [selectedPreset, setSelectedPreset] = useState('today')
 
     const handlePresetClick = (preset) => {
         const range = getPresetRange(preset)
-
         setSelectedPreset(preset)
-
         setDraftFilters((prev) => ({
             ...prev,
             dateFrom: range.dateFrom,
             dateTo: range.dateTo,
+            selectedPreset: preset, // Добавляем сюда!
         }))
     }
 
     const handleDraftFilterChange = (field, value) => {
+        let updated = { [field]: value }
+
         if (field === 'dateFrom' || field === 'dateTo') {
             setSelectedPreset(null)
+            updated.selectedPreset = null // Чтобы в хранилище не осталось старого пресета
         }
 
-        setDraftFilters((prev) => ({
-            ...prev,
-            [field]: value,
-        }))
+        setDraftFilters((prev) => ({ ...prev, ...updated }))
     }
 
     return (
