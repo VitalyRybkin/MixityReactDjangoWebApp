@@ -93,5 +93,10 @@ class OrderRetrieveUpdateDestroyAPIView(BaseRetrieveUpdateDestroyAPIView):
     errors_write = ERRORS_DETAIL_WRITE
 
     permission_classes = [AllowAny]
-    serializer_class = OrderReadSerializer
     queryset = Order.objects.all()
+
+    def get_serializer_class(self):
+        if self.request.method in ("PUT", "PATCH"):
+            return OrderWriteSerializer
+
+        return OrderReadSerializer
