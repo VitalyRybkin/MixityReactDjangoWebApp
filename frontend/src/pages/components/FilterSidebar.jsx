@@ -70,7 +70,7 @@ const dateFieldProps = {
     },
 }
 
-export default function OrdersFiltersSidebar({
+export default function FilterSidebar({
     open,
     setOpen,
     draftFilters,

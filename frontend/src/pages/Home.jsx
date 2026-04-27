@@ -9,11 +9,12 @@ import dayjs from 'dayjs'
 import AppBreadcrumbs from '../components/AppBreadcrumbs.jsx'
 import AddAction from '../components/ui/buttons/AddAction.jsx'
 import { useGetCustomers } from '../features/customers/customers.queries.js'
-import CustomPagination from '../features/orders/CustomPagination.jsx'
-import OrdersFiltersSidebar from '../features/orders/OrdersFiltersSidebar.jsx'
 import { getOrdersColumns, localeText } from '../features/orders/order.columns.jsx'
-import { formatDate, getPresetRange } from '../features/orders/orders.date-filters.js'
 import { useGetOrders } from '../features/orders/orders.queries.js'
+
+import CustomPagination from './components/CustomPagination.jsx'
+import FilterSidebar from './components/FilterSidebar.jsx'
+import { formatDate, getPresetRange } from './components/orders.date-filters.js'
 
 const SIDEBAR_WIDTH = 300
 const TOPBAR_HEIGHT = 64
@@ -128,7 +129,7 @@ const Home = () => {
 
     return (
         <Box sx={sx.page}>
-            <OrdersFiltersSidebar
+            <FilterSidebar
                 open={open}
                 setOpen={setOpen}
                 draftFilters={draftFilters}
