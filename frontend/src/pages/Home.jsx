@@ -11,7 +11,7 @@ import AddAction from '../components/ui/buttons/AddAction.jsx'
 import { useGetCustomers } from '../features/customers/customers.queries.js'
 import CustomPagination from '../features/orders/CustomPagination.jsx'
 import OrdersFiltersSidebar from '../features/orders/OrdersFiltersSidebar.jsx'
-import { getOrdersColumns } from '../features/orders/orders.columns.jsx'
+import { getOrdersColumns, localeText } from '../features/orders/order.columns.jsx'
 import { formatDate, getPresetRange } from '../features/orders/orders.date-filters.js'
 import { useGetOrders } from '../features/orders/orders.queries.js'
 
@@ -170,41 +170,7 @@ const Home = () => {
                                 },
                             },
                         }}
-                        localeText={{
-                            noRowsLabel: 'На выбранный период доставки заказов нет.',
-
-                            filterPanelAddFilter: 'Добавить фильтр',
-                            filterPanelDeleteIconLabel: 'Удалить',
-                            filterPanelLinkOperator: 'Логика',
-                            filterPanelOperators: 'Операторы',
-                            filterPanelOperatorAnd: 'И',
-                            filterPanelOperatorOr: 'ИЛИ',
-                            filterPanelColumns: 'Колонки',
-                            filterPanelInputLabel: 'Значение',
-                            filterPanelInputPlaceholder: 'Значение фильтра',
-
-                            filterOperatorContains: 'содержит',
-                            filterOperatorDoesNotContain: 'не содержит',
-                            filterOperatorEquals: 'равно',
-                            filterOperatorDoesNotEqual: 'не равно',
-                            filterOperatorStartsWith: 'начинается с',
-                            filterOperatorEndsWith: 'заканчивается на',
-                            filterOperatorIs: 'равно (is)',
-                            filterOperatorNot: 'не равно (not)',
-                            filterOperatorAfter: 'после',
-                            filterOperatorOnOrAfter: 'в этот день или после',
-                            filterOperatorBefore: 'до',
-                            filterOperatorOnOrBefore: 'в этот день или до',
-                            filterOperatorIsEmpty: 'пусто',
-                            filterOperatorIsNotEmpty: 'не пусто',
-                            filterOperatorIsAnyOf: 'любой из',
-
-                            MuiTablePagination: {
-                                labelRowsPerPage: 'Строк на странице:',
-                                labelDisplayedRows: ({ from, to, count }) =>
-                                    `${from}–${to} из ${count !== -1 ? count : `более чем ${to}`}`,
-                            },
-                        }}
+                        localeText={localeText}
                         slots={{
                             pagination: CustomPagination,
                         }}

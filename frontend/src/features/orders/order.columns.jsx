@@ -3,6 +3,55 @@ import { IconButton } from '@mui/material'
 import DownAction from '../../components/ui/buttons/DownAction.jsx'
 import ViewAction from '../../components/ui/buttons/ViewAction.jsx'
 
+export const localeText = {
+    noRowsLabel: 'На выбранный период доставки заказов нет.',
+
+    filterPanelAddFilter: 'Добавить фильтр',
+    filterPanelDeleteIconLabel: 'Удалить',
+    filterPanelLinkOperator: 'Логика',
+    filterPanelOperators: 'Операторы',
+    filterPanelOperatorAnd: 'И',
+    filterPanelOperatorOr: 'ИЛИ',
+    filterPanelColumns: 'Колонки',
+    filterPanelInputLabel: 'Значение',
+    filterPanelInputPlaceholder: 'Значение фильтра',
+
+    filterOperatorContains: 'содержит',
+    filterOperatorDoesNotContain: 'не содержит',
+    filterOperatorEquals: 'равно',
+    filterOperatorDoesNotEqual: 'не равно',
+    filterOperatorStartsWith: 'начинается с',
+    filterOperatorEndsWith: 'заканчивается на',
+    filterOperatorIs: 'равно',
+    filterOperatorNot: 'не равно',
+    filterOperatorAfter: 'после',
+    filterOperatorOnOrAfter: 'в этот день или после',
+    filterOperatorBefore: 'до',
+    filterOperatorOnOrBefore: 'в этот день или до',
+    filterOperatorIsEmpty: 'пусто',
+    filterOperatorIsNotEmpty: 'не пусто',
+    filterOperatorIsAnyOf: 'любой из',
+
+    columnMenuLabel: 'Меню',
+    columnMenuShowColumns: 'Показать колонки',
+    columnMenuFilter: 'Фильтр',
+    columnMenuHideColumn: 'Скрыть колонку',
+    columnMenuUnsort: 'Отменить сортировку',
+    columnMenuSortAsc: 'Сортировать по возрастанию',
+    columnMenuSortDesc: 'Сортировать по убыванию',
+    columnMenuManageColumns: 'Управление колонками',
+
+    columnsPanelDragIconLabel: 'Изменить порядок колонок',
+    columnsPanelTextFieldLabel: 'Поиск колонки',
+    columnsPanelTextFieldPlaceholder: 'Найти...',
+    columnsManagementShowHideAllText: 'Показать/Скрыть все',
+    columnsManagementReset: 'Сбросить',
+
+    MuiTablePagination: {
+        labelRowsPerPage: 'Строк на странице:',
+        labelDisplayedRows: ({ from, to, count }) => `${from}–${to} из ${count !== -1 ? count : `более чем ${to}`}`,
+    },
+}
 const ORDER_STATUS_LABELS = {
     draft: 'Черновик',
     created: 'Создана',
@@ -103,5 +152,23 @@ export const getOrdersColumns = () => [
                 </IconButton>
             )
         },
+    },
+]
+export const getProductColumns = () => [
+    {
+        field: 'created_at',
+        headerName: 'Наименование',
+        flex: 0.7,
+        // valueGetter: (_, row) => formatDateTime(row.created_at),
+    },
+    {
+        field: 'quantity',
+        headerName: 'Количество',
+        flex: 0.7,
+    },
+    {
+        field: 'pack_type',
+        headerName: 'Тип упаковки',
+        flex: 0.7,
     },
 ]

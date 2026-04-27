@@ -1,13 +1,15 @@
-import React, { useEffect } from 'react'
+import React, { useEffect, useMemo } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 
 import {
     Alert,
     Autocomplete,
     Box,
+    Checkbox,
     CircularProgress,
     Divider,
     FormControl,
+    FormControlLabel,
     InputLabel,
     MenuItem,
     Select,
@@ -15,6 +17,7 @@ import {
     TextField,
     Typography,
 } from '@mui/material'
+import { DataGrid } from '@mui/x-data-grid'
 import { TimePicker } from '@mui/x-date-pickers'
 
 import dayjs from 'dayjs'
@@ -22,8 +25,12 @@ import dayjs from 'dayjs'
 import AppBreadcrumbs from '../../components/AppBreadcrumbs.jsx'
 import ErrorState from '../../components/ui/ErrorState.jsx'
 import FormActions from '../../components/ui/FormActions.jsx'
+import AddAction from '../../components/ui/buttons/AddAction.jsx'
+import DownAction from '../../components/ui/buttons/DownAction.jsx'
+import ViewAction from '../../components/ui/buttons/ViewAction.jsx'
 import { useFormLogic } from '../../hooks/useEntityForm.js'
 
+import { getProductColumns, localeText } from './order.columns.jsx'
 import { useCreateOrder, useGetOrder, useGetOrderResources, useUpdateOrder } from './orders.queries.js'
 
 const today = new Date()
@@ -42,6 +49,7 @@ const emptyForm = {
     contacts: [],
     status: 'draft',
     description: '',
+    samples: false,
 }
 
 const orderStatus = {
@@ -159,12 +167,26 @@ export default function OrderFormPage() {
             contacts: selectedContacts,
 
             description: order.description ?? '',
+
+            samples: order.samples ?? false,
         })
     }, [isEdit, order, order_resources, setForm])
 
     const isLoadingPage = loadingResources || !order_resources || (isEdit && (loadingOrder || !order))
 
     const pageLoadError = loadResourceError || loadOrderError
+
+    const handleClick = (event) => {
+        event.stopPropagation()
+
+        if (order.upd_pdf) {
+            window.open(params.row.udp_pdf, '_blank')
+        } else {
+            console.log('download or generate udp')
+        }
+    }
+
+    const columns = useMemo(() => getProductColumns(), [])
 
     return (
         <Box sx={{ p: 3, width: '100%' }}>
@@ -179,7 +201,7 @@ export default function OrderFormPage() {
                         gutterBottom
                         fontWeight={600}
                     >
-                        {isEdit ? `Редактировать заказ №${form.id || ''}` : 'Создать заказ'}
+                        {isEdit ? `РЕДАКТИРОВАНИЕ ЗАЯВКИ № ${form.id || ''}` : 'СОЗДАНИЕ ЗАЯВКИ'}
                     </Typography>
 
                     <Stack direction="row" spacing={1}>
@@ -302,6 +324,45 @@ export default function OrderFormPage() {
                                             ))}
                                         </Select>
                                     </FormControl>
+                                    <Box
+                                        sx={{
+                                            display: 'flex',
+                                            justifyContent: 'start',
+                                            gap: 2,
+                                            mt: 2,
+                                            mb: 1,
+                                            alignItems: 'center',
+                                        }}
+                                    >
+                                        {isEdit &&
+                                            (order.udp_pdf ? (
+                                                <ViewAction
+                                                    title="Просмотр УПД"
+                                                    onClick={() => window.open(order.udp_pdf, '_blank')}
+                                                />
+                                            ) : (
+                                                <DownAction
+                                                    title="Загрузить УПД"
+                                                    onClick={() => handleDownload(order.id)}
+                                                />
+                                            ))}
+                                        <FormControlLabel
+                                            control={
+                                                <Checkbox
+                                                    size="small"
+                                                    checked={form.samples}
+                                                    onChange={(e) => setForm({ ...form, samples: e.target.checked })}
+                                                />
+                                            }
+                                            label="Образцы"
+                                            slotProps={{
+                                                typography: { sx: { fontSize: '0.9rem', color: 'text.secondary' } },
+                                            }}
+                                            sx={{
+                                                '& .MuiFormControlLabel-label': { fontSize: '0.9rem' },
+                                            }}
+                                        />
+                                    </Box>
                                 </Stack>
                             </Box>
 
@@ -385,12 +446,25 @@ export default function OrderFormPage() {
                             value={form.description || ''}
                             onChange={onChange('description')}
                             multiline
-                            rows={4}
+                            rows={2}
                             fullWidth
                             sx={{ mt: 2 }}
                         />
                     </>
                 )}
+                <Box sx={{ p: 1, display: 'flex', justifyContent: 'space-between', alignItems: 'center', mt: 1 }}>
+                    <Typography variant="h5" color="text.secondary">
+                        Продукция
+                    </Typography>
+                    <Stack direction="row" spacing={1}>
+                        <AddAction></AddAction>
+                    </Stack>
+                </Box>
+                <Divider sx={{ mb: 1 }} />
+                <DataGrid
+                    columns={columns}
+                    localeText={{ ...localeText, noRowsLabel: 'Добавьте продукцию.' }}
+                ></DataGrid>
             </form>
         </Box>
     )
