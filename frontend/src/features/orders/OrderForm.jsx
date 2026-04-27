@@ -10,6 +10,7 @@ import { useFormLogic } from '../../hooks/useEntityForm.js'
 
 import OrderCustomerFields from './components/OrderCustomerFields.jsx'
 import OrderMainFields from './components/OrderMainFields.jsx'
+import OrderPageHeader from './components/OrderPageHeader.jsx'
 import OrderProductsGrid from './components/OrderProductsGrid.jsx'
 import { emptyOrderForm } from './order.form.constants.js'
 import { mapOrderToForm, toOrderPayload } from './order.form.mappers.js'
@@ -79,28 +80,7 @@ export default function OrderFormPage() {
             <AppBreadcrumbs />
 
             <form onSubmit={onSubmit}>
-                <Box
-                    sx={{
-                        p: 3,
-                        display: 'flex',
-                        justifyContent: 'space-between',
-                        alignItems: 'center',
-                    }}
-                >
-                    <Typography
-                        variant="h4"
-                        color="text.secondary"
-                        sx={{ flexGrow: 1, whiteSpace: 'nowrap' }}
-                        gutterBottom
-                        fontWeight={600}
-                    >
-                        {isEdit ? `РЕДАКТИРОВАНИЕ ЗАЯВКИ № ${form.id || ''}` : 'СОЗДАНИЕ ЗАЯВКИ'}
-                    </Typography>
-
-                    <Stack direction="row" spacing={1}>
-                        <FormActions saving={saving} onCancel={() => navigate('/')} />
-                    </Stack>
-                </Box>
+                <OrderPageHeader isEdit={isEdit} orderId={form.id} saving={saving} onCancel={() => navigate('/')} />
 
                 {error && (
                     <Alert severity="error" sx={{ mb: 2 }}>
