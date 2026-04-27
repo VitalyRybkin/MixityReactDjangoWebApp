@@ -27,7 +27,9 @@ class PurchasePriceHistory(models.Model):
     date = models.DateField(default=timezone.now)
     purchase_price = models.DecimalField(max_digits=10, decimal_places=2)
     product = models.ForeignKey(
-        "catalog.Product", on_delete=models.CASCADE, related_name="price_history"
+        "catalog.Product",
+        on_delete=models.CASCADE,
+        related_name="purchase_price_history",
     )
     warehouse = models.ForeignKey(
         "stock.Warehouse", on_delete=models.CASCADE, related_name="warehouse_prices"
@@ -36,10 +38,32 @@ class PurchasePriceHistory(models.Model):
     class Meta:
         ordering = ["-date"]
         db_table = "catalog_purchase_price_history"
-        verbose_name = "История цены"
-        verbose_name_plural = "История цен"
+        verbose_name = "История цены закупки"
+        verbose_name_plural = "История цен закупки"
         unique_together = ("product", "warehouse", "date")
         get_latest_by = "date"
 
     def __str__(self) -> str:
         return f"{self.product.name} - {self.warehouse.name} - {self.date}"
+
+
+class SalesPriceHistory(models.Model):
+    date = models.DateField(default=timezone.now)
+    sale_price = models.DecimalField(max_digits=10, decimal_places=2)
+    product = models.ForeignKey(
+        "catalog.Product", on_delete=models.CASCADE, related_name="sales_price_history"
+    )
+    client = models.ForeignKey(
+        "order.Client", on_delete=models.CASCADE, related_name="client_prices"
+    )
+
+    class Meta:
+        ordering = ["-date"]
+        db_table = "catalog_sales_price_history"
+        verbose_name = "История цены реализации"
+        verbose_name_plural = "История цен реализации"
+        unique_together = ("product", "client", "date")
+        get_latest_by = "date"
+
+    def __str__(self) -> str:
+        return f"{self.product.name} - {self.client.name} - {self.date}"

@@ -84,10 +84,21 @@ class Order(models.Model):
         help_text="Загрузите копию УПД (только PDF файлы)",
     )
 
+    samples = models.BooleanField(
+        default=False,
+        verbose_name="Образцы",
+    )
+
     class Meta:
         verbose_name = "Заказ"
         verbose_name_plural = "Заказы"
         ordering = ["-created_at"]
         indexes = [
-            models.Index(fields=["delivery_date", "delivery_from", "delivery_to"])
+            models.Index(
+                fields=[
+                    "delivery_date",
+                    "delivery_from",
+                    "delivery_to",
+                ]
+            )
         ]

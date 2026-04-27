@@ -1,5 +1,5 @@
 from .description_item import DescriptionItem
-from .price_history import PurchasePriceHistory
+from .price_history import PurchasePriceHistory, SalesPriceHistory
 from .product import Product
 from .product_description import ProductDescription
 from .product_group import ProductGroup
@@ -20,6 +20,7 @@ __all__ = [
     "AppUnit",
     "ProductGroup",
     "PurchasePriceHistory",
+    "SalesPriceHistory",
     "ProductPallet",
     "ProductSpecName",
 ]

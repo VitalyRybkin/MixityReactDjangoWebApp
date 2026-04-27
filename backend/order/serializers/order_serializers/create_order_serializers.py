@@ -3,7 +3,7 @@ from rest_framework import serializers
 from catalog.serializers.product_serializers import ProductSerializer
 from contacts.models import Contact
 from contacts.serializers import ContactSerializer
-from order.models import Client, Customer, Order, ConstructionObject
+from order.models import Client, ConstructionObject, Customer, Order
 from order.order_services.order_create_service import create_order
 from order.serializers.client_serializers import ClientSerializer
 from order.serializers.customer_serializers import (

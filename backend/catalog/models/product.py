@@ -65,11 +65,11 @@ class Product(models.Model):
             ordered by warehouse and descending date.
 
         """
-        latest_dates = self.price_history.values("warehouse").annotate(
+        latest_dates = self.purchase_price_history.values("warehouse").annotate(
             max_date=Max("date")
         )
         return (
-            self.price_history.filter(
+            self.purchase_price_history.filter(
                 date__in=[item["max_date"] for item in latest_dates],
                 warehouse__in=[item["warehouse"] for item in latest_dates],
             )
