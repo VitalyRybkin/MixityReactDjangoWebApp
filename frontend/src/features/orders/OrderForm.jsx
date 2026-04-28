@@ -19,7 +19,7 @@ const emptyProductRow = () => ({
     id: crypto.randomUUID(),
     productId: '',
     quantity: '',
-    pack_type: '',
+    packId: '',
 })
 
 export default function OrderFormPage() {
@@ -151,6 +151,7 @@ export default function OrderFormPage() {
                 <OrderProductsList
                     rows={orderProducts}
                     productsList={orderResources?.products || []}
+                    packsList={orderResources?.pack_types || []}
                     onAdd={handleAddProductRow}
                     onChange={handleProductChange}
                     onRemove={handleRemoveProductRow}

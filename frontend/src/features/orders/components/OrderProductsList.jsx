@@ -5,8 +5,8 @@ import { Autocomplete, Box, Divider, Stack, TextField, Typography } from '@mui/m
 import AddAction from '../../../components/ui/buttons/AddAction.jsx'
 import DeleteAction from '../../../components/ui/buttons/DeleteAction.jsx'
 
-export default function OrderProductsList({ rows, productsList, onChange, onAdd, onRemove }) {
-    const selectedIds = useMemo(() => rows.map((row) => row.productId).filter(Boolean), [rows])
+export default function OrderProductsList({ rows, productsList, packsList, onChange, onAdd, onRemove }) {
+    const selectedProductIds = useMemo(() => rows.map((row) => row.productId).filter(Boolean), [rows])
 
     return (
         <>
@@ -31,6 +31,7 @@ export default function OrderProductsList({ rows, productsList, onChange, onAdd,
 
                 {rows.map((row) => {
                     const selectedProduct = productsList.find((product) => product.id === row.productId) || null
+                    const selectedPack = packsList.find((pack) => pack.id === row.packId) || null
 
                     return (
                         <Box key={row.id} sx={{ p: 0.5 }}>
@@ -43,7 +44,7 @@ export default function OrderProductsList({ rows, productsList, onChange, onAdd,
                                     getOptionLabel={(option) => option?.name || ''}
                                     isOptionEqualToValue={(option, value) => option.id === value.id}
                                     getOptionDisabled={(option) =>
-                                        selectedIds.includes(option.id) && option.id !== row.productId
+                                        selectedProductIds.includes(option.id) && option.id !== row.productId
                                     }
                                     onChange={(_, newValue) => onChange(row.id, 'productId', newValue?.id || '')}
                                     renderInput={(params) => (
@@ -64,12 +65,18 @@ export default function OrderProductsList({ rows, productsList, onChange, onAdd,
                                     sx={{ width: 200 }}
                                 />
 
-                                <TextField
+                                <Autocomplete
+                                    fullWidth
                                     size="small"
-                                    label="Тип упаковки"
-                                    value={row.pack_type}
-                                    onChange={(e) => onChange(row.id, 'pack_type', e.target.value)}
-                                    sx={{ width: 480 }}
+                                    options={packsList}
+                                    value={selectedPack}
+                                    getOptionLabel={(option) => option?.name || ''}
+                                    isOptionEqualToValue={(option, value) => option.id === value.id}
+                                    onChange={(_, newValue) => onChange(row.id, 'packId', newValue?.id || '')}
+                                    renderInput={(params) => (
+                                        <TextField {...params} label="Тип упаковки" placeholder="Выберите упаковку" />
+                                    )}
+                                    sx={{ width: 700 }}
                                 />
 
                                 <DeleteAction onClick={() => onRemove(row.id)} />
