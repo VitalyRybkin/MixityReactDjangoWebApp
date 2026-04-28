@@ -13,7 +13,7 @@ from core.openapi.base_views import (
     BaseListCreateAPIView,
     BaseRetrieveUpdateDestroyAPIView,
 )
-from order.models import Client, Customer, Order
+from order.models import Client, Customer, Order, pack_type, PackType
 from order.serializers.order_serializers.create_order_serializers import (
     OrderReadSerializer,
     OrderResourcesSerializer,
@@ -37,6 +37,7 @@ class OrderResourcesAPIView(BaseGenericAPIView):
             "unit_config", "product_pallets"
         ).all()
         warehouses = Warehouse.objects.active()
+        pack_types = PackType.objects.all()
 
         serializer = self.get_serializer(
             {
@@ -44,6 +45,7 @@ class OrderResourcesAPIView(BaseGenericAPIView):
                 "customers": customers,
                 "products": products,
                 "warehouses": warehouses,
+                "pack_types": pack_types,
             },
             context={"request": request},
         )

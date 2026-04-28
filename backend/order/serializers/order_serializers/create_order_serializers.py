@@ -3,7 +3,7 @@ from rest_framework import serializers
 from catalog.serializers.product_serializers import ProductSerializer
 from contacts.models import Contact
 from contacts.serializers import ContactSerializer
-from order.models import Client, ConstructionObject, Customer, Order
+from order.models import Client, ConstructionObject, Customer, Order, PackType
 from order.order_services.order_create_service import create_order
 from order.serializers.client_serializers import ClientSerializer
 from order.serializers.customer_serializers import (
@@ -12,6 +12,10 @@ from order.serializers.customer_serializers import (
 )
 from stock.warehouse_serializers import WarehouseListCreateSerializer
 
+class PackageTypeSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = PackType
+        fields = ["id", "name"]
 
 class ClientListSerializer(ClientSerializer):
     class Meta(ClientSerializer.Meta):
@@ -36,6 +40,7 @@ class OrderResourcesSerializer(serializers.Serializer):
     customers = CustomerListSerializer(many=True, read_only=True)
     warehouses = WarehouseListSerializer(many=True, read_only=True)
     products = ProductSerializer(many=True, read_only=True)
+    pack_types = PackageTypeSerializer(many=True, read_only=True)
 
 
 class OrderReadSerializer(serializers.ModelSerializer):
