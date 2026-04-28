@@ -37,7 +37,7 @@ const Login = () => {
 
             navigate('/', { replace: true })
         } catch (err) {
-            if (!err.response) setError('Сеть не доступна. Проверьте URL API / соединение.')
+            if (!err.response) setError('Сеть не доступна. Отсутствует соединение с сервером.')
             else if (err.response.status === 401) setError('Неправильный логин или пароль.')
             else setError('Войти не удалось. Попробуйте позже.')
         } finally {

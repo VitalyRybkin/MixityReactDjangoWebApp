@@ -13,7 +13,7 @@ from core.openapi.base_views import (
     BaseListCreateAPIView,
     BaseRetrieveUpdateDestroyAPIView,
 )
-from order.models import Client, Customer, Order, pack_type, PackType
+from order.models import Client, Customer, Order, PackType
 from order.serializers.order_serializers.create_order_serializers import (
     OrderReadSerializer,
     OrderResourcesSerializer,

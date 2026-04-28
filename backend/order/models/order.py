@@ -89,8 +89,6 @@ class Order(models.Model):
         verbose_name="Образцы",
     )
 
-    pack_type = models.ForeignKey('order.PackType', on_delete=models.SET_NULL, null=True, related_name='orders')
-
     class Meta:
         verbose_name = "Заказ"
         verbose_name_plural = "Заказы"

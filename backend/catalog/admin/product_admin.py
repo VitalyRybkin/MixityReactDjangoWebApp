@@ -10,6 +10,7 @@ from catalog.models import (
     ProductSpecName,
     ProductUnit,
     PurchasePriceHistory,
+    SalesPriceHistory,
     SpecificationGroup,
 )
 from common.admin import BaseAdmin
@@ -46,6 +47,7 @@ class ProductSpecificationAdmin(BaseAdmin):
 class ProductSpecificationInline(admin.TabularInline):
     model = ProductSpecification
     fk_name = "product"
+    extra = 0
 
 
 @admin.register(DescriptionItem)
@@ -58,21 +60,31 @@ class DescriptionItemAdmin(BaseAdmin):
 
 class ProductDescriptionInline(admin.TabularInline):
     model = ProductDescription
+    extra = 0
 
 
 class ProductUnitInline(admin.TabularInline):
     model = ProductUnit
     fk_name = "product"
+    extra = 0
 
 
 class ProductPalletInline(admin.TabularInline):
     model = ProductPallet
     fk_name = "product"
+    extra = 0
 
 
 class PurchasePriceHistoryInline(admin.TabularInline):
     model = PurchasePriceHistory
     fk_name = "product"
+    extra = 0
+
+
+class SalePriceHistoryInline(admin.TabularInline):
+    model = SalesPriceHistory
+    fk_name = "product"
+    extra = 0
 
 
 @admin.register(Product)
@@ -87,5 +99,6 @@ class ProductAdmin(BaseAdmin):
         ProductUnitInline,
         ProductPalletInline,
         PurchasePriceHistoryInline,
+        SalePriceHistoryInline,
     ]
     list_editable = ("for_web",)

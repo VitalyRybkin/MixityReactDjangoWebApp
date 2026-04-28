@@ -12,10 +12,12 @@ from order.serializers.customer_serializers import (
 )
 from stock.warehouse_serializers import WarehouseListCreateSerializer
 
+
 class PackageTypeSerializer(serializers.ModelSerializer):
     class Meta:
         model = PackType
         fields = ["id", "name"]
+
 
 class ClientListSerializer(ClientSerializer):
     class Meta(ClientSerializer.Meta):

@@ -7,6 +7,16 @@ from catalog.models import (
     ProductUnit,
     PurchasePriceHistory,
 )
+from order.models import PackType
+
+
+class ProductDefaultPackSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = PackType
+        fields = (
+            "id",
+            "name",
+        )
 
 
 class ProductPalletSerializer(serializers.ModelSerializer):
@@ -54,6 +64,7 @@ class ProductSerializer(serializers.ModelSerializer):
     warehouse_prices = ProductPriceSerializer(
         source="latest_prices_by_warehouse", many=True, read_only=True
     )
+    default_package = ProductDefaultPackSerializer(source="default_pack", read_only=True)
 
     class Meta:
         model = Product
@@ -64,4 +75,5 @@ class ProductSerializer(serializers.ModelSerializer):
             "product_unit",
             "product_pallets",
             "warehouse_prices",
+            "default_package",
         )

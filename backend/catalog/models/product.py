@@ -36,6 +36,13 @@ class Product(models.Model):
     )
     for_web = models.BooleanField(default=False)
     is_piece_based = models.BooleanField(default=True)
+    default_pack = models.ForeignKey(
+        "order.PackType",
+        on_delete=models.SET_NULL,
+        related_name="default_pack",
+        null=True,
+        blank=True,
+    )
 
     class Meta:
         ordering = ["name"]

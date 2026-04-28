@@ -5,20 +5,46 @@ from django.db import models
 
 class OrderItem(models.Model):
     order = models.ForeignKey(
-        "order.Order", on_delete=models.CASCADE, related_name="order_items"
+        "order.Order",
+        on_delete=models.CASCADE,
+        related_name="order_items",
     )
+
     product = models.ForeignKey(
-        "catalog.Product", on_delete=models.CASCADE, related_name="order_entries"
+        "catalog.Product",
+        on_delete=models.CASCADE,
+        related_name="order_entries",
     )
+
+    pack_type = models.ForeignKey(
+        "order.PackType",
+        on_delete=models.SET_NULL,
+        null=True,
+        related_name="orders",
+        blank=True,
+    )
+
     piece_based_quantity = models.PositiveIntegerField(null=True, blank=True)
+
     weight_quantity = models.DecimalField(
-        max_digits=10, decimal_places=2, null=True, blank=True
+        max_digits=10,
+        decimal_places=2,
+        null=True,
+        blank=True,
     )
+
     price_at_purchase = models.DecimalField(
-        max_digits=10, decimal_places=2, null=True, blank=True
+        max_digits=10,
+        decimal_places=2,
+        null=True,
+        blank=True,
     )
+
     price_at_sale = models.DecimalField(
-        max_digits=10, decimal_places=2, null=True, blank=True
+        max_digits=10,
+        decimal_places=2,
+        null=True,
+        blank=True,
     )
 
     class Meta:
