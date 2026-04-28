@@ -30,6 +30,8 @@ class ProductPalletSerializer(serializers.ModelSerializer):
 
 
 class UnitConfigSerializer(serializers.ModelSerializer):
+    display_name = serializers.CharField(source='get_title_display', read_only=True)
+
     class Meta:
         model = AppUnit
         fields = (
@@ -37,6 +39,7 @@ class UnitConfigSerializer(serializers.ModelSerializer):
             "title",
             "is_weight_based",
             "to_kg_factor",
+            "display_name",
         )
 
 

@@ -32,6 +32,7 @@ export default function OrderProductsList({ rows, productsList, packsList, onCha
                 {rows.map((row) => {
                     const selectedProduct = productsList.find((product) => product.id === row.productId) || null
                     const selectedPack = packsList.find((pack) => pack.id === row.packId) || null
+                    const unitTitle = selectedProduct?.product_unit?.unit?.display_name || ''
 
                     return (
                         <Box key={row.id} sx={{ p: 0.5 }}>
@@ -66,9 +67,25 @@ export default function OrderProductsList({ rows, productsList, packsList, onCha
                                     label="Количество"
                                     type="number"
                                     value={row.quantity}
-                                    onChange={(e) => onChange(row.id, { quantity: e.target.value })}
+                                    onChange={(e) => {
+                                        let value = e.target.value
+                                        if (value === '') {
+                                            onChange(row.id, { quantity: '' })
+                                            return
+                                        }
+                                        if (/^\d*\.?\d{0,2}$/.test(value)) {
+                                            onChange(row.id, { quantity: value })
+                                        }
+                                    }}
+                                    inputProps={{
+                                        step: '0.01',
+                                        inputMode: 'decimal',
+                                    }}
                                     sx={{ width: 300 }}
                                 />
+                                <Typography variant="body1" color="text.secondary" sx={{ px: 0, width: 70 }}>
+                                    {unitTitle}
+                                </Typography>
 
                                 <Autocomplete
                                     fullWidth
