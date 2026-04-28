@@ -1,20 +1,26 @@
-import React, { useEffect } from 'react'
+import React, { useEffect, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 
-import { Alert, Box, CircularProgress, Divider, Stack, TextField, Typography } from '@mui/material'
+import { Alert, Box, CircularProgress, Divider, Stack, TextField } from '@mui/material'
 
 import AppBreadcrumbs from '../../components/AppBreadcrumbs.jsx'
 import ErrorState from '../../components/ui/ErrorState.jsx'
-import FormActions from '../../components/ui/FormActions.jsx'
 import { useFormLogic } from '../../hooks/useEntityForm.js'
 
 import OrderCustomerFields from './components/OrderCustomerFields.jsx'
 import OrderMainFields from './components/OrderMainFields.jsx'
 import OrderPageHeader from './components/OrderPageHeader.jsx'
-import OrderProductsGrid from './components/OrderProductsGrid.jsx'
+import OrderProductsList from './components/OrderProductsList.jsx'
 import { emptyOrderForm } from './order.form.constants.js'
 import { mapOrderToForm, toOrderPayload } from './order.form.mappers.js'
 import { useCreateOrder, useGetOrder, useGetOrderResources, useUpdateOrder } from './orders.queries.js'
+
+const emptyProductRow = () => ({
+    id: crypto.randomUUID(),
+    productId: '',
+    quantity: '',
+    pack_type: '',
+})
 
 export default function OrderFormPage() {
     const { id } = useParams()
@@ -71,6 +77,20 @@ export default function OrderFormPage() {
 
     const pageLoadError = loadResourceError || loadOrderError
 
+    const [orderProducts, setOrderProducts] = useState([])
+
+    const handleAddProductRow = () => {
+        setOrderProducts((prev) => [...prev, emptyProductRow()])
+    }
+
+    const handleProductChange = (rowId, field, value) => {
+        setOrderProducts((prev) => prev.map((row) => (row.id === rowId ? { ...row, [field]: value } : row)))
+    }
+
+    const handleRemoveProductRow = (rowId) => {
+        setOrderProducts((prev) => prev.filter((row) => row.id !== rowId))
+    }
+
     const handleDownloadUpd = (orderId) => {
         console.log('download or generate upd', orderId)
     }
@@ -81,15 +101,12 @@ export default function OrderFormPage() {
 
             <form onSubmit={onSubmit}>
                 <OrderPageHeader isEdit={isEdit} orderId={form.id} saving={saving} onCancel={() => navigate('/')} />
-
                 {error && (
                     <Alert severity="error" sx={{ mb: 2 }}>
                         {error}
                     </Alert>
                 )}
-
                 <Divider sx={{ mb: 3 }} />
-
                 {pageLoadError ? (
                     <ErrorState
                         error={pageLoadError}
@@ -131,8 +148,13 @@ export default function OrderFormPage() {
                         />
                     </>
                 )}
-
-                <OrderProductsGrid />
+                <OrderProductsList
+                    rows={orderProducts}
+                    productsList={orderResources?.products || []}
+                    onAdd={handleAddProductRow}
+                    onChange={handleProductChange}
+                    onRemove={handleRemoveProductRow}
+                />{' '}
             </form>
         </Box>
     )

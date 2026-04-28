@@ -154,21 +154,3 @@ export const getOrdersColumns = () => [
         },
     },
 ]
-export const getProductColumns = () => [
-    {
-        field: 'created_at',
-        headerName: 'Наименование',
-        flex: 0.7,
-        // valueGetter: (_, row) => formatDateTime(row.created_at),
-    },
-    {
-        field: 'quantity',
-        headerName: 'Количество',
-        flex: 0.7,
-    },
-    {
-        field: 'pack_type',
-        headerName: 'Тип упаковки',
-        flex: 0.7,
-    },
-]
