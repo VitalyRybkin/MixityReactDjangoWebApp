@@ -83,8 +83,8 @@ export default function OrderFormPage() {
         setOrderProducts((prev) => [...prev, emptyProductRow()])
     }
 
-    const handleProductChange = (rowId, field, value) => {
-        setOrderProducts((prev) => prev.map((row) => (row.id === rowId ? { ...row, [field]: value } : row)))
+    const handleProductChange = (rowId, updates) => {
+        setOrderProducts((prev) => prev.map((row) => (row.id === rowId ? { ...row, ...updates } : row)))
     }
 
     const handleRemoveProductRow = (rowId) => {

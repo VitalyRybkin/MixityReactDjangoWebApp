@@ -46,7 +46,12 @@ export default function OrderProductsList({ rows, productsList, packsList, onCha
                                     getOptionDisabled={(option) =>
                                         selectedProductIds.includes(option.id) && option.id !== row.productId
                                     }
-                                    onChange={(_, newValue) => onChange(row.id, 'productId', newValue?.id || '')}
+                                    onChange={(_, newValue) => {
+                                        onChange(row.id, {
+                                            productId: newValue?.id || '',
+                                            packId: newValue?.default_package?.id || '',
+                                        })
+                                    }}
                                     renderInput={(params) => (
                                         <TextField
                                             {...params}
@@ -61,8 +66,8 @@ export default function OrderProductsList({ rows, productsList, packsList, onCha
                                     label="Количество"
                                     type="number"
                                     value={row.quantity}
-                                    onChange={(e) => onChange(row.id, 'quantity', e.target.value)}
-                                    sx={{ width: 200 }}
+                                    onChange={(e) => onChange(row.id, { quantity: e.target.value })}
+                                    sx={{ width: 300 }}
                                 />
 
                                 <Autocomplete
@@ -72,7 +77,7 @@ export default function OrderProductsList({ rows, productsList, packsList, onCha
                                     value={selectedPack}
                                     getOptionLabel={(option) => option?.name || ''}
                                     isOptionEqualToValue={(option, value) => option.id === value.id}
-                                    onChange={(_, newValue) => onChange(row.id, 'packId', newValue?.id || '')}
+                                    onChange={(_, newValue) => onChange(row.id, { packId: newValue?.id || '' })}
                                     renderInput={(params) => (
                                         <TextField {...params} label="Тип упаковки" placeholder="Выберите упаковку" />
                                     )}
