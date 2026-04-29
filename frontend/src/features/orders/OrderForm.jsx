@@ -46,6 +46,25 @@ export default function OrderFormPage() {
 
     const saving = createOrder.isPending || updateOrder.isPending
 
+    const [orderProducts, setOrderProducts] = useState([])
+
+    const normalizeOrderProducts = (items = []) =>
+        items.map((item) => ({
+            id: item.id ?? crypto.randomUUID(),
+            productId: item.product?.id || '',
+            quantity: item.piece_based_quantity ?? item.weight_quantity ?? '',
+            packId: item.pack_type?.id || '',
+        }))
+
+    const buildProductsPayload = () =>
+        orderProducts
+            .filter((row) => row.productId && row.quantity)
+            .map((row) => ({
+                product: row.productId,
+                quantity: row.quantity,
+                package: row.packId || null,
+            }))
+
     const { form, setForm, error, setError, onChange, onSubmit } = useFormLogic({
         isEdit,
         id,
@@ -53,7 +72,15 @@ export default function OrderFormPage() {
         updateMutation: updateOrder,
         createMutation: createOrder,
         redirectPath: '/',
-        toPayload: toOrderPayload,
+        toPayload: (form) => {
+            const payload = {
+                ...toOrderPayload(form),
+                products: buildProductsPayload(),
+            }
+
+            console.log('PAYLOAD:', payload)
+            return payload
+        },
     })
 
     useEffect(() => {
@@ -71,22 +98,19 @@ export default function OrderFormPage() {
         if (!isEdit || !order || !orderResources) return
 
         setForm(mapOrderToForm(order, orderResources))
+        setOrderProducts(normalizeOrderProducts(order.order_products))
     }, [isEdit, order, orderResources, setForm])
 
     const isLoadingPage = loadingResources || !orderResources || (isEdit && (loadingOrder || !order))
 
     const pageLoadError = loadResourceError || loadOrderError
 
-    const [orderProducts, setOrderProducts] = useState([])
-
     const handleAddProductRow = () => {
         setOrderProducts((prev) => [...prev, emptyProductRow()])
     }
-
     const handleProductChange = (rowId, updates) => {
         setOrderProducts((prev) => prev.map((row) => (row.id === rowId ? { ...row, ...updates } : row)))
     }
-
     const handleRemoveProductRow = (rowId) => {
         setOrderProducts((prev) => prev.filter((row) => row.id !== rowId))
     }
@@ -148,14 +172,16 @@ export default function OrderFormPage() {
                         />
                     </>
                 )}
-                <OrderProductsList
-                    rows={orderProducts}
-                    productsList={orderResources?.products || []}
-                    packsList={orderResources?.pack_types || []}
-                    onAdd={handleAddProductRow}
-                    onChange={handleProductChange}
-                    onRemove={handleRemoveProductRow}
-                />{' '}
+                {!pageLoadError && !isLoadingPage && (
+                    <OrderProductsList
+                        rows={orderProducts}
+                        productsList={orderResources?.products || []}
+                        packsList={orderResources?.pack_types || []}
+                        onAdd={handleAddProductRow}
+                        onChange={handleProductChange}
+                        onRemove={handleRemoveProductRow}
+                    />
+                )}{' '}
             </form>
         </Box>
     )
