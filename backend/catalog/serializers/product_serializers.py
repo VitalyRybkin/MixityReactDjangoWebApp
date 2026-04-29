@@ -30,7 +30,7 @@ class ProductPalletSerializer(serializers.ModelSerializer):
 
 
 class UnitConfigSerializer(serializers.ModelSerializer):
-    display_name = serializers.CharField(source='get_title_display', read_only=True)
+    display_name = serializers.CharField(source="get_title_display", read_only=True)
 
     class Meta:
         model = AppUnit
@@ -67,7 +67,9 @@ class ProductSerializer(serializers.ModelSerializer):
     warehouse_prices = ProductPriceSerializer(
         source="latest_prices_by_warehouse", many=True, read_only=True
     )
-    default_package = ProductDefaultPackSerializer(source="default_pack", read_only=True)
+    default_package = ProductDefaultPackSerializer(
+        source="default_pack", read_only=True
+    )
 
     class Meta:
         model = Product
