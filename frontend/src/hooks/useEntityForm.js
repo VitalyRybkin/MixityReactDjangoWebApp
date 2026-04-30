@@ -14,6 +14,7 @@ export const useFormLogic = ({
     redirectPath,
     toPayload = (form) => form,
     validate = () => true,
+    onSuccess = () => {},
 }) => {
     const navigate = useNavigate()
 
@@ -67,6 +68,8 @@ export const useFormLogic = ({
             } else {
                 await createMutation.mutateAsync(payload)
             }
+
+            onSuccess()
             navigate(redirectPath)
         } catch (e2) {
             setError(firstError(e2))

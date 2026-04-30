@@ -5,6 +5,7 @@ import { Alert, Box, CircularProgress, Divider, Stack, TextField, Typography } f
 
 import AppBreadcrumbs from '../../components/AppBreadcrumbs.jsx'
 import ErrorState from '../../components/ui/ErrorState.jsx'
+import ConfirmDialog from '../../components/ui/feedback/ConfirmDialog.jsx'
 import { useFormLogic } from '../../hooks/useEntityForm.js'
 
 import OrderCustomerFields from './components/OrderCustomerFields.jsx'
@@ -50,6 +51,8 @@ export default function OrderFormPage() {
     const [orderProducts, setOrderProducts] = useState([])
 
     const [productErrors, setProductErrors] = useState({})
+
+    const [initialSnapshot, setInitialSnapshot] = useState(null)
 
     const totalWeight = useMemo(() => {
         return orderProducts.reduce((acc, row) => {
@@ -112,7 +115,37 @@ export default function OrderFormPage() {
             setProductErrors(errors)
             return Object.keys(errors).length === 0
         },
+        onSuccess: () => {
+            setInitialSnapshot(
+                JSON.stringify({
+                    form,
+                    products: orderProducts,
+                }),
+            )
+        },
     })
+
+    const isLoadingPage = loadingResources || !orderResources || (isEdit && (loadingOrder || !order))
+
+    const pageLoadError = loadResourceError || loadOrderError
+
+    const currentSnapshot = JSON.stringify({
+        form,
+        products: orderProducts,
+    })
+
+    const isDirty = initialSnapshot !== null && currentSnapshot !== initialSnapshot && !saving
+
+    useEffect(() => {
+        const handler = (e) => {
+            if (!isDirty) return
+            e.preventDefault()
+            e.returnValue = ''
+        }
+
+        window.addEventListener('beforeunload', handler)
+        return () => window.removeEventListener('beforeunload', handler)
+    }, [isDirty])
 
     useEffect(() => {
         if (loadResourceError) {
@@ -128,13 +161,43 @@ export default function OrderFormPage() {
     useEffect(() => {
         if (!isEdit || !order || !orderResources) return
 
-        setForm(mapOrderToForm(order, orderResources))
-        setOrderProducts(normalizeOrderProducts(order.order_products))
+        const mappedForm = mapOrderToForm(order, orderResources)
+        const mappedProducts = normalizeOrderProducts(order.order_products)
+
+        setForm(mappedForm)
+        setOrderProducts(mappedProducts)
+
+        setInitialSnapshot(
+            JSON.stringify({
+                form: mappedForm,
+                products: mappedProducts,
+            }),
+        )
     }, [isEdit, order, orderResources, setForm])
 
-    const isLoadingPage = loadingResources || !orderResources || (isEdit && (loadingOrder || !order))
+    useEffect(() => {
+        if (isEdit || isLoadingPage || pageLoadError || initialSnapshot !== null) return
 
-    const pageLoadError = loadResourceError || loadOrderError
+        setInitialSnapshot(
+            JSON.stringify({
+                form,
+                products: orderProducts,
+            }),
+        )
+    }, [isEdit, isLoadingPage, pageLoadError, initialSnapshot, form, orderProducts])
+
+    const [confirmOpen, setConfirmOpen] = useState(false)
+    const [nextPath, setNextPath] = useState(null)
+
+    const handleNavigate = (path) => {
+        if (isDirty) {
+            setNextPath(path)
+            setConfirmOpen(true)
+            return
+        }
+
+        navigate(path)
+    }
 
     const handleAddProductRow = () => {
         setOrderProducts((prev) => [...prev, emptyProductRow()])
@@ -163,7 +226,12 @@ export default function OrderFormPage() {
             <AppBreadcrumbs />
 
             <form noValidate onSubmit={onSubmit}>
-                <OrderPageHeader isEdit={isEdit} orderId={form.id} saving={saving} onCancel={() => navigate('/')} />
+                <OrderPageHeader
+                    isEdit={isEdit}
+                    orderId={form.id}
+                    saving={saving}
+                    onCancel={() => handleNavigate('/')}
+                />
                 {error && (
                     <Alert severity="error" sx={{ mb: 2 }}>
                         {error}
@@ -232,6 +300,24 @@ export default function OrderFormPage() {
                     {totalWeight.toFixed(2)} т
                 </Typography>
             </Stack>
+
+            <ConfirmDialog
+                open={confirmOpen}
+                title="Есть несохранённые изменения"
+                text="Вы изменили форму. Уйти без сохранения?"
+                confirmText="Уйти"
+                cancelText="Остаться"
+                onClose={() => {
+                    setConfirmOpen(false)
+                    setNextPath(null)
+                }}
+                onConfirm={() => {
+                    const path = nextPath || '/'
+                    setConfirmOpen(false)
+                    setNextPath(null)
+                    navigate(path)
+                }}
+            />
         </Box>
     )
 }
