@@ -58,8 +58,8 @@ const loadFiltersFromStorage = (defaults) => {
         return {
             ...defaults,
             ...parsed,
-            dateFrom: parsed.dateFrom ? dayjs(parsed.dateFrom).format('YYYY-MM-DD') : defaults.dateFrom,
-            dateTo: parsed.dateTo ? dayjs(parsed.dateTo).format('YYYY-MM-DD') : defaults.dateTo,
+            dateFrom: parsed.dateFrom || defaults.dateFrom,
+            dateTo: parsed.dateTo || defaults.dateTo,
         }
     } catch (e) {
         console.error('Error parsing filters', e)
@@ -91,8 +91,8 @@ const Home = () => {
 
     const formattedFilters = {
         ...filters,
-        dateFrom: filters.dateFrom ? dayjs(filters.dateFrom).format('YYYY-MM-DD') : '',
-        dateTo: filters.dateTo ? dayjs(filters.dateTo).format('YYYY-MM-DD') : '',
+        dateFrom: filters.dateFrom || '',
+        dateTo: filters.dateTo || '',
     }
 
     const { data: orders, isPending: loadingOrders } = useGetOrders(formattedFilters)
@@ -119,14 +119,17 @@ const Home = () => {
     }
 
     const handleDraftFilterChange = (field, value) => {
-        let updated = { [field]: value }
+        const isDateField = field === 'dateFrom' || field === 'dateTo'
 
-        if (field === 'dateFrom' || field === 'dateTo') {
+        setDraftFilters((prev) => ({
+            ...prev,
+            [field]: isDateField && value ? dayjs(value).format('YYYY-MM-DD') : value,
+            ...(isDateField ? { selectedPreset: null } : {}),
+        }))
+
+        if (isDateField) {
             setSelectedPreset(null)
-            updated.selectedPreset = null // Чтобы в хранилище не осталось старого пресета
         }
-
-        setDraftFilters((prev) => ({ ...prev, ...updated }))
     }
 
     const [orderToDelete, setOrderToDelete] = useState(null)
