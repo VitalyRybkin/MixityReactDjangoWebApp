@@ -1,7 +1,7 @@
-import React, { useEffect, useState } from 'react'
+import React, { useEffect, useMemo, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 
-import { Alert, Box, CircularProgress, Divider, Stack, TextField } from '@mui/material'
+import { Alert, Box, CircularProgress, Divider, Stack, TextField, Typography } from '@mui/material'
 
 import AppBreadcrumbs from '../../components/AppBreadcrumbs.jsx'
 import ErrorState from '../../components/ui/ErrorState.jsx'
@@ -20,6 +20,7 @@ const emptyProductRow = () => ({
     productId: '',
     quantity: '',
     packId: '',
+    value: 0,
 })
 
 export default function OrderFormPage() {
@@ -50,12 +51,31 @@ export default function OrderFormPage() {
 
     const [productErrors, setProductErrors] = useState({})
 
+    const totalWeight = useMemo(() => {
+        return orderProducts.reduce((acc, row) => {
+            const product = orderResources?.products?.find((item) => item.id === row.productId)
+
+            const quantity = Number(String(row.quantity).replace(',', '.')) || 0
+            const unitValue = Number(product?.product_unit?.value) || 0
+            const isPieceBased = !product?.product_unit?.unit?.is_weight_based
+
+            if (!quantity) return acc
+
+            if (isPieceBased) {
+                return acc + (quantity * unitValue) / 1000
+            }
+
+            return acc + quantity
+        }, 0)
+    }, [orderProducts, orderResources?.products])
+
     const normalizeOrderProducts = (items = []) =>
         items.map((item) => ({
             id: item.id ?? crypto.randomUUID(),
             productId: item.product?.id || '',
             quantity: item.piece_based_quantity ?? item.weight_quantity ?? '',
             packId: item.pack_type?.id || '',
+            value: item.product?.product_unit?.value ?? 0,
         }))
 
     const buildProductsPayload = () =>
@@ -75,13 +95,10 @@ export default function OrderFormPage() {
         createMutation: createOrder,
         redirectPath: '/',
         toPayload: (form) => {
-            const payload = {
+            return {
                 ...toOrderPayload(form),
                 products: buildProductsPayload(),
             }
-
-            console.log('PAYLOAD:', payload)
-            return payload
         },
         validate: () => {
             const errors = {}
@@ -206,6 +223,15 @@ export default function OrderFormPage() {
                     />
                 )}{' '}
             </form>
+            <Divider sx={{ mb: 1, mt: 2 }} />
+            <Stack direction="row" justifyContent="start" alignItems="center" sx={{ mb: 2 }}>
+                <Typography variant="body1" color="text.secondary" sx={{ m: 1 }}>
+                    Вес:
+                </Typography>
+                <Typography variant="body1" color="text.secondary">
+                    {totalWeight.toFixed(2)} т
+                </Typography>
+            </Stack>
         </Box>
     )
 }
