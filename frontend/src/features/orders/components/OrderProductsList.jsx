@@ -5,7 +5,15 @@ import { Autocomplete, Box, Divider, Stack, TextField, Typography } from '@mui/m
 import AddAction from '../../../components/ui/buttons/AddAction.jsx'
 import DeleteAction from '../../../components/ui/buttons/DeleteAction.jsx'
 
-export default function OrderProductsList({ rows, productsList, packsList, onChange, onAdd, onRemove }) {
+export default function OrderProductsList({
+    rows,
+    productErrors = {},
+    productsList,
+    packsList,
+    onChange,
+    onAdd,
+    onRemove,
+}) {
     const selectedProductIds = useMemo(() => rows.map((row) => row.productId).filter(Boolean), [rows])
 
     return (
@@ -33,6 +41,7 @@ export default function OrderProductsList({ rows, productsList, packsList, onCha
                     const selectedProduct = productsList.find((product) => product.id === row.productId) || null
                     const selectedPack = packsList.find((pack) => pack.id === row.packId) || null
                     const unitTitle = selectedProduct?.product_unit?.unit?.display_name || ''
+                    const quantityError = Boolean(productErrors[row.id])
 
                     return (
                         <Box key={row.id} sx={{ p: 0.5 }}>
@@ -61,27 +70,39 @@ export default function OrderProductsList({ rows, productsList, packsList, onCha
                                         />
                                     )}
                                 />
-
                                 <TextField
                                     size="small"
-                                    label="Количество"
+                                    label="Количество *"
                                     type="number"
                                     value={row.quantity}
                                     onChange={(e) => {
-                                        let value = e.target.value
+                                        const value = e.target.value
+
                                         if (value === '') {
                                             onChange(row.id, { quantity: '' })
                                             return
                                         }
+
                                         if (/^\d*\.?\d{0,2}$/.test(value)) {
                                             onChange(row.id, { quantity: value })
                                         }
                                     }}
-                                    inputProps={{
-                                        step: '0.01',
-                                        inputMode: 'decimal',
+                                    error={quantityError}
+                                    slotProps={{
+                                        input: {
+                                            inputProps: {
+                                                step: '0.01',
+                                                inputMode: 'decimal',
+                                                min: 0.01,
+                                            },
+                                        },
                                     }}
-                                    sx={{ width: 300 }}
+                                    sx={{
+                                        width: 300,
+                                        '& .MuiOutlinedInput-root.Mui-error fieldset': {
+                                            borderColor: 'error.main',
+                                        },
+                                    }}
                                 />
                                 <Typography variant="body1" color="text.secondary" sx={{ px: 0, width: 70 }}>
                                     {unitTitle}

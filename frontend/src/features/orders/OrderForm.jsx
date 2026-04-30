@@ -48,6 +48,8 @@ export default function OrderFormPage() {
 
     const [orderProducts, setOrderProducts] = useState([])
 
+    const [productErrors, setProductErrors] = useState({})
+
     const normalizeOrderProducts = (items = []) =>
         items.map((item) => ({
             id: item.id ?? crypto.randomUUID(),
@@ -81,6 +83,18 @@ export default function OrderFormPage() {
             console.log('PAYLOAD:', payload)
             return payload
         },
+        validate: () => {
+            const errors = {}
+
+            orderProducts.forEach((row) => {
+                if (row.productId && (row.quantity === '' || row.quantity == null)) {
+                    errors[row.id] = 'Пожалуйста, заполните поле'
+                }
+            })
+
+            setProductErrors(errors)
+            return Object.keys(errors).length === 0
+        },
     })
 
     useEffect(() => {
@@ -110,6 +124,14 @@ export default function OrderFormPage() {
     }
     const handleProductChange = (rowId, updates) => {
         setOrderProducts((prev) => prev.map((row) => (row.id === rowId ? { ...row, ...updates } : row)))
+
+        if ('quantity' in updates && updates.quantity !== '') {
+            setProductErrors((prev) => {
+                const next = { ...prev }
+                delete next[rowId]
+                return next
+            })
+        }
     }
     const handleRemoveProductRow = (rowId) => {
         setOrderProducts((prev) => prev.filter((row) => row.id !== rowId))
@@ -123,7 +145,7 @@ export default function OrderFormPage() {
         <Box sx={{ p: 3, width: '100%' }}>
             <AppBreadcrumbs />
 
-            <form onSubmit={onSubmit}>
+            <form noValidate onSubmit={onSubmit}>
                 <OrderPageHeader isEdit={isEdit} orderId={form.id} saving={saving} onCancel={() => navigate('/')} />
                 {error && (
                     <Alert severity="error" sx={{ mb: 2 }}>
@@ -175,6 +197,7 @@ export default function OrderFormPage() {
                 {!pageLoadError && !isLoadingPage && (
                     <OrderProductsList
                         rows={orderProducts}
+                        productErrors={productErrors}
                         productsList={orderResources?.products || []}
                         packsList={orderResources?.pack_types || []}
                         onAdd={handleAddProductRow}
