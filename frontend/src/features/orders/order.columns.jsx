@@ -1,5 +1,6 @@
 import { IconButton } from '@mui/material'
 
+import DeleteAction from '../../components/ui/buttons/DeleteAction.jsx'
 import DownAction from '../../components/ui/buttons/DownAction.jsx'
 import ViewAction from '../../components/ui/buttons/ViewAction.jsx'
 
@@ -83,7 +84,7 @@ const formatDateTime = (value) => {
     return `${day}.${month} [ ${dayOfWeek} ]`
 }
 
-export const getOrdersColumns = () => [
+export const getOrdersColumns = ({ onDelete }) => [
     { field: 'id', headerName: '№', flex: 0.4 },
     {
         field: 'created_at',
@@ -113,7 +114,7 @@ export const getOrdersColumns = () => [
         field: 'delivery_date',
         headerName: 'Дата доставки',
         flex: 0.7,
-        valueGetter: (_, row) => formatDateTime(row.created_at),
+        valueGetter: (_, row) => formatDateTime(row.delivery_date),
     },
     {
         field: 'delivery_window',
@@ -138,6 +139,7 @@ export const getOrdersColumns = () => [
 
             const handleClick = (event) => {
                 event.stopPropagation()
+                event.currentTarget.blur()
 
                 if (hasUdpPdf) {
                     window.open(params.row.udp_pdf, '_blank')
@@ -152,5 +154,23 @@ export const getOrdersColumns = () => [
                 </IconButton>
             )
         },
+    },
+    {
+        field: 'actions',
+        headerName: '',
+        width: 70,
+        sortable: false,
+        filterable: false,
+        disableColumnMenu: true,
+        align: 'center',
+        renderCell: (params) => (
+            <DeleteAction
+                onClick={(event) => {
+                    event.stopPropagation()
+                    event.currentTarget.blur()
+                    onDelete(params.row)
+                }}
+            />
+        ),
     },
 ]

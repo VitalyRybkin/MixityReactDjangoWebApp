@@ -8,9 +8,11 @@ import dayjs from 'dayjs'
 
 import AppBreadcrumbs from '../components/AppBreadcrumbs.jsx'
 import AddAction from '../components/ui/buttons/AddAction.jsx'
+import AppSnackbar from '../components/ui/feedback/AppSnackbar.jsx'
+import ConfirmDialog from '../components/ui/feedback/ConfirmDialog.jsx'
 import { useGetCustomers } from '../features/customers/customers.queries.js'
 import { getOrdersColumns, localeText } from '../features/orders/order.columns.jsx'
-import { useGetOrders } from '../features/orders/orders.queries.js'
+import { useDeleteOrder, useGetOrders } from '../features/orders/orders.queries.js'
 
 import CustomPagination from './components/CustomPagination.jsx'
 import FilterSidebar from './components/FilterSidebar.jsx'
@@ -97,7 +99,7 @@ const Home = () => {
     const { data: customers, isPending: loadingCustomers } = useGetCustomers()
 
     const rows = orders ?? []
-    const columns = useMemo(() => getOrdersColumns(), [])
+    // const columns = useMemo(() => getOrdersColumns(), [])
 
     const handleApplyFilters = () => {
         setFilters(draftFilters)
@@ -125,6 +127,39 @@ const Home = () => {
         }
 
         setDraftFilters((prev) => ({ ...prev, ...updated }))
+    }
+
+    const [orderToDelete, setOrderToDelete] = useState(null)
+
+    const [snackbar, setSnackbar] = useState({
+        open: false,
+        message: '',
+        severity: 'success',
+    })
+
+    const deleteOrder = useDeleteOrder()
+
+    const columns = useMemo(
+        () =>
+            getOrdersColumns({
+                onDelete: (order) => setOrderToDelete(order),
+            }),
+        [],
+    )
+
+    const handleConfirmDelete = () => {
+        if (!orderToDelete) return
+
+        deleteOrder.mutate(orderToDelete.id, {
+            onSuccess: () => {
+                setOrderToDelete(null)
+                setSnackbar({
+                    open: true,
+                    message: 'Заявка удалена',
+                    severity: 'success',
+                })
+            },
+        })
     }
 
     return (
@@ -181,6 +216,23 @@ const Home = () => {
                                 cursor: 'pointer',
                             },
                         }}
+                    />
+                    <ConfirmDialog
+                        open={Boolean(orderToDelete)}
+                        title="Удалить заявку?"
+                        text={`Заявка №${orderToDelete?.id} будет удалена без возможности восстановления.`}
+                        confirmText={deleteOrder.isPending ? 'Удаление...' : 'Удалить'}
+                        cancelText="Отмена"
+                        onClose={() => !deleteOrder.isPending && setOrderToDelete(null)}
+                        onConfirm={handleConfirmDelete}
+                        loading={deleteOrder.isPending}
+                    />
+
+                    <AppSnackbar
+                        open={snackbar.open}
+                        message={snackbar.message}
+                        severity={snackbar.severity}
+                        onClose={() => setSnackbar((prev) => ({ ...prev, open: false }))}
                     />
                 </Container>
             </Box>

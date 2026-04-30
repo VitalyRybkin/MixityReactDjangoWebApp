@@ -13,8 +13,17 @@ const unwrapList = (data) => {
 
 // --- QUERY KEYS ---
 export const orderKeys = {
-    all: ['order'],
-    list: (dateFrom, dateTo) => [...orderKeys.all, 'list', { dateFrom, dateTo }],
+    all: ['orders'],
+    lists: () => [...orderKeys.all, 'list'],
+    list: (filters = {}) => [
+        ...orderKeys.lists(),
+        {
+            dateFrom: filters.dateFrom || '',
+            dateTo: filters.dateTo || '',
+            status: filters.status || '',
+            customerId: filters.customerId || '',
+        },
+    ],
     detail: (id) => [...orderKeys.all, 'detail', String(id)],
     resources: () => [...orderKeys.all, 'resources'],
 }
@@ -69,16 +78,14 @@ export function useGetOrderResources(options = {}) {
 }
 
 export function useGetOrders(filters = {}) {
-    const { dateFrom = '', dateTo = '', status = '', customerId = '' } = filters
-
     return useQuery({
-        queryKey: ['orders', dateFrom, dateTo, status, customerId],
+        queryKey: orderKeys.list(filters),
         queryFn: () =>
             fetchOrders({
-                dateFrom,
-                dateTo,
-                status,
-                customerId,
+                dateFrom: filters.dateFrom || '',
+                dateTo: filters.dateTo || '',
+                status: filters.status || '',
+                customerId: filters.customerId || '',
             }),
     })
 }
@@ -104,22 +111,36 @@ export function useCreateOrder() {
 
 export function useUpdateOrder() {
     const queryClient = useQueryClient()
+
     return useMutation({
         mutationFn: updateOrder,
+
         onSuccess: async (_, variables) => {
-            await queryClient.invalidateQueries({ queryKey: orderKeys.list() })
-            await queryClient.invalidateQueries({ queryKey: orderKeys.detail(variables.id) })
+            await queryClient.invalidateQueries({
+                queryKey: orderKeys.lists(),
+            })
+
+            await queryClient.invalidateQueries({
+                queryKey: orderKeys.detail(variables.id),
+            })
         },
     })
 }
 
 export function useDeleteOrder() {
     const queryClient = useQueryClient()
+
     return useMutation({
         mutationFn: deleteOrder,
-        onSuccess: async (id) => {
-            await queryClient.invalidateQueries({ queryKey: orderKeys.list() })
-            queryClient.removeQueries({ queryKey: orderKeys.detail(id) })
+
+        onSuccess: async (_, id) => {
+            await queryClient.invalidateQueries({
+                queryKey: orderKeys.lists(),
+            })
+
+            queryClient.removeQueries({
+                queryKey: orderKeys.detail(id),
+            })
         },
     })
 }

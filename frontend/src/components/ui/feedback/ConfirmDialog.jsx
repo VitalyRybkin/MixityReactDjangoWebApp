@@ -1,6 +1,6 @@
 import React from 'react'
 
-import { Button, Dialog, DialogContent, Stack, Typography } from '@mui/material'
+import { Button, CircularProgress, Dialog, DialogContent, Stack, Typography } from '@mui/material'
 
 const ConfirmDialog = ({
     open,
@@ -10,9 +10,10 @@ const ConfirmDialog = ({
     cancelText = 'Cancel',
     onClose,
     onConfirm,
+    loading = false, // 👈
 }) => {
     return (
-        <Dialog open={open} onClose={onClose} maxWidth="xs" fullWidth>
+        <Dialog open={open} onClose={loading ? undefined : onClose} maxWidth="xs" fullWidth>
             <DialogContent sx={{ p: 3 }}>
                 <Stack spacing={2}>
                     <Typography variant="h6">{title}</Typography>
@@ -22,9 +23,17 @@ const ConfirmDialog = ({
                     </Typography>
 
                     <Stack direction="row" justifyContent="flex-end" spacing={1}>
-                        <Button onClick={onClose}>{cancelText}</Button>
+                        <Button onClick={onClose} disabled={loading}>
+                            {cancelText}
+                        </Button>
 
-                        <Button variant="contained" color="error" onClick={onConfirm}>
+                        <Button
+                            variant="contained"
+                            color="error"
+                            onClick={onConfirm}
+                            disabled={loading}
+                            startIcon={loading ? <CircularProgress size={16} color="inherit" /> : null}
+                        >
                             {confirmText}
                         </Button>
                     </Stack>
