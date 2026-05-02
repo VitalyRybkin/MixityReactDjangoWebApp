@@ -56,9 +56,10 @@ const quickPresetButtons = [
 ]
 
 const rangePresetButtons = [
-    { value: 'lastWeek', label: 'Прошлая неделя' },
-    { value: 'currentWeek', label: 'Эта неделя' },
-    { value: 'thisMonth', label: 'Этот месяц' },
+    { value: 'lastWeek', label: 'Прошлая' },
+    { value: 'currentWeek', label: 'Текущая' },
+    { value: 'nextWeek', label: 'Следующая' },
+    { value: 'thisMonth', label: 'Месяц' },
 ]
 
 const dateFieldProps = {
@@ -97,6 +98,10 @@ export default function FilterSidebar({
                     </Typography>
 
                     <Divider sx={{ my: 2, mb: 0 }} />
+
+                    <Typography variant="caption" color="text.secondary" sx={{ mt: 1 }}>
+                        Дата доставки:
+                    </Typography>
 
                     <TextField
                         id="orders-date-from"
@@ -158,13 +163,15 @@ export default function FilterSidebar({
 
                     <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap', mt: 2 }}>
                         {quickPresetButtons.map((item) => (
-                            <Button
-                                key={item.value}
-                                variant={selectedPreset === item.value ? 'contained' : 'outlined'}
-                                onClick={() => onPresetClick(item.value)}
-                            >
-                                {item.label}
-                            </Button>
+                            <Tooltip title={'День'}>
+                                <Button
+                                    key={item.value}
+                                    variant={selectedPreset === item.value ? 'contained' : 'outlined'}
+                                    onClick={() => onPresetClick(item.value)}
+                                >
+                                    {item.label}
+                                </Button>
+                            </Tooltip>
                         ))}
                     </Box>
 
@@ -172,13 +179,15 @@ export default function FilterSidebar({
 
                     <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap', mt: 2 }}>
                         {rangePresetButtons.map((item) => (
-                            <Button
-                                key={item.value}
-                                variant={selectedPreset === item.value ? 'contained' : 'outlined'}
-                                onClick={() => onPresetClick(item.value)}
-                            >
-                                {item.label}
-                            </Button>
+                            <Tooltip title={item.label === 'Месяц' ? 'Месяц' : 'Неделя'}>
+                                <Button
+                                    key={item.value}
+                                    variant={selectedPreset === item.value ? 'contained' : 'outlined'}
+                                    onClick={() => onPresetClick(item.value)}
+                                >
+                                    {item.label}
+                                </Button>
+                            </Tooltip>
                         ))}
                     </Box>
 

@@ -72,6 +72,20 @@ export const getPresetRange = (preset) => {
         }
     }
 
+    if (preset === 'nextWeek') {
+        const currentWeekStart = getStartOfWeek(now)
+        const start = new Date(currentWeekStart)
+        start.setDate(start.getDate() + 7)
+
+        const end = new Date(start)
+        end.setDate(end.getDate() + 6)
+
+        return {
+            dateFrom: formatDate(start),
+            dateTo: formatDate(end),
+        }
+    }
+
     if (preset === 'thisMonth') {
         return {
             dateFrom: formatDate(getStartOfMonth(now)),
