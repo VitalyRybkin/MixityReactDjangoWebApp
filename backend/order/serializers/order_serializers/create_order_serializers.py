@@ -26,6 +26,7 @@ class PackageTypeSerializer(serializers.ModelSerializer):
     """
     Serializer for handling PackageType data.
     """
+
     class Meta:
         model = PackType
         fields = ["id", "name"]
@@ -35,6 +36,7 @@ class ClientListSerializer(ClientSerializer):
     """
     Serializer for handling Client data in list format.
     """
+
     class Meta(ClientSerializer.Meta):
         fields = ["id", "name"]
 
@@ -58,6 +60,7 @@ class CustomerListSerializer(CustomerSerializer):
             ContactSerializer and are read-only.
 
     """
+
     customer_objects = BaseCustomerObjectsSerializer(many=True, read_only=True)
     contacts = ContactSerializer(many=True, read_only=True)
 
@@ -69,6 +72,7 @@ class WarehouseListSerializer(WarehouseListCreateSerializer):
     """
     Serializer for listing warehouse data.
     """
+
     class Meta(WarehouseListCreateSerializer.Meta):
         fields = ["id", "name"]
 
@@ -89,6 +93,7 @@ class OrderResourcesSerializer(serializers.Serializer):
         pack_types: Serialized representation of a list of package types using the
             PackageTypeSerializer. The field is marked as read-only.
     """
+
     clients = ClientListSerializer(many=True, read_only=True)
     customers = CustomerListSerializer(many=True, read_only=True)
     warehouses = WarehouseListSerializer(many=True, read_only=True)
@@ -109,6 +114,7 @@ class OrderItemSerializer(serializers.ModelSerializer):
         fields: Specifies the fields of the model to be included in the serialized
             output.
     """
+
     product = ProductSerializer()
     pack_type = PackageTypeSerializer()
 
@@ -136,6 +142,7 @@ class OrderReadSerializer(serializers.ModelSerializer):
         order_products: A read-only nested serializer that retrieves the order items
             associated with the order.
     """
+
     id = serializers.IntegerField()
     client = ClientSerializer()
     customer = CustomerSerializer()
@@ -184,6 +191,7 @@ class OrderProductWriteSerializer(serializers.Serializer):
             Validates the given data against rules for piece-based and
             weight-based products, and adjusts the serialized output accordingly.
     """
+
     product = serializers.PrimaryKeyRelatedField(queryset=Product.objects.all())
     quantity = serializers.DecimalField(max_digits=10, decimal_places=2)
     package = serializers.PrimaryKeyRelatedField(
@@ -233,6 +241,7 @@ class OrderWriteSerializer(serializers.ModelSerializer):
         products: A nested serializer (OrderProductWriteSerializer) for handling
             multiple product creations. This field is write-only and not required.
     """
+
     client = serializers.PrimaryKeyRelatedField(queryset=Client.objects.active())
     customer = serializers.PrimaryKeyRelatedField(queryset=Customer.objects.active())
     customer_object = serializers.PrimaryKeyRelatedField(
