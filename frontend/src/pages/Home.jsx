@@ -13,14 +13,11 @@ import ConfirmDialog from '../components/ui/feedback/ConfirmDialog.jsx'
 import { useGetCustomers } from '../features/customers/customers.queries.js'
 import { getOrdersColumns, localeText } from '../features/orders/order.columns.jsx'
 import { useDeleteOrder, useGetOrders } from '../features/orders/orders.queries.js'
+import { COLLAPSED_WIDTH, SIDEBAR_WIDTH, TOPBAR_HEIGHT } from '../layouts/AppSidebar.jsx'
 
 import CustomPagination from './components/CustomPagination.jsx'
 import FilterSidebar from './components/FilterSidebar.jsx'
 import { formatDate, getPresetRange } from './components/orders.date-filters.js'
-
-const SIDEBAR_WIDTH = 300
-const TOPBAR_HEIGHT = 64
-const COLLAPSED_WIDTH = 48
 
 const ORDER_STATUS_OPTIONS = [
     { value: 'draft', label: 'Черновик' },
