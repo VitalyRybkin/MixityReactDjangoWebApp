@@ -13,7 +13,7 @@ import ConfirmDialog from '../components/ui/feedback/ConfirmDialog.jsx'
 import { useGetCustomers } from '../features/customers/customers.queries.js'
 import { getOrdersColumns, localeText } from '../features/orders/order.columns.jsx'
 import { useDeleteOrder, useGetOrders } from '../features/orders/orders.queries.js'
-import { COLLAPSED_WIDTH, SIDEBAR_WIDTH, TOPBAR_HEIGHT } from '../layouts/AppSidebar.jsx'
+import { sidebarPageSx } from '../layouts/AppSidebar.jsx'
 
 import CustomPagination from './components/CustomPagination.jsx'
 import FilterSidebar from './components/FilterSidebar.jsx'
@@ -25,20 +25,6 @@ const ORDER_STATUS_OPTIONS = [
     { value: 'in_progress', label: 'В работе' },
     { value: 'done', label: 'Завершена' },
 ]
-
-const sx = {
-    page: {
-        minHeight: `calc(100vh - ${TOPBAR_HEIGHT}px)`,
-    },
-    content: {
-        transition: 'margin-left 0.3s ease',
-        ml: `${COLLAPSED_WIDTH}px`,
-        pt: 4,
-    },
-    contentWithSidebar: {
-        ml: `${SIDEBAR_WIDTH}px`,
-    },
-}
 
 const STORAGE_KEY = 'orders_filters_cache'
 
@@ -163,7 +149,7 @@ const Home = () => {
     }
 
     return (
-        <Box sx={sx.page}>
+        <Box sx={sidebarPageSx.page}>
             <FilterSidebar
                 open={open}
                 setOpen={setOpen}
@@ -173,11 +159,11 @@ const Home = () => {
                 onPresetClick={handlePresetClick}
                 selectedPreset={selectedPreset}
                 onDraftFilterChange={handleDraftFilterChange}
-                customers={customers}
+                customers={customers ?? []}
                 statusOptions={ORDER_STATUS_OPTIONS}
             />
 
-            <Box sx={{ ...sx.content, ...(open ? sx.contentWithSidebar : {}) }}>
+            <Box sx={{ ...sidebarPageSx.content, ...(open ? sidebarPageSx.contentWithSidebar : {}) }}>
                 <Container maxWidth="xl" sx={{ mt: 1 }}>
                     <AppBreadcrumbs />
 

@@ -7,7 +7,7 @@ import AppBreadcrumbs from '../../components/AppBreadcrumbs.jsx'
 import ErrorState from '../../components/ui/ErrorState.jsx'
 import ConfirmDialog from '../../components/ui/feedback/ConfirmDialog.jsx'
 import { useFormLogic } from '../../hooks/useEntityForm.js'
-import { COLLAPSED_WIDTH, SIDEBAR_WIDTH, TOPBAR_HEIGHT } from '../../layouts/AppSidebar.jsx'
+import { sidebarPageSx } from '../../layouts/AppSidebar.jsx'
 
 import OrderCustomerFields from './components/OrderCustomerFields.jsx'
 import OrderDetailSideBar from './components/OrderDetailSideBar.jsx'
@@ -25,23 +25,6 @@ const emptyProductRow = () => ({
     packId: '',
     value: 0,
 })
-
-const sx = {
-    page: {
-        minHeight: `calc(100vh - ${TOPBAR_HEIGHT}px)`,
-
-        width: '100vw',
-        ml: 'calc(50% - 50vw)',
-    },
-    content: {
-        transition: 'margin-left 0.3s ease',
-        ml: `${COLLAPSED_WIDTH}px`,
-        pt: 4,
-    },
-    contentWithSidebar: {
-        ml: `${SIDEBAR_WIDTH}px`,
-    },
-}
 
 export default function OrderFormPage() {
     const { id } = useParams()
@@ -240,10 +223,10 @@ export default function OrderFormPage() {
     }
 
     return (
-        <Box sx={sx.page}>
+        <Box sx={sidebarPageSx.page}>
             <OrderDetailSideBar open={open} setOpen={setOpen} />
 
-            <Box sx={{ ...sx.content, ...(open ? sx.contentWithSidebar : {}) }}>
+            <Box sx={{ ...sidebarPageSx.content, ...(open ? sidebarPageSx.contentWithSidebar : {}) }}>
                 <Container maxWidth="lg" sx={{ mt: 1 }}>
                     <AppBreadcrumbs />
 

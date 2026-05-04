@@ -6,6 +6,20 @@ export const SIDEBAR_WIDTH = 300
 export const TOPBAR_HEIGHT = 64
 export const COLLAPSED_WIDTH = 48
 
+export const sidebarPageSx = {
+    page: {
+        minHeight: `calc(100vh - ${TOPBAR_HEIGHT}px)`,
+    },
+    content: {
+        transition: 'margin-left 0.3s ease',
+        ml: `${COLLAPSED_WIDTH}px`,
+        pt: 4,
+    },
+    contentWithSidebar: {
+        ml: `${SIDEBAR_WIDTH}px`,
+    },
+}
+
 export default function AppSidebar({ open, setOpen, children }) {
     const sx = {
         position: 'fixed',
@@ -27,9 +41,7 @@ export default function AppSidebar({ open, setOpen, children }) {
     }
 
     return (
-        <Box
-            sx={sx}
-        >
+        <Box sx={sx}>
             {open ? (
                 <>
                     <Tooltip title="Закрыть" placement="bottom" arrow>

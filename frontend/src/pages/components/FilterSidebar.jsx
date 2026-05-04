@@ -87,6 +87,7 @@ export default function FilterSidebar(props) {
                     labelId="orders-status-label"
                     id="orders-status"
                     value={draftFilters.status}
+                    variant="outlined"
                     label="Статус"
                     onChange={(e) => setDraftFilters((prev) => ({ ...prev, status: e.target.value }))}
                 >
@@ -106,6 +107,7 @@ export default function FilterSidebar(props) {
                     id="orders-customer"
                     value={draftFilters.customerId}
                     label="Контрагент"
+                    variant="outlined"
                     onChange={(e) => setDraftFilters((prev) => ({ ...prev, customerId: e.target.value }))}
                 >
                     <MenuItem value="">Все</MenuItem>
@@ -121,7 +123,7 @@ export default function FilterSidebar(props) {
 
             <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap', mt: 2 }}>
                 {quickPresetButtons.map((item) => (
-                    <Tooltip title={'День'}>
+                    <Tooltip key={item.value} title={'День'}>
                         <Button
                             key={item.value}
                             variant={selectedPreset === item.value ? 'contained' : 'outlined'}
@@ -137,7 +139,7 @@ export default function FilterSidebar(props) {
 
             <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap', mt: 2 }}>
                 {rangePresetButtons.map((item) => (
-                    <Tooltip title={item.label === 'Месяц' ? 'Месяц' : 'Неделя'}>
+                    <Tooltip key={item.label} title={item.label === 'Месяц' ? 'Месяц' : 'Неделя'}>
                         <Button
                             key={item.value}
                             variant={selectedPreset === item.value ? 'contained' : 'outlined'}
