@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from 'react'
+import React, { useEffect, useMemo, useRef, useState } from 'react'
 import { useParams } from 'react-router-dom'
 
 import { Alert, Box, CircularProgress, Container, Divider, Stack, TextField, Typography } from '@mui/material'
@@ -8,6 +8,7 @@ import ErrorState from '../../components/ui/ErrorState.jsx'
 import ConfirmDialog from '../../components/ui/feedback/ConfirmDialog.jsx'
 import { useFormLogic } from '../../hooks/useEntityForm.js'
 import { sidebarPageSx } from '../../layouts/AppSidebar.jsx'
+import { useGetCustomerPrices } from '../customers/customers.queries.js'
 
 import OrderCustomerFields from './components/OrderCustomerFields.jsx'
 import OrderDetailSideBar from './components/OrderDetailSideBar.jsx'
@@ -75,6 +76,21 @@ export default function OrderFormPage() {
         onSuccess: () => markCleanRef.current?.(),
     })
 
+    const productIds = useMemo(() => {
+        return orderProducts
+            .map((item) => {
+                if (!item.productId) return null
+                return typeof item.productId === 'object' ? item.productId.id : item.productId
+            })
+            .filter(Boolean)
+    }, [orderProducts])
+
+    const {
+        data: customerPrices = [],
+        isLoading: isLoadingCustomerPrices,
+        error: loadCustomerPricesError,
+    } = useGetCustomerPrices(form.customer.id, productIds)
+
     const isLoadingPage = loadingResources || !orderResources || (isEdit && (loadingOrder || !order))
     const pageLoadError = loadResourceError || loadOrderError
 
@@ -101,6 +117,12 @@ export default function OrderFormPage() {
             setError(loadOrderError?.response?.data?.detail || 'Ошибка загрузки заказа')
         }
     }, [loadResourceError, loadOrderError, setError])
+
+    useEffect(() => {
+        if (loadCustomerPricesError) {
+            setError(loadCustomerPricesError?.response?.data?.detail || 'Ошибка загрузки цен клиента')
+        }
+    }, [loadCustomerPricesError])
 
     const handleDownloadUpd = (orderId) => {
         console.log('download or generate upd', orderId)

@@ -18,6 +18,12 @@ export const customerKeys = {
     detail: (id) => [...customerKeys.all, 'detail', String(id)],
     contacts: (id) => [...customerKeys.all, 'detail', String(id), 'contacts'],
     objects: (id) => [...customerKeys.all, 'detail', String(id), 'objects'],
+    prices: (customerId, productIds = []) => [
+        ...customerKeys.all,
+        'prices',
+        customerId,
+        [...productIds].sort((a, b) => Number(a) - Number(b)),
+    ],
 }
 
 // --- API FUNCTIONS ---
@@ -38,6 +44,18 @@ export const fetchCustomerObjectDetail = async (id, objectId) => {
 
 export const fetchCustomerObjects = async (id) => {
     const res = await api.get(constructionObjectsApiPaths.listCreate(id))
+    return unwrapList(res.data)
+}
+
+export const fetchCustomerPrices = async (customerId, productIds = []) => {
+    const res = await api.get(customerApiPaths.prices(customerId), {
+        params: {
+            products: productIds,
+        },
+        paramsSerializer: {
+            indexes: null,
+        },
+    })
     return unwrapList(res.data)
 }
 
@@ -104,6 +122,14 @@ export function useGetCustomerObjects(id) {
         queryKey: customerKeys.objects(id),
         queryFn: () => fetchCustomerObjects(id),
         enabled: Boolean(id),
+    })
+}
+
+export function useGetCustomerPrices(customerId, productIds = []) {
+    return useQuery({
+        queryKey: customerKeys.prices(customerId, productIds),
+        queryFn: () => fetchCustomerPrices(customerId, productIds),
+        enabled: Boolean(customerId) && productIds.length > 0,
     })
 }
 
