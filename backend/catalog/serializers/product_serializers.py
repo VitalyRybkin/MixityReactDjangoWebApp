@@ -65,15 +65,15 @@ class ProductPurchasePriceSerializer(serializers.ModelSerializer):
 class ProductSalesPriceSerializer(serializers.ModelSerializer):
     class Meta:
         model = SalesPriceHistory
-        fields = ("date", "sale_price", "client", "product")
+        fields = ("date", "sale_price", "customer", "product")
 
 
 class ProductSerializer(serializers.ModelSerializer):
     product_unit = ProductUnitSerializer(source="unit_config")
-    product_pallets = ProductPalletSerializer(many=True, read_only=True)
-    warehouse_prices = ProductPurchasePriceSerializer(
-        source="latest_prices_by_warehouse", many=True, read_only=True
-    )
+    # product_pallets = ProductPalletSerializer(many=True, read_only=True)
+    # warehouse_prices = ProductPurchasePriceSerializer(
+    #     source="latest_prices_by_warehouse", many=True, read_only=True
+    # )
     default_package = ProductDefaultPackSerializer(
         source="default_pack", read_only=True
     )
@@ -85,7 +85,7 @@ class ProductSerializer(serializers.ModelSerializer):
             "name",
             "is_piece_based",
             "product_unit",
-            "product_pallets",
-            "warehouse_prices",
+            # "product_pallets",
+            # "warehouse_prices",
             "default_package",
         )

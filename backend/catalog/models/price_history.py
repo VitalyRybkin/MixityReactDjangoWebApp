@@ -7,9 +7,9 @@ class SalesPriceHistoryManager(models.Manager):
     def latest_prices_for_product(self, product_id: int) -> QuerySet:
         return (
             self.filter(product_id=product_id)
-            .order_by("client", "-date")
-            .distinct("client")
-            .select_related("client")
+            .order_by("customer", "-date")
+            .distinct("customer")
+            .select_related("customer")
         )
 
 
@@ -62,12 +62,11 @@ class SalesPriceHistory(models.Model):
     date = models.DateField(default=timezone.now)
     sale_price = models.DecimalField(max_digits=10, decimal_places=2)
     product = models.ForeignKey(
-        "catalog.Product", on_delete=models.CASCADE, related_name="sales_price_history"
+        "catalog.Product", on_delete=models.CASCADE, related_name="sales_price_history",
     )
-    client = models.ForeignKey(
-        "order.Client", on_delete=models.CASCADE, related_name="client_prices"
+    customer = models.ForeignKey(
+        "order.Customer", on_delete=models.CASCADE, related_name="customer_prices",
     )
-
     objects = SalesPriceHistoryManager()
 
     class Meta:
@@ -75,7 +74,7 @@ class SalesPriceHistory(models.Model):
         db_table = "catalog_sales_price_history"
         verbose_name = "История цены реализации"
         verbose_name_plural = "История цен реализации"
-        unique_together = ("product", "client", "date")
+        unique_together = ("product", "customer", "date")
 
     def __str__(self) -> str:
-        return f"{self.product.name} - {self.client.name} - {self.date}"
+        return f"{self.product.name} - {self.customer.name} - {self.date}"
