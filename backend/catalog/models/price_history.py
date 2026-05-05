@@ -1,5 +1,16 @@
 from django.db import models
+from django.db.models import QuerySet
 from django.utils import timezone
+
+
+class SalesPriceHistoryManager(models.Manager):
+    def latest_prices_for_product(self, product_id: int) -> QuerySet:
+        return (
+            self.filter(product_id=product_id)
+            .order_by("client", "-date")
+            .distinct("client")
+            .select_related("client")
+        )
 
 
 class PurchasePriceHistory(models.Model):
@@ -57,13 +68,14 @@ class SalesPriceHistory(models.Model):
         "order.Client", on_delete=models.CASCADE, related_name="client_prices"
     )
 
+    objects = SalesPriceHistoryManager()
+
     class Meta:
         ordering = ["-date"]
         db_table = "catalog_sales_price_history"
         verbose_name = "История цены реализации"
         verbose_name_plural = "История цен реализации"
         unique_together = ("product", "client", "date")
-        get_latest_by = "date"
 
     def __str__(self) -> str:
         return f"{self.product.name} - {self.client.name} - {self.date}"

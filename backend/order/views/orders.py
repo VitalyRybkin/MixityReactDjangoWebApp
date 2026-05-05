@@ -34,7 +34,8 @@ class OrderResourcesAPIView(BaseGenericAPIView):
         clients = Client.objects.active()
         customers = Customer.objects.active().prefetch_related("customer_objects")
         products = Product.objects.prefetch_related(
-            "unit_config", "product_pallets"
+            "unit_config",
+            "product_pallets",
         ).all()
         warehouses = Warehouse.objects.active()
         pack_types = PackType.objects.all()
