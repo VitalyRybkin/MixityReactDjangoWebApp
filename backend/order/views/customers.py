@@ -1,10 +1,13 @@
 from typing import Any
 
 from django.db.models import QuerySet
+from drf_spectacular.utils import OpenApiParameter
 from rest_framework import generics
+from rest_framework.exceptions import ValidationError
 from rest_framework.permissions import AllowAny
 from rest_framework.serializers import BaseSerializer
 
+from catalog.models import SalesPriceHistory
 from contacts.models import Contact
 from contacts.selectors import ContactSelector
 from contacts.serializers import ContactSerializer
@@ -17,6 +20,7 @@ from core.openapi.base_views import (
 from order.models import ConstructionObject, Customer
 from order.serializers.customer_serializers import (
     CustomerObjectsSerializer,
+    CustomerPriceSerializer,
     CustomerSerializer,
 )
 
@@ -109,3 +113,40 @@ class CustomerObjectRetrieveUpdateDestroyAPIView(BaseRetrieveUpdateDestroyAPIVie
 
     def get_queryset(self) -> QuerySet[ConstructionObject]:
         return ConstructionObject.objects.filter(customer_id=self.kwargs["pk"])
+
+
+class CustomerPriceListAPIView(BaseListAPIView):
+    resource_name = "CustomerPrice"
+    schema_tags = ["Customer"]
+    read_serializer_class = CustomerPriceSerializer
+    permission_classes = [AllowAny]
+    serializer_class = CustomerPriceSerializer
+
+    schema_parameters = [
+        OpenApiParameter(
+            name="products",
+            type=int,
+            location=OpenApiParameter.QUERY,
+            required=True,
+            many=True,
+            description="Product ids. Example: ?products=1&products=2&products=3",
+        ),
+    ]
+
+    def get_queryset(self) -> QuerySet[SalesPriceHistory]:
+        product_ids_raw = self.request.query_params.getlist("products")
+
+        if not product_ids_raw:
+            return SalesPriceHistory.objects.none()
+
+        try:
+            product_ids = [int(product_id) for product_id in product_ids_raw]
+        except ValueError as exc:
+            raise ValidationError(
+                {"products": ["Product ids must be integers."]}
+            ) from exc
+
+        return SalesPriceHistory.objects.latest_prices_for_customer_products(
+            customer_id=self.kwargs["pk"],
+            product_ids=product_ids,
+        )

@@ -6,6 +6,7 @@ from order.views.customers import (
     CustomerListCreateAPIView,
     CustomerObjectRetrieveUpdateDestroyAPIView,
     CustomerObjectsListCreateAPIView,
+    CustomerPriceListAPIView,
     CustomerRetrieveUpdateDestroyAPIView,
 )
 
@@ -36,5 +37,10 @@ urlpatterns = [
         ConstructionObjectsRoutes.DETAIL.path,
         CustomerObjectRetrieveUpdateDestroyAPIView.as_view(),
         name=ConstructionObjectsRoutes.DETAIL.name,
+    ),
+    path(
+        CustomerRoutes.PRICES.path,
+        CustomerPriceListAPIView.as_view(),
+        name=CustomerRoutes.PRICES.name,
     ),
 ]

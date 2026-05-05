@@ -1,15 +1,35 @@
 from django.db import models
-from django.db.models import QuerySet
+from django.db.models import OuterRef, QuerySet, Subquery
 from django.utils import timezone
 
 
 class SalesPriceHistoryManager(models.Manager):
-    def latest_prices_for_product(self, product_id: int) -> QuerySet:
+    def latest_prices_for_customer_products(
+        self,
+        *,
+        customer_id: int,
+        product_ids: list[int],
+    ) -> QuerySet:
+        if not product_ids:
+            return self.none()
+
+        latest_ids = (
+            self.filter(
+                customer_id=customer_id,
+                product_id=OuterRef("product_id"),
+            )
+            .order_by("-date", "-id")
+            .values("id")[:1]
+        )
+
         return (
-            self.filter(product_id=product_id)
-            .order_by("customer", "-date")
-            .distinct("customer")
-            .select_related("customer")
+            self.filter(
+                customer_id=customer_id,
+                product_id__in=product_ids,
+                id__in=Subquery(latest_ids),
+            )
+            .select_related("product", "customer")
+            .order_by("product_id")
         )
 
 
@@ -62,10 +82,14 @@ class SalesPriceHistory(models.Model):
     date = models.DateField(default=timezone.now)
     sale_price = models.DecimalField(max_digits=10, decimal_places=2)
     product = models.ForeignKey(
-        "catalog.Product", on_delete=models.CASCADE, related_name="sales_price_history",
+        "catalog.Product",
+        on_delete=models.CASCADE,
+        related_name="sales_price_history",
     )
     customer = models.ForeignKey(
-        "order.Customer", on_delete=models.CASCADE, related_name="customer_prices",
+        "order.Customer",
+        on_delete=models.CASCADE,
+        related_name="customer_prices",
     )
     objects = SalesPriceHistoryManager()
 

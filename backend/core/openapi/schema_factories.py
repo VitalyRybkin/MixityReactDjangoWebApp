@@ -1,8 +1,8 @@
 from __future__ import annotations
 
-from typing import Any, Dict, Optional, Type
+from typing import Any, Dict, Optional, Type, Sequence
 
-from drf_spectacular.utils import extend_schema, extend_schema_view, OpenApiResponse
+from drf_spectacular.utils import extend_schema, extend_schema_view, OpenApiResponse, OpenApiParameter
 
 from core.openapi import ERRORS_READ, ERRORS_WRITE, ERRORS_DETAIL_WRITE, ERRORS_DETAIL
 
@@ -260,6 +260,7 @@ def list_schema(
     get_description: Optional[str] = None,
     read_serializer: Any,
     errors_read: Dict[int, Any] = ERRORS_READ,
+    parameters: Sequence[OpenApiParameter] = (),
 ) -> Any:
     read_response = OpenApiResponse(response=read_serializer)
     get_operation_id = get_operation_id or f"get{resource}"
@@ -274,6 +275,7 @@ def list_schema(
             operation_id=get_operation_id,
             summary=get_summary,
             tags=tags,
+            parameters=list(parameters),
             responses={200: read_response, **errors_read},
             description=get_description,
         ),

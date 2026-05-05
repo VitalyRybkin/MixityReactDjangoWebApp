@@ -1,5 +1,6 @@
-from typing import ClassVar, Any, Type
+from typing import ClassVar, Any, Type, Sequence
 
+from drf_spectacular.utils import OpenApiParameter
 from rest_framework import generics, serializers
 
 from core.openapi import ERRORS_DETAIL
@@ -163,9 +164,11 @@ class BaseCreateAPIView(generics.CreateAPIView):
 
         return super(BaseCreateAPIView, decorated).as_view(**kwargs)
 
+
 class BaseListAPIView(generics.ListAPIView):
     resource_name: ClassVar[str] = ""
     schema_tags: ClassVar[list[str]] = []
+    schema_parameters: ClassVar[Sequence[OpenApiParameter]] = ()
 
     read_serializer_class: ClassVar[Type[serializers.BaseSerializer]] = serializers.Serializer
 
@@ -176,6 +179,7 @@ class BaseListAPIView(generics.ListAPIView):
             tags=cls.schema_tags,
             read_serializer=cls.read_serializer_class,
             errors_read=ERRORS_DETAIL,
+            parameters=list(cls.schema_parameters),
         )(cls)
 
         return super(BaseListAPIView, decorated).as_view(**kwargs)

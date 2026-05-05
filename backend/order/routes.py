@@ -22,6 +22,7 @@ class CustomerRoutes:
     CONSTRUCTIONS = ApiRoute(
         "customers/<int:pk>/constructions/", "customer_constructions"
     )
+    PRICES = ApiRoute("customers/<int:pk>/prices/", "customer_prices")
 
 
 class ConstructionObjectsRoutes:
