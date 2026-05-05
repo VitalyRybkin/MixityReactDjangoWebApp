@@ -4,6 +4,7 @@ from contacts.views import WarehouseContactListAPIView
 from stock.routes import WarehouseRoutes
 from stock.views.warehouses import (
     WarehouseListCreateAPIView,
+    WarehousePricesListAPIView,
     WarehouseRetrieveUpdateDestroyAPIView,
     WarehouseUploadMapAPIView,
 )
@@ -30,5 +31,10 @@ urlpatterns = [
         WarehouseRoutes.MAP.path,
         WarehouseUploadMapAPIView.as_view(),
         name=WarehouseRoutes.MAP.name,
+    ),
+    path(
+        WarehouseRoutes.PRICES.path,
+        WarehousePricesListAPIView.as_view(),
+        name=WarehouseRoutes.PRICES.name,
     ),
 ]

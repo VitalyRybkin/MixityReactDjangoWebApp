@@ -3,6 +3,7 @@ from typing import Any
 from phonenumber_field.serializerfields import PhoneNumberField
 from rest_framework import serializers, validators
 
+from catalog.models import PurchasePriceHistory
 from core.validators.validators import validate_ru_phone
 from stock.models import Warehouse
 
@@ -64,3 +65,9 @@ class WarehouseMapSerializer(serializers.ModelSerializer):
         if "directions" not in attrs:
             raise serializers.ValidationError({"directions": "This field is required."})
         return attrs
+
+
+class WarehousePriceHistorySerializer(serializers.ModelSerializer):
+    class Meta:
+        model = PurchasePriceHistory
+        fields = ("id", "purchase_price", "product")

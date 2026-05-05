@@ -1,10 +1,15 @@
+from django.db.models import QuerySet
+from drf_spectacular.utils import OpenApiParameter
 from rest_framework import generics
+from rest_framework.exceptions import ValidationError
 from rest_framework.parsers import FormParser, MultiPartParser
 from rest_framework.permissions import AllowAny
 
+from catalog.models import PurchasePriceHistory
 from core.api.mixins import SoftDeleteResponseMixin
 from core.openapi import ERRORS_DETAIL
 from core.openapi.base_views import (
+    BaseListAPIView,
     BaseListCreateAPIView,
     BaseRetrieveUpdateDestroyAPIView,
     BaseUpdateGenericAPIView,
@@ -13,6 +18,7 @@ from stock.models import Warehouse
 from stock.warehouse_serializers import (
     WarehouseListCreateSerializer,
     WarehouseMapSerializer,
+    WarehousePriceHistorySerializer,
 )
 
 
@@ -68,3 +74,39 @@ class WarehouseUploadMapAPIView(BaseUpdateGenericAPIView):
     serializer_class = WarehouseMapSerializer
     permission_classes = [AllowAny]
     parser_classes = (MultiPartParser, FormParser)
+
+
+class WarehousePricesListAPIView(BaseListAPIView):
+    resource_name = "Warehouse Prices"
+    schema_tags = ["Warehouse"]
+    schema_parameters = [
+        OpenApiParameter(
+            name="products",
+            type=int,
+            location=OpenApiParameter.QUERY,
+            required=True,
+            many=True,
+            description="Product ids. Example: ?products=1&products=2&products=3",
+        ),
+    ]
+
+    permission_classes = [AllowAny]
+    serializer_class = WarehousePriceHistorySerializer
+
+    def get_queryset(self) -> QuerySet[PurchasePriceHistory]:
+        product_ids_raw = self.request.query_params.getlist("products")
+
+        if not product_ids_raw:
+            return PurchasePriceHistory.objects.none()
+
+        try:
+            product_ids = [int(product_id) for product_id in product_ids_raw]
+        except ValueError as exc:
+            raise ValidationError(
+                {"products": ["Product ids must be integers."]}
+            ) from exc
+
+        return PurchasePriceHistory.objects.latest_prices_for_warehouse_products(
+            warehouse_id=self.kwargs["pk"],
+            product_ids=product_ids,
+        )
