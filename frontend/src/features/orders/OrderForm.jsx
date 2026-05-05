@@ -1,5 +1,5 @@
-import React, { useEffect, useMemo, useState } from 'react'
-import { useNavigate, useParams } from 'react-router-dom'
+import React, { useEffect, useRef, useState } from 'react'
+import { useParams } from 'react-router-dom'
 
 import { Alert, Box, CircularProgress, Container, Divider, Stack, TextField, Typography } from '@mui/material'
 
@@ -14,22 +14,16 @@ import OrderDetailSideBar from './components/OrderDetailSideBar.jsx'
 import OrderMainFields from './components/OrderMainFields.jsx'
 import OrderPageHeader from './components/OrderPageHeader.jsx'
 import OrderProductsList from './components/OrderProductsList.jsx'
+import { useOrderFormData } from './hooks/useOrderFormData.js'
+import { useOrderProducts } from './hooks/useOrderProducts.js'
+import { useUnsavedGuard } from './hooks/useUnsavedGuard.js'
 import { emptyOrderForm } from './order.form.constants.js'
-import { mapOrderToForm, toOrderPayload } from './order.form.mappers.js'
+import { toOrderPayload } from './order.form.mappers.js'
 import { useCreateOrder, useGetOrder, useGetOrderResources, useUpdateOrder } from './orders.queries.js'
-
-const emptyProductRow = () => ({
-    id: crypto.randomUUID(),
-    productId: '',
-    quantity: '',
-    packId: '',
-    value: 0,
-})
 
 export default function OrderFormPage() {
     const { id } = useParams()
     const isEdit = Boolean(id)
-    const navigate = useNavigate()
 
     const [open, setOpen] = useState(false)
 
@@ -49,48 +43,22 @@ export default function OrderFormPage() {
 
     const createOrder = useCreateOrder()
     const updateOrder = useUpdateOrder()
-
     const saving = createOrder.isPending || updateOrder.isPending
 
-    const [orderProducts, setOrderProducts] = useState([])
-    const [productErrors, setProductErrors] = useState({})
-    const [initialSnapshot, setInitialSnapshot] = useState(null)
+    const {
+        orderProducts,
+        setOrderProducts,
+        productErrors,
+        totalWeight,
+        normalizeOrderProducts,
+        buildProductsPayload,
+        validate: validateProducts,
+        handleAdd: handleAddProductRow,
+        handleChange: handleProductChange,
+        handleRemove: handleRemoveProductRow,
+    } = useOrderProducts(orderResources?.products)
 
-    const totalWeight = useMemo(() => {
-        return orderProducts.reduce((acc, row) => {
-            const product = orderResources?.products?.find((item) => item.id === row.productId)
-
-            const quantity = Number(String(row.quantity).replace(',', '.')) || 0
-            const unitValue = Number(product?.product_unit?.value) || 0
-            const isPieceBased = !product?.product_unit?.unit?.is_weight_based
-
-            if (!quantity) return acc
-
-            if (isPieceBased) {
-                return acc + (quantity * unitValue) / 1000
-            }
-
-            return acc + quantity
-        }, 0)
-    }, [orderProducts, orderResources?.products])
-
-    const normalizeOrderProducts = (items = []) =>
-        items.map((item) => ({
-            id: item.id ?? crypto.randomUUID(),
-            productId: item.product?.id || '',
-            quantity: item.piece_based_quantity ?? item.weight_quantity ?? '',
-            packId: item.pack_type?.id || '',
-            value: item.product?.product_unit?.value ?? 0,
-        }))
-
-    const buildProductsPayload = () =>
-        orderProducts
-            .filter((row) => row.productId && row.quantity)
-            .map((row) => ({
-                product: row.productId,
-                quantity: row.quantity,
-                package: row.packId || null,
-            }))
+    const markCleanRef = useRef(null)
 
     const { form, setForm, error, setError, onChange, onSubmit } = useFormLogic({
         isEdit,
@@ -103,120 +71,36 @@ export default function OrderFormPage() {
             ...toOrderPayload(form),
             products: buildProductsPayload(),
         }),
-        validate: () => {
-            const errors = {}
-
-            orderProducts.forEach((row) => {
-                if (row.productId && (row.quantity === '' || row.quantity == null)) {
-                    errors[row.id] = 'Пожалуйста, заполните поле'
-                }
-            })
-
-            setProductErrors(errors)
-            return Object.keys(errors).length === 0
-        },
-        onSuccess: () => {
-            setInitialSnapshot(
-                JSON.stringify({
-                    form,
-                    products: orderProducts,
-                }),
-            )
-        },
+        validate: validateProducts,
+        onSuccess: () => markCleanRef.current?.(),
     })
 
     const isLoadingPage = loadingResources || !orderResources || (isEdit && (loadingOrder || !order))
     const pageLoadError = loadResourceError || loadOrderError
 
-    const currentSnapshot = JSON.stringify({
+    const { isDirty, markClean } = useOrderFormData({
+        isEdit,
+        order,
+        orderResources,
+        isLoadingPage,
+        pageLoadError,
         form,
-        products: orderProducts,
+        orderProducts,
+        setForm,
+        setOrderProducts,
+        normalizeOrderProducts,
     })
+    markCleanRef.current = markClean
 
-    const isDirty = initialSnapshot !== null && currentSnapshot !== initialSnapshot && !saving
-
-    useEffect(() => {
-        const handler = (e) => {
-            if (!isDirty) return
-            e.preventDefault()
-            e.returnValue = ''
-        }
-
-        window.addEventListener('beforeunload', handler)
-        return () => window.removeEventListener('beforeunload', handler)
-    }, [isDirty])
+    const { confirmOpen, handleNavigate, handleConfirm, handleCancel } = useUnsavedGuard(isDirty && !saving)
 
     useEffect(() => {
         if (loadResourceError) {
             setError(loadResourceError?.response?.data?.detail || 'Ошибка загрузки данных')
-            return
-        }
-
-        if (loadOrderError) {
+        } else if (loadOrderError) {
             setError(loadOrderError?.response?.data?.detail || 'Ошибка загрузки заказа')
         }
     }, [loadResourceError, loadOrderError, setError])
-
-    useEffect(() => {
-        if (!isEdit || !order || !orderResources) return
-
-        const mappedForm = mapOrderToForm(order, orderResources)
-        const mappedProducts = normalizeOrderProducts(order.order_products)
-
-        setForm(mappedForm)
-        setOrderProducts(mappedProducts)
-
-        setInitialSnapshot(
-            JSON.stringify({
-                form: mappedForm,
-                products: mappedProducts,
-            }),
-        )
-    }, [isEdit, order, orderResources, setForm])
-
-    useEffect(() => {
-        if (isEdit || isLoadingPage || pageLoadError || initialSnapshot !== null) return
-
-        setInitialSnapshot(
-            JSON.stringify({
-                form,
-                products: orderProducts,
-            }),
-        )
-    }, [isEdit, isLoadingPage, pageLoadError, initialSnapshot, form, orderProducts])
-
-    const [confirmOpen, setConfirmOpen] = useState(false)
-    const [nextPath, setNextPath] = useState(null)
-
-    const handleNavigate = (path) => {
-        if (isDirty) {
-            setNextPath(path)
-            setConfirmOpen(true)
-            return
-        }
-
-        navigate(path)
-    }
-
-    const handleAddProductRow = () => {
-        setOrderProducts((prev) => [...prev, emptyProductRow()])
-    }
-
-    const handleProductChange = (rowId, updates) => {
-        setOrderProducts((prev) => prev.map((row) => (row.id === rowId ? { ...row, ...updates } : row)))
-
-        if ('quantity' in updates && updates.quantity !== '') {
-            setProductErrors((prev) => {
-                const next = { ...prev }
-                delete next[rowId]
-                return next
-            })
-        }
-    }
-
-    const handleRemoveProductRow = (rowId) => {
-        setOrderProducts((prev) => prev.filter((row) => row.id !== rowId))
-    }
 
     const handleDownloadUpd = (orderId) => {
         console.log('download or generate upd', orderId)
@@ -311,7 +195,6 @@ export default function OrderFormPage() {
                         <Typography variant="body1" color="text.secondary" sx={{ m: 1 }}>
                             Вес:
                         </Typography>
-
                         <Typography variant="body1" color="text.secondary">
                             {totalWeight.toFixed(2)} т
                         </Typography>
@@ -323,16 +206,8 @@ export default function OrderFormPage() {
                         text="Вы изменили форму. Уйти без сохранения?"
                         confirmText="Уйти"
                         cancelText="Остаться"
-                        onClose={() => {
-                            setConfirmOpen(false)
-                            setNextPath(null)
-                        }}
-                        onConfirm={() => {
-                            const path = nextPath || '/'
-                            setConfirmOpen(false)
-                            setNextPath(null)
-                            navigate(path)
-                        }}
+                        onClose={handleCancel}
+                        onConfirm={handleConfirm}
                     />
                 </Container>
             </Box>
