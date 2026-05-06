@@ -4,6 +4,7 @@ from phonenumber_field.serializerfields import PhoneNumberField
 from rest_framework import serializers
 
 from catalog.models import SalesPriceHistory
+from catalog.serializers.product_serializers import ProductSerializer
 from core.validators.validators import validate_ru_phone
 from order.models import ConstructionObject, Customer
 
@@ -55,6 +56,7 @@ class CustomerObjectsSerializer(BaseCustomerObjectsSerializer):
 
 
 class CustomerPriceSerializer(serializers.ModelSerializer):
+    product = ProductSerializer()
     class Meta:
         model = SalesPriceHistory
         fields = [
