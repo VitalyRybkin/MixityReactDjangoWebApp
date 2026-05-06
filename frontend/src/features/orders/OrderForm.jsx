@@ -1,7 +1,7 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react'
 import { useParams } from 'react-router-dom'
 
-import { Alert, Box, CircularProgress, Container, Divider, Stack, TextField, Typography } from '@mui/material'
+import { Box, CircularProgress, Container, Divider, Stack, TextField, Typography } from '@mui/material'
 
 import AppBreadcrumbs from '../../components/AppBreadcrumbs.jsx'
 import ErrorState from '../../components/ui/ErrorState.jsx'
@@ -143,12 +143,6 @@ export default function OrderFormPage() {
                             saving={saving}
                             onCancel={() => handleNavigate('/')}
                         />
-
-                        {error && (
-                            <Alert severity="error" sx={{ mb: 2 }}>
-                                {error}
-                            </Alert>
-                        )}
 
                         <Divider sx={{ mb: 3 }} />
 
