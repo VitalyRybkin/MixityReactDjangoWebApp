@@ -89,7 +89,7 @@ export default function OrderFormPage() {
         data: customerPrices = [],
         isLoading: isLoadingCustomerPrices,
         error: loadCustomerPricesError,
-    } = useGetCustomerPrices(form.customer.id, productIds)
+    } = useGetCustomerPrices(form.customer?.id, productIds)
 
     const isLoadingPage = loadingResources || !orderResources || (isEdit && (loadingOrder || !order))
     const pageLoadError = loadResourceError || loadOrderError
@@ -130,7 +130,7 @@ export default function OrderFormPage() {
 
     return (
         <Box sx={sidebarPageSx.page}>
-            <OrderDetailSideBar open={open} setOpen={setOpen} />
+            <OrderDetailSideBar open={open} setOpen={setOpen} customerPrices={customerPrices} />
 
             <Box sx={{ ...sidebarPageSx.content, ...(open ? sidebarPageSx.contentWithSidebar : {}) }}>
                 <Container maxWidth="lg" sx={{ mt: 1 }}>
