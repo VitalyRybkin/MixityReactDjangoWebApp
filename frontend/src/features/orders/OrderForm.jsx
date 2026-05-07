@@ -78,10 +78,13 @@ export default function OrderFormPage() {
         updateMutation: updateOrder,
         createMutation: createOrder,
         redirectPath: '/',
-        toPayload: (form) => ({
-            ...toOrderPayload(form),
-            products: buildProductsPayload(),
-        }),
+        toPayload: (form) => {
+            console.log('Весь массив перед отправкой:', orderProducts)
+            return {
+                ...toOrderPayload(form),
+                products: buildProductsPayload(orderProducts),
+            }
+        },
         validate: validateProducts,
         onSuccess: () => markCleanRef.current?.(),
     })

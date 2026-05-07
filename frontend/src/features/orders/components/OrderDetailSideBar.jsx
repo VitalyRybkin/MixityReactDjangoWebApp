@@ -33,39 +33,54 @@ export default function OrderDetailSideBar({
     useEffect(() => {
         setIsCalculating(true)
 
-        const total = editablePrices.reduce((acc, item) => {
-            const price = Number(item.sale_price) || 0
-            const priceProductId = getProductId(item)
-            const productRow = orderProducts.find((p) => Number(getProductId(p)) === Number(priceProductId))
-            const qty = Number(productRow?.quantity) || 0
+        const total = orderProducts.reduce((acc, item) => {
+            const price = Number(item.price_at_sale) || 0
+            const qty = Number(item.quantity) || 0
 
             return acc + price * qty
         }, 0)
 
         setTotalPrice(total)
-
         setIsCalculating(false)
-    }, [editablePrices, orderProducts])
+    }, [orderProducts])
 
     useEffect(() => {
-        if (customerPrices.length > 0) {
-            const initialized = customerPrices.map((cp) => {
+        if (customerPrices.length > 0 && orderProducts.length > 0) {
+            const initializedPrices = customerPrices.map((cp) => {
                 const productId = getProductId(cp)
                 const productInOrder = orderProducts.find((op) => Number(getProductId(op)) === Number(productId))
+
                 const actualPrice =
                     productInOrder && productInOrder.price_at_sale != null
                         ? productInOrder.price_at_sale
                         : cp.sale_price
-                return {
-                    ...cp,
-                    current_display_price: actualPrice,
-                }
+
+                return { ...cp, current_display_price: actualPrice }
             })
-            setEditablePrices(initialized)
+
+            setEditablePrices(initializedPrices)
+
+            setOrderProducts((prev) => {
+                let hasChanges = false
+                const newOrderProducts = prev.map((product) => {
+                    const productId = getProductId(product)
+                    const priceInfo = customerPrices.find((cp) => Number(getProductId(cp)) === Number(productId))
+
+                    if (priceInfo && !product.price_at_sale) {
+                        hasChanges = true
+                        return { ...product, price_at_sale: priceInfo.sale_price }
+                    }
+                    return product
+                })
+
+                return hasChanges ? newOrderProducts : prev
+            })
         }
     }, [customerPrices, orderProducts.length])
 
     const handlePriceAtSaleChange = (id, value) => {
+        const numericValue = value === '' ? 0 : parseFloat(value)
+
         setEditablePrices((prev) =>
             prev.map((item) => (item.id === id ? { ...item, current_display_price: value } : item)),
         )
@@ -74,9 +89,14 @@ export default function OrderDetailSideBar({
         const productId = getProductId(targetPriceItem)
 
         setOrderProducts((prev) =>
-            prev.map((item) =>
-                getProductId(item) === productId ? { ...item, price_at_sale: value === '' ? 0 : value } : item,
-            ),
+            prev.map((item) => {
+                const itemProductId = getProductId(item)
+
+                if (Number(itemProductId) === Number(productId)) {
+                    return { ...item, price_at_sale: numericValue }
+                }
+                return item
+            }),
         )
     }
 

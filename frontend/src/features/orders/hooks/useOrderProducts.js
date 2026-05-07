@@ -35,8 +35,8 @@ export function useOrderProducts(products = []) {
             price_at_sale: item.price_at_sale,
         }))
 
-    const buildProductsPayload = () =>
-        orderProducts
+    const buildProductsPayload = (currentProducts) =>
+        (currentProducts || orderProducts)
             .filter((row) => row.productId && row.quantity)
             .map((row) => ({
                 product: row.productId,
