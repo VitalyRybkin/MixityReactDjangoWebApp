@@ -71,10 +71,12 @@ export default function OrderProductsList({
                                         />
                                     )}
                                 />
+                                `{' '}
                                 <TextField
                                     size="small"
-                                    label="Количество *"
+                                    label="Количество"
                                     type="number"
+                                    required={true}
                                     value={row.quantity}
                                     onChange={(e) => {
                                         const value = e.target.value
@@ -106,10 +108,10 @@ export default function OrderProductsList({
                                     }}
                                     sx={{ width: 300 }}
                                 />
+                                `
                                 <Typography variant="body1" color="text.secondary" sx={{ px: 0, width: 70 }}>
                                     {unitTitle}
                                 </Typography>
-
                                 <Autocomplete
                                     fullWidth
                                     size="small"
@@ -123,7 +125,6 @@ export default function OrderProductsList({
                                     )}
                                     sx={{ width: 700 }}
                                 />
-
                                 <DeleteAction onClick={() => onRemove(row.id)} />
                             </Stack>
                         </Box>

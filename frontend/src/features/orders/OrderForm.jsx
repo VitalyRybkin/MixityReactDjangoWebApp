@@ -130,7 +130,13 @@ export default function OrderFormPage() {
 
     return (
         <Box sx={sidebarPageSx.page}>
-            <OrderDetailSideBar open={open} setOpen={setOpen} customerPrices={customerPrices} />
+            <OrderDetailSideBar
+                open={open}
+                setOpen={setOpen}
+                customerPrices={customerPrices}
+                orderProducts={orderProducts}
+                loadingCustomerPrices={isLoadingCustomerPrices}
+            />
 
             <Box sx={{ ...sidebarPageSx.content, ...(open ? sidebarPageSx.contentWithSidebar : {}) }}>
                 <Container maxWidth="lg" sx={{ mt: 1 }}>
