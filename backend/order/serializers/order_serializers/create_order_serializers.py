@@ -127,29 +127,21 @@ class OrderItemSerializer(serializers.ModelSerializer):
             "piece_based_quantity",
             "weight_quantity",
             "pack_type",
+            "price_at_purchase",
+            "price_at_sale",
         ]
 
 
 class OrderDeliveryInfoSerializer(serializers.ModelSerializer):
-    deliveryCost = serializers.DecimalField(
-        source="delivery_cost",
-        max_digits=10,
-        decimal_places=2,
-        read_only=True,
-    )
-    deliveryCompensation = serializers.DecimalField(
-        source="delivery_compensation",
-        max_digits=10,
-        decimal_places=2,
-        read_only=True,
-    )
 
     class Meta:
         model = OrderDelivery
         fields = [
+            "id",
+            "order",
             "warehouse",
-            "deliveryCost",
-            "deliveryCompensation",
+            "delivery_cost",
+            "delivery_compensation",
             "demurrage",
             "carrier",
             "driver",
@@ -169,7 +161,7 @@ class OrderReadSerializer(serializers.ModelSerializer):
             associated with the order.
         order_products: A read-only nested serializer that retrieves the order items
             associated with the order.
-        order_delivery: A nested serializer for retrieving the delivery information
+        orderDelivery: A nested serializer for retrieving the delivery information
             associated with the order.
     """
 
@@ -229,6 +221,11 @@ class OrderProductWriteSerializer(serializers.Serializer):
     package = serializers.PrimaryKeyRelatedField(
         queryset=PackType.objects.all(),
         allow_null=True,
+        required=False,
+    )
+    price_at_sale = serializers.DecimalField(
+        max_digits=10,
+        decimal_places=2,
         required=False,
     )
 
@@ -317,6 +314,7 @@ class OrderWriteSerializer(serializers.ModelSerializer):
     def update(self, instance: Order, validated_data: dict) -> Order:
         products_data = validated_data.pop("products", None)
         contacts_data = validated_data.pop("contacts", None)
+        print(products_data)
 
         for attr, value in validated_data.items():
             setattr(instance, attr, value)

@@ -21,6 +21,7 @@ def sync_order_items(order: Order, products_data: list[dict]) -> None:
             piece_based_quantity=item["piece_based_quantity"],
             weight_quantity=item["weight_quantity"],
             pack_type=item.get("package"),
+            price_at_sale=item.get("price_at_sale"),
         )
         for item in products_data
     ]
