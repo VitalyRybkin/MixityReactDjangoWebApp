@@ -57,6 +57,7 @@ class CustomerObjectsSerializer(BaseCustomerObjectsSerializer):
 
 class CustomerPriceSerializer(serializers.ModelSerializer):
     product = ProductSerializer()
+
     class Meta:
         model = SalesPriceHistory
         fields = [

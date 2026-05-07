@@ -105,7 +105,6 @@ class OrderRetrieveUpdateDestroyAPIView(BaseRetrieveUpdateDestroyAPIView):
 
     def get_serializer_class(self) -> type[OrderWriteSerializer | OrderReadSerializer]:
         if self.request.method in ("PUT", "PATCH"):
-            print("Handling PUT/PATCH request for Order")
             return OrderWriteSerializer
 
         return OrderReadSerializer

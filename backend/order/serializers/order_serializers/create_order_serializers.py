@@ -10,6 +10,7 @@ from order.models import (
     ConstructionObject,
     Customer,
     Order,
+    OrderDelivery,
     OrderItem,
     PackType,
 )
@@ -129,6 +130,33 @@ class OrderItemSerializer(serializers.ModelSerializer):
         ]
 
 
+class OrderDeliveryInfoSerializer(serializers.ModelSerializer):
+    deliveryCost = serializers.DecimalField(
+        source="delivery_cost",
+        max_digits=10,
+        decimal_places=2,
+        read_only=True,
+    )
+    deliveryCompensation = serializers.DecimalField(
+        source="delivery_compensation",
+        max_digits=10,
+        decimal_places=2,
+        read_only=True,
+    )
+
+    class Meta:
+        model = OrderDelivery
+        fields = [
+            "warehouse",
+            "deliveryCost",
+            "deliveryCompensation",
+            "demurrage",
+            "carrier",
+            "driver",
+            "truck",
+        ]
+
+
 class OrderReadSerializer(serializers.ModelSerializer):
     """
     Serializes data related to an order for reading purposes.
@@ -141,6 +169,8 @@ class OrderReadSerializer(serializers.ModelSerializer):
             associated with the order.
         order_products: A read-only nested serializer that retrieves the order items
             associated with the order.
+        order_delivery: A nested serializer for retrieving the delivery information
+            associated with the order.
     """
 
     id = serializers.IntegerField()
@@ -150,6 +180,7 @@ class OrderReadSerializer(serializers.ModelSerializer):
     order_products = OrderItemSerializer(
         source="order_items", many=True, read_only=True
     )
+    orderDelivery = OrderDeliveryInfoSerializer(source="order_delivery", read_only=True)
 
     class Meta:
         model = Order
@@ -170,6 +201,7 @@ class OrderReadSerializer(serializers.ModelSerializer):
             "user",
             "contacts",
             "order_products",
+            "orderDelivery"
         ]
 
 
