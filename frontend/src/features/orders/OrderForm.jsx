@@ -46,6 +46,16 @@ export default function OrderFormPage() {
     const updateOrder = useUpdateOrder()
     const saving = createOrder.isPending || updateOrder.isPending
 
+    const [orderDelivery, setOrderDelivery] = useState({
+        warehouse: '',
+        delivery_cost: '',
+        delivery_compensation: '',
+        demurrage: '',
+        carrier: '',
+        driver: '',
+        truck: '',
+    })
+
     const {
         orderProducts,
         setOrderProducts,
@@ -135,7 +145,9 @@ export default function OrderFormPage() {
                 setOpen={setOpen}
                 customerPrices={customerPrices}
                 orderProducts={orderProducts}
+                setOrderProducts={setOrderProducts}
                 loadingCustomerPrices={isLoadingCustomerPrices}
+                orderDelivery={setOrderDelivery}
             />
 
             <Box sx={{ ...sidebarPageSx.content, ...(open ? sidebarPageSx.contentWithSidebar : {}) }}>

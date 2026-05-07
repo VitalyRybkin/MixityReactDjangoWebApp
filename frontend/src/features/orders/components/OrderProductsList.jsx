@@ -70,8 +70,7 @@ export default function OrderProductsList({
                                             placeholder="Начните вводить название"
                                         />
                                     )}
-                                />
-                                `{' '}
+                                />{' '}
                                 <TextField
                                     size="small"
                                     label="Количество"
@@ -108,7 +107,6 @@ export default function OrderProductsList({
                                     }}
                                     sx={{ width: 300 }}
                                 />
-                                `
                                 <Typography variant="body1" color="text.secondary" sx={{ px: 0, width: 70 }}>
                                     {unitTitle}
                                 </Typography>

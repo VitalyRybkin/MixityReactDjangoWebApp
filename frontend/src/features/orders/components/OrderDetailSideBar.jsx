@@ -9,6 +9,7 @@ export default function OrderDetailSideBar({
     setOpen,
     customerPrices = [],
     orderProducts = [],
+    setOrderProducts,
     loadingCustomerPrices,
 }) {
     const [editablePrices, setEditablePrices] = useState([])
@@ -35,9 +36,7 @@ export default function OrderDetailSideBar({
         const total = editablePrices.reduce((acc, item) => {
             const price = Number(item.sale_price) || 0
             const priceProductId = getProductId(item)
-
             const productRow = orderProducts.find((p) => Number(getProductId(p)) === Number(priceProductId))
-
             const qty = Number(productRow?.quantity) || 0
 
             return acc + price * qty
@@ -48,8 +47,37 @@ export default function OrderDetailSideBar({
         setIsCalculating(false)
     }, [editablePrices, orderProducts])
 
-    const handlePriceChange = (id, value) => {
-        setEditablePrices((prev) => prev.map((item) => (item.id === id ? { ...item, sale_price: value } : item)))
+    useEffect(() => {
+        if (customerPrices.length > 0) {
+            const initialized = customerPrices.map((cp) => {
+                const productId = getProductId(cp)
+                const productInOrder = orderProducts.find((op) => Number(getProductId(op)) === Number(productId))
+                const actualPrice =
+                    productInOrder && productInOrder.price_at_sale != null
+                        ? productInOrder.price_at_sale
+                        : cp.sale_price
+                return {
+                    ...cp,
+                    current_display_price: actualPrice,
+                }
+            })
+            setEditablePrices(initialized)
+        }
+    }, [customerPrices, orderProducts.length])
+
+    const handlePriceAtSaleChange = (id, value) => {
+        setEditablePrices((prev) =>
+            prev.map((item) => (item.id === id ? { ...item, current_display_price: value } : item)),
+        )
+
+        const targetPriceItem = editablePrices.find((p) => p.id === id)
+        const productId = getProductId(targetPriceItem)
+
+        setOrderProducts((prev) =>
+            prev.map((item) =>
+                getProductId(item) === productId ? { ...item, price_at_sale: value === '' ? 0 : value } : item,
+            ),
+        )
     }
 
     const typographySx = {
@@ -59,7 +87,6 @@ export default function OrderDetailSideBar({
         textOverflow: 'ellipsis',
         whiteSpace: 'nowrap',
     }
-
     return (
         <AppSidebar open={open} setOpen={setOpen}>
             <Typography variant="h6" sx={{ mt: 3 }}>
@@ -92,8 +119,8 @@ export default function OrderDetailSideBar({
                             <TextField
                                 size="small"
                                 type="number"
-                                value={item.sale_price ?? ''}
-                                onChange={(e) => handlePriceChange(item.id, e.target.value)}
+                                value={item.current_display_price ?? ''}
+                                onChange={(e) => handlePriceAtSaleChange(item.id, e.target.value)}
                                 sx={{ width: 120 }}
                             />
                         </Stack>

@@ -32,6 +32,7 @@ export function useOrderProducts(products = []) {
             quantity: item.piece_based_quantity ?? item.weight_quantity ?? '',
             packId: item.pack_type?.id || '',
             value: item.product?.product_unit?.value ?? 0,
+            price_at_sale: item.price_at_sale,
         }))
 
     const buildProductsPayload = () =>
@@ -41,6 +42,7 @@ export function useOrderProducts(products = []) {
                 product: row.productId,
                 quantity: row.quantity,
                 package: row.packId || null,
+                price_at_sale: Number(row.price_at_sale) || 0,
             }))
 
     const validate = () => {
