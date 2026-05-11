@@ -66,7 +66,6 @@ export default function OrderDetailSideBar({
         setIsCalculating(false)
     }, [orderProducts])
 
-
     useEffect(() => {
         if (customerPrices.length > 0 && orderProducts.length > 0) {
             const initializedPrices = customerPrices.map((cp) => {
@@ -155,7 +154,7 @@ export default function OrderDetailSideBar({
 
     return (
         <AppSidebar open={open} setOpen={setOpen}>
-            <Typography variant="h6" sx={{ mt: 3 }} color="info">
+            <Typography variant="h6" sx={{ mt: 3 }}>
                 ПРОДАЖА
             </Typography>
 
@@ -209,7 +208,7 @@ export default function OrderDetailSideBar({
                 )}
             </Stack>
 
-            <Typography variant="h6" sx={{ mt: 3 }} color="info">
+            <Typography variant="h6" sx={{ mt: 3 }}>
                 ЗАКУПКА
             </Typography>
 

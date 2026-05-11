@@ -47,8 +47,8 @@ export default function ColorModeProvider({ children }) {
                                   contrastText: '#0f172a',
                               },
                               background: {
-                                  default: '#111827',
-                                  paper: '#111827',
+                                  default: '#2c354d',
+                                  paper: '#1b243d',
                               },
                               text: {
                                   primary: '#e5e7eb',

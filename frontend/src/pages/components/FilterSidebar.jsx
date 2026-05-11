@@ -52,7 +52,7 @@ export default function FilterSidebar(props) {
     return (
         <AppSidebar open={open} setOpen={setOpen}>
             <Typography variant="h6" sx={{ mt: 3 }}>
-                Фильтры
+                ФИЛЬТРЫ
             </Typography>
 
             <Divider sx={{ my: 2, mb: 0 }} />
