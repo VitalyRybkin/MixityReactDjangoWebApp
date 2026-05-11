@@ -16,6 +16,7 @@ export const warehouseKeys = {
     list: () => [...warehouseKeys.all, 'list'],
     detail: (id) => [...warehouseKeys.all, 'detail', String(id)],
     contacts: (id) => [...warehouseKeys.detail(id), 'contacts'],
+    prices: (id) => [...warehouseKeys.detail(id), 'prices'],
 }
 
 // --- API FUNCTIONS ---
@@ -31,6 +32,18 @@ export const fetchWarehouse = async (id) => {
 
 export const fetchWarehouseContacts = async (id) => {
     const res = await api.get(warehouseApiPaths.contacts(id))
+    return unwrapList(res.data)
+}
+
+export const fetchWarehousePrices = async (warehouseId, productIds = []) => {
+    const res = await api.get(warehouseApiPaths.prices(warehouseId), {
+        params: {
+            products: productIds,
+        },
+        paramsSerializer: {
+            indexes: null,
+        },
+    })
     return unwrapList(res.data)
 }
 
@@ -71,6 +84,14 @@ export function useWarehouseContacts(id) {
         queryKey: warehouseKeys.contacts(id),
         queryFn: () => fetchWarehouseContacts(id),
         enabled: Boolean(id),
+    })
+}
+
+export function useGetWarehousePrices(warehouseId, productIds = []) {
+    return useQuery({
+        queryKey: warehouseKeys.prices(warehouseId, productIds),
+        queryFn: () => fetchWarehousePrices(warehouseId, productIds),
+        enabled: Boolean(warehouseId) && productIds.length > 0,
     })
 }
 

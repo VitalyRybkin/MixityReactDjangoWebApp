@@ -9,6 +9,7 @@ import ConfirmDialog from '../../components/ui/feedback/ConfirmDialog.jsx'
 import { useFormLogic } from '../../hooks/useEntityForm.js'
 import { sidebarPageSx } from '../../layouts/AppSidebar.jsx'
 import { useGetCustomerPrices } from '../customers/customers.queries.js'
+import { useGetWarehousePrices } from '../warehouses/stocks/stocks.queries.js'
 
 import OrderCustomerFields from './components/OrderCustomerFields.jsx'
 import OrderDetailSideBar from './components/OrderDetailSideBar.jsx'
@@ -79,7 +80,6 @@ export default function OrderFormPage() {
         createMutation: createOrder,
         redirectPath: '/',
         toPayload: (form) => {
-            console.log('Весь массив перед отправкой:', orderProducts)
             return {
                 ...toOrderPayload(form),
                 products: buildProductsPayload(orderProducts),
@@ -103,6 +103,12 @@ export default function OrderFormPage() {
         isLoading: isLoadingCustomerPrices,
         error: loadCustomerPricesError,
     } = useGetCustomerPrices(form.customer?.id, productIds)
+
+    const {
+        data: warehousePrices = [],
+        isLoading: isLoadingWarehousePrices,
+        error: loadWarehousePricesError,
+    } = useGetWarehousePrices(orderDelivery.warehouse?.id, productIds)
 
     const isLoadingPage = loadingResources || !orderResources || (isEdit && (loadingOrder || !order))
     const pageLoadError = loadResourceError || loadOrderError
@@ -147,10 +153,14 @@ export default function OrderFormPage() {
                 open={open}
                 setOpen={setOpen}
                 customerPrices={customerPrices}
+                loadingCustomerPrices={isLoadingCustomerPrices}
+                warehousePrices={warehousePrices}
+                loadingWarehousePrices={isLoadingWarehousePrices}
                 orderProducts={orderProducts}
                 setOrderProducts={setOrderProducts}
-                loadingCustomerPrices={isLoadingCustomerPrices}
-                orderDelivery={setOrderDelivery}
+                orderDelivery={orderDelivery}
+                setOrderDelivery={setOrderDelivery}
+                orderResources={orderResources}
             />
 
             <Box sx={{ ...sidebarPageSx.content, ...(open ? sidebarPageSx.contentWithSidebar : {}) }}>

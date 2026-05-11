@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 
-import { Box, CircularProgress, Divider, Stack, TextField, Typography } from '@mui/material'
+import { Autocomplete, Box, CircularProgress, Divider, Stack, TextField, Typography } from '@mui/material'
 
 import AppSidebar from '../../..//layouts/AppSidebar.jsx'
 
@@ -8,13 +8,21 @@ export default function OrderDetailSideBar({
     open,
     setOpen,
     customerPrices = [],
+    loadingCustomerPrices,
+    warehousePrices = [],
+    loadingWarehousePrices,
     orderProducts = [],
     setOrderProducts,
-    loadingCustomerPrices,
+    orderDelivery,
+    setOrderDelivery,
+    orderResources,
 }) {
-    const [editablePrices, setEditablePrices] = useState([])
-    const [totalPrice, setTotalPrice] = useState(0)
+    const [editableSalePrices, setEditableSalePrices] = useState([])
+    const [editablePurchasePrices, setEditablePurchasePrices] = useState([])
+    const [totalSalePrice, setTotalSalePrice] = useState(0)
+    const [totalPurchasePrice, setTotalPurchasePrice] = useState(0)
     const [isCalculating, setIsCalculating] = useState(false)
+    const warehouses = orderResources?.warehouses ?? []
 
     const getProductId = (item) => {
         if (!item) return null
@@ -27,22 +35,37 @@ export default function OrderDetailSideBar({
     }
 
     useEffect(() => {
-        setEditablePrices(customerPrices)
+        setEditableSalePrices(customerPrices)
     }, [customerPrices])
+
+    useEffect(() => {
+        setEditablePurchasePrices(warehousePrices)
+    }, [warehousePrices])
 
     useEffect(() => {
         setIsCalculating(true)
 
-        const total = orderProducts.reduce((acc, item) => {
+        const totalAtSale = orderProducts.reduce((acc, item) => {
             const price = Number(item.price_at_sale) || 0
             const qty = Number(item.quantity) || 0
 
             return acc + price * qty
         }, 0)
 
-        setTotalPrice(total)
+        setTotalSalePrice(totalAtSale)
+
+        const totalAtPurchase = orderProducts.reduce((acc, item) => {
+            const price = Number(item.price_at_purchase) || 0
+            const qty = Number(item.quantity) || 0
+
+            return acc + price * qty
+        }, 0)
+
+        setTotalPurchasePrice(totalAtPurchase)
+
         setIsCalculating(false)
     }, [orderProducts])
+
 
     useEffect(() => {
         if (customerPrices.length > 0 && orderProducts.length > 0) {
@@ -58,7 +81,7 @@ export default function OrderDetailSideBar({
                 return { ...cp, current_display_price: actualPrice }
             })
 
-            setEditablePrices(initializedPrices)
+            setEditableSalePrices(initializedPrices)
 
             setOrderProducts((prev) => {
                 let hasChanges = false
@@ -81,11 +104,33 @@ export default function OrderDetailSideBar({
     const handlePriceAtSaleChange = (id, value) => {
         const numericValue = value === '' ? 0 : parseFloat(value)
 
-        setEditablePrices((prev) =>
+        setEditableSalePrices((prev) =>
             prev.map((item) => (item.id === id ? { ...item, current_display_price: value } : item)),
         )
 
-        const targetPriceItem = editablePrices.find((p) => p.id === id)
+        const targetPriceItem = editableSalePrices.find((p) => p.id === id)
+        const productId = getProductId(targetPriceItem)
+
+        setOrderProducts((prev) =>
+            prev.map((item) => {
+                const itemProductId = getProductId(item)
+
+                if (Number(itemProductId) === Number(productId)) {
+                    return { ...item, price_at_sale: numericValue }
+                }
+                return item
+            }),
+        )
+    }
+
+    const handleWarehousePriceAtSaleChange = (id, value) => {
+        const numericValue = value === '' ? 0 : parseFloat(value)
+
+        setEditablePurchasePrices((prev) =>
+            prev.map((item) => (item.id === id ? { ...item, current_display_price: value } : item)),
+        )
+
+        const targetPriceItem = editablePurchasePrices.find((p) => p.id === id)
         const productId = getProductId(targetPriceItem)
 
         setOrderProducts((prev) =>
@@ -107,14 +152,15 @@ export default function OrderDetailSideBar({
         textOverflow: 'ellipsis',
         whiteSpace: 'nowrap',
     }
+
     return (
         <AppSidebar open={open} setOpen={setOpen}>
-            <Typography variant="h6" sx={{ mt: 3 }}>
-                Данные заявки
+            <Typography variant="h6" sx={{ mt: 3 }} color="info">
+                ПРОДАЖА
             </Typography>
 
             <Divider sx={{ my: 1 }} />
-            <Stack direction="row" alignItems="center" spacing={2} sx={{ mt: 2 }}>
+            <Stack direction="row" alignItems="center" spacing={2} sx={{ mt: 0 }}>
                 <Typography variant="body2" color="text.secondary" sx={typographySx}>
                     Наименование:
                 </Typography>
@@ -130,7 +176,7 @@ export default function OrderDetailSideBar({
                 </Box>
             ) : (
                 <Stack spacing={1}>
-                    {editablePrices.map((item) => (
+                    {editableSalePrices.map((item) => (
                         <Stack key={item.id} direction="row" alignItems="center" spacing={2}>
                             <Typography variant="body2" sx={typographySx}>
                                 {item.product.name}
@@ -158,7 +204,79 @@ export default function OrderDetailSideBar({
                     <CircularProgress size={16} />
                 ) : (
                     <Typography variant="body2" sx={typographySx}>
-                        {totalPrice.toLocaleString('ru-RU')} руб.
+                        {totalSalePrice.toLocaleString('ru-RU')} руб.
+                    </Typography>
+                )}
+            </Stack>
+
+            <Typography variant="h6" sx={{ mt: 3 }} color="info">
+                ЗАКУПКА
+            </Typography>
+
+            <Divider sx={{ my: 1 }} />
+
+            <Autocomplete
+                size="small"
+                options={warehouses}
+                getOptionLabel={(option) => option?.name || ''}
+                isOptionEqualToValue={(option, value) => option.id === value.id}
+                value={orderDelivery?.warehouse ?? null}
+                onChange={(event, newValue) => {
+                    setOrderDelivery((prev) => ({
+                        ...prev,
+                        warehouse: newValue,
+                    }))
+                }}
+                renderInput={(params) => <TextField {...params} label="Склад" />}
+                sx={{ mt: 1 }}
+            />
+
+            <Stack direction="row" alignItems="center" spacing={2} sx={{ mt: 2 }}>
+                <Typography variant="body2" color="text.secondary" sx={typographySx}>
+                    Наименование:
+                </Typography>
+
+                <Typography variant="body2" color="text.secondary" sx={typographySx}>
+                    Цена закупки:
+                </Typography>
+            </Stack>
+            <Divider sx={{ mb: 1 }} />
+            {loadingWarehousePrices ? (
+                <Box sx={{ display: 'flex', justifyContent: 'center', mt: 2 }}>
+                    <CircularProgress size={24} />
+                </Box>
+            ) : (
+                <Stack spacing={1}>
+                    {editablePurchasePrices.map((item) => (
+                        <Stack key={item.id} direction="row" alignItems="center" spacing={2}>
+                            <Typography variant="body2" sx={typographySx}>
+                                {item.product.name}
+                            </Typography>
+
+                            <TextField
+                                size="small"
+                                type="number"
+                                value={item.current_display_price ?? ''}
+                                onChange={(e) => handleWarehousePriceAtSaleChange(item.id, e.target.value)}
+                                sx={{ width: 120 }}
+                            />
+                        </Stack>
+                    ))}
+                </Stack>
+            )}
+
+            <Divider sx={{ my: 1 }} />
+
+            <Stack direction="row" alignItems="center" spacing={2}>
+                <Typography variant="body2" sx={typographySx}>
+                    ИТОГО:
+                </Typography>
+
+                {isCalculating ? (
+                    <CircularProgress size={16} />
+                ) : (
+                    <Typography variant="body2" sx={typographySx}>
+                        {totalSalePrice.toLocaleString('ru-RU')} руб.
                     </Typography>
                 )}
             </Stack>
