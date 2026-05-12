@@ -20,7 +20,11 @@ from order.serializers.customer_serializers import (
     CustomerSerializer,
 )
 from order.services.order_items import sync_order_items
-from stock.warehouse_serializers import WarehouseListCreateSerializer
+from stock.models import Warehouse
+from stock.warehouse_serializers import (
+    BaseWarehouseSerializer,
+    WarehouseListCreateSerializer,
+)
 
 
 class PackageTypeSerializer(serializers.ModelSerializer):
@@ -163,6 +167,7 @@ class OrderReadSerializer(serializers.ModelSerializer):
             associated with the order.
         orderDelivery: A nested serializer for retrieving the delivery information
             associated with the order.
+        warehouse: A nested serializer for retrieving the warehouse associated with the order.
     """
 
     id = serializers.IntegerField()
@@ -173,6 +178,7 @@ class OrderReadSerializer(serializers.ModelSerializer):
         source="order_items", many=True, read_only=True
     )
     orderDelivery = OrderDeliveryInfoSerializer(source="order_delivery", read_only=True)
+    warehouse = BaseWarehouseSerializer()
 
     class Meta:
         model = Order
@@ -193,7 +199,8 @@ class OrderReadSerializer(serializers.ModelSerializer):
             "user",
             "contacts",
             "order_products",
-            "orderDelivery"
+            "orderDelivery",
+            "warehouse",
         ]
 
 
@@ -217,13 +224,21 @@ class OrderProductWriteSerializer(serializers.Serializer):
     """
 
     product = serializers.PrimaryKeyRelatedField(queryset=Product.objects.all())
-    quantity = serializers.DecimalField(max_digits=10, decimal_places=2)
+    quantity = serializers.DecimalField(
+        max_digits=10,
+        decimal_places=2,
+    )
     package = serializers.PrimaryKeyRelatedField(
         queryset=PackType.objects.all(),
         allow_null=True,
         required=False,
     )
     price_at_sale = serializers.DecimalField(
+        max_digits=10,
+        decimal_places=2,
+        required=False,
+    )
+    price_at_purchase = serializers.DecimalField(
         max_digits=10,
         decimal_places=2,
         required=False,
@@ -273,6 +288,7 @@ class OrderWriteSerializer(serializers.ModelSerializer):
 
     client = serializers.PrimaryKeyRelatedField(queryset=Client.objects.active())
     customer = serializers.PrimaryKeyRelatedField(queryset=Customer.objects.active())
+    warehouse = serializers.PrimaryKeyRelatedField(queryset=Warehouse.objects.active())
     customer_object = serializers.PrimaryKeyRelatedField(
         queryset=ConstructionObject.objects.all(),
         allow_null=True,

@@ -19,7 +19,6 @@ class Order(models.Model):
     )
 
     delivery_from = models.TimeField(null=True, blank=True, verbose_name="Доставка с")
-
     delivery_to = models.TimeField(null=True, blank=True, verbose_name="Доставка по")
 
     client = models.ForeignKey(
@@ -28,6 +27,13 @@ class Order(models.Model):
         null=True,
         blank=True,
         verbose_name="Клиент",
+    )
+    warehouse = models.ForeignKey(
+        "stock.Warehouse",
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        verbose_name="Склад",
     )
     customer = models.ForeignKey(
         "order.Customer",
@@ -97,8 +103,9 @@ class Order(models.Model):
             models.Index(
                 fields=[
                     "delivery_date",
-                    "delivery_from",
-                    "delivery_to",
+                    "client",
+                    "warehouse",
+                    "customer",
                 ]
             )
         ]

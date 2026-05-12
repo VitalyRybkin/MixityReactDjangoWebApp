@@ -4,8 +4,18 @@ from phonenumber_field.serializerfields import PhoneNumberField
 from rest_framework import serializers, validators
 
 from catalog.models import PurchasePriceHistory
+from catalog.serializers.product_serializers import ProductSerializer
 from core.validators.validators import validate_ru_phone
 from stock.models import Warehouse
+
+
+class BaseWarehouseSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Warehouse
+        fields = [
+            "id",
+            "name",
+        ]
 
 
 class WarehouseListCreateSerializer(serializers.ModelSerializer):
@@ -68,6 +78,8 @@ class WarehouseMapSerializer(serializers.ModelSerializer):
 
 
 class WarehousePriceHistorySerializer(serializers.ModelSerializer):
+    product = ProductSerializer()
+
     class Meta:
         model = PurchasePriceHistory
         fields = ("id", "purchase_price", "product")
