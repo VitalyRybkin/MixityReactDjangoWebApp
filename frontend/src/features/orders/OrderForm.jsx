@@ -48,7 +48,6 @@ export default function OrderFormPage() {
     const saving = createOrder.isPending || updateOrder.isPending
 
     const [orderDelivery, setOrderDelivery] = useState({
-        warehouse: '',
         delivery_cost: '',
         delivery_compensation: '',
         demurrage: '',
@@ -108,7 +107,7 @@ export default function OrderFormPage() {
         data: warehousePrices = [],
         isLoading: isLoadingWarehousePrices,
         error: loadWarehousePricesError,
-    } = useGetWarehousePrices(orderDelivery.warehouse?.id, productIds)
+    } = useGetWarehousePrices(form.warehouse?.id, productIds)
 
     const isLoadingPage = loadingResources || !orderResources || (isEdit && (loadingOrder || !order))
     const pageLoadError = loadResourceError || loadOrderError
@@ -143,6 +142,12 @@ export default function OrderFormPage() {
         }
     }, [loadCustomerPricesError])
 
+    useEffect(() => {
+        if (loadWarehousePricesError) {
+            setError(loadWarehousePricesError?.response?.data?.detail || 'Ошибка загрузки цен склада')
+        }
+    }, [loadWarehousePricesError, setError])
+
     const handleDownloadUpd = (orderId) => {
         console.log('download or generate upd', orderId)
     }
@@ -161,6 +166,8 @@ export default function OrderFormPage() {
                 orderDelivery={orderDelivery}
                 setOrderDelivery={setOrderDelivery}
                 orderResources={orderResources}
+                form={form}
+                setForm={setForm}
             />
 
             <Box sx={{ ...sidebarPageSx.content, ...(open ? sidebarPageSx.contentWithSidebar : {}) }}>

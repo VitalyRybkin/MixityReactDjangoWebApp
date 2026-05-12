@@ -33,6 +33,7 @@ export function useOrderProducts(products = []) {
             packId: item.pack_type?.id || '',
             value: item.product?.product_unit?.value ?? 0,
             price_at_sale: item.price_at_sale,
+            price_at_purchase: item.price_at_purchase,
         }))
 
     const buildProductsPayload = (currentProducts) =>
@@ -43,6 +44,7 @@ export function useOrderProducts(products = []) {
                 quantity: row.quantity,
                 package: row.packId || null,
                 price_at_sale: Number(row.price_at_sale) || 0,
+                price_at_purchase: Number(row.price_at_purchase) || 0,
             }))
 
     const validate = () => {

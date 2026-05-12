@@ -13,9 +13,9 @@ export default function OrderDetailSideBar({
     loadingWarehousePrices,
     orderProducts = [],
     setOrderProducts,
-    orderDelivery,
-    setOrderDelivery,
     orderResources,
+    form,
+    setForm,
 }) {
     const [editableSalePrices, setEditableSalePrices] = useState([])
     const [editablePurchasePrices, setEditablePurchasePrices] = useState([])
@@ -88,7 +88,7 @@ export default function OrderDetailSideBar({
                     const productId = getProductId(product)
                     const priceInfo = customerPrices.find((cp) => Number(getProductId(cp)) === Number(productId))
 
-                    if (priceInfo && !product.price_at_sale) {
+                    if (priceInfo && product.price_at_sale == null) {
                         hasChanges = true
                         return { ...product, price_at_sale: priceInfo.sale_price }
                     }
@@ -99,6 +99,45 @@ export default function OrderDetailSideBar({
             })
         }
     }, [customerPrices, orderProducts.length])
+
+    useEffect(() => {
+        if (warehousePrices.length > 0 && orderProducts.length > 0) {
+            const initializedPrices = warehousePrices.map((wp) => {
+                const productId = getProductId(wp)
+
+                const productInOrder = orderProducts.find((op) => Number(getProductId(op)) === Number(productId))
+
+                const actualPrice =
+                    productInOrder && productInOrder.price_at_purchase != null
+                        ? productInOrder.price_at_purchase
+                        : wp.purchase_price
+
+                return { ...wp, current_display_price: actualPrice }
+            })
+
+            setEditablePurchasePrices(initializedPrices)
+
+            setOrderProducts((prev) => {
+                let hasChanges = false
+
+                const newOrderProducts = prev.map((product) => {
+                    const productId = getProductId(product)
+
+                    const priceInfo = warehousePrices.find((wp) => Number(getProductId(wp)) === Number(productId))
+
+                    if (priceInfo && product.price_at_purchase == null) {
+                        hasChanges = true
+
+                        return { ...product, price_at_purchase: priceInfo.purchase_price }
+                    }
+
+                    return product
+                })
+
+                return hasChanges ? newOrderProducts : prev
+            })
+        }
+    }, [warehousePrices, orderProducts.length, setOrderProducts])
 
     const handlePriceAtSaleChange = (id, value) => {
         const numericValue = value === '' ? 0 : parseFloat(value)
@@ -122,7 +161,7 @@ export default function OrderDetailSideBar({
         )
     }
 
-    const handleWarehousePriceAtSaleChange = (id, value) => {
+    const handlePriceAtPurchaseChange = (id, value) => {
         const numericValue = value === '' ? 0 : parseFloat(value)
 
         setEditablePurchasePrices((prev) =>
@@ -137,7 +176,7 @@ export default function OrderDetailSideBar({
                 const itemProductId = getProductId(item)
 
                 if (Number(itemProductId) === Number(productId)) {
-                    return { ...item, price_at_sale: numericValue }
+                    return { ...item, price_at_purchase: numericValue }
                 }
                 return item
             }),
@@ -151,6 +190,8 @@ export default function OrderDetailSideBar({
         textOverflow: 'ellipsis',
         whiteSpace: 'nowrap',
     }
+
+    console.log('selectedWarehouse in form', form.warehouse)
 
     return (
         <AppSidebar open={open} setOpen={setOpen}>
@@ -219,9 +260,15 @@ export default function OrderDetailSideBar({
                 options={warehouses}
                 getOptionLabel={(option) => option?.name || ''}
                 isOptionEqualToValue={(option, value) => option.id === value.id}
-                value={orderDelivery?.warehouse ?? null}
+                value={form.warehouse || null}
+                // onChange={(event, newValue) => {
+                //     setOrderDelivery((prev) => ({
+                //         ...prev,
+                //         warehouse: newValue,
+                //     }))
+                // }}
                 onChange={(event, newValue) => {
-                    setOrderDelivery((prev) => ({
+                    setForm((prev) => ({
                         ...prev,
                         warehouse: newValue,
                     }))
@@ -256,7 +303,7 @@ export default function OrderDetailSideBar({
                                 size="small"
                                 type="number"
                                 value={item.current_display_price ?? ''}
-                                onChange={(e) => handleWarehousePriceAtSaleChange(item.id, e.target.value)}
+                                onChange={(e) => handlePriceAtPurchaseChange(item.id, e.target.value)}
                                 sx={{ width: 120 }}
                             />
                         </Stack>
@@ -275,7 +322,7 @@ export default function OrderDetailSideBar({
                     <CircularProgress size={16} />
                 ) : (
                     <Typography variant="body2" sx={typographySx}>
-                        {totalSalePrice.toLocaleString('ru-RU')} руб.
+                        {totalPurchasePrice.toLocaleString('ru-RU')} руб.
                     </Typography>
                 )}
             </Stack>

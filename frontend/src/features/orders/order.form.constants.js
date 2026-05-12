@@ -11,6 +11,7 @@ export const emptyOrderForm = {
     client: '',
     customer: null,
     customer_object: null,
+    warehouse: null,
     contacts: [],
     status: 'draft',
     description: '',

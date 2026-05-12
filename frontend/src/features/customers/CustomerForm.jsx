@@ -65,7 +65,7 @@ export default function CustomerFormPage() {
             emptyForm,
             updateMutation: updateCustomer,
             createMutation: createCustomer,
-            redirectPath: '/clients',
+            redirectPath: backPath,
         })
 
     if (isEdit && loadingCustomer) return <CircularProgress />
