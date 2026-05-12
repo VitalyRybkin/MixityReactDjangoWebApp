@@ -88,26 +88,38 @@ export default function OrderFormPage() {
         onSuccess: () => markCleanRef.current?.(),
     })
 
+    const getProductId = (item) => {
+        if (!item) return null
+
+        if (typeof item.product === 'object') {
+            return item.product?.id
+        }
+
+        if (typeof item.productId === 'object') {
+            return item.productId?.id
+        }
+
+        return item.product ?? item.product_id ?? item.productId ?? null
+    }
+
     const productIds = useMemo(() => {
-        return orderProducts
-            .map((item) => {
-                if (!item.productId) return null
-                return typeof item.productId === 'object' ? item.productId.id : item.productId
-            })
-            .filter(Boolean)
+        return orderProducts.map(getProductId).filter(Boolean)
     }, [orderProducts])
+
+    const customerId = form.customer?.id ?? form.customer ?? null
+    const warehouseId = form.warehouse?.id ?? form.warehouse ?? null
 
     const {
         data: customerPrices = [],
         isLoading: isLoadingCustomerPrices,
         error: loadCustomerPricesError,
-    } = useGetCustomerPrices(form.customer?.id, productIds)
+    } = useGetCustomerPrices(customerId, productIds)
 
     const {
         data: warehousePrices = [],
         isLoading: isLoadingWarehousePrices,
         error: loadWarehousePricesError,
-    } = useGetWarehousePrices(form.warehouse?.id, productIds)
+    } = useGetWarehousePrices(warehouseId, productIds)
 
     const isLoadingPage = loadingResources || !orderResources || (isEdit && (loadingOrder || !order))
     const pageLoadError = loadResourceError || loadOrderError

@@ -16,7 +16,7 @@ export const warehouseKeys = {
     list: () => [...warehouseKeys.all, 'list'],
     detail: (id) => [...warehouseKeys.all, 'detail', String(id)],
     contacts: (id) => [...warehouseKeys.detail(id), 'contacts'],
-    prices: (id) => [...warehouseKeys.detail(id), 'prices'],
+    prices: (id, productIds = []) => [...warehouseKeys.detail(id), 'prices', productIds.map(String).sort()],
 }
 
 // --- API FUNCTIONS ---

@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 
 import { Autocomplete, Box, CircularProgress, Divider, Stack, TextField, Typography } from '@mui/material'
 
@@ -19,10 +19,9 @@ export default function OrderDetailSideBar({
 }) {
     const [editableSalePrices, setEditableSalePrices] = useState([])
     const [editablePurchasePrices, setEditablePurchasePrices] = useState([])
-    const [totalSalePrice, setTotalSalePrice] = useState(0)
-    const [totalPurchasePrice, setTotalPurchasePrice] = useState(0)
-    const [isCalculating, setIsCalculating] = useState(false)
+
     const warehouses = orderResources?.warehouses ?? []
+    const products = orderResources?.products ?? []
 
     const getProductId = (item) => {
         if (!item) return null
@@ -31,113 +30,145 @@ export default function OrderDetailSideBar({
             return item.product?.id
         }
 
-        return item.product ?? item.product_id ?? item.productId
+        if (typeof item.productId === 'object') {
+            return item.productId?.id
+        }
+
+        if (typeof item.product_id === 'object') {
+            return item.product_id?.id
+        }
+
+        return item.product ?? item.product_id ?? item.productId ?? null
     }
 
-    useEffect(() => {
-        setEditableSalePrices(customerPrices)
-    }, [customerPrices])
+    const getProductObject = (item, prices = []) => {
+        if (!item) return null
 
-    useEffect(() => {
-        setEditablePurchasePrices(warehousePrices)
-    }, [warehousePrices])
+        if (typeof item.product === 'object') {
+            return item.product
+        }
 
-    useEffect(() => {
-        setIsCalculating(true)
+        if (typeof item.productId === 'object') {
+            return item.productId
+        }
 
-        const totalAtSale = orderProducts.reduce((acc, item) => {
+        if (typeof item.product_id === 'object') {
+            return item.product_id
+        }
+
+        const productId = getProductId(item)
+
+        return (
+            prices.find((price) => Number(getProductId(price)) === Number(productId))?.product ??
+            products.find((product) => Number(product.id) === Number(productId)) ??
+            null
+        )
+    }
+
+    const warehouseId = form?.warehouse?.id ?? form?.warehouse ?? null
+    const customerId = form?.customer?.id ?? form?.customer ?? null
+
+    const productIdsKey = useMemo(() => {
+        return orderProducts.map(getProductId).filter(Boolean).map(String).sort().join(',')
+    }, [orderProducts])
+
+    const totalSalePrice = useMemo(() => {
+        return orderProducts.reduce((acc, item) => {
             const price = Number(item.price_at_sale) || 0
             const qty = Number(item.quantity) || 0
 
             return acc + price * qty
         }, 0)
+    }, [orderProducts])
 
-        setTotalSalePrice(totalAtSale)
-
-        const totalAtPurchase = orderProducts.reduce((acc, item) => {
+    const totalPurchasePrice = useMemo(() => {
+        return orderProducts.reduce((acc, item) => {
             const price = Number(item.price_at_purchase) || 0
             const qty = Number(item.quantity) || 0
 
             return acc + price * qty
         }, 0)
-
-        setTotalPurchasePrice(totalAtPurchase)
-
-        setIsCalculating(false)
     }, [orderProducts])
 
     useEffect(() => {
-        if (customerPrices.length > 0 && orderProducts.length > 0) {
-            const initializedPrices = customerPrices.map((cp) => {
-                const productId = getProductId(cp)
-                const productInOrder = orderProducts.find((op) => Number(getProductId(op)) === Number(productId))
-
-                const actualPrice =
-                    productInOrder && productInOrder.price_at_sale != null
-                        ? productInOrder.price_at_sale
-                        : cp.sale_price
-
-                return { ...cp, current_display_price: actualPrice }
-            })
-
-            setEditableSalePrices(initializedPrices)
-
-            setOrderProducts((prev) => {
-                let hasChanges = false
-                const newOrderProducts = prev.map((product) => {
-                    const productId = getProductId(product)
-                    const priceInfo = customerPrices.find((cp) => Number(getProductId(cp)) === Number(productId))
-
-                    if (priceInfo && product.price_at_sale == null) {
-                        hasChanges = true
-                        return { ...product, price_at_sale: priceInfo.sale_price }
-                    }
-                    return product
-                })
-
-                return hasChanges ? newOrderProducts : prev
-            })
+        if (orderProducts.length === 0) {
+            setEditableSalePrices([])
+            return
         }
-    }, [customerPrices, orderProducts.length])
+
+        const rows = orderProducts.map((productRow) => {
+            const productId = getProductId(productRow)
+            const priceInfo = customerPrices.find((cp) => Number(getProductId(cp)) === Number(productId))
+            const productObject = getProductObject(productRow, customerPrices)
+
+            return {
+                id: productId,
+                product: productObject,
+                product_id: productId,
+                current_display_price: priceInfo?.sale_price ?? '',
+                sale_price: priceInfo?.sale_price ?? null,
+            }
+        })
+
+        setEditableSalePrices(rows)
+
+        setOrderProducts((prev) =>
+            prev.map((product) => {
+                const productId = getProductId(product)
+
+                const priceInfo = customerPrices.find((cp) => Number(getProductId(cp)) === Number(productId))
+
+                return {
+                    ...product,
+                    price_at_sale: priceInfo ? Number(priceInfo.sale_price) || 0 : 0,
+                }
+            }),
+        )
+    }, [customerId, customerPrices, productIdsKey, setOrderProducts])
 
     useEffect(() => {
-        if (warehousePrices.length > 0 && orderProducts.length > 0) {
-            const initializedPrices = warehousePrices.map((wp) => {
-                const productId = getProductId(wp)
+        if (orderProducts.length === 0) {
+            setEditablePurchasePrices([])
 
-                const productInOrder = orderProducts.find((op) => Number(getProductId(op)) === Number(productId))
-
-                const actualPrice =
-                    productInOrder && productInOrder.price_at_purchase != null
-                        ? productInOrder.price_at_purchase
-                        : wp.purchase_price
-
-                return { ...wp, current_display_price: actualPrice }
-            })
-
-            setEditablePurchasePrices(initializedPrices)
-
-            setOrderProducts((prev) => {
-                let hasChanges = false
-
-                const newOrderProducts = prev.map((product) => {
-                    const productId = getProductId(product)
-
-                    const priceInfo = warehousePrices.find((wp) => Number(getProductId(wp)) === Number(productId))
-
-                    if (priceInfo && product.price_at_purchase == null) {
-                        hasChanges = true
-
-                        return { ...product, price_at_purchase: priceInfo.purchase_price }
-                    }
-
-                    return product
-                })
-
-                return hasChanges ? newOrderProducts : prev
-            })
+            return
         }
-    }, [warehousePrices, orderProducts.length, setOrderProducts])
+
+        const rows = orderProducts.map((productRow) => {
+            const productId = getProductId(productRow)
+
+            const priceInfo = warehousePrices.find((wp) => Number(getProductId(wp)) === Number(productId))
+
+            const productObject = getProductObject(productRow, warehousePrices)
+
+            return {
+                id: productId,
+
+                product: productObject,
+
+                product_id: productId,
+
+                current_display_price: priceInfo?.purchase_price ?? '',
+
+                purchase_price: priceInfo?.purchase_price ?? null,
+            }
+        })
+
+        setEditablePurchasePrices(rows)
+
+        setOrderProducts((prev) =>
+            prev.map((product) => {
+                const productId = getProductId(product)
+
+                const priceInfo = warehousePrices.find((wp) => Number(getProductId(wp)) === Number(productId))
+
+                return {
+                    ...product,
+
+                    price_at_purchase: priceInfo ? Number(priceInfo.purchase_price) || 0 : 0,
+                }
+            }),
+        )
+    }, [warehouseId, warehousePrices, productIdsKey, setOrderProducts])
 
     const handlePriceAtSaleChange = (id, value) => {
         const numericValue = value === '' ? 0 : parseFloat(value)
@@ -154,8 +185,12 @@ export default function OrderDetailSideBar({
                 const itemProductId = getProductId(item)
 
                 if (Number(itemProductId) === Number(productId)) {
-                    return { ...item, price_at_sale: numericValue }
+                    return {
+                        ...item,
+                        price_at_sale: numericValue,
+                    }
                 }
+
                 return item
             }),
         )
@@ -176,8 +211,12 @@ export default function OrderDetailSideBar({
                 const itemProductId = getProductId(item)
 
                 if (Number(itemProductId) === Number(productId)) {
-                    return { ...item, price_at_purchase: numericValue }
+                    return {
+                        ...item,
+                        price_at_purchase: numericValue,
+                    }
                 }
+
                 return item
             }),
         )
@@ -190,8 +229,6 @@ export default function OrderDetailSideBar({
         textOverflow: 'ellipsis',
         whiteSpace: 'nowrap',
     }
-
-    console.log('selectedWarehouse in form', form.warehouse)
 
     return (
         <AppSidebar open={open} setOpen={setOpen}>
@@ -219,7 +256,7 @@ export default function OrderDetailSideBar({
                     {editableSalePrices.map((item) => (
                         <Stack key={item.id} direction="row" alignItems="center" spacing={2}>
                             <Typography variant="body2" sx={typographySx}>
-                                {item.product.name}
+                                {item.product?.name ?? '—'}
                             </Typography>
 
                             <TextField
@@ -240,13 +277,13 @@ export default function OrderDetailSideBar({
                     ИТОГО:
                 </Typography>
 
-                {isCalculating ? (
-                    <CircularProgress size={16} />
-                ) : (
-                    <Typography variant="body2" sx={typographySx}>
-                        {totalSalePrice.toLocaleString('ru-RU')} руб.
-                    </Typography>
-                )}
+                <Typography variant="body2" sx={typographySx}>
+                    {totalSalePrice.toLocaleString('ru-RU', {
+                        minimumFractionDigits: 2,
+                        maximumFractionDigits: 2,
+                    })}{' '}
+                    руб.
+                </Typography>
             </Stack>
 
             <Typography variant="h6" sx={{ mt: 3 }}>
@@ -261,12 +298,6 @@ export default function OrderDetailSideBar({
                 getOptionLabel={(option) => option?.name || ''}
                 isOptionEqualToValue={(option, value) => option.id === value.id}
                 value={form.warehouse || null}
-                // onChange={(event, newValue) => {
-                //     setOrderDelivery((prev) => ({
-                //         ...prev,
-                //         warehouse: newValue,
-                //     }))
-                // }}
                 onChange={(event, newValue) => {
                     setForm((prev) => ({
                         ...prev,
@@ -296,7 +327,7 @@ export default function OrderDetailSideBar({
                     {editablePurchasePrices.map((item) => (
                         <Stack key={item.id} direction="row" alignItems="center" spacing={2}>
                             <Typography variant="body2" sx={typographySx}>
-                                {item.product.name}
+                                {item.product?.name ?? item.product_name ?? '—'}
                             </Typography>
 
                             <TextField
@@ -318,13 +349,13 @@ export default function OrderDetailSideBar({
                     ИТОГО:
                 </Typography>
 
-                {isCalculating ? (
-                    <CircularProgress size={16} />
-                ) : (
-                    <Typography variant="body2" sx={typographySx}>
-                        {totalPurchasePrice.toLocaleString('ru-RU')} руб.
-                    </Typography>
-                )}
+                <Typography variant="body2" sx={typographySx}>
+                    {totalPurchasePrice.toLocaleString('ru-RU', {
+                        minimumFractionDigits: 2,
+                        maximumFractionDigits: 2,
+                    })}{' '}
+                    руб.
+                </Typography>
             </Stack>
         </AppSidebar>
     )
