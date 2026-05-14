@@ -45,7 +45,7 @@ export default function AppSidebar({ open, setOpen, children }) {
             {open ? (
                 <>
                     <Tooltip title="Закрыть" placement="bottom" arrow>
-                        <Button variant="outlined" onClick={() => setOpen(false)} fullWidth>
+                        <Button variant="outlined" onClick={() => setOpen(false)} fullWidth sx={{ mb: 2 }}>
                             <ChevronLeftIcon />
                         </Button>
                     </Tooltip>
