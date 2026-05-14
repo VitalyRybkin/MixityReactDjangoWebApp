@@ -19,6 +19,8 @@ export default function OrderDetailSideBar({
     loadingWarehousePrices,
     orderProducts = [],
     setOrderProducts,
+    orderDelivery,
+    setOrderDelivery,
     orderResources,
     form,
     setForm,

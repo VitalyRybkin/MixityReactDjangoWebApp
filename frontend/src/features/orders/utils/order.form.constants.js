@@ -18,6 +18,15 @@ export const emptyOrderForm = {
     samples: false,
 }
 
+export const emptyDeliveryInfo = {
+    delivery_cost: '',
+    delivery_compensation: '',
+    demurrage: '',
+    carrier: null,
+    driver: null,
+    truck: null,
+}
+
 export const orderStatus = {
     draft: 'Черновик',
     created: 'Создан',

@@ -20,8 +20,9 @@ import { useOrderFormData } from './hooks/useOrderFormData.js'
 import { useOrderProducts } from './hooks/useOrderProducts.js'
 import { useUnsavedGuard } from './hooks/useUnsavedGuard.js'
 import { useCreateOrder, useGetOrder, useGetOrderResources, useUpdateOrder } from './orders.queries.js'
-import { emptyOrderForm } from './utils/order.form.constants.js'
+import { emptyDeliveryInfo, emptyOrderForm } from './utils/order.form.constants.js'
 import { toOrderPayload } from './utils/order.form.mappers.js'
+import { getProductId } from './utils/orderProducts.js'
 
 export default function OrderFormPage() {
     const { id } = useParams()
@@ -47,14 +48,7 @@ export default function OrderFormPage() {
     const updateOrder = useUpdateOrder()
     const saving = createOrder.isPending || updateOrder.isPending
 
-    const [orderDelivery, setOrderDelivery] = useState({
-        delivery_cost: '',
-        delivery_compensation: '',
-        demurrage: '',
-        carrier: '',
-        driver: '',
-        truck: '',
-    })
+    const [orderDelivery, setOrderDelivery] = useState({ emptyDeliveryInfo })
 
     const {
         orderProducts,
@@ -87,20 +81,6 @@ export default function OrderFormPage() {
         validate: validateProducts,
         onSuccess: () => markCleanRef.current?.(),
     })
-
-    const getProductId = (item) => {
-        if (!item) return null
-
-        if (typeof item.product === 'object') {
-            return item.product?.id
-        }
-
-        if (typeof item.productId === 'object') {
-            return item.productId?.id
-        }
-
-        return item.product ?? item.product_id ?? item.productId ?? null
-    }
 
     const productIds = useMemo(() => {
         return orderProducts.map(getProductId).filter(Boolean)
