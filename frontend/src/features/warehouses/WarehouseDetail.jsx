@@ -1,9 +1,10 @@
 import { useParams } from 'react-router-dom'
 
-import useLoadImage from '../../../hooks/useLoadImage.jsx'
-import ObjectDetailWithContactList from '../../../pages/shared/ObjectDetailWithContactList.jsx'
-import { emailValue } from '../../../utils/emailValue.jsx'
-import { warehouseApiPaths } from '../warehouseApiPaths.js'
+import ObjectDetailWithContactList from '../../components/ObjectDetailWithContactList.jsx'
+import useLoadImage from '../../hooks/useLoadImage.jsx'
+import { emailValue } from '../../utils/emailValue.jsx'
+
+import { warehouseApiPaths } from './utils/warehouseApiPaths.js'
 
 export default function WarehouseDetailPage() {
     const { id } = useParams()

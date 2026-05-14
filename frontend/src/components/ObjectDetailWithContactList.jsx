@@ -9,15 +9,16 @@ import { Box, Card, CardContent, CircularProgress, Divider, Stack, Typography } 
 
 import { useQuery } from '@tanstack/react-query'
 
-import api from '../../api.js'
-import AppBreadcrumbs from '../../components/AppBreadcrumbs.jsx'
-import ContactCreateUpdate from '../../components/ContactCreateUpdate.jsx'
-import ContactsListView from '../../components/ContactsList.jsx'
-import EditAction from '../../components/ui/buttons/EditAction.jsx'
-import AppSnackbar from '../../components/ui/feedback/AppSnackbar.jsx'
-import ConfirmDialog from '../../components/ui/feedback/ConfirmDialog.jsx'
-import useConfirm from '../../hooks/useConfirm.js'
-import useSnackbar from '../../hooks/useSnackbar.js'
+import api from '../api.js'
+import useConfirm from '../hooks/useConfirm.js'
+import useSnackbar from '../hooks/useSnackbar.js'
+
+import AppBreadcrumbs from './AppBreadcrumbs.jsx'
+import ContactCreateUpdate from './ContactCreateUpdate.jsx'
+import ContactsListView from './ContactsList.jsx'
+import EditAction from './ui/buttons/EditAction.jsx'
+import AppSnackbar from './ui/feedback/AppSnackbar.jsx'
+import ConfirmDialog from './ui/feedback/ConfirmDialog.jsx'
 
 export default function ObjectDetailWithContactList({
     id,

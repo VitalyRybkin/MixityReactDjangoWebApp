@@ -4,7 +4,7 @@ import { Alert, Button, Dialog, DialogActions, DialogContent, DialogTitle, Stack
 
 import { firstError } from '../../../utils/apiError.js'
 
-import { useCreateTruckType } from './trucks.queries.js'
+import { useCreateTruckType } from './utils/trucks.queries.js'
 
 const emptyForm = {
     truckType: '',

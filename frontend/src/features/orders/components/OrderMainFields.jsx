@@ -14,7 +14,7 @@ import { TimePicker } from '@mui/x-date-pickers'
 
 import DownAction from '../../../components/ui/buttons/DownAction.jsx'
 import ViewAction from '../../../components/ui/buttons/ViewAction.jsx'
-import { fieldsetStyles, orderStatus } from '../order.form.constants.js'
+import { fieldsetStyles, orderStatus } from '../utils/order.form.constants.js'
 
 export default function OrderMainFields({ form, setForm, onChange, orderResources, isEdit, order, onDownloadUpd }) {
     return (

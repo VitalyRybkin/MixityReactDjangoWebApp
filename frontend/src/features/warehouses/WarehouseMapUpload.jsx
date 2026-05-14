@@ -3,9 +3,10 @@ import { useLocation, useNavigate, useParams } from 'react-router-dom'
 
 import { Alert, Box, Button, Card, CardContent, Stack, Typography } from '@mui/material'
 
-import api from '../../../api.js'
-import AppBreadcrumbs from '../../../components/AppBreadcrumbs.jsx'
-import { warehouseApiPaths } from '../warehouseApiPaths.js'
+import api from '../../api.js'
+import AppBreadcrumbs from '../../components/AppBreadcrumbs.jsx'
+
+import { warehouseApiPaths } from './utils/warehouseApiPaths.js'
 
 export default function WarehouseMapUploadPage() {
     const { id } = useParams()

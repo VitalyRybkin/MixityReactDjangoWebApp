@@ -4,7 +4,7 @@ import { Alert, Button, Dialog, DialogActions, DialogContent, DialogTitle, Stack
 
 import { firstError } from '../../../utils/apiError.js'
 
-import { useCreateTruckCapacity } from './trucks.queries.js'
+import { useCreateTruckCapacity } from './utils/trucks.queries.js'
 
 const emptyForm = {
     capacity: '',

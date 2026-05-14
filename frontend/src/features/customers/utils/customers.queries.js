@@ -1,6 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 
-import api from '../../api.js'
+import api from '../../../api.js'
 
 import { constructionObjectsApiPaths, customerApiPaths } from './customerApiPaths.js'
 

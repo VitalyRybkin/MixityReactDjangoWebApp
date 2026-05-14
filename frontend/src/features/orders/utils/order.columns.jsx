@@ -1,8 +1,8 @@
 import { IconButton } from '@mui/material'
 
-import DeleteAction from '../../components/ui/buttons/DeleteAction.jsx'
-import DownAction from '../../components/ui/buttons/DownAction.jsx'
-import ViewAction from '../../components/ui/buttons/ViewAction.jsx'
+import DeleteAction from '../../../components/ui/buttons/DeleteAction.jsx'
+import DownAction from '../../../components/ui/buttons/DownAction.jsx'
+import ViewAction from '../../../components/ui/buttons/ViewAction.jsx'
 
 export const localeText = {
     noRowsLabel: 'На выбранный период доставки заказов нет.',

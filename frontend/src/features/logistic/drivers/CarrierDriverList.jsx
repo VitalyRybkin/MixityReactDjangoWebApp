@@ -27,7 +27,7 @@ import useConfirm from '../../../hooks/useConfirm.js'
 import { useConfirmDelete } from '../../../hooks/useConfirmDelete.js'
 import useSnackbar from '../../../hooks/useSnackbar.js'
 
-import { useDeleteDriver, useGetDrivers } from './drivers.queries.js'
+import { useDeleteDriver, useGetDrivers } from './utils/drivers.queries.js'
 
 const tableHeaders = ['ФИО', '']
 

@@ -1,6 +1,6 @@
 import { Autocomplete, Box, TextField, Typography } from '@mui/material'
 
-import { fieldsetStyles } from '../order.form.constants.js'
+import { fieldsetStyles } from '../utils/order.form.constants.js'
 
 export default function OrderCustomerFields({ form, setForm, orderResources }) {
     return (

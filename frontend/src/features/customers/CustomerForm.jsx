@@ -8,7 +8,7 @@ import FormActions from '../../components/ui/FormActions.jsx'
 import { useFormLogic } from '../../hooks/useEntityForm.js'
 import { EMAIL_HINT } from '../../utils/email.js'
 
-import { useCreateCustomer, useGetCustomer, useUpdateCustomer } from './customers.queries.js'
+import { useCreateCustomer, useGetCustomer, useUpdateCustomer } from './utils/customers.queries.js'
 
 const emptyForm = {
     name: '',

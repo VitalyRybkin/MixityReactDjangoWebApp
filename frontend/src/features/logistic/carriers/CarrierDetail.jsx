@@ -1,9 +1,9 @@
 import { useParams } from 'react-router-dom'
 
-import ObjectDetailWithContactList from '../../../pages/shared/ObjectDetailWithContactList.jsx'
+import ObjectDetailWithContactList from '../../../components/ObjectDetailWithContactList.jsx'
 import { emailValue } from '../../../utils/emailValue.jsx'
 
-import { carrierApiPaths } from './carrierApiPaths.js'
+import { carrierApiPaths } from './utils/carrierApiPaths.js'
 
 export default function CarrierDetailPage() {
     const { id } = useParams()

@@ -1,10 +1,12 @@
 import React from 'react'
 import { useLocation, useNavigate, useParams } from 'react-router-dom'
 
+import { Edit as EditIcon } from '@mui/icons-material'
 import {
     Box,
     CircularProgress,
-    Divider, Stack,
+    Divider,
+    Stack,
     Table,
     TableBody,
     TableCell,
@@ -17,16 +19,15 @@ import {
 import AppBreadcrumbs from '../../components/AppBreadcrumbs.jsx'
 import ErrorState from '../../components/ui/ErrorState.jsx'
 import AddAction from '../../components/ui/buttons/AddAction.jsx'
+import DeleteAction from '../../components/ui/buttons/DeleteAction.jsx'
+import EditAction from '../../components/ui/buttons/EditAction.jsx'
 import AppSnackbar from '../../components/ui/feedback/AppSnackbar.jsx'
 import ConfirmDialog from '../../components/ui/feedback/ConfirmDialog.jsx'
 import useConfirm from '../../hooks/useConfirm.js'
 import { useConfirmDelete } from '../../hooks/useConfirmDelete.js'
 import useSnackbar from '../../hooks/useSnackbar.js'
 
-import { useDeleteCustomerObject, useGetCustomerObjects } from './customers.queries.js'
-import EditAction from "../../components/ui/buttons/EditAction.jsx";
-import {Edit as EditIcon} from "@mui/icons-material";
-import DeleteAction from "../../components/ui/buttons/DeleteAction.jsx";
+import { useDeleteCustomerObject, useGetCustomerObjects } from './utils/customers.queries.js'
 
 const tableHeaders = ['Наименование', 'Адрес', '']
 
@@ -103,23 +104,28 @@ export default function CustomerObjectListPage() {
 
                         <TableBody>
                             {customer_objects.length > 0 ? (
-                                customer_objects.map((co) => <TableRow key={co.id} hover>
-                                    <TableCell>{co.name}</TableCell>
-                                    <TableCell>{co.address}</TableCell>
-                                    <TableCell align="right">
-                                        <Stack direction="row" spacing={1} justifyContent="flex-end">
-                                            <EditAction
-                                                onClick={() =>
-                                                    navigate(`/customers/${id}/construction_objects/${co.id}/edit`, {
-                                                        state: { entity },
-                                                    })
-                                                }
-                                                icon={<EditIcon fontSize="small" />}
-                                            />
-                                            <DeleteAction onClick={() => handleDeleteObject(co)} />
-                                        </Stack>
-                                    </TableCell>
-                                </TableRow>)
+                                customer_objects.map((co) => (
+                                    <TableRow key={co.id} hover>
+                                        <TableCell>{co.name}</TableCell>
+                                        <TableCell>{co.address}</TableCell>
+                                        <TableCell align="right">
+                                            <Stack direction="row" spacing={1} justifyContent="flex-end">
+                                                <EditAction
+                                                    onClick={() =>
+                                                        navigate(
+                                                            `/customers/${id}/construction_objects/${co.id}/edit`,
+                                                            {
+                                                                state: { entity },
+                                                            },
+                                                        )
+                                                    }
+                                                    icon={<EditIcon fontSize="small" />}
+                                                />
+                                                <DeleteAction onClick={() => handleDeleteObject(co)} />
+                                            </Stack>
+                                        </TableCell>
+                                    </TableRow>
+                                ))
                             ) : (
                                 <TableRow>
                                     <TableCell

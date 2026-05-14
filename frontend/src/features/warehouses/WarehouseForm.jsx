@@ -3,13 +3,13 @@ import { useLocation, useNavigate, useParams } from 'react-router-dom'
 
 import { Alert, Box, CircularProgress, Paper, Stack, TextField, Typography } from '@mui/material'
 
-import AppBreadcrumbs from '../../../components/AppBreadcrumbs.jsx'
-import FormActions from '../../../components/ui/FormActions.jsx'
-import { useFormLogic } from '../../../hooks/useEntityForm.js'
-import useLoadImage from '../../../hooks/useLoadImage.jsx'
-import { EMAIL_HINT } from '../../../utils/email.js'
+import AppBreadcrumbs from '../../components/AppBreadcrumbs.jsx'
+import FormActions from '../../components/ui/FormActions.jsx'
+import { useFormLogic } from '../../hooks/useEntityForm.js'
+import useLoadImage from '../../hooks/useLoadImage.jsx'
+import { EMAIL_HINT } from '../../utils/email.js'
 
-import { useCreateWarehouse, useUpdateWarehouse, useWarehouse } from './stocks.queries.js'
+import { useCreateWarehouse, useUpdateWarehouse, useWarehouse } from './utils/stocks.queries.js'
 
 const emptyForm = {
     name: '',

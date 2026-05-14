@@ -12,7 +12,7 @@ import FormActions from '../../../components/ui/FormActions.jsx'
 import { firstError } from '../../../utils/apiError.js'
 import { normalizePhoneInput, validatePhoneValue } from '../../../utils/phone.js'
 
-import { useCreateDriver, useGetDriver, useUpdateDriver } from './drivers.queries.js'
+import { useCreateDriver, useGetDriver, useUpdateDriver } from './utils/drivers.queries.js'
 
 dayjs.extend(customParseFormat)
 

@@ -1,9 +1,9 @@
 import { useParams } from 'react-router-dom'
 
-import ObjectDetailWithContactList from '../../pages/shared/ObjectDetailWithContactList.jsx'
+import ObjectDetailWithContactList from '../../components/ObjectDetailWithContactList.jsx'
 import { emailValue } from '../../utils/emailValue.jsx'
 
-import { clientApiPaths } from './clientApiPaths.js'
+import { clientApiPaths } from './utils/clientApiPaths.js'
 
 export default function ClientDetailPage() {
     const { id } = useParams()

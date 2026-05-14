@@ -30,7 +30,7 @@ import {
     useGetTruckCapacities,
     useGetTruckTypes,
     useUpdateTruck,
-} from './trucks.queries.js'
+} from './utils/trucks.queries.js'
 
 const emptyForm = {
     truckType: '',

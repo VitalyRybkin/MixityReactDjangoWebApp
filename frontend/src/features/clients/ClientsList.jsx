@@ -1,12 +1,12 @@
+import ObjectListView from '../../components/ObjectListView.jsx'
+import ObjectListViewCard from '../../components/ObjectListViewCard.jsx'
 import AppSnackbar from '../../components/ui/feedback/AppSnackbar.jsx'
 import ConfirmDialog from '../../components/ui/feedback/ConfirmDialog.jsx'
 import useConfirm from '../../hooks/useConfirm.js'
 import { useConfirmDelete } from '../../hooks/useConfirmDelete.js'
 import useSnackbar from '../../hooks/useSnackbar.js'
-import ObjectListView from '../../pages/shared/ObjectListView.jsx'
-import ObjectListViewCard from '../../pages/shared/ObjectListViewCard.jsx'
 
-import { useDeleteClient, useGetClients } from './clients.queries.js'
+import { useDeleteClient, useGetClients } from './utils/clients.queries.js'
 
 export default function ClientsList() {
     const { data: clients = [], isPending, error, refetch } = useGetClients()

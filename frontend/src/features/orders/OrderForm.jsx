@@ -8,8 +8,8 @@ import ErrorState from '../../components/ui/ErrorState.jsx'
 import ConfirmDialog from '../../components/ui/feedback/ConfirmDialog.jsx'
 import { useFormLogic } from '../../hooks/useEntityForm.js'
 import { sidebarPageSx } from '../../layouts/AppSidebar.jsx'
-import { useGetCustomerPrices } from '../customers/customers.queries.js'
-import { useGetWarehousePrices } from '../warehouses/stocks/stocks.queries.js'
+import { useGetCustomerPrices } from '../customers/utils/customers.queries.js'
+import { useGetWarehousePrices } from '../warehouses/utils/stocks.queries.js'
 
 import OrderCustomerFields from './components/OrderCustomerFields.jsx'
 import OrderDetailSideBar from './components/OrderDetailSideBar.jsx'
@@ -19,9 +19,9 @@ import OrderProductsList from './components/OrderProductsList.jsx'
 import { useOrderFormData } from './hooks/useOrderFormData.js'
 import { useOrderProducts } from './hooks/useOrderProducts.js'
 import { useUnsavedGuard } from './hooks/useUnsavedGuard.js'
-import { emptyOrderForm } from './order.form.constants.js'
-import { toOrderPayload } from './order.form.mappers.js'
 import { useCreateOrder, useGetOrder, useGetOrderResources, useUpdateOrder } from './orders.queries.js'
+import { emptyOrderForm } from './utils/order.form.constants.js'
+import { toOrderPayload } from './utils/order.form.mappers.js'
 
 export default function OrderFormPage() {
     const { id } = useParams()

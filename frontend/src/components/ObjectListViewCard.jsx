@@ -5,11 +5,11 @@ import { Edit as EditIcon } from '@mui/icons-material'
 import PhoneIcon from '@mui/icons-material/Phone'
 import { Box, Card, CardActionArea, CardContent, Divider, Stack, Typography } from '@mui/material'
 
-import DeleteAction from '../../components/ui/buttons/DeleteAction.jsx'
-import EditAction from '../../components/ui/buttons/EditAction.jsx'
-import EmailLink from '../../components/ui/buttons/EmailLink.jsx'
-import IconAction from '../../components/ui/buttons/IconAction.jsx'
-import ViewAction from '../../components/ui/buttons/ViewAction.jsx'
+import DeleteAction from './ui/buttons/DeleteAction.jsx'
+import EditAction from './ui/buttons/EditAction.jsx'
+import EmailLink from './ui/buttons/EmailLink.jsx'
+import IconAction from './ui/buttons/IconAction.jsx'
+import ViewAction from './ui/buttons/ViewAction.jsx'
 
 const ObjectListViewCard = ({ title, subtitle, address, email, phone, fileUrl, to, onDelete }) => {
     const hasTextBefore = Boolean(subtitle || address || email)
@@ -17,9 +17,7 @@ const ObjectListViewCard = ({ title, subtitle, address, email, phone, fileUrl, t
     const location = useLocation()
 
     return (
-        <Card sx={{ width: '100%', mb: 0,                 bgcolor: 'background.paper',
-            border: '1px solid',
-            borderColor: 'divider', }}>
+        <Card sx={{ width: '100%', mb: 0, bgcolor: 'background.paper', border: '1px solid', borderColor: 'divider' }}>
             <CardActionArea component="div" onClick={() => navigate(to)} sx={{ cursor: 'pointer' }}>
                 <CardContent>
                     <Stack direction="row" justifyContent="space-between" alignItems="center">

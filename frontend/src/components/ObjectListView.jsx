@@ -3,9 +3,9 @@ import { useLocation, useNavigate } from 'react-router-dom'
 
 import { Box, CircularProgress, Divider, Grid, Typography } from '@mui/material'
 
-import AppBreadcrumbs from '../../components/AppBreadcrumbs.jsx'
-import ErrorState from '../../components/ui/ErrorState.jsx'
-import AddAction from '../../components/ui/buttons/AddAction.jsx'
+import AppBreadcrumbs from './AppBreadcrumbs.jsx'
+import ErrorState from './ui/ErrorState.jsx'
+import AddAction from './ui/buttons/AddAction.jsx'
 
 const ObjectListView = ({
     title,
