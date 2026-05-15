@@ -8,6 +8,7 @@ import { useOrderTotals } from '../hooks/useOrderTotals.js'
 import { handlePriceChange } from '../utils/handlePriceChange.js'
 import { getProductId } from '../utils/orderProducts.js'
 
+import OrderDeliveryDetail from './OrderDeliveryDetail.jsx'
 import PriceSection from './PriceSection.jsx'
 
 export default function OrderDetailSideBar({
@@ -19,8 +20,6 @@ export default function OrderDetailSideBar({
     loadingWarehousePrices,
     orderProducts = [],
     setOrderProducts,
-    orderDelivery,
-    setOrderDelivery,
     orderResources,
     form,
     setForm,
@@ -131,6 +130,8 @@ export default function OrderDetailSideBar({
             </Typography>
 
             <Divider sx={{ my: 1 }} />
+
+            <OrderDeliveryDetail />
         </AppSidebar>
     )
 }

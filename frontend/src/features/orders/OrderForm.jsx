@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useRef, useState } from 'react'
+import React, { createContext, useContext, useEffect, useMemo, useRef, useState } from 'react'
 import { useParams } from 'react-router-dom'
 
 import { Box, CircularProgress, Container, Divider, Stack, TextField, Typography } from '@mui/material'
@@ -19,16 +19,20 @@ import OrderProductsList from './components/OrderProductsList.jsx'
 import { useOrderFormData } from './hooks/useOrderFormData.js'
 import { useOrderProducts } from './hooks/useOrderProducts.js'
 import { useUnsavedGuard } from './hooks/useUnsavedGuard.js'
-import { useCreateOrder, useGetOrder, useGetOrderResources, useUpdateOrder } from './orders.queries.js'
 import { emptyDeliveryInfo, emptyOrderForm } from './utils/order.form.constants.js'
 import { toOrderPayload } from './utils/order.form.mappers.js'
 import { getProductId } from './utils/orderProducts.js'
+import { useCreateOrder, useGetOrder, useGetOrderResources, useUpdateOrder } from './utils/orders.queries.js'
+
+export const DeliveryContext = createContext(null)
+export const useDeliveryDetail = () => useContext(DeliveryContext)
 
 export default function OrderFormPage() {
     const { id } = useParams()
     const isEdit = Boolean(id)
 
     const [open, setOpen] = useState(false)
+    const [orderDelivery, setOrderDelivery] = useState(emptyDeliveryInfo)
 
     const {
         data: orderResources,
@@ -47,8 +51,6 @@ export default function OrderFormPage() {
     const createOrder = useCreateOrder()
     const updateOrder = useUpdateOrder()
     const saving = createOrder.isPending || updateOrder.isPending
-
-    const [orderDelivery, setOrderDelivery] = useState({ emptyDeliveryInfo })
 
     const {
         orderProducts,
@@ -76,6 +78,7 @@ export default function OrderFormPage() {
             return {
                 ...toOrderPayload(form),
                 products: buildProductsPayload(orderProducts),
+                delivery: orderDelivery,
             }
         },
         validate: validateProducts,
@@ -121,6 +124,12 @@ export default function OrderFormPage() {
     const { confirmOpen, handleNavigate, handleConfirm, handleCancel } = useUnsavedGuard(isDirty && !saving)
 
     useEffect(() => {
+        if (order?.delivery) {
+            setOrderDelivery(order.delivery)
+        }
+    }, [order])
+
+    useEffect(() => {
         if (loadResourceError) {
             setError(loadResourceError?.response?.data?.detail || 'Ошибка загрузки данных')
         } else if (loadOrderError) {
@@ -144,119 +153,126 @@ export default function OrderFormPage() {
         console.log('download or generate upd', orderId)
     }
 
+    const deliveryContextValue = useMemo(
+        () => ({
+            data: orderDelivery,
+            update: (newData) => setOrderDelivery((prev) => ({ ...prev, ...newData })),
+        }),
+        [orderDelivery],
+    )
     return (
-        <Box sx={sidebarPageSx.page}>
-            <OrderDetailSideBar
-                open={open}
-                setOpen={setOpen}
-                customerPrices={customerPrices}
-                loadingCustomerPrices={isLoadingCustomerPrices}
-                warehousePrices={warehousePrices}
-                loadingWarehousePrices={isLoadingWarehousePrices}
-                orderProducts={orderProducts}
-                setOrderProducts={setOrderProducts}
-                orderDelivery={orderDelivery}
-                setOrderDelivery={setOrderDelivery}
-                orderResources={orderResources}
-                form={form}
-                setForm={setForm}
-            />
+        <DeliveryContext.Provider value={deliveryContextValue}>
+            <Box sx={sidebarPageSx.page}>
+                <OrderDetailSideBar
+                    open={open}
+                    setOpen={setOpen}
+                    customerPrices={customerPrices}
+                    loadingCustomerPrices={isLoadingCustomerPrices}
+                    warehousePrices={warehousePrices}
+                    loadingWarehousePrices={isLoadingWarehousePrices}
+                    orderProducts={orderProducts}
+                    setOrderProducts={setOrderProducts}
+                    orderResources={orderResources}
+                    form={form}
+                    setForm={setForm}
+                />
 
-            <Box sx={{ ...sidebarPageSx.content, ...(open ? sidebarPageSx.contentWithSidebar : {}) }}>
-                <Container maxWidth="lg" sx={{ mt: 1 }}>
-                    <AppBreadcrumbs />
+                <Box sx={{ ...sidebarPageSx.content, ...(open ? sidebarPageSx.contentWithSidebar : {}) }}>
+                    <Container maxWidth="lg" sx={{ mt: 1 }}>
+                        <AppBreadcrumbs />
 
-                    <form noValidate onSubmit={onSubmit}>
-                        <OrderPageHeader
-                            isEdit={isEdit}
-                            orderId={form.id}
-                            saving={saving}
-                            onCancel={() => handleNavigate('/')}
-                        />
-
-                        <Divider sx={{ mb: 3 }} />
-
-                        {pageLoadError ? (
-                            <ErrorState
-                                error={pageLoadError}
-                                onRetry={() => {
-                                    refetch()
-                                    if (isEdit) refetchOrder()
-                                }}
-                                loading={loadingResources || loadingOrder}
+                        <form noValidate onSubmit={onSubmit}>
+                            <OrderPageHeader
+                                isEdit={isEdit}
+                                orderId={form.id}
+                                saving={saving}
+                                onCancel={() => handleNavigate('/')}
                             />
-                        ) : isLoadingPage ? (
-                            <Box sx={{ py: 6, display: 'flex', justifyContent: 'center' }}>
-                                <CircularProgress />
-                            </Box>
-                        ) : (
-                            <>
-                                <Stack spacing={2} direction="row" sx={{ alignItems: 'stretch' }}>
-                                    <OrderMainFields
-                                        form={form}
-                                        setForm={setForm}
-                                        onChange={onChange}
-                                        orderResources={orderResources}
-                                        isEdit={isEdit}
-                                        order={order}
-                                        onDownloadUpd={handleDownloadUpd}
-                                    />
 
-                                    <OrderCustomerFields
-                                        form={form}
-                                        setForm={setForm}
-                                        orderResources={orderResources}
-                                    />
-                                </Stack>
+                            <Divider sx={{ mb: 3 }} />
 
-                                <TextField
-                                    size="small"
-                                    label="Примечание"
-                                    value={form.description || ''}
-                                    onChange={onChange('description')}
-                                    multiline
-                                    rows={2}
-                                    fullWidth
-                                    sx={{ mt: 2 }}
+                            {pageLoadError ? (
+                                <ErrorState
+                                    error={pageLoadError}
+                                    onRetry={() => {
+                                        refetch()
+                                        if (isEdit) refetchOrder()
+                                    }}
+                                    loading={loadingResources || loadingOrder}
                                 />
-                            </>
-                        )}
+                            ) : isLoadingPage ? (
+                                <Box sx={{ py: 6, display: 'flex', justifyContent: 'center' }}>
+                                    <CircularProgress />
+                                </Box>
+                            ) : (
+                                <>
+                                    <Stack spacing={2} direction="row" sx={{ alignItems: 'stretch' }}>
+                                        <OrderMainFields
+                                            form={form}
+                                            setForm={setForm}
+                                            onChange={onChange}
+                                            orderResources={orderResources}
+                                            isEdit={isEdit}
+                                            order={order}
+                                            onDownloadUpd={handleDownloadUpd}
+                                        />
 
-                        {!pageLoadError && !isLoadingPage && (
-                            <OrderProductsList
-                                rows={orderProducts}
-                                productErrors={productErrors}
-                                productsList={orderResources?.products || []}
-                                packsList={orderResources?.pack_types || []}
-                                onAdd={handleAddProductRow}
-                                onChange={handleProductChange}
-                                onRemove={handleRemoveProductRow}
-                            />
-                        )}
-                    </form>
+                                        <OrderCustomerFields
+                                            form={form}
+                                            setForm={setForm}
+                                            orderResources={orderResources}
+                                        />
+                                    </Stack>
 
-                    <Divider sx={{ mb: 1, mt: 2 }} />
+                                    <TextField
+                                        size="small"
+                                        label="Примечание"
+                                        value={form.description || ''}
+                                        onChange={onChange('description')}
+                                        multiline
+                                        rows={2}
+                                        fullWidth
+                                        sx={{ mt: 2 }}
+                                    />
+                                </>
+                            )}
 
-                    <Stack direction="row" justifyContent="start" alignItems="center" sx={{ mb: 2 }}>
-                        <Typography variant="body1" color="text.secondary" sx={{ m: 1 }}>
-                            Вес:
-                        </Typography>
-                        <Typography variant="body1" color="text.secondary">
-                            {totalWeight.toFixed(2)} т
-                        </Typography>
-                    </Stack>
+                            {!pageLoadError && !isLoadingPage && (
+                                <OrderProductsList
+                                    rows={orderProducts}
+                                    productErrors={productErrors}
+                                    productsList={orderResources?.products || []}
+                                    packsList={orderResources?.pack_types || []}
+                                    onAdd={handleAddProductRow}
+                                    onChange={handleProductChange}
+                                    onRemove={handleRemoveProductRow}
+                                />
+                            )}
+                        </form>
 
-                    <ConfirmDialog
-                        open={confirmOpen}
-                        title="Есть несохранённые изменения"
-                        text="Вы изменили форму. Уйти без сохранения?"
-                        confirmText="Уйти"
-                        cancelText="Остаться"
-                        onClose={handleCancel}
-                        onConfirm={handleConfirm}
-                    />
-                </Container>
+                        <Divider sx={{ mb: 1, mt: 2 }} />
+
+                        <Stack direction="row" justifyContent="start" alignItems="center" sx={{ mb: 2 }}>
+                            <Typography variant="body1" color="text.secondary" sx={{ m: 1 }}>
+                                Вес:
+                            </Typography>
+                            <Typography variant="body1" color="text.secondary">
+                                {totalWeight.toFixed(2)} т
+                            </Typography>
+                        </Stack>
+
+                        <ConfirmDialog
+                            open={confirmOpen}
+                            title="Есть несохранённые изменения"
+                            text="Вы изменили форму. Уйти без сохранения?"
+                            confirmText="Уйти"
+                            cancelText="Остаться"
+                            onClose={handleCancel}
+                            onConfirm={handleConfirm}
+                        />
+                    </Container>
+                </Box>
             </Box>
-        </Box>
+        </DeliveryContext.Provider>
     )
 }

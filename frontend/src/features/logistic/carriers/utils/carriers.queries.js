@@ -38,6 +38,12 @@ export const fetchCarrierContacts = async (id) => {
     return unwrapList(res.data)
 }
 
+export const fetchCarrierResources = async (id) => {
+    if (!id) return { trucks: [], drivers: [] }
+    const res = await api.get(carrierApiPaths.resources(id))
+    return res.data
+}
+
 export const createCarrier = async (payload) => {
     const res = await api.post(carrierApiPaths.listCreate(), payload)
     return res.data
@@ -74,6 +80,14 @@ export function useGetCarrierContacts(id) {
     return useQuery({
         queryKey: carrierKeys.contacts(id),
         queryFn: () => fetchCarrierContacts(id),
+        enabled: Boolean(id),
+    })
+}
+
+export function useGetCarrierResources(id) {
+    return useQuery({
+        queryKey: carrierKeys.resources(id),
+        queryFn: () => fetchCarrierResources(id),
         enabled: Boolean(id),
     })
 }
