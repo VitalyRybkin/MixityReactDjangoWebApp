@@ -46,7 +46,7 @@ class CarrierBaseAPIView(GenericAPIView):
         )
 
 
-class CarrierListCreateAPIView(CarrierBaseAPIView, BaseListCreateAPIView):
+class CarrierListCreateAPIView(BaseListCreateAPIView):
     """
     Handles the creation and retrieval of `Carrier` objects.
 
@@ -61,6 +61,10 @@ class CarrierListCreateAPIView(CarrierBaseAPIView, BaseListCreateAPIView):
     schema_tags = ["Carrier"]
     read_serializer_class = CarrierSerializer
     write_serializer_class = CarrierSerializer
+
+    serializer_class = CarrierSerializer
+    permission_classes = [AllowAny]
+    queryset = Carrier.objects.active()
 
 
 class CarrierRetrieveUpdateDestroyAPIView(

@@ -19,8 +19,6 @@ class CarrierSerializer(serializers.ModelSerializer):
         isActive (serializers.BooleanField): Represents the 'is_active' status of
             the Carrier model, mapped and exposed as 'isActive' in the serialized
             data. This field is read-only.
-        trucks (TruckBaseSerializer): A nested read-only serializer for
-            displaying related Truck instances in association with the carrier.
 
     Meta:
         model (Carrier): Specifies the Carrier model for serialization.
@@ -30,7 +28,6 @@ class CarrierSerializer(serializers.ModelSerializer):
     """
 
     isActive = serializers.BooleanField(source="is_active", read_only=True)
-    trucks = TruckBaseReadSerializer(many=True, read_only=True)
     phone = PhoneNumberField(
         region="RU",
         label="Номер телефона",
@@ -50,7 +47,6 @@ class CarrierSerializer(serializers.ModelSerializer):
             "phone",
             "email",
             "isActive",
-            "trucks",
         ]
 
     def validate_phone(self, value: Any) -> Any:
