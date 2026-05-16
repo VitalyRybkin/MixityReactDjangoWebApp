@@ -22,8 +22,6 @@ export default function OrderDeliveryDetail() {
     const trucks = carrierResources?.trucks || []
     const drivers = carrierResources?.drivers || []
 
-    console.log('Carrier Resources:', carrierResources)
-
     return (
         <>
             <Autocomplete

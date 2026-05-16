@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react'
 
-import { Autocomplete, Divider, TextField, Typography } from '@mui/material'
+import {Autocomplete, Box, Divider, TextField, Typography} from '@mui/material'
 
 import AppSidebar from '../../../layouts/AppSidebar.jsx'
 import { useEditablePrices } from '../hooks/useEditablePrices.js'
@@ -10,6 +10,16 @@ import { getProductId } from '../utils/orderProducts.js'
 
 import OrderDeliveryDetail from './OrderDeliveryDetail.jsx'
 import PriceSection from './PriceSection.jsx'
+import {fieldsetStyles} from "../utils/order.form.constants.js";
+
+
+const boxStyle = {
+    ...fieldsetStyles,
+    backgroundColor: 'background.default',
+    gap: 0,
+    mb: 1,
+    flex: 0,
+}
 
 export default function OrderDetailSideBar({
     open,
@@ -86,6 +96,7 @@ export default function OrderDetailSideBar({
 
     return (
         <AppSidebar open={open} setOpen={setOpen}>
+            <Box component='fieldset' sx={boxStyle}>
             <PriceSection
                 title="ПРОДАЖА"
                 label="Цена продажи:"
@@ -94,8 +105,10 @@ export default function OrderDetailSideBar({
                 total={totalSalePrice}
                 onChange={handlePriceAtSaleChange}
             />
+            </Box>
+            <Box component='fieldset' sx={boxStyle}>
 
-            <Typography variant="h6" sx={{ mt: 3 }}>
+            <Typography variant="h6" sx={{color: 'primary.main'}}>
                 ЗАКУПКА
             </Typography>
 
@@ -124,14 +137,17 @@ export default function OrderDetailSideBar({
                 total={totalPurchasePrice}
                 onChange={handlePriceAtPurchaseChange}
             />
+            </Box>
+            <Box component='fieldset' sx={boxStyle}>
 
-            <Typography variant="h6" sx={{ mt: 3 }}>
+            <Typography variant="h6" sx={{color: 'primary.main'}}>
                 ДОСТАВКА
             </Typography>
 
             <Divider sx={{ my: 1 }} />
 
             <OrderDeliveryDetail />
+            </Box>
         </AppSidebar>
     )
 }

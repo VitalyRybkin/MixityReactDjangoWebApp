@@ -9,9 +9,14 @@ export default function PriceSection({ title = '', label, loading, prices, total
         whiteSpace: 'nowrap',
     }
 
+    const totalSx = {
+        ...typographySx,
+        color: 'primary.main',
+    }
+
     return (
         <>
-            <Typography variant="h6" sx={{ mt: 0 }}>
+            <Typography variant="h6" sx={{ mt: 0, color: 'primary.main'}}>
                 {title}
             </Typography>
 
@@ -56,11 +61,11 @@ export default function PriceSection({ title = '', label, loading, prices, total
             <Divider sx={{ my: 1 }} />
 
             <Stack direction="row" alignItems="center" spacing={2}>
-                <Typography variant="body2" sx={typographySx}>
+                <Typography variant="body2" sx={totalSx}>
                     ИТОГО:
                 </Typography>
 
-                <Typography variant="body2" sx={typographySx}>
+                <Typography variant="body2" sx={totalSx}>
                     {total.toLocaleString('ru-RU', {
                         minimumFractionDigits: 2,
                         maximumFractionDigits: 2,
