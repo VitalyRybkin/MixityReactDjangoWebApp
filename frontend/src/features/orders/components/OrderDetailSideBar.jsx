@@ -147,6 +147,7 @@ export default function OrderDetailSideBar({
             <Divider sx={{ my: 1 }} />
 
             <OrderDeliveryDetail />
+
             </Box>
         </AppSidebar>
     )
