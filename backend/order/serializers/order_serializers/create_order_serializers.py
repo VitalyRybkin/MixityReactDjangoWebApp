@@ -165,7 +165,7 @@ class OrderReadSerializer(serializers.ModelSerializer):
             associated with the order.
         order_products: A read-only nested serializer that retrieves the order items
             associated with the order.
-        orderDelivery: A nested serializer for retrieving the delivery information
+        order_delivery: A nested serializer for retrieving the delivery information
             associated with the order.
         warehouse: A nested serializer for retrieving the warehouse associated with the order.
     """
@@ -177,7 +177,7 @@ class OrderReadSerializer(serializers.ModelSerializer):
     order_products = OrderItemSerializer(
         source="order_items", many=True, read_only=True
     )
-    orderDelivery = OrderDeliveryInfoSerializer(source="order_delivery", read_only=True)
+    order_delivery = OrderDeliveryInfoSerializer(source="delivery", read_only=True)
     warehouse = BaseWarehouseSerializer()
 
     class Meta:
@@ -199,7 +199,7 @@ class OrderReadSerializer(serializers.ModelSerializer):
             "user",
             "contacts",
             "order_products",
-            "orderDelivery",
+            "order_delivery",
             "warehouse",
         ]
 

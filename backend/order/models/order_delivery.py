@@ -2,15 +2,10 @@ from django.db import models
 
 
 class OrderDelivery(models.Model):
-    order = models.ForeignKey(
+    order = models.OneToOneField(
         "order.Order",
         on_delete=models.CASCADE,
-        related_name="deliveries",
-    )
-    warehouse = models.ForeignKey(
-        "stock.Warehouse",
-        on_delete=models.CASCADE,
-        related_name="deliveries",
+        related_name="delivery",
     )
     delivery_cost = models.DecimalField(
         max_digits=10,
@@ -50,8 +45,8 @@ class OrderDelivery(models.Model):
     )
 
     class Meta:
-        unique_together = ("order", "warehouse")
         verbose_name = "Данные доставки"
         verbose_name_plural = "Данные доставок"
-        ordering = ["order", "warehouse"]
+        ordering = ["-order"]
         db_table = "order_delivery"
+        indexes = [models.Index(fields=["order"])]
