@@ -143,7 +143,6 @@ class OrderDeliveryInfoSerializer(serializers.ModelSerializer):
         fields = [
             "id",
             "order",
-            "warehouse",
             "delivery_cost",
             "delivery_compensation",
             "demurrage",
