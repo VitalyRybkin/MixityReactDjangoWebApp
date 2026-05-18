@@ -1,5 +1,3 @@
-import { IconButton } from '@mui/material'
-
 import DeleteAction from '../../../components/ui/buttons/DeleteAction.jsx'
 import DownAction from '../../../components/ui/buttons/DownAction.jsx'
 import ViewAction from '../../../components/ui/buttons/ViewAction.jsx'
@@ -139,8 +137,6 @@ export const getOrdersColumns = ({ onDelete }) => [
 
             const handleClick = (event) => {
                 event.stopPropagation()
-                event.currentTarget.blur()
-
                 if (hasUdpPdf) {
                     window.open(params.row.udp_pdf, '_blank')
                 } else {
@@ -148,11 +144,9 @@ export const getOrdersColumns = ({ onDelete }) => [
                 }
             }
 
-            return (
-                <IconButton size="small" onClick={handleClick}>
-                    {hasUdpPdf ? <ViewAction title="Просмотр" /> : <DownAction title="Загрузить" />}
-                </IconButton>
-            )
+            return hasUdpPdf
+                ? <ViewAction title="Просмотр" onClick={handleClick} />
+                : <DownAction title="Загрузить" onClick={handleClick} />
         },
     },
     {

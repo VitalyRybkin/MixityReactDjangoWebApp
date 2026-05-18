@@ -15,6 +15,14 @@ export function useOrderFormData({
     normalizeOrderProducts,
 }) {
     const [initialSnapshot, setInitialSnapshot] = useState(null)
+    const [isInitialized, setIsInitialized] = useState(false)
+    const [isDirty, setIsDirty] = useState(false)
+
+    useEffect(() => {
+        if (!isInitialized || initialSnapshot === null) return
+        const currentSnapshot = JSON.stringify({ form, products: orderProducts })
+        setIsDirty(currentSnapshot !== initialSnapshot)
+    }, [form, orderProducts, initialSnapshot, isInitialized])
 
     useEffect(() => {
         if (!isEdit) return
@@ -25,14 +33,19 @@ export function useOrderFormData({
 
         setForm(mappedForm)
         setOrderProducts(mappedProducts)
-
-        setInitialSnapshot(
-            JSON.stringify({
-                form: mappedForm,
-                products: mappedProducts,
-            }),
-        )
+        setInitialSnapshot(JSON.stringify({ form: mappedForm, products: mappedProducts }))
+        setIsInitialized(true)
     }, [isEdit, order, orderResources]) // eslint-disable-line react-hooks/exhaustive-deps
+
+    useEffect(() => {
+        if (!isInitialized || initialSnapshot === null) return
+        const current = JSON.stringify({ form, products: orderProducts })
+        if (current !== initialSnapshot) {
+            console.log('DIFF detected')
+            console.log('initial:', JSON.parse(initialSnapshot))
+            console.log('current:', JSON.parse(current))
+        }
+    }, [form, orderProducts, initialSnapshot, isInitialized])
 
     useEffect(() => {
         if (isEdit || isLoadingPage || pageLoadError || initialSnapshot !== null) return
@@ -43,10 +56,11 @@ export function useOrderFormData({
                 products: orderProducts,
             }),
         )
+
+        setIsInitialized(true)
+
     }, [isEdit, isLoadingPage, pageLoadError]) // eslint-disable-line react-hooks/exhaustive-deps
 
-    const currentSnapshot = JSON.stringify({ form, products: orderProducts })
-    const isDirty = initialSnapshot !== null && currentSnapshot !== initialSnapshot
 
     const markClean = () => {
         setInitialSnapshot(JSON.stringify({ form, products: orderProducts }))
