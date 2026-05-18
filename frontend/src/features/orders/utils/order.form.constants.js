@@ -4,11 +4,10 @@ tomorrow.setDate(today.getDate() + 1)
 
 export const emptyOrderForm = {
     id: '',
-    created_at: '',
     delivery_date: tomorrow.toISOString().split('T')[0],
     delivery_from: null,
     delivery_to: null,
-    client: '',
+    client: null,
     customer: null,
     customer_object: null,
     warehouse: null,

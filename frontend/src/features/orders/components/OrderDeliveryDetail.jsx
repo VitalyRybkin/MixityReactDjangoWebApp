@@ -3,7 +3,8 @@ import React from 'react'
 import {Autocomplete, Divider, Stack, TextField, Typography} from '@mui/material'
 
 import { useGetCarrierResources, useGetCarriers } from '../../logistic/carriers/utils/carriers.queries.js'
-import { useDeliveryDetail } from '../OrderForm.jsx'
+import {useDeliveryDetail} from "../utils/DeliveryContext.js";
+
 
 export default function OrderDeliveryDetail() {
     const { data: delivery, update: updateDelivery } = useDeliveryDetail()
@@ -22,7 +23,6 @@ export default function OrderDeliveryDetail() {
     const trucks = carrierResources?.trucks || []
     const drivers = carrierResources?.drivers || []
 
-    console.log(delivery)
 
     return (
         <>
@@ -126,7 +126,7 @@ export default function OrderDeliveryDetail() {
                     size="small"
                     type="number"
                     label={"Доставка"}
-                    // value={item.current_display_price ?? ''}
+                    value={delivery.delivery_cost ?? ''}
                     onChange={(e) => {
                         updateDelivery({
                             delivery_cost: e.target.value,
@@ -137,7 +137,7 @@ export default function OrderDeliveryDetail() {
                     size="small"
                     type="number"
                     label={"Компенсация"}
-                    // value={item.current_display_price ?? ''}
+                    value={delivery.delivery_compensation ?? Number(0)}
                     onChange={(e) => {
                         updateDelivery({
                             delivery_compensation: e.target.value,
@@ -148,7 +148,7 @@ export default function OrderDeliveryDetail() {
                     size="small"
                     type="number"
                     label={"Простой"}
-                    // value={item.current_display_price ?? ''}
+                    value={delivery.demurrage ?? ''}
                     onChange={(e) => {
                         updateDelivery({
                             demurrage: e.target.value,

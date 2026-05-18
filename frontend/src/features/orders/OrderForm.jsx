@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useEffect, useMemo, useRef, useState } from 'react'
+import React, { useEffect, useMemo, useRef, useState } from 'react'
 import { useParams } from 'react-router-dom'
 
 import { Box, CircularProgress, Container, Divider, Stack, TextField, Typography } from '@mui/material'
@@ -23,9 +23,9 @@ import { emptyDeliveryInfo, emptyOrderForm } from './utils/order.form.constants.
 import { toOrderPayload } from './utils/order.form.mappers.js'
 import { getProductId } from './utils/orderProducts.js'
 import { useCreateOrder, useGetOrder, useGetOrderResources, useUpdateOrder } from './utils/orders.queries.js'
+import {DeliveryContext} from "./utils/DeliveryContext.js";
+import {useLoadingError} from "./hooks/useLoadingError.js";
 
-export const DeliveryContext = createContext(null)
-export const useDeliveryDetail = () => useContext(DeliveryContext)
 
 export default function OrderFormPage() {
     const { id } = useParams()
@@ -67,7 +67,7 @@ export default function OrderFormPage() {
 
     const markCleanRef = useRef(null)
 
-    const { form, setForm, error, setError, onChange, onSubmit } = useFormLogic({
+    const { form, setForm, setError, onChange, onSubmit } = useFormLogic({
         isEdit,
         id,
         emptyForm: emptyOrderForm,
@@ -89,8 +89,8 @@ export default function OrderFormPage() {
         return orderProducts.map(getProductId).filter(Boolean)
     }, [orderProducts])
 
-    const customerId = form.customer?.id ?? form.customer ?? null
-    const warehouseId = form.warehouse?.id ?? form.warehouse ?? null
+    const customerId = form.customer?.id ?? null
+    const warehouseId = form.warehouse?.id ?? null
 
     const {
         data: customerPrices = [],
@@ -123,35 +123,29 @@ export default function OrderFormPage() {
 
     const { confirmOpen, handleNavigate, handleConfirm, handleCancel } = useUnsavedGuard(isDirty && !saving)
 
+    const deliveryInitialized = useRef(false)
+
     useEffect(() => {
-        if (order?.delivery) {
-            setOrderDelivery(order.delivery)
+        if (order && !deliveryInitialized.current) {
+            const delivery = order.order_delivery ?? order.delivery
+            if (delivery) setOrderDelivery(delivery)
+            deliveryInitialized.current = true
         }
     }, [order])
 
-    useEffect(() => {
-        if (loadResourceError) {
-            setError(loadResourceError?.response?.data?.detail || 'Ошибка загрузки данных')
-        } else if (loadOrderError) {
-            setError(loadOrderError?.response?.data?.detail || 'Ошибка загрузки заказа')
-        }
-    }, [loadResourceError, loadOrderError, setError])
+    useLoadingError(
+        setError,
+        {
+        loadResourceError,
+        loadOrderError,
+        loadCustomerPricesError,
+        loadWarehousePricesError,
+    })
 
-    useEffect(() => {
-        if (loadCustomerPricesError) {
-            setError(loadCustomerPricesError?.response?.data?.detail || 'Ошибка загрузки цен клиента')
-        }
-    }, [loadCustomerPricesError])
-
-    useEffect(() => {
-        if (loadWarehousePricesError) {
-            setError(loadWarehousePricesError?.response?.data?.detail || 'Ошибка загрузки цен склада')
-        }
-    }, [loadWarehousePricesError, setError])
-
-    const handleDownloadUpd = (orderId) => {
-        console.log('download or generate upd', orderId)
-    }
+// TODO Write a hook for this
+//     const handleDownloadUpd = (orderId) => {
+//         console.log('download or generate upd', orderId)
+//     }
 
     const deliveryContextValue = useMemo(
         () => ({
@@ -202,7 +196,7 @@ export default function OrderFormPage() {
                                 />
                             ) : isLoadingPage ? (
                                 <Box sx={{ py: 6, display: 'flex', justifyContent: 'center' }}>
-                                    <CircularProgress />
+                                    <CircularProgress aria-label="Загрузка..."/>
                                 </Box>
                             ) : (
                                 <>
@@ -214,7 +208,7 @@ export default function OrderFormPage() {
                                             orderResources={orderResources}
                                             isEdit={isEdit}
                                             order={order}
-                                            onDownloadUpd={handleDownloadUpd}
+                                            // onDownloadUpd={handleDownloadUpd}
                                         />
 
                                         <OrderCustomerFields
