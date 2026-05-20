@@ -77,7 +77,12 @@ export default function OrderFormPage() {
             return {
                 ...toOrderPayload(form),
                 products: buildProductsPayload(orderProducts),
-                delivery: orderDelivery,
+                delivery: {
+                    ...orderDelivery,
+                    carrier: orderDelivery.carrier?.id ?? null,
+                    driver: orderDelivery.driver?.id ?? null,
+                    truck: orderDelivery.truck?.id ?? null,
+                },
             }
         },
         validate: validateProducts,

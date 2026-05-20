@@ -7,13 +7,13 @@ export const toTimeValue = (time) => {
 
 export const toOrderPayload = (form) => ({
     ...form,
-    client:          form.client?.id ?? null,
-    customer:        form.customer?.id ?? null,
+    client: form.client || null,
+    customer: form.customer?.id ?? null,
     customer_object: form.customer_object?.id ?? null,
-    warehouse:       form.warehouse?.id ?? null,
-    contacts:        form.contacts?.map((c) => c.id) ?? [],
-    delivery_from:   form.delivery_from?.format('HH:mm') ?? null,
-    delivery_to:     form.delivery_to?.format('HH:mm') ?? null,
+    warehouse: form.warehouse?.id ?? null,
+    contacts: form.contacts?.map((c) => c.id) ?? [],
+    delivery_from: form.delivery_from?.format('HH:mm') ?? null,
+    delivery_to: form.delivery_to?.format('HH:mm') ?? null,
 })
 
 export const mapOrderToForm = (order, orderResources) => {
@@ -43,7 +43,7 @@ export const mapOrderToForm = (order, orderResources) => {
         delivery_date: order.delivery_date ?? '',
         delivery_from: toTimeValue(order.delivery_from),
         delivery_to: toTimeValue(order.delivery_to),
-        client: order.client?.id ?? order.client ?? '',
+        client: order.client?.id ?? order.client ?? null,
         customer: selectedCustomer,
         customer_object: selectedCustomerObject,
         warehouse: selectedWarehouse,
