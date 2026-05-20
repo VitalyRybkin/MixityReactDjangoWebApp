@@ -1,17 +1,16 @@
 import { useMemo, useState } from 'react'
 
-import {Autocomplete, Box, Divider, TextField, Typography} from '@mui/material'
+import { Autocomplete, Box, Divider, TextField, Typography } from '@mui/material'
 
 import AppSidebar from '../../../layouts/AppSidebar.jsx'
 import { useEditablePrices } from '../hooks/useEditablePrices.js'
 import { useOrderTotals } from '../hooks/useOrderTotals.js'
 import { handlePriceChange } from '../utils/handlePriceChange.js'
+import { fieldsetStyles } from '../utils/order.form.constants.js'
 import { getProductId } from '../utils/orderProducts.js'
 
 import OrderDeliveryDetail from './OrderDeliveryDetail.jsx'
 import PriceSection from './PriceSection.jsx'
-import {fieldsetStyles} from "../utils/order.form.constants.js";
-
 
 const boxStyle = {
     ...fieldsetStyles,
@@ -22,6 +21,7 @@ const boxStyle = {
 }
 
 export default function OrderDetailSideBar({
+    isEdit,
     open,
     setOpen,
     customerPrices = [],
@@ -51,6 +51,7 @@ export default function OrderDetailSideBar({
     const totalPurchasePrice = useOrderTotals(orderProducts, 'price_at_purchase')
 
     useEditablePrices({
+        isEdit,
         products,
         orderProducts,
         objectId: customerId,
@@ -63,6 +64,7 @@ export default function OrderDetailSideBar({
     })
 
     useEditablePrices({
+        isEdit,
         products,
         orderProducts,
         objectId: warehouseId,
@@ -96,58 +98,55 @@ export default function OrderDetailSideBar({
 
     return (
         <AppSidebar open={open} setOpen={setOpen}>
-            <Box component='fieldset' sx={boxStyle}>
-            <PriceSection
-                title="ПРОДАЖА"
-                label="Цена продажи:"
-                loading={loadingCustomerPrices}
-                prices={editableSalePrices}
-                total={totalSalePrice}
-                onChange={handlePriceAtSaleChange}
-            />
+            <Box component="fieldset" sx={boxStyle}>
+                <PriceSection
+                    title="ПРОДАЖА"
+                    label="Цена продажи:"
+                    loading={loadingCustomerPrices}
+                    prices={editableSalePrices}
+                    total={totalSalePrice}
+                    onChange={handlePriceAtSaleChange}
+                />
             </Box>
-            <Box component='fieldset' sx={boxStyle}>
+            <Box component="fieldset" sx={boxStyle}>
+                <Typography variant="h6" sx={{ color: 'primary.main' }}>
+                    ЗАКУПКА
+                </Typography>
 
-            <Typography variant="h6" sx={{color: 'primary.main'}}>
-                ЗАКУПКА
-            </Typography>
+                <Divider sx={{ my: 1 }} />
 
-            <Divider sx={{ my: 1 }} />
+                <Autocomplete
+                    size="small"
+                    options={warehouses}
+                    getOptionLabel={(option) => option?.name || ''}
+                    isOptionEqualToValue={(option, value) => option.id === value.id}
+                    value={form.warehouse || null}
+                    onChange={(event, newValue) => {
+                        setForm((prev) => ({
+                            ...prev,
+                            warehouse: newValue,
+                        }))
+                    }}
+                    renderInput={(params) => <TextField {...params} label="Склад" />}
+                    sx={{ mt: 1 }}
+                />
 
-            <Autocomplete
-                size="small"
-                options={warehouses}
-                getOptionLabel={(option) => option?.name || ''}
-                isOptionEqualToValue={(option, value) => option.id === value.id}
-                value={form.warehouse || null}
-                onChange={(event, newValue) => {
-                    setForm((prev) => ({
-                        ...prev,
-                        warehouse: newValue,
-                    }))
-                }}
-                renderInput={(params) => <TextField {...params} label="Склад" />}
-                sx={{ mt: 1 }}
-            />
-
-            <PriceSection
-                label="Цена закупки:"
-                loading={loadingWarehousePrices}
-                prices={editablePurchasePrices}
-                total={totalPurchasePrice}
-                onChange={handlePriceAtPurchaseChange}
-            />
+                <PriceSection
+                    label="Цена закупки:"
+                    loading={loadingWarehousePrices}
+                    prices={editablePurchasePrices}
+                    total={totalPurchasePrice}
+                    onChange={handlePriceAtPurchaseChange}
+                />
             </Box>
-            <Box component='fieldset' sx={boxStyle}>
+            <Box component="fieldset" sx={boxStyle}>
+                <Typography variant="h6" sx={{ color: 'primary.main' }}>
+                    ДОСТАВКА
+                </Typography>
 
-            <Typography variant="h6" sx={{color: 'primary.main'}}>
-                ДОСТАВКА
-            </Typography>
+                <Divider sx={{ my: 1 }} />
 
-            <Divider sx={{ my: 1 }} />
-
-            <OrderDeliveryDetail />
-
+                <OrderDeliveryDetail />
             </Box>
         </AppSidebar>
     )

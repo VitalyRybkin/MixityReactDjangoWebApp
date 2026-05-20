@@ -16,16 +16,15 @@ import OrderDetailSideBar from './components/OrderDetailSideBar.jsx'
 import OrderMainFields from './components/OrderMainFields.jsx'
 import OrderPageHeader from './components/OrderPageHeader.jsx'
 import OrderProductsList from './components/OrderProductsList.jsx'
+import { useLoadingError } from './hooks/useLoadingError.js'
 import { useOrderFormData } from './hooks/useOrderFormData.js'
 import { useOrderProducts } from './hooks/useOrderProducts.js'
 import { useUnsavedGuard } from './hooks/useUnsavedGuard.js'
+import { DeliveryContext } from './utils/DeliveryContext.js'
 import { emptyDeliveryInfo, emptyOrderForm } from './utils/order.form.constants.js'
 import { toOrderPayload } from './utils/order.form.mappers.js'
 import { getProductId } from './utils/orderProducts.js'
 import { useCreateOrder, useGetOrder, useGetOrderResources, useUpdateOrder } from './utils/orders.queries.js'
-import {DeliveryContext} from "./utils/DeliveryContext.js";
-import {useLoadingError} from "./hooks/useLoadingError.js";
-
 
 export default function OrderFormPage() {
     const { id } = useParams()
@@ -133,19 +132,17 @@ export default function OrderFormPage() {
         }
     }, [order])
 
-    useLoadingError(
-        setError,
-        {
+    useLoadingError(setError, {
         loadResourceError,
         loadOrderError,
         loadCustomerPricesError,
         loadWarehousePricesError,
     })
 
-// TODO Write a hook for this
-//     const handleDownloadUpd = (orderId) => {
-//         console.log('download or generate upd', orderId)
-//     }
+    // TODO Write a hook for this
+    //     const handleDownloadUpd = (orderId) => {
+    //         console.log('download or generate upd', orderId)
+    //     }
 
     const deliveryContextValue = useMemo(
         () => ({
@@ -158,6 +155,7 @@ export default function OrderFormPage() {
         <DeliveryContext.Provider value={deliveryContextValue}>
             <Box sx={sidebarPageSx.page}>
                 <OrderDetailSideBar
+                    isEdit={isEdit}
                     open={open}
                     setOpen={setOpen}
                     customerPrices={customerPrices}
@@ -196,7 +194,7 @@ export default function OrderFormPage() {
                                 />
                             ) : isLoadingPage ? (
                                 <Box sx={{ py: 6, display: 'flex', justifyContent: 'center' }}>
-                                    <CircularProgress aria-label="Загрузка..."/>
+                                    <CircularProgress aria-label="Загрузка..." />
                                 </Box>
                             ) : (
                                 <>

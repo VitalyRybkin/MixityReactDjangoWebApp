@@ -3,6 +3,7 @@ import { useEffect } from 'react'
 import { getProductId, getProductObject } from '../utils/orderProducts.js'
 
 export function useEditablePrices({
+    isEdit,
     products,
     orderProducts,
     objectId,
@@ -39,6 +40,8 @@ export function useEditablePrices({
             prev.map((product) => {
                 const productId = getProductId(product)
                 const priceInfo = prices.find((p) => Number(getProductId(p)) === Number(productId))
+
+                if (isEdit) return product
 
                 return {
                     ...product,

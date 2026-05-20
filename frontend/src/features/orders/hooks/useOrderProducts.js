@@ -32,8 +32,8 @@ export function useOrderProducts(products = []) {
             quantity: item.piece_based_quantity ?? item.weight_quantity ?? '',
             packId: item.pack_type?.id || '',
             value: item.product?.product_unit?.value ?? 0,
-            price_at_sale: item.price_at_sale,
-            price_at_purchase: item.price_at_purchase,
+            price_at_sale: Number(item.price_at_sale) || 0,
+            price_at_purchase: Number(item.price_at_purchase) || 0,
         }))
 
     const buildProductsPayload = (currentProducts) =>
