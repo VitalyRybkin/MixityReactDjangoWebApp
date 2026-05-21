@@ -96,14 +96,15 @@ export default function OrderFormPage() {
     const customerId = form.customer?.id ?? null
     const warehouseId = form.warehouse?.id ?? null
 
+    const EMPTY_PRICES = []
     const {
-        data: customerPrices = [],
+        data: customerPrices = EMPTY_PRICES,
         isLoading: isLoadingCustomerPrices,
         error: loadCustomerPricesError,
     } = useGetCustomerPrices(customerId, productIds)
 
     const {
-        data: warehousePrices = [],
+        data: warehousePrices = EMPTY_PRICES,
         isLoading: isLoadingWarehousePrices,
         error: loadWarehousePricesError,
     } = useGetWarehousePrices(warehouseId, productIds)

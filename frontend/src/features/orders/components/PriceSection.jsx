@@ -1,4 +1,6 @@
-import { Box, CircularProgress, Divider, Stack, TextField, Typography } from '@mui/material'
+import { Box, CircularProgress, Divider, Stack, Typography } from '@mui/material'
+
+import { PriceRow } from './PriceRow.jsx'
 
 export default function PriceSection({ title = '', label, loading, prices, total, onChange }) {
     const typographySx = {
@@ -16,7 +18,7 @@ export default function PriceSection({ title = '', label, loading, prices, total
 
     return (
         <>
-            <Typography variant="h6" sx={{ mt: 0, color: 'primary.main'}}>
+            <Typography variant="h6" sx={{ mt: 0, color: 'primary.main' }}>
                 {title}
             </Typography>
 
@@ -42,17 +44,7 @@ export default function PriceSection({ title = '', label, loading, prices, total
                 <Stack spacing={1}>
                     {prices.map((item) => (
                         <Stack key={item.id} direction="row" alignItems="center" spacing={2}>
-                            <Typography variant="body2" sx={typographySx}>
-                                {item.product?.name ?? item.product_name ?? '—'}
-                            </Typography>
-
-                            <TextField
-                                size="small"
-                                type="number"
-                                value={item.current_display_price ?? ''}
-                                onChange={(e) => onChange(item.id, e.target.value)}
-                                sx={{ width: 120 }}
-                            />
+                            <PriceRow key={item.id} item={item} typographySx={typographySx} onChange={onChange} />
                         </Stack>
                     ))}
                 </Stack>
