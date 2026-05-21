@@ -269,6 +269,10 @@ class OrderProductWriteSerializer(serializers.Serializer):
 
         return data
 
+class OrderDeliveryInfo(serializers.ModelSerializer):
+    class Meta:
+        model = OrderDelivery
+        fields = ['order', 'delivery_cost', 'delivery_compensation', 'demurrage', 'carrier', 'driver', 'truck',]
 
 class OrderWriteSerializer(serializers.ModelSerializer):
     """
@@ -281,6 +285,8 @@ class OrderWriteSerializer(serializers.ModelSerializer):
             objects. Allows null values and is not required.
         contacts: A PrimaryKeyRelatedField that links to multiple Contact objects.
             This field is not required.
+        delivery: A nested serializer (OrderDeliveryInfo) for handling
+            order delivery information. This field is write-only and not required.
         products: A nested serializer (OrderProductWriteSerializer) for handling
             multiple product creations. This field is write-only and not required.
     """
@@ -301,6 +307,11 @@ class OrderWriteSerializer(serializers.ModelSerializer):
 
     products = OrderProductWriteSerializer(
         many=True,
+        write_only=True,
+        required=False,
+    )
+
+    delivery = OrderDeliveryInfo(
         write_only=True,
         required=False,
     )
@@ -329,7 +340,8 @@ class OrderWriteSerializer(serializers.ModelSerializer):
     def update(self, instance: Order, validated_data: dict) -> Order:
         products_data = validated_data.pop("products", None)
         contacts_data = validated_data.pop("contacts", None)
-        print(products_data)
+        delivery_data = validated_data.pop("delivery", None)
+        print(delivery_data)
 
         for attr, value in validated_data.items():
             setattr(instance, attr, value)

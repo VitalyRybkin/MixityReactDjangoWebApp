@@ -28,3 +28,12 @@ def sync_order_items(order: Order, products_data: list[dict]) -> None:
     ]
 
     OrderItem.objects.bulk_create(items)
+
+    # OrderDelivery.objects.update_or_create(
+    #     order=order,
+    #     defaults={
+    #         'delivery_date': order.delivery_date,
+    #         'delivery_address': order.delivery_address,
+    #         'delivery_method': order.delivery_method,
+    #     }
+    # )
