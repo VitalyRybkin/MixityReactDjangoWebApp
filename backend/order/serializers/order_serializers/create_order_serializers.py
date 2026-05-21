@@ -19,6 +19,7 @@ from order.serializers.customer_serializers import (
     BaseCustomerObjectsSerializer,
     CustomerSerializer,
 )
+from order.services.delivery_data import sync_delivery_data
 from order.services.order_items import sync_order_items
 from stock.models import Warehouse
 from stock.warehouse_serializers import (
@@ -113,11 +114,6 @@ class OrderItemSerializer(serializers.ModelSerializer):
     Attributes:
         product: Represents the nested serializer for the associated product.
         pack_type: Represents the nested serializer for the associated pack type.
-
-    Meta:
-        model: The model class to be serialized (OrderItem).
-        fields: Specifies the fields of the model to be included in the serialized
-            output.
     """
 
     product = ProductSerializer()
@@ -137,6 +133,9 @@ class OrderItemSerializer(serializers.ModelSerializer):
 
 
 class OrderDeliveryInfoSerializer(serializers.ModelSerializer):
+    """
+    Serializer for handling the delivery information of an order.
+    """
 
     class Meta:
         model = OrderDelivery
@@ -269,10 +268,23 @@ class OrderProductWriteSerializer(serializers.Serializer):
 
         return data
 
+
 class OrderDeliveryInfo(serializers.ModelSerializer):
+    """
+    Represents a serializer for delivery information associated with an order.
+    """
+
     class Meta:
         model = OrderDelivery
-        fields = ['order', 'delivery_cost', 'delivery_compensation', 'demurrage', 'carrier', 'driver', 'truck',]
+        fields = [
+            "delivery_cost",
+            "delivery_compensation",
+            "demurrage",
+            "carrier",
+            "driver",
+            "truck",
+        ]
+
 
 class OrderWriteSerializer(serializers.ModelSerializer):
     """
@@ -314,6 +326,7 @@ class OrderWriteSerializer(serializers.ModelSerializer):
     delivery = OrderDeliveryInfo(
         write_only=True,
         required=False,
+        allow_null=True,
     )
 
     class Meta:
@@ -321,8 +334,15 @@ class OrderWriteSerializer(serializers.ModelSerializer):
         fields = "__all__"
 
     def create(self, validated_data: dict) -> Order:
+        """
+        Creates a new Order instance using the provided validated data. Extracts
+        related data for products, contacts, and delivery from the given validated_data, processes
+        them, and associates them with the created Order instance. If a request context is
+        available and the associated user is authenticated, the user is linked to the order.
+        """
         products_data = validated_data.pop("products", [])
         contacts_data = validated_data.pop("contacts", [])
+        delivery_data = validated_data.pop("delivery", None)
 
         request = self.context.get("request")
         if request and request.user and request.user.is_authenticated:
@@ -333,15 +353,21 @@ class OrderWriteSerializer(serializers.ModelSerializer):
         if contacts_data:
             order.contacts.set(contacts_data)  # type: ignore
 
+        sync_delivery_data(order, delivery_data)
         sync_order_items(order, products_data)
 
         return order
 
     def update(self, instance: Order, validated_data: dict) -> Order:
+        """
+        Updates an order instance with the provided validated data. Applies
+        changes to the order instance using the data provided in `validated_data`,
+        including updating related contacts, products, and delivery information as
+        necessary.
+        """
         products_data = validated_data.pop("products", None)
         contacts_data = validated_data.pop("contacts", None)
         delivery_data = validated_data.pop("delivery", None)
-        print(delivery_data)
 
         for attr, value in validated_data.items():
             setattr(instance, attr, value)
@@ -353,6 +379,8 @@ class OrderWriteSerializer(serializers.ModelSerializer):
 
         if products_data is not None:
             sync_order_items(instance, products_data)
+
+        sync_delivery_data(instance, delivery_data)
 
         return instance
 

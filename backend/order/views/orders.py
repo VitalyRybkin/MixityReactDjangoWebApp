@@ -101,7 +101,7 @@ class OrderRetrieveUpdateDestroyAPIView(BaseRetrieveUpdateDestroyAPIView):
     errors_write = ERRORS_DETAIL_WRITE
 
     permission_classes = [AllowAny]
-    queryset = Order.objects.all().prefetch_related('delivery')
+    queryset = Order.objects.all().prefetch_related("delivery")
 
     def get_serializer_class(self) -> type[OrderWriteSerializer | OrderReadSerializer]:
         if self.request.method in ("PUT", "PATCH"):
