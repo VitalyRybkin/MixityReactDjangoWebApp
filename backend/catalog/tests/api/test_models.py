@@ -115,11 +115,11 @@ class TestProductUnitModel(BaseModelTestCase):
                 title=AppUnit.TitleChoices.KILOGRAM
             ),
         ),
-        ValidationFieldSpec(field_name="kg_per_unit", invalid_value=10),
+        ValidationFieldSpec(field_name="value", invalid_value=10),
     ]
 
     valid_fields_map = [
-        ValidationFieldSpec(field_name="kg_per_unit", invalid_value=25),
+        ValidationFieldSpec(field_name="value", invalid_value=25),
     ]
 
     def test_invalid_field_validation(self) -> None:
@@ -129,5 +129,5 @@ class TestProductUnitModel(BaseModelTestCase):
         self._validate_model_valid_fields()
 
     def test_str_method(self) -> None:
-        expected = f"{self.obj.product} ({self.obj.unit}) - {self.obj.kg_per_unit} kg"
+        expected = f"{self.obj.product} ({self.obj.unit.title}) - {self.obj.value}"
         self._str_method(expected)

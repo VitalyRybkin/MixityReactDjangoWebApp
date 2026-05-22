@@ -8,9 +8,8 @@ from stock.tests.factories import WarehouseFactory
 class UnitFactory(factory.django.DjangoModelFactory):
     class Meta:
         model = "catalog.AppUnit"
-        django_get_or_create = ("title",)
 
-    title = factory.fuzzy.FuzzyChoice(AppUnit.TitleChoices.values)
+    title = factory.Iterator(AppUnit.TitleChoices.values)
 
     @factory.lazy_attribute
     def is_weight_based(self) -> bool:
@@ -102,5 +101,10 @@ class ProductUnitFactory(factory.django.DjangoModelFactory):
         model = "catalog.ProductUnit"
 
     product = factory.SubFactory(ProductFactory)
-    unit = factory.SubFactory(UnitFactory, title=AppUnit.TitleChoices.PIECE)
-    kg_per_unit = fuzzy.FuzzyChoice([15, 20, 25, 30])
+    unit = factory.LazyAttribute(
+        lambda _: AppUnit.objects.get_or_create(
+            title=AppUnit.TitleChoices.PIECE,
+            defaults={"is_weight_based": False, "to_kg_factor": 1},
+        )[0]
+    )
+    value = fuzzy.FuzzyChoice([15, 20, 25, 30])

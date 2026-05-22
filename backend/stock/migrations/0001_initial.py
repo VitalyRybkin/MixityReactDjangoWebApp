@@ -6,7 +6,9 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
     initial = True
 
-    dependencies = []
+    dependencies = [
+        ('catalog', '0003_warehouse_pricehistory'),
+    ]
 
     operations = [
         migrations.SeparateDatabaseAndState(

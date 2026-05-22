@@ -27,12 +27,22 @@ class AppUnit(models.Model):
 
     def clean(self) -> None:
         if self.title == "kilogram":
-            if not self.is_weight_based or self.to_kg_factor != 1:
-                raise ValidationError("Килограмм должен быть весовым с фактором 1.")
+            if not self.is_weight_based:
+                raise ValidationError(
+                    {"is_weight_based": "Килограмм должен быть весовым."}
+                )
+            if self.to_kg_factor != 1:
+                raise ValidationError(
+                    {"to_kg_factor": "Фактор килограмма должен быть 1."}
+                )
 
         elif self.title == "ton":
-            if not self.is_weight_based or self.to_kg_factor != 1000:
-                raise ValidationError("Тонна должна быть весовой с фактором 1000.")
+            if not self.is_weight_based:
+                raise ValidationError({"is_weight_based": "Тонна должна быть весовой."})
+            if self.to_kg_factor != 1000:
+                raise ValidationError(
+                    {"to_kg_factor": "Фактор тонны должен быть 1000."}
+                )
 
         elif self.title in {
             "piece",
@@ -43,9 +53,17 @@ class AppUnit(models.Model):
             "litre",
             "kg/m3",
         }:
-            if self.is_weight_based or self.to_kg_factor != 1:
+            if self.is_weight_based:
                 raise ValidationError(
-                    f"'{self.title}' не является базовой весовой единицей."
+                    {
+                        "is_weight_based": f"'{self.title}' не является базовой весовой единицей."
+                    }
+                )
+            if self.to_kg_factor != 1:
+                raise ValidationError(
+                    {
+                        "to_kg_factor": f"'{self.title}' не является базовой весовой единицей."
+                    }
                 )
 
     def save(self, *args: Any, **kwargs: Any) -> None:
@@ -53,4 +71,4 @@ class AppUnit(models.Model):
         super().save(*args, **kwargs)
 
     def __str__(self) -> str:
-        return self.get_title_display()
+        return self.title
