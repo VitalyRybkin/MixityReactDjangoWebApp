@@ -1,3 +1,5 @@
+import datetime
+
 import factory.fuzzy
 from factory import fuzzy
 
@@ -53,7 +55,7 @@ class PurchasePriceHistoryFactory(factory.django.DjangoModelFactory):
     class Meta:
         model = "catalog.PurchasePriceHistory"
 
-    date = factory.Faker("date")
+    date = factory.LazyFunction(datetime.date.today)
     purchase_price = factory.Faker(
         "pydecimal", left_digits=2, right_digits=2, positive=True
     )

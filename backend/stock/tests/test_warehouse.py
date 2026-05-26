@@ -1,5 +1,8 @@
+import datetime
 from typing import Any, Dict
 
+from catalog.models import PurchasePriceHistory
+from catalog.tests.api.factories import ProductFactory, PurchasePriceHistoryFactory
 from core.tests.base_test_case import BaseAPIMixin
 from core.tests.utils import FieldSpec, UploadSpec
 from stock.models import Warehouse
@@ -113,6 +116,21 @@ class TestWarehouseRetrieveUpdate(WarehouseBaseTest, BaseAPIMixin):
 
 
 class TestWarehouseUploadMap(BaseAPIMixin):
+    """
+    Implements test cases for uploading map files in the warehouse
+    module.
+
+    Attributes:
+        pk_url_name: Identifier for the URL name related to warehouse mapping.
+        upload_file_spec: Specification for the upload file field used for
+                          warehouse maps.
+        model: Data model associated with this test, representing the
+               warehouse entity.
+        factory: Factory responsible for generating test data associated
+                 with the warehouse map.
+        fields_map: Specification for mapping fields between the model
+                    and upload functionality.
+    """
 
     __test__ = True
     pk_url_name = f"stock:{WarehouseRoutes.MAP.name}"
@@ -125,10 +143,65 @@ class TestWarehouseUploadMap(BaseAPIMixin):
     }
 
     def test_upload_map(self) -> None:
+        """
+        Test the successful upload of a warehouse map file.
+        """
         temp = self.factory.build()
         return self._upload_map_success(
             {"directions": temp.directions}, self.upload_file_spec
         )
 
     def test_upload_map_missing_file_400(self) -> None:
+        """
+        Test that uploading a warehouse map without a file returns a 400 Bad Request.
+        """
         return self._upload_map_missing_file_400(self.upload_file_spec)
+
+
+class TestWarehousePriceHistory(BaseAPIMixin):
+    """
+    Implements test cases for the purchase price history functionality in the warehouse module.
+
+    Attributes:
+        pk_url_name: Identifier for the URL name related to warehouse price history.
+        model: Data model associated with this test, representing the purchase price history entity.
+        factory: Factory responsible for generating test data associated with the purchase price history.
+    """
+
+    __test__ = True
+    pk_url_name = f"stock:{WarehouseRoutes.PRICES.name}"
+
+    model = PurchasePriceHistory
+    factory = PurchasePriceHistoryFactory
+
+    def test_latest_purchase_price(self) -> None:
+        """
+        Test retrieval of the latest purchase price for a product in a warehouse.
+        """
+        warehouse = WarehouseFactory.create()
+        product = ProductFactory.create()
+
+        latest_price_date = datetime.date.today()
+        price_a_date_before = latest_price_date - datetime.timedelta(days=1)
+
+        self.factory.create(
+            warehouse=warehouse,
+            product=product,
+            date=price_a_date_before,
+        )
+        price_to_get = self.factory.create(
+            warehouse=warehouse,
+            product=product,
+            date=latest_price_date,
+        )
+
+        self._get_latest_price(warehouse.id, product.id, price_to_get)
+
+    def test_latest_purchase_price_invalid_ids(self) -> None:
+        """
+        Test retrieval of the latest purchase price with invalid productIDs.
+        """
+        warehouse_id = 2
+        invalid_product_id = "not-an-integer"
+
+        self._get_latest_price_invalid_product_id(warehouse_id, invalid_product_id)

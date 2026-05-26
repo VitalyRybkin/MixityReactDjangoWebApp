@@ -3,63 +3,60 @@ from django.db.models import OuterRef, QuerySet, Subquery
 from django.utils import timezone
 
 
-class SalesPriceHistoryManager(models.Manager):
+class _LatestPriceHistoryManager(models.Manager):
+    owner_field: str
+    related: tuple[str, ...]
+
+    def latest_prices_for_products(
+        self,
+        *,
+        owner_id: int,
+        product_ids: list[int],
+    ) -> QuerySet:
+        if not product_ids:
+            return self.none()
+
+        latest_ids = (
+            self.filter(
+                **{self.owner_field: owner_id},
+                product_id=OuterRef("product_id"),
+            )
+            .order_by("-date", "-id")
+            .values("id")[:1]
+        )
+
+        return (
+            self.filter(
+                **{self.owner_field: owner_id},
+                product_id__in=product_ids,
+                id__in=Subquery(latest_ids),
+            )
+            .select_related(*self.related)
+            .order_by("product_id")
+        )
+
+
+class SalesPriceHistoryManager(_LatestPriceHistoryManager):
+    owner_field = "customer_id"
+    related = ("product", "customer")
+
     def latest_prices_for_customer_products(
-        self,
-        *,
-        customer_id: int,
-        product_ids: list[int],
+        self, *, customer_id: int, product_ids: list[int]
     ) -> QuerySet:
-        if not product_ids:
-            return self.none()
-
-        latest_ids = (
-            self.filter(
-                customer_id=customer_id,
-                product_id=OuterRef("product_id"),
-            )
-            .order_by("-date", "-id")
-            .values("id")[:1]
-        )
-
-        return (
-            self.filter(
-                customer_id=customer_id,
-                product_id__in=product_ids,
-                id__in=Subquery(latest_ids),
-            )
-            .select_related("product", "customer")
-            .order_by("product_id")
+        return self.latest_prices_for_products(
+            owner_id=customer_id, product_ids=product_ids
         )
 
 
-class PurchasePriceHistoryManager(models.Manager):
+class PurchasePriceHistoryManager(_LatestPriceHistoryManager):
+    owner_field = "warehouse_id"
+    related = ("product", "warehouse")
+
     def latest_prices_for_warehouse_products(
-        self,
-        *,
-        warehouse_id: int,
-        product_ids: list[int],
+        self, *, warehouse_id: int, product_ids: list[int]
     ) -> QuerySet:
-        if not product_ids:
-            return self.none()
-
-        latest_ids = (
-            self.filter(
-                warehouse_id=warehouse_id,
-                product_id=OuterRef("product_id"),
-            )
-            .order_by("-date", "-id")
-            .values("id")[:1]
-        )
-
-        return (
-            self.filter(
-                warehouse_id=warehouse_id,
-                product_id__in=product_ids,
-                id__in=Subquery(latest_ids),
-            )
-            .select_related("product", "warehouse")
-            .order_by("product_id")
+        return self.latest_prices_for_products(
+            owner_id=warehouse_id, product_ids=product_ids
         )
 
 

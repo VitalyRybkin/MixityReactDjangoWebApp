@@ -60,7 +60,7 @@ class WarehouseRetrieveUpdateDestroyAPIView(
 
 class WarehouseUploadMapAPIView(BaseUpdateGenericAPIView):
     """
-    View for uploading warehouse map.
+    View for uploading a warehouse map.
     """
 
     http_method_names = ["patch", "options", "head"]
@@ -77,6 +77,10 @@ class WarehouseUploadMapAPIView(BaseUpdateGenericAPIView):
 
 
 class WarehousePricesListAPIView(BaseListAPIView):
+    """
+    Provides the latest warehouse prices for specific products.
+    """
+
     resource_name = "Warehouse Prices"
     schema_tags = ["Warehouse"]
     schema_parameters = [
@@ -94,6 +98,19 @@ class WarehousePricesListAPIView(BaseListAPIView):
     serializer_class = WarehousePriceHistorySerializer
 
     def get_queryset(self) -> QuerySet[PurchasePriceHistory]:
+        """
+        Retrieves a queryset of `PurchasePriceHistory` objects filtered by provided product IDs
+        and associated with a specific warehouse. If no product IDs are specified, an empty
+        queryset is returned.
+
+        Raises:
+            ValidationError: Raised when one or more product IDs in the query
+                parameters cannot be converted to integers.
+
+        Returns:
+            QuerySet[PurchasePriceHistory]: A queryset of `PurchasePriceHistory` objects filtered by product IDs and
+                corresponding to the latest prices for the specified warehouse.
+        """
         product_ids_raw = self.request.query_params.getlist("products")
 
         if not product_ids_raw:

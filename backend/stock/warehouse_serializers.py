@@ -82,4 +82,4 @@ class WarehousePriceHistorySerializer(serializers.ModelSerializer):
 
     class Meta:
         model = PurchasePriceHistory
-        fields = ("id", "purchase_price", "product")
+        fields = ("id", "date", "purchase_price", "product")
