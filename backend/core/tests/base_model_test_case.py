@@ -1,10 +1,19 @@
+import datetime
 from typing import Any
 from unittest import SkipTest
 
 from django.core.exceptions import ValidationError
 from rest_framework.test import APITestCase
 
+from catalog.models import PurchasePriceHistory, SalesPriceHistory
+from catalog.tests.api.factories import (
+    ProductFactory,
+    PurchasePriceHistoryFactory,
+    SalePriceHistoryFactory,
+)
 from core.tests.utils import TestLoggingMixin, ValidationFieldSpec
+from order.tests.factories import CustomerFactory
+from stock.tests.factories import WarehouseFactory
 
 
 class BaseModelTestCase(APITestCase, TestLoggingMixin):
@@ -96,6 +105,44 @@ class BaseModelTestCase(APITestCase, TestLoggingMixin):
                     f"✓ {self._model.__name__}.{field} accepted value '{value}'"
                     f"{self.COLOR['END']}"
                 )
+
+    def _test_price_history(
+        self,
+        *,
+        context_manager_name: str,
+        context_price_model: type[PurchasePriceHistory | SalesPriceHistory],
+        context_factory: type[WarehouseFactory | CustomerFactory],
+        price_factory: type[PurchasePriceHistoryFactory | SalePriceHistoryFactory],
+        context_field: str,
+        owner_field: str,
+    ) -> None:
+
+        self._logger_header(f"MANGER: {context_manager_name}")
+
+        context_model = context_factory.create()
+        product = ProductFactory.create()
+        manager_method = getattr(context_price_model.objects, context_manager_name)
+
+        empty_qs = manager_method(**{context_field: context_model.id}, product_ids=[])
+        self.assertEqual(empty_qs.count(), 0)
+
+        price_factory.create(
+            **{owner_field: context_model},
+            product=product,
+            date=datetime.date.today() - datetime.timedelta(days=1),
+        )
+        latest_price = price_factory.create(
+            **{owner_field: context_model}, product=product, date=datetime.date.today()
+        )
+
+        qs = manager_method(
+            **{context_field: context_model.id}, product_ids=[product.id]
+        )
+
+        self.assertEqual(qs.count(), 1)
+        self.assertEqual(qs.first().id, latest_price.id)
+
+        self._logger_success(f"{context_manager_name}", "Works correctly")
 
     def _str_method(self, expected: str) -> None:
         self._logger_header(f"METHOD: __str__ for {self._model.__name__}")

@@ -9,6 +9,7 @@ from catalog.models import (
     ProductSpecName,
     ProductUnit,
     PurchasePriceHistory,
+    SalesPriceHistory,
     SpecificationGroup,
 )
 from catalog.tests.api.factories import (
@@ -19,11 +20,14 @@ from catalog.tests.api.factories import (
     ProductSpecNameFactory,
     ProductUnitFactory,
     PurchasePriceHistoryFactory,
+    SalePriceHistoryFactory,
     SpecificationGroupFactory,
     UnitFactory,
 )
 from core.tests.base_model_test_case import BaseModelTestCase
 from core.tests.utils import ValidationFieldSpec
+from order.tests.factories import CustomerFactory
+from stock.tests.factories import WarehouseFactory
 
 
 class TestDescriptionItemModel(BaseModelTestCase):
@@ -50,6 +54,38 @@ class TestPurchasePriceHistoryModel(BaseModelTestCase):
             f"{self.obj.product.name} - {self.obj.warehouse.name} - {self.obj.date}"
         )
         self._str_method(expected)
+
+    def test_purchase_price_history(self) -> None:
+        self._test_price_history(
+            context_manager_name="latest_prices_for_warehouse_products",
+            context_price_model=self._model,
+            context_factory=WarehouseFactory,
+            price_factory=self._factory,
+            context_field="warehouse_id",
+            owner_field="warehouse",
+        )
+
+
+class TestSalesPriceHistoryModel(BaseModelTestCase):
+    __test__ = True
+    _model = SalesPriceHistory
+    _factory = SalePriceHistoryFactory
+
+    def test_str_with_description(self) -> None:
+        expected = (
+            f"{self.obj.product.name} - {self.obj.customer.name} - {self.obj.date}"
+        )
+        self._str_method(expected)
+
+    def test_sales_price_history(self) -> None:
+        self._test_price_history(
+            context_manager_name="latest_prices_for_customer_products",
+            context_price_model=self._model,
+            context_factory=CustomerFactory,
+            price_factory=self._factory,
+            context_field="customer_id",
+            owner_field="customer",
+        )
 
 
 class TestProductGroupModel(BaseModelTestCase):

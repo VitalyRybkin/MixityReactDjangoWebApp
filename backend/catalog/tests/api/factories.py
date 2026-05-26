@@ -4,6 +4,7 @@ import factory.fuzzy
 from factory import fuzzy
 
 from catalog.models import AppUnit
+from order.tests.factories import CustomerFactory
 from stock.tests.factories import WarehouseFactory
 
 
@@ -61,6 +62,18 @@ class PurchasePriceHistoryFactory(factory.django.DjangoModelFactory):
     )
     product = factory.SubFactory(ProductFactory)
     warehouse = factory.SubFactory(WarehouseFactory)
+
+
+class SalePriceHistoryFactory(factory.django.DjangoModelFactory):
+    class Meta:
+        model = "catalog.SalesPriceHistory"
+
+    date = factory.LazyFunction(datetime.date.today)
+    sale_price = factory.Faker(
+        "pydecimal", left_digits=2, right_digits=2, positive=True
+    )
+    product = factory.SubFactory(ProductFactory)
+    customer = factory.SubFactory(CustomerFactory)
 
 
 class SpecificationGroupFactory(factory.django.DjangoModelFactory):
