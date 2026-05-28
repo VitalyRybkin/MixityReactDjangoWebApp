@@ -144,6 +144,20 @@ class BaseModelTestCase(APITestCase, TestLoggingMixin):
 
         self._logger_success(f"{context_manager_name}", "Works correctly")
 
+    def _test_autosaved_value(
+        self,
+        obj: Any,
+        field_name: str,
+        autosaved_value: Any,
+    ) -> None:
+        self._logger_header(f"METHOD: autosaved_value for {self._model.__name__}")
+        obj.refresh_from_db()
+        self.assertEqual(getattr(obj, field_name), autosaved_value)
+        self._logger_success(
+            f"{autosaved_value!r}",
+            f"Autosaved value matches expected for {self._model.__name__}",
+        )
+
     def _str_method(self, expected: str) -> None:
         self._logger_header(f"METHOD: __str__ for {self._model.__name__}")
         self.assertEqual(str(self.obj), str(expected))

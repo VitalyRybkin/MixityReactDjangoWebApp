@@ -4,6 +4,7 @@ import factory.fuzzy
 from factory import fuzzy
 
 from catalog.models import AppUnit
+from catalog.utils.unit_choices import TitleChoices
 from order.tests.factories import CustomerFactory
 from stock.tests.factories import WarehouseFactory
 
@@ -12,15 +13,15 @@ class UnitFactory(factory.django.DjangoModelFactory):
     class Meta:
         model = "catalog.AppUnit"
 
-    title = factory.Iterator(AppUnit.TitleChoices.values)
+    title = factory.Iterator(TitleChoices.values)
 
     @factory.lazy_attribute
     def is_weight_based(self) -> bool:
-        return self.title in [AppUnit.TitleChoices.KILOGRAM, AppUnit.TitleChoices.TON]
+        return self.title in [TitleChoices.KILOGRAM, TitleChoices.TON]
 
     @factory.lazy_attribute
     def to_kg_factor(self) -> int:
-        if self.title == AppUnit.TitleChoices.TON:
+        if self.title == TitleChoices.TON:
             return 1000
         return 1
 
@@ -118,7 +119,7 @@ class ProductUnitFactory(factory.django.DjangoModelFactory):
     product = factory.SubFactory(ProductFactory)
     unit = factory.LazyAttribute(
         lambda _: AppUnit.objects.get_or_create(
-            title=AppUnit.TitleChoices.PIECE,
+            title=TitleChoices.PIECE,
             defaults={"is_weight_based": False, "to_kg_factor": 1},
         )[0]
     )

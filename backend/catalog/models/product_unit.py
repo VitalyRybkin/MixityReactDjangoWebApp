@@ -1,5 +1,9 @@
+from typing import Any
+
 from django.core.exceptions import ValidationError
 from django.db import models
+
+from catalog.utils.unit_choices import TitleChoices
 
 
 class ProductUnit(models.Model):
@@ -22,13 +26,18 @@ class ProductUnit(models.Model):
         verbose_name_plural = "Единицы измерения товаров"
 
     def clean(self) -> None:
-        if self.unit.title == "piece":
+        if self.unit.title == TitleChoices.PIECE:
             if self.value not in self.ALLOWED_BAG_WEIGHTS:
                 raise ValidationError(
                     {"value": f"Вес мешка: {sorted(self.ALLOWED_BAG_WEIGHTS)} кг"}
                 )
-        elif self.unit.title == "ton":
+
+    def save(self, *args: Any, **kwargs: Any) -> None:
+        if self.unit_id and self.unit.title == TitleChoices.TON:
             self.value = 1
+        self.full_clean()
+
+        super().save(*args, **kwargs)
 
     def __str__(self) -> str:
         return f"{self.product.name} ({self.unit.title}) - {self.value}"

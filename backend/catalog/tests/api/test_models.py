@@ -1,7 +1,6 @@
 import pytest
 
 from catalog.models import (
-    AppUnit,
     DescriptionItem,
     ProductDescription,
     ProductGroup,
@@ -15,6 +14,7 @@ from catalog.models import (
 from catalog.tests.api.factories import (
     DescriptionItemFactory,
     ProductDescriptionFactory,
+    ProductFactory,
     ProductGroupFactory,
     ProductSpecificationFactory,
     ProductSpecNameFactory,
@@ -24,6 +24,7 @@ from catalog.tests.api.factories import (
     SpecificationGroupFactory,
     UnitFactory,
 )
+from catalog.utils.unit_choices import TitleChoices
 from core.tests.base_model_test_case import BaseModelTestCase
 from core.tests.utils import ValidationFieldSpec
 from order.tests.factories import CustomerFactory
@@ -147,9 +148,7 @@ class TestProductUnitModel(BaseModelTestCase):
     invalid_fields_map = [
         ValidationFieldSpec(
             field_name="unit",
-            invalid_value=lambda: UnitFactory.create(
-                title=AppUnit.TitleChoices.KILOGRAM
-            ),
+            invalid_value=lambda: UnitFactory.create(title=TitleChoices.KILOGRAM),
         ),
         ValidationFieldSpec(field_name="value", invalid_value=10),
     ]
@@ -163,6 +162,22 @@ class TestProductUnitModel(BaseModelTestCase):
 
     def test_valid_field_validation(self) -> None:
         self._validate_model_valid_fields()
+
+    def test_ton_product_unit_value_is_forced_to_one(self) -> None:
+        product = ProductFactory.create()
+        unit = UnitFactory.create(title=TitleChoices.TON)
+
+        product_unit = ProductUnitFactory.create(
+            product=product,
+            unit=unit,
+            value=10,
+        )
+
+        self._test_autosaved_value(
+            obj=product_unit,
+            field_name="value",
+            autosaved_value=1,
+        )
 
     def test_str_method(self) -> None:
         expected = f"{self.obj.product} ({self.obj.unit.title}) - {self.obj.value}"

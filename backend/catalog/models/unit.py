@@ -3,18 +3,10 @@ from typing import Any
 from django.core.exceptions import ValidationError
 from django.db import models
 
+from catalog.utils.unit_choices import TitleChoices
+
 
 class AppUnit(models.Model):
-    class TitleChoices(models.TextChoices):
-        PIECE = "piece", "шт"
-        KILOGRAM = "kilogram", "кг"
-        TON = "ton", "т"
-        PALLET = "pallet", "пал"
-        PERCENT = "%", "%"
-        MILLIMETER = "millimeter", "мм"
-        MEGAPASCAL = "megapascal", "МПа"
-        LITRE = "litre", "л"
-        KG_PER_M3 = "kg/m3", "кг/м3"
 
     title = models.CharField(max_length=20, choices=TitleChoices, unique=True)
     is_weight_based = models.BooleanField(default=False)

@@ -4,6 +4,7 @@ from django.core.exceptions import ValidationError as DjangoValidationError
 from rest_framework import serializers
 
 from catalog.models import AppUnit
+from catalog.utils.unit_choices import TitleChoices
 
 
 class UnitSerializer(serializers.ModelSerializer):
@@ -19,7 +20,7 @@ class UnitSerializer(serializers.ModelSerializer):
 
     isWeightBased = serializers.BooleanField(source="is_weight_based")
     toKgFactor = serializers.FloatField(source="to_kg_factor")
-    title = serializers.ChoiceField(choices=AppUnit.TitleChoices)  # type: ignore
+    title = serializers.ChoiceField(choices=TitleChoices)  # type: ignore
 
     class Meta:
         model = AppUnit
