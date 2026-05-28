@@ -19,12 +19,16 @@ class UnitSerializer(serializers.ModelSerializer):
     """
 
     isWeightBased = serializers.BooleanField(source="is_weight_based")
-    toKgFactor = serializers.FloatField(source="to_kg_factor")
-    title = serializers.ChoiceField(choices=TitleChoices)  # type: ignore
+    toKgFactor = serializers.IntegerField(source="to_kg_factor")
+    title = serializers.ChoiceField(
+        choices=TitleChoices.choices,
+        label="title",
+    )
+    titleDisplay = serializers.CharField(source="get_title_display", read_only=True)
 
     class Meta:
         model = AppUnit
-        fields = ["id", "title", "isWeightBased", "toKgFactor"]
+        fields = ["id", "title", "titleDisplay", "isWeightBased", "toKgFactor"]
 
     def to_representation(self, instance: Any) -> dict:
         representation = super().to_representation(instance)

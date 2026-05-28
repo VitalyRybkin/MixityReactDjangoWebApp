@@ -6,6 +6,7 @@ from uuid import UUID
 from django.db import models
 from rest_framework.serializers import Serializer
 
+from core.api.exceptions import _extract_error_messages, _response_has_error_field
 from core.tests.utils import coerce_fieldspec
 
 if TYPE_CHECKING:
@@ -57,77 +58,92 @@ class ValidationContractMixin(_Base):
         )
 
     def _validation_error_logic(
-        self, field_name: str, payload: dict, msg: str = "required"
+        self,
+        field_name: str,
+        payload: dict,
+        msg: str = "required",
     ) -> None:
         """
-        Handles and verifies the logic of field validation errors in API payloads. This helper
-        method ensures that a specific field's absence results in the expected error response
-        and logs the outcome.
+        Validates that a request with a missing or invalid field generates the appropriate error
+        response and checks that the error message contains the expected field information.
 
-        Arguments:
+        Parameters:
         field_name: str
-            The name of the field to validate.
+            The name of the field to be excluded and validated for an error.
         payload: dict
-            The payload containing key-value pairs to be sent to the API.
+            The complete payload dictionary, which includes all expected data.
         msg: str, optional
-            The error message to be logged or tested against. Defaults to "required".
+            Custom message to describe the validation context. Default is "required".
+
+        Raises:
+        AssertionError
+            If the response status code is not 400 indicating a bad request, or if the expected error
+            field is not found in the response data.
         """
         invalid_payload = {k: _jsonable(v) for k, v in payload.items()}
         invalid_payload.pop(field_name, None)
 
         response = self.client.post(self.url, data=invalid_payload, format="json")
 
-        self.assertEqual(response.status_code, 400)
+        self.assertEqual(
+            response.status_code,
+            400,
+            msg=(
+                f"Expected 400 for missing field '{field_name}', "
+                f"got {response.status_code}. Response: {response.data}"
+            ),
+        )
 
         serializer = self.get_serializer()
         field_obj = serializer.fields.get(field_name)
 
         search_terms = {field_name.lower()}
+
         if field_obj:
             if field_obj.label:
                 search_terms.add(str(field_obj.label).lower())
-            if hasattr(field_obj, "label_name"):  # на всякий случай
+
+            if hasattr(field_obj, "label_name"):
                 search_terms.add(str(field_obj.label_name).lower())
 
-        error_found = any(
-            any(term in error.lower() for term in search_terms)
-            for error in response.data
-        )
+        error_found = _response_has_error_field(response.data, search_terms)
 
         self.assertTrue(
             error_found,
-            msg=f"Field '{field_name}' (labels: {search_terms}) not found in errors: {response.data}",
+            msg=(
+                f"Field '{field_name}' "
+                f"(labels: {search_terms}) not found in errors: {response.data}"
+            ),
         )
 
     def _test_all_mandatory_fields(self, valid_payload: dict) -> None:
         """
-        Iterates over all fields marked as required in the field mapping,
-        removing the required fields one by one from the payload to ensure that the
-        appropriate validation errors are raised if a required field is missing.
+        Iterates through the fields defined in fields_map, identifies fields
+        that are mandatory, and checks the validation logic when such fields are missing
+        from the payload provided.
 
-        Parameters
-        ----------
-        valid_payload : dict
-            A dictionary containing the initial valid payload to be used for testing.
+        Args:
+            valid_payload (dict): The input payload that serves as the base for testing
+            when mandatory fields are omitted.
 
-        Returns
-        -------
-        None
+        Returns:
+            None
         """
-
         self._logger_header("VALIDATION: Mandatory fields", level=1)
 
         for api_field, raw in self.fields_map.items():
             spec = coerce_fieldspec(raw)
+
             if not spec.required:
                 continue
 
             with self.subTest(field=api_field):
                 current_payload = {k: _jsonable(v) for k, v in valid_payload.items()}
 
-                current_payload.pop(api_field, None)
                 self._validation_error_logic(
-                    api_field, current_payload, msg="missing field"
+                    api_field,
+                    current_payload,
+                    msg="missing field",
                 )
 
     def _test_all_unique_fields(self, valid_payload: dict) -> None:
@@ -192,10 +208,14 @@ class ValidationContractMixin(_Base):
 
         for payload, expected_status, expected_error_field in cases:
             field_name, field_value = next(iter(payload.items()))
+
             with self.subTest(payload=payload):
                 result = re.sub(
-                    r"([A-Z])", lambda x: "_" + x.group(1).lower(), field_name
+                    r"([A-Z])",
+                    lambda x: "_" + x.group(1).lower(),
+                    field_name,
                 )
+
                 model_fields = {f.name for f in self.model._meta.fields}
 
                 if result in model_fields and not isinstance(field_value, (list, dict)):
@@ -211,23 +231,29 @@ class ValidationContractMixin(_Base):
                     )
 
                 if expected_status == 400 and expected_error_field:
-                    error_found = any(
-                        expected_error_field.lower() in error.lower()
-                        for error in response.data
+                    error_found = _response_has_error_field(
+                        response.data,
+                        expected_error_field,
                     )
+
                     self.assertTrue(
                         error_found,
-                        msg=f"Expected error on '{expected_error_field}', got: {response.data}",
+                        msg=(
+                            f"Expected error on '{expected_error_field}', "
+                            f"got: {response.data}"
+                        ),
                     )
 
                 if response.status_code == 201:
                     self._logger_success(result, f"✓ Created {self.model.__name__}")
 
                 if response.status_code == 400:
-                    error_info = ", ".join(response.data)
+                    error_info = ", ".join(_extract_error_messages(response.data))
+
                     self._logger_error(
                         result,
-                        f"Validation failed: [{error_info}] - {self.model.__name__} not created.",
+                        f"Validation failed: [{error_info}] - "
+                        f"{self.model.__name__} not created.",
                     )
 
     from typing import Any, Mapping, Sequence

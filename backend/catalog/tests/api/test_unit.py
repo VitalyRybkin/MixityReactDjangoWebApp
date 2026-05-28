@@ -4,6 +4,7 @@ from catalog.api.routes import UnitRoutes
 from catalog.api.serializers.unit_serializers import UnitSerializer
 from catalog.models import AppUnit
 from catalog.tests.api.factories import UnitFactory
+from catalog.utils.unit_choices import TitleChoices
 from core.tests.base_test_case import BaseAPIMixin
 from core.tests.utils import FieldSpec
 
@@ -87,9 +88,9 @@ class TestUnitAPIList(UnitBaseTest, BaseAPIMixin):
 
 class TestUnitRetrieveUpdate(UnitBaseTest, BaseAPIMixin):
     """
-    Performs and validatses the operations related to
+    Performs and validates the operations related to
     retrieving and updating a unit's details. Includes test cases to ensure
-    proper logic execution and error handling for unit retrieval and updates.
+    proper logic execution and error handling for unit retrieval.
 
     Attributes:
         pk_url_name: Specifies the name of the URL used for detailed unit
@@ -99,9 +100,33 @@ class TestUnitRetrieveUpdate(UnitBaseTest, BaseAPIMixin):
     __test__ = True
     pk_url_name = f"catalog:{UnitRoutes.DETAIL.name}"
 
-    def test_retrieve_update_logic(self) -> None:
-        """Test the logic for retrieving and updating a unit."""
+    def test_retrieve_logic(self) -> None:
+        """Test the logic for retrieving a unit."""
         self._retrieve_object_by_id()
+
+    def test_update_logic(self) -> None:
+        """Test the logic for updating a unit."""
+        payload = {
+            "to_kg_factor": 1000,
+        }
+        self._patch_logic_success(payload)
+
+    def test_update_logic_failed(self) -> None:
+        obj = self.factory.create(
+            title=TitleChoices.KILOGRAM,
+            is_weight_based=True,
+            to_kg_factor=1,
+        )
+
+        payload = {
+            "isWeightBased": False,
+        }
+
+        self._patch_logic_failed(
+            obj=obj,
+            payload=payload,
+            expected_field="is_weight_based",
+        )
 
     def test_not_found_error(self) -> None:
         """Test the error handling logic for retrieving a nonexistent unit."""

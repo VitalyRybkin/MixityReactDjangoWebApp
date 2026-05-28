@@ -329,7 +329,7 @@ class TestTruckRetrieveUpdate(TruckBaseTest, BaseAPIMixin):
 
     def test_patch_logic(self) -> None:
         payload = {"licensePlate": "В777ОР77"}
-        self._patch_logic(payload)
+        self._patch_logic_success(payload)
 
     def test_delete_logic(self) -> None:
         self._delete_logic()

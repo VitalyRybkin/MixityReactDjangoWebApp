@@ -4,6 +4,7 @@ import pytest
 from rest_framework import status
 from rest_framework.reverse import reverse
 
+from ..api.exceptions import _response_has_error_field
 from .utils import UploadSpec
 
 if TYPE_CHECKING:
@@ -220,7 +221,10 @@ class CrudContractMixin(_Base):
             f"    {self.COLOR['OK']}✓ Missing file validation passed{self.COLOR['END']}"
         )
 
-    def _patch_logic(self, payload: dict[str, Any] | None = None) -> None:
+    def _patch_logic_success(
+        self,
+        payload: dict[str, Any] | None = None,
+    ) -> None:
         """
         Handles the testing of the PATCH logic for the specified endpoint. This method
         validates that a `200 OK` status code is returned when a valid payload is provided.
@@ -231,13 +235,48 @@ class CrudContractMixin(_Base):
         """
         obj = self.factory.create()
         self._logger_header(f"ENDPOINT PATCH: {self.pk_url_name}/{obj.id}")
+
         url = self.get_detail_url(obj.id)
+
         self.assertTrue(payload, msg="Provide patch payload for this resource")
+
         response = self.client.patch(url, data=payload, format="json")
         if response.status_code != 200:
             self.fail(f"PATCH failed\nPayload: {payload}\nErrors: {response.data}")
 
-        print(f"    {self.COLOR['OK']}✓ PATCH logic passed{self.COLOR['END']}")
+        print(
+            f"    {self.COLOR['OK']}✓ PATCH logic passed for payload - {payload}{self.COLOR['END']}"
+        )
+
+    def _patch_logic_failed(
+        self,
+        payload: dict[str, Any],
+        expected_field: str | None = None,
+        obj: Any | None = None,
+    ) -> None:
+        obj = obj or self.factory.create()
+
+        self._logger_header(f"ENDPOINT PATCH FAILED: {self.pk_url_name}/{obj.id}")
+
+        url = self.get_detail_url(obj.id)
+
+        response = self.client.patch(url, data=payload, format="json")
+
+        self.assertEqual(
+            response.status_code,
+            status.HTTP_400_BAD_REQUEST,
+            msg=f"PATCH should fail\nPayload: {payload}\nResponse: {response.data}",
+        )
+
+        if expected_field:
+            self.assertTrue(
+                _response_has_error_field(response.data, expected_field),
+                msg=f"Expected error on '{expected_field}', got: {response.data}",
+            )
+
+        print(
+            f"    {self.COLOR['OK']}✓ PATCH failed as expected for payload - {payload}{self.COLOR['END']}"
+        )
 
     def _delete_logic(self, expected_status: int = 200) -> None:
         """
