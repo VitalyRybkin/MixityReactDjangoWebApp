@@ -4,6 +4,7 @@ from catalog.models import (
     DescriptionItem,
     ProductDescription,
     ProductGroup,
+    ProductPallet,
     ProductSpecification,
     ProductSpecName,
     ProductUnit,
@@ -16,6 +17,7 @@ from catalog.tests.api.factories import (
     ProductDescriptionFactory,
     ProductFactory,
     ProductGroupFactory,
+    ProductPaletteFactory,
     ProductSpecificationFactory,
     ProductSpecNameFactory,
     ProductUnitFactory,
@@ -181,4 +183,29 @@ class TestProductUnitModel(BaseModelTestCase):
 
     def test_str_method(self) -> None:
         expected = f"{self.obj.product} ({self.obj.unit.title}) - {self.obj.value}"
+        self._str_method(expected)
+
+
+class TestProductPaletteModel(BaseModelTestCase):
+    __test__ = True
+    _model = ProductPallet
+    _factory = ProductPaletteFactory
+
+    invalid_fields_map = [
+        ValidationFieldSpec(field_name="items_per_pallet", invalid_value=10),
+    ]
+
+    valid_fields_map = [
+        ValidationFieldSpec(field_name="items_per_pallet", invalid_value=40),
+        ValidationFieldSpec(field_name="items_per_pallet", invalid_value=48),
+    ]
+
+    def test_invalid_field_validation(self) -> None:
+        self._validate_model_invalid_fields()
+
+    def test_valid_field_validation(self) -> None:
+        self._validate_model_valid_fields()
+
+    def test_str_with_description(self) -> None:
+        expected = f"{self.obj.product.name} @ {self.obj.warehouse.name}: {self.obj.items_per_pallet} шт"
         self._str_method(expected)

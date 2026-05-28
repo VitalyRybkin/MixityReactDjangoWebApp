@@ -1,3 +1,5 @@
+from typing import Any
+
 from django.core.exceptions import ValidationError
 from django.db import models
 
@@ -21,10 +23,16 @@ class ProductPallet(models.Model):
         verbose_name_plural = "Паллеты (складские)"
 
     def clean(self) -> None:
+        super().clean()
+
         if self.items_per_pallet not in {40, 48}:
             raise ValidationError(
                 {"items_per_pallet": "Допустимо только 40 или 48 штук."}
             )
+
+    def save(self, *args: Any, **kwargs: Any) -> None:
+        self.full_clean()
+        super().save(*args, **kwargs)
 
     def __str__(self) -> str:
         return (

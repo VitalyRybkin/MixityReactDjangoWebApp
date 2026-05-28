@@ -124,3 +124,12 @@ class ProductUnitFactory(factory.django.DjangoModelFactory):
         )[0]
     )
     value = fuzzy.FuzzyChoice([15, 20, 25, 30])
+
+
+class ProductPaletteFactory(factory.django.DjangoModelFactory):
+    class Meta:
+        model = "catalog.ProductPallet"
+
+    product = factory.SubFactory(ProductFactory)
+    warehouse = factory.SubFactory(WarehouseFactory)
+    items_per_pallet = factory.Iterator([40, 48])
