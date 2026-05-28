@@ -1,13 +1,17 @@
+from __future__ import annotations
+
 from decimal import ROUND_CEILING, Decimal
-from typing import Any
+from typing import TYPE_CHECKING
 
 from django.core.exceptions import ObjectDoesNotExist, ValidationError
 from django.db import models
 from django.db.models import Max, QuerySet
 
-from stock.models.warehouse import Warehouse
-
+from ..utils.unit_choices import TitleChoices
 from .unit import AppUnit
+
+if TYPE_CHECKING:
+    from stock.models.warehouse import Warehouse
 
 
 class Product(models.Model):
@@ -84,10 +88,11 @@ class Product(models.Model):
             .order_by("warehouse", "-date")
         )
 
-    def allowed_order_unit_titles(self) -> list[str]:
+    def allowed_order_unit_titles(self) -> list[TitleChoices]:
         if self.is_piece_based:
-            return ["piece"]
-        return ["kilogram", "ton"]
+            return [TitleChoices.PIECE]
+
+        return [TitleChoices.KILOGRAM, TitleChoices.TON]
 
     def allowed_order_units(self) -> QuerySet["AppUnit"]:
         titles = self.allowed_order_unit_titles()
@@ -107,10 +112,10 @@ class Product(models.Model):
         """
         try:
             config = self.unit_config
-        except ObjectDoesNotExist:
-            raise ValidationError(f"Настройка веса не задана для {self.name}")
+        except ObjectDoesNotExist as e:
+            raise ValidationError(f"Настройка веса не задана для {self.name}") from e
 
-        if config.unit.title == "ton":
+        if config.unit.title == TitleChoices.TON:
             return Decimal("1000")
 
         return Decimal(config.value)
@@ -132,20 +137,20 @@ class Product(models.Model):
         """
         try:
             pp = self.product_pallets.get(warehouse=warehouse)
-        except ObjectDoesNotExist:
-            raise ValidationError(f"Паллета не настроена для склада {warehouse}")
+        except ObjectDoesNotExist as e:
+            raise ValidationError(f"Паллета не настроена для склада {warehouse}") from e
 
         return Decimal(pp.items_per_pallet) * self._bag_kg()
 
     def convert(
         self,
-        quantity: float,
-        from_unit: Any,
-        to_unit: Any,
+        quantity: Decimal | int | str,
+        from_unit: AppUnit,
+        to_unit: AppUnit,
         *,
         warehouse: Warehouse | None = None,
-        piece_rounding: str = "ceil",  # "ceil" or "strict"
-    ) -> float:
+        piece_rounding: str = "ceil",
+    ) -> Decimal:
         """
         Converts a given quantity from one unit of measurement to another, utilizing weight-based and piece-based
         conversions. Supports weight-only products and piece-based products, handling cases where conversion requires
@@ -153,9 +158,9 @@ class Product(models.Model):
         methods for piece-based units.
 
         Parameters:
-        quantity (float): The quantity to convert, expressed as a float value.
-        from_unit (Any): The source unit of measurement for the conversion.
-        to_unit (Any): The target unit of measurement for the conversion.
+        quantity (Decimal | int | str): The quantity to convert, expressed as a Decimal, integer, or string.
+        from_unit (AppUnit): The source unit of measurement for the conversion.
+        to_unit (AppUnit): The target unit of measurement for the conversion.
         warehouse (Warehouse | None, optional): An optional warehouse instance required for pallet-based conversions.
             Defaults to None.
         piece_rounding (str, optional): Specifies the rounding method for piece-based conversions. Acceptable values are
@@ -163,7 +168,7 @@ class Product(models.Model):
             Defaults to "ceil".
 
         Returns:
-        float: The converted quantity based on the target unit of measurement.
+            Decimal: The converted quantity based on the target unit of measurement.
 
         Raises:
         ValidationError: Raised when:
@@ -176,6 +181,9 @@ class Product(models.Model):
         """
         qty = Decimal(str(quantity))
 
+        if piece_rounding not in {"ceil", "strict"}:
+            raise ValidationError("Unsupported piece rounding mode.")
+
         def require_warehouse() -> Warehouse:
             if warehouse is None:
                 raise ValidationError("Warehouse is required for pallet conversions.")
@@ -184,15 +192,15 @@ class Product(models.Model):
         def ceil_to_int(x: Decimal) -> Decimal:
             return x.quantize(Decimal("1"), rounding=ROUND_CEILING)
 
-        def to_kg(unit: Any) -> Decimal:
-            if unit.title == "piece":
+        def to_kg(unit: AppUnit) -> Decimal:
+            if unit.title == TitleChoices.PIECE:
                 if not self.is_piece_based:
                     raise ValidationError(
                         "This product is weight-only; 'piece' is not supported."
                     )
                 return qty * self._bag_kg()
 
-            if unit.title == "pallet":
+            if unit.title == TitleChoices.PALLET:
                 if not self.is_piece_based:
                     raise ValidationError(
                         "This product is weight-only; 'pallet' is not supported."
@@ -204,8 +212,8 @@ class Product(models.Model):
 
             raise ValidationError(f"Unsupported unit: {unit.title}")
 
-        def from_kg(kg: Decimal, unit: Any) -> Decimal:
-            if unit.title == "piece":
+        def from_kg(kg: Decimal, unit: AppUnit) -> Decimal:
+            if unit.title == TitleChoices.PIECE:
                 if not self.is_piece_based:
                     raise ValidationError(
                         "This product is weight-only; 'piece' is not supported."
@@ -220,7 +228,7 @@ class Product(models.Model):
                     return pieces
                 return ceil_to_int(pieces)
 
-            if unit.title == "pallet":
+            if unit.title == TitleChoices.PALLET:
                 if not self.is_piece_based:
                     raise ValidationError(
                         "This product is weight-only; 'pallet' is not supported."
@@ -235,7 +243,7 @@ class Product(models.Model):
 
         kg = to_kg(from_unit)
         result = from_kg(kg, to_unit)
-        return float(result)
+        return result
 
     def __str__(self) -> str:
         return self.name
