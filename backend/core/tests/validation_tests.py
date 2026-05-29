@@ -61,7 +61,6 @@ class ValidationContractMixin(_Base):
         self,
         field_name: str,
         payload: dict,
-        msg: str = "required",
     ) -> None:
         """
         Validates that a request with a missing or invalid field generates the appropriate error
@@ -143,7 +142,6 @@ class ValidationContractMixin(_Base):
                 self._validation_error_logic(
                     api_field,
                     current_payload,
-                    msg="missing field",
                 )
 
     def _test_all_unique_fields(self, valid_payload: dict) -> None:
@@ -159,8 +157,6 @@ class ValidationContractMixin(_Base):
             the expected error fields are not present in the response.
         """
         self._logger_header("VALIDATION: Unique constraints", level=1)
-
-        serializer = self.get_serializer()
 
         for api_field, raw in self.fields_map.items():
             spec = coerce_fieldspec(raw)
@@ -183,13 +179,7 @@ class ValidationContractMixin(_Base):
                     msg=f"API should return 400 on duplicate field '{api_field}'",
                 )
 
-                label = serializer.fields[api_field].label or api_field
-
-                error_found = (
-                    api_field in response.data
-                    or "non_field_errors" in response.data
-                    or any((api_field in err or label in err) for err in response.data)
-                )
+                error_found = _response_has_error_field(response.data, api_field)
 
                 self.assertTrue(
                     error_found,
