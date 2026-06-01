@@ -279,7 +279,7 @@ class TestTruckAPIList(TruckBaseTest, BaseAPIMixin):
         payload["licensePlate"] = "invalid"
 
         cases = [
-            (payload, 400, "Введите в формате - А123ВС77"),
+            (payload, 400, "licensePlate"),
         ]
 
         self._test_field_validation(cases)

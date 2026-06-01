@@ -1,12 +1,9 @@
 from typing import Any, Dict
 
-from rest_framework.serializers import Serializer
-
 from core.tests.base_test_case import BaseAPIMixin
 from core.tests.utils import FieldSpec
 from order.models import Client
 from order.routes import ClientRoutes
-from order.serializers.client_serializers import ClientSerializer
 from order.tests.factories import ClientFactory
 
 
@@ -28,9 +25,6 @@ class ClientBaseTest:
 class TestClientAPIList(ClientBaseTest, BaseAPIMixin):
     __test__ = True
     url_name = f"order_clients:{ClientRoutes.LIST_CREATE.name}"
-
-    def get_serializer(self) -> Serializer:
-        return ClientSerializer()
 
     def test_get_list(self) -> None:
         """Test the logic for retrieving a list of clients."""

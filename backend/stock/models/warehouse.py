@@ -3,12 +3,6 @@ from django.db import models
 from core.models.active_mixin import ActiveMixin
 from core.models.contact_info_mixin import ContactDetailsMixin
 
-#
-#
-# class ActiveQuerySet(models.QuerySet):
-#     def active(self) -> "ActiveQuerySet":
-#         return self.filter(is_active=True)
-
 
 class Warehouse(ContactDetailsMixin, ActiveMixin):
     """
