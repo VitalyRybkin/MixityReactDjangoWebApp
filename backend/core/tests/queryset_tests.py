@@ -4,6 +4,7 @@ from rest_framework.response import Response
 from rest_framework.reverse import reverse
 
 from catalog.models import PurchasePriceHistory, SalesPriceHistory
+from contacts.models import Contact
 
 if TYPE_CHECKING:
     from core.tests.type_stubs import BaseMixinProto as _Base
@@ -74,3 +75,23 @@ class QuerysetContractMixin(_Base):
         )
 
         return response
+
+    def _get_contact_list(self, obj_id: int, expected_contacts: list[Contact]) -> None:
+        """
+        Retrieves the contact list for a specific object and compares it with the expected contacts.
+        """
+        self._logger_header(f"ENDPOINT GET: {self.pk_url_name}/{obj_id}/contacts")
+
+        detail_url = self.get_detail_url(obj_id)
+        response = self.client.get(detail_url)
+
+        self.assertEqual(response.status_code, 200)
+
+        ids = {item["id"] for item in response.data}
+        expected_ids = {contact.id for contact in expected_contacts}
+
+        self.assertEqual(ids, expected_ids)
+
+        print(
+            f"    {self.COLOR['OK']}✓ Retrieval of contact list passed{self.COLOR['END']}"
+        )

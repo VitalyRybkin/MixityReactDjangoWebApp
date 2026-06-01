@@ -10,10 +10,7 @@ from order.models import ConstructionObject, Customer
 
 
 class CustomerSerializer(serializers.ModelSerializer):
-    name = serializers.CharField(
-        required=True,
-        label="Наименование",
-    )
+
     phone = PhoneNumberField(
         region="RU",
         label="Номер телефона",
