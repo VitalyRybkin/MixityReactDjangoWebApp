@@ -62,6 +62,9 @@ class BaseAPITestCase(
     pk_url_name: Optional[str | None] = None
     upload_file_spec: UploadSpec | None = None
 
+    def get_url_kwargs(self) -> dict[str, Any]:
+        return {"pk": self.obj.id}
+
     def setUp(self) -> None:
         logging.getLogger("django.request").setLevel(logging.ERROR)
 
@@ -73,15 +76,12 @@ class BaseAPITestCase(
         if self.url_name is not None:
             self.url = reverse(self.url_name)
         elif self.pk_url_name is not None:
-            self.url = reverse(self.pk_url_name, kwargs={"pk": self.obj.id})
+            self.url = reverse(
+                self.pk_url_name,
+                kwargs=self.get_url_kwargs(),
+            )
         else:
             raise SkipTest(f"No url configured for '{self.__class__.__name__}'.")
-
-    def get_detail_url(self, pk: Any) -> str:
-        name = self.pk_url_name or self.url_name
-        if not name:
-            raise SkipTest(f"No detail url configured for {self.__class__.__name__}.")
-        return reverse(name, kwargs={"pk": pk})
 
 
 BaseAPIMixin = BaseAPITestCase

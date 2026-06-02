@@ -24,14 +24,23 @@ class CrudContractMixin(_Base):
     need to be performed and verified.
     """
 
-    def get_detail_url(self, pk: int) -> str:
-        """Returns the URL for retrieving a specific object by ID."""
+    def get_detail_url(self, pk: int, **kwargs: Any) -> str:
+        """
+        Returns the URL for retrieving a specific object by ID.
+        """
         self.assertTrue(
             self.pk_url_name is not None,
             "pk_url_name must be set",
         )
         assert self.pk_url_name is not None
-        return reverse(self.pk_url_name, kwargs={"pk": pk})
+
+        return reverse(
+            self.pk_url_name,
+            kwargs={
+                "pk": pk,
+                **kwargs,
+            },
+        )
 
     def _create_logic(
         self,
@@ -45,7 +54,8 @@ class CrudContractMixin(_Base):
             payload (Dict[str, Any]): The payload to be sent in the request body.
             expected_status (int, optional): The expected status code for the request. Defaults to 201 Created.
         """
-        self._logger_header(f"ENDPOINT POST: {self.url_name}")
+        assert self.url_name is not None
+        self._logger_header(f"ENDPOINT POST: {reverse(self.url_name)}")
 
         response = self.client.post(self.url, data=payload, format="json")
         if response.status_code != expected_status:
@@ -56,7 +66,12 @@ class CrudContractMixin(_Base):
 
         print(f"    {self.COLOR['OK']}✓ Object created successfully{self.COLOR['END']}")
 
-    def _retrieve_object_by_id(self, obj: Any = None) -> None:
+    def _retrieve_object_by_id(
+        self,
+        obj: Any = None,
+        pk: int | None = None,
+        **url_kwargs: Any,
+    ) -> None:
         """
         Retrieves an object by its ID from a specified endpoint and validates the response.
         The method uses the HTTP GET request to fetch the details and checks that the
@@ -65,13 +80,15 @@ class CrudContractMixin(_Base):
         Args:
             obj: An optional object to retrieve. If not provided, defaults to the
                 object's instance associated with the class.
+            pk: An optional ID to retrieve. If not provided, defaults to the
+                object's ID.
+            **url_kwargs: Additional keyword arguments to pass to the URL construction.
         """
         obj = obj or self.obj
+        pk = pk or obj.id
 
-        self._logger_header(f"ENDPOINT GET: {self.pk_url_name}/{obj.id}")
-
-        url = self.get_detail_url(obj.id)
-
+        url = self.get_detail_url(pk, **url_kwargs)
+        self._logger_header(f"ENDPOINT GET: {url}")
         response = self.client.get(url)
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
@@ -123,9 +140,8 @@ class CrudContractMixin(_Base):
         """
         obj = obj or self.obj
 
-        self._logger_header(f"ENDPOINT GET: {self.pk_url_name}/{obj.id}")
-
         url = self.get_detail_url(obj.id)
+        self._logger_header(f"ENDPOINT GET: {url}")
         response = self.client.get(url)
 
         self.assertEqual(response.status_code, status.HTTP_200_OK, msg=response.data)
@@ -330,9 +346,8 @@ class CrudContractMixin(_Base):
     ) -> None:
         obj = obj or self.obj
 
-        self._logger_header(f"ENDPOINT GET: {self.pk_url_name}/{obj.id}")
-
         url = self.get_detail_url(obj.id)
+        self._logger_header(f"ENDPOINT GET: {url}")
         response = self.client.get(url)
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)

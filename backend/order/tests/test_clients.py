@@ -80,4 +80,6 @@ class TestClientContacts(ClientBaseTest, BaseAPIMixin):
         client_2 = self.factory.create()
         ContactFactory.create_batch(3, client=client_2, carrier=None)
 
-        self._get_contact_list(client_1.id, contacts_1)
+        self._get_object_related_entities_list(
+            client_1.id, contacts_1, entity="clients"
+        )

@@ -2,6 +2,7 @@ from decimal import Decimal
 from typing import TYPE_CHECKING, Any, Dict, Iterator, Tuple
 
 from django.db import models
+from rest_framework.reverse import reverse
 
 from core.tests.utils import FieldSpec, coerce_fieldspec
 
@@ -71,7 +72,8 @@ class FieldContractMixin(_Base):
             not match between the API response and model, or if normalization results differ.
 
         """
-        self._logger_header(f"ENDPOINT GET: {self.url_name}")
+        assert self.url_name is not None
+        self._logger_header(f"ENDPOINT GET: {reverse(self.url_name)}")
 
         response = self.client.get(self.url)
         self.assertEqual(response.status_code, 200)

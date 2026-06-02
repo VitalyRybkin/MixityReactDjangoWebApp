@@ -32,11 +32,9 @@ class QuerysetContractMixin(_Base):
         """
         Retrieves the latest price for a specific product within a context.
         """
-        self._logger_header(
-            f"ENDPOINT GET: {self.pk_url_name}/{context_type_id}/prices"
-        )
 
         detail_url = self.get_detail_url(context_type_id)
+        self._logger_header(f"ENDPOINT GET: {detail_url}")
         detail_response = self.client.get(detail_url)
         self.assertEqual(detail_response.status_code, 200)
 
@@ -60,11 +58,9 @@ class QuerysetContractMixin(_Base):
         """
         Retrieves the latest price for a specific product within a context, using an invalid product ID.
         """
-        self._logger_header(
-            f"ENDPOINT GET: {self.pk_url_name}/{context_type_id}/prices"
-        )
 
         detail_url = self.get_detail_url(context_type_id)
+        self._logger_header(f"ENDPOINT GET: {detail_url}")
         response = self.client.get(detail_url, {"products": [invalid_product_id]})
         self.assertEqual(response.status_code, 400)
 
@@ -76,13 +72,18 @@ class QuerysetContractMixin(_Base):
 
         return response
 
-    def _get_contact_list(self, obj_id: int, expected_contacts: list[Contact]) -> None:
+    def _get_object_related_entities_list(
+        self,
+        obj_id: int,
+        expected_contacts: list[Contact],
+        entity: str,
+    ) -> None:
         """
         Retrieves the contact list for a specific object and compares it with the expected contacts.
         """
-        self._logger_header(f"ENDPOINT GET: {self.pk_url_name}/{obj_id}/contacts")
 
         detail_url = self.get_detail_url(obj_id)
+        self._logger_header(f"ENDPOINT GET: {detail_url}")
         response = self.client.get(detail_url)
 
         self.assertEqual(response.status_code, 200)
@@ -93,5 +94,5 @@ class QuerysetContractMixin(_Base):
         self.assertEqual(ids, expected_ids)
 
         print(
-            f"    {self.COLOR['OK']}✓ Retrieval of contact list passed{self.COLOR['END']}"
+            f"    {self.COLOR['OK']}✓ Retrieval of {entity} list passed{self.COLOR['END']}"
         )

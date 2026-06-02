@@ -24,10 +24,11 @@ class ActiveVisibilityContractMixin(_Base):
         inactive objects do not appear in the response data.
 
         Raises:
-            AssertionError: If the API response does not include the active object or if it includes
+            AssertionError: If the API response does not include the active object, or if it includes
             the inactive object.
         """
-        self._logger_header(f"ENDPOINT GET: {self.url_name}")
+        assert self.url_name is not None
+        self._logger_header(f"ENDPOINT GET: {reverse(self.url_name)}")
 
         active = self.factory.create(is_active=True)
         inactive = self.factory.create(is_active=False)
@@ -92,8 +93,7 @@ class ReadOnlyActiveFieldContractMixin(_Base):
     by a test framework or the class consuming this mixin.
 
     Attributes:
-        detail_url_name: The name of the URL pattern for the detail endpoint. It is used
-            to construct the URL for accessing an individual resource based on its primary key.
+        pk_url_name (str | None): The name of the URL pattern for the detail view of the model.
     """
 
     pk_url_name: str | None = None

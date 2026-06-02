@@ -4,8 +4,8 @@ from contacts.factories import ContactFactory
 from core.tests.base_test_case import BaseAPIMixin
 from core.tests.utils import FieldSpec
 from order.models import Customer
-from order.routes import CustomerRoutes
-from order.tests.factories import CustomerFactory
+from order.routes import ConstructionObjectsRoutes, CustomerRoutes
+from order.tests.factories import ConstructionObjectFactory, CustomerFactory
 
 
 class CustomerBaseTest:
@@ -46,14 +46,14 @@ class TestCustomerAPIList(CustomerBaseTest, BaseAPIMixin):
         payload = self.payload_generator()
         self._test_all_mandatory_fields(payload)
 
+    def test_active_customer(self) -> None:
+        """Test the logic for ensuring active customers are only returned in the list."""
+        self._assert_active_only_in_list()
+
     def test_str_method(self) -> None:
         """Test the string representation of a customer."""
         c = self.obj
         self._str_method_logic(f"Заказчик: {c.name}")
-
-    def test_active_stock(self) -> None:
-        """Test the logic for ensuring active customers are only returned in the list."""
-        self._assert_active_only_in_list()
 
     def payload_generator(self) -> Dict[str, Any]:
         """Generates a payload for customer creation tests."""
@@ -69,7 +69,7 @@ class TestCustomerAPIList(CustomerBaseTest, BaseAPIMixin):
         }
 
 
-class TestCustomerContacts(CustomerBaseTest, BaseAPIMixin):
+class TestCustomerContactsAPI(CustomerBaseTest, BaseAPIMixin):
     __test__ = True
     pk_url_name = f"order_customers:{CustomerRoutes.CONTACTS.name}"
 
@@ -80,4 +80,51 @@ class TestCustomerContacts(CustomerBaseTest, BaseAPIMixin):
         customer_2 = self.factory.create()
         ContactFactory.create_batch(3, customer=customer_2, carrier=None)
 
-        self._get_contact_list(customer_1.id, contacts_1)
+        self._get_object_related_entities_list(
+            customer_1.id, contacts_1, entity="contacts"
+        )
+
+
+class TestCustomerConstructionObjectsAPIList(CustomerBaseTest, BaseAPIMixin):
+    __test__ = True
+    pk_url_name = f"order_customers:{ConstructionObjectsRoutes.LIST_CREATE.name}"
+
+    def test_get_customer_construction_objects(self) -> None:
+        """Test the logic for retrieving constructions associated with a customer."""
+        customer_1 = self.factory.create()
+        constructions_1 = ConstructionObjectFactory.create_batch(3, customer=customer_1)
+        ConstructionObjectFactory.create_batch(3, customer=customer_1, is_active=False)
+
+        self._get_object_related_entities_list(
+            customer_1.id, constructions_1, entity="construction_objects"
+        )
+
+
+class TestCustomerConstructionObjectsAPIDetailAPI(BaseAPIMixin):
+    __test__ = True
+    pk_url_name = f"order_customers:{ConstructionObjectsRoutes.DETAIL.name}"
+    factory = ConstructionObjectFactory
+
+    def get_url_kwargs(self) -> dict[str, Any]:
+        """
+        Generate a dictionary of URL keyword arguments.
+
+        Returns
+        -------
+        dict[str, Any]
+            A dictionary containing 'pk' and 'object_pk' as keys, where 'pk' is
+            the ID of the associated customer and 'object_pk' is the ID of the
+            current object.
+        """
+        return {
+            "pk": self.obj.customer.id,
+            "object_pk": self.obj.id,
+        }
+
+    def test_retrieve_logic(self) -> None:
+        """Test the logic for retrieving a construction object."""
+        self._retrieve_object_by_id(
+            obj=self.obj,
+            pk=self.obj.customer.id,
+            object_pk=self.obj.id,
+        )
