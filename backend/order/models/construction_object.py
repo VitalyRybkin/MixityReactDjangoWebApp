@@ -20,3 +20,6 @@ class ConstructionObject(ActiveMixin):
             models.Index(fields=["customer"]),
             models.Index(fields=["name"]),
         ]
+
+    def __str__(self) -> str:
+        return self.name

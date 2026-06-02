@@ -3,7 +3,7 @@ from typing import Any, Dict
 from contacts.factories import ContactFactory
 from core.tests.base_test_case import BaseAPIMixin
 from core.tests.utils import FieldSpec
-from order.models import Customer
+from order.models import ConstructionObject, Customer
 from order.routes import ConstructionObjectsRoutes, CustomerRoutes
 from order.tests.factories import ConstructionObjectFactory, CustomerFactory
 
@@ -85,19 +85,42 @@ class TestCustomerContactsAPI(CustomerBaseTest, BaseAPIMixin):
         )
 
 
-class TestCustomerConstructionObjectsAPIList(CustomerBaseTest, BaseAPIMixin):
+class TestCustomerConstructionObjectsAPIList(BaseAPIMixin):
     __test__ = True
+    model = ConstructionObject
+    factory = ConstructionObjectFactory
     pk_url_name = f"order_customers:{ConstructionObjectsRoutes.LIST_CREATE.name}"
 
     def test_get_customer_construction_objects(self) -> None:
         """Test the logic for retrieving constructions associated with a customer."""
-        customer_1 = self.factory.create()
-        constructions_1 = ConstructionObjectFactory.create_batch(3, customer=customer_1)
-        ConstructionObjectFactory.create_batch(3, customer=customer_1, is_active=False)
+        customer_1 = CustomerFactory.create()
+        constructions_1 = self.factory.create_batch(3, customer=customer_1)
+        self.factory.create_batch(3, customer=customer_1, is_active=False)
 
         self._get_object_related_entities_list(
             customer_1.id, constructions_1, entity="construction_objects"
         )
+
+    def test_creating_item_logic(self) -> None:
+        """Test the logic for creating a customer item."""
+        payload = self.payload_generator()
+        self._create_logic(payload, pk=payload["customer"])
+
+    def test_str_method(self) -> None:
+        """Test the string representation of a customer."""
+        self._str_method_logic(self.obj.name)
+
+    def payload_generator(self) -> Dict[str, Any]:
+        """Generates a payload for customer creation tests."""
+        temp = self.factory.create()
+
+        return {
+            "id": temp.id,
+            "customer": temp.customer.id,
+            "name": temp.name,
+            "address": temp.address,
+            "is_active": temp.is_active,
+        }
 
 
 class TestCustomerConstructionObjectsAPIDetailAPI(BaseAPIMixin):

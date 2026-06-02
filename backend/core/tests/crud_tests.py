@@ -20,7 +20,7 @@ class CrudContractMixin(_Base):
     Standardizes and facilitates the testing of
     CRUD operations in an endpoint, ensuring consistent implementation
     and response validation for the contract. Intended for use in
-    testing frameworks where POST, GET, PUT and DELETE operations
+    testing frameworks where POST, GET, PUT, and DELETE operations
     need to be performed and verified.
     """
 
@@ -46,6 +46,7 @@ class CrudContractMixin(_Base):
         self,
         payload: Dict[str, Any],
         expected_status: int = status.HTTP_201_CREATED,
+        pk: int | None = None,
     ) -> None:
         """
         Executes the logic for creating an object via a POST request and verifies the response status.
@@ -54,10 +55,15 @@ class CrudContractMixin(_Base):
             payload (Dict[str, Any]): The payload to be sent in the request body.
             expected_status (int, optional): The expected status code for the request. Defaults to 201 Created.
         """
-        assert self.url_name is not None
-        self._logger_header(f"ENDPOINT POST: {reverse(self.url_name)}")
+        url = self.get_detail_url(pk=pk) if pk else self.url
 
-        response = self.client.post(self.url, data=payload, format="json")
+        if self.url_name:
+            assert self.url_name is not None
+            self._logger_header(f"ENDPOINT POST: {reverse(self.url_name)}")
+        else:
+            self._logger_header(f"ENDPOINT POST: {url}")
+
+        response = self.client.post(url, data=payload, format="json")
         if response.status_code != expected_status:
             self.fail(f"PATCH failed\nPayload: {payload}\nErrors: {response.data}")
 
