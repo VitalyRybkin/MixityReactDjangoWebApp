@@ -1,8 +1,7 @@
-import datetime
 from typing import Any, Dict
 
-from catalog.models import PurchasePriceHistory
-from catalog.tests.api.factories import ProductFactory, PurchasePriceHistoryFactory
+from catalog.tests.api.factories import PurchasePriceHistoryFactory
+from catalog.tests.api.test_products import BaseTestPriceHistory
 from core.tests.base_test_case import BaseAPIMixin
 from core.tests.utils import FieldSpec, UploadSpec
 from stock.models import Warehouse
@@ -158,7 +157,7 @@ class TestWarehouseUploadMap(BaseAPIMixin):
         return self._upload_map_missing_file_400(self.upload_file_spec)
 
 
-class TestWarehousePriceHistory(BaseAPIMixin):
+class TestWarehousePriceHistory(BaseTestPriceHistory, BaseAPIMixin):
     """
     Implements test cases for the purchase price history functionality in the warehouse module.
 
@@ -166,42 +165,12 @@ class TestWarehousePriceHistory(BaseAPIMixin):
         pk_url_name: Identifier for the URL name related to warehouse price history.
         model: Data model associated with this test, representing the purchase price history entity.
         factory: Factory responsible for generating test data associated with the purchase price history.
+        price_context_factory: Factory for creating warehouse-related test data.
+        context_field (str): The field name used to associate price history with the warehouse.
     """
 
     __test__ = True
     pk_url_name = f"stock:{WarehouseRoutes.PRICES.name}"
-
-    model = PurchasePriceHistory
     factory = PurchasePriceHistoryFactory
-
-    def test_latest_purchase_price(self) -> None:
-        """
-        Test retrieval of the latest purchase price for a product in a warehouse.
-        """
-        warehouse = WarehouseFactory.create()
-        product = ProductFactory.create()
-
-        latest_price_date = datetime.date.today()
-        price_a_date_before = latest_price_date - datetime.timedelta(days=1)
-
-        self.factory.create(
-            warehouse=warehouse,
-            product=product,
-            date=price_a_date_before,
-        )
-        latest_price_to_retrieve = self.factory.create(
-            warehouse=warehouse,
-            product=product,
-            date=latest_price_date,
-        )
-
-        self._get_latest_price(warehouse.id, product.id, latest_price_to_retrieve)
-
-    def test_latest_purchase_price_invalid_ids(self) -> None:
-        """
-        Test retrieval of the latest purchase price with invalid productIDs.
-        """
-        warehouse_id = 2
-        invalid_product_id = "not-an-integer"
-
-        self._get_latest_price_invalid_product_id(warehouse_id, invalid_product_id)
+    price_context_factory = WarehouseFactory
+    context_field = "warehouse"

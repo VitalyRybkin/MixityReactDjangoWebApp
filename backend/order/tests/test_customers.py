@@ -1,8 +1,7 @@
-import datetime
 from typing import Any, Dict
 
-from catalog.models import SalesPriceHistory
-from catalog.tests.api.factories import ProductFactory, SalePriceHistoryFactory
+from catalog.tests.api.factories import SalePriceHistoryFactory
+from catalog.tests.api.test_products import BaseTestPriceHistory
 from contacts.factories import ContactFactory
 from core.tests.base_test_case import BaseAPIMixin
 from core.tests.utils import FieldSpec
@@ -156,38 +155,19 @@ class TestCustomerConstructionObjectsAPIDetailAPI(BaseAPIMixin):
         )
 
 
-class TestCustomerPriceHistory(BaseAPIMixin):
+class TestCustomerPriceHistory(BaseTestPriceHistory, BaseAPIMixin):
+    """
+    TestCustomerPriceHistory is a test class for validating customer price history functionality.
+
+    Attributes:
+        pk_url_name (str): The name of the primary key URL route for accessing customer price history.
+        factory: Factory instance for generating price history test data.
+        price_context_factory: Factory for creating customer-related test data.
+        context_field (str): The field name used to associate price history with the customer.
+    """
+
     __test__ = True
     pk_url_name = f"order_customers:{CustomerRoutes.PRICES.name}"
-    model = SalesPriceHistory
     factory = SalePriceHistoryFactory
-
-    def test_latest_sales_price(self) -> None:
-        customer = CustomerFactory.create()
-        product = ProductFactory.create()
-
-        latest_price_date = datetime.date.today()
-        price_a_day_before = latest_price_date - datetime.timedelta(days=1)
-
-        self.factory.create(
-            customer=customer,
-            product=product,
-            date=price_a_day_before,
-        )
-
-        latest_price_to_retrieve = self.factory.create(
-            customer=customer,
-            product=product,
-            date=latest_price_date,
-        )
-
-        self._get_latest_price(customer.id, product.id, latest_price_to_retrieve)
-
-    def test_latest_sales_price_invalid_ids(self) -> None:
-        """
-        Test retrieval of the latest sales price with invalid productIDs.
-        """
-        customer_id = 2
-        invalid_product_id = "not-an-integer"
-
-        self._get_latest_price_invalid_product_id(customer_id, invalid_product_id)
+    price_context_factory = CustomerFactory
+    context_field = "customer"

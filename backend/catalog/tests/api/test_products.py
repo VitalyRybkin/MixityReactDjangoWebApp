@@ -1,3 +1,5 @@
+import datetime
+
 from catalog.api.routes import ProductRoutes
 from catalog.models import Product
 from catalog.tests.api.factories import ProductFactory
@@ -23,3 +25,42 @@ class TestProductAPIList(BaseAPIMixin):
     def test_get_list(self) -> None:
         """Test that we can get a list of products."""
         return self._get_list_logic()
+
+
+class BaseTestPriceHistory(BaseAPIMixin):
+    price_context_factory = None
+    context_field = None
+
+    def test_latest_sales_price(self) -> None:
+        context_obj = self.price_context_factory.create()
+        product = ProductFactory.create()
+
+        latest_price_date = datetime.date.today()
+        price_a_day_before = latest_price_date - datetime.timedelta(days=1)
+
+        self.factory.create(
+            **{
+                self.context_field: context_obj,
+                "product": product,
+                "date": price_a_day_before,
+            }
+        )
+
+        latest_price_to_retrieve = self.factory.create(
+            **{
+                self.context_field: context_obj,
+                "product": product,
+                "date": latest_price_date,
+            }
+        )
+
+        self._get_latest_price(context_obj.id, product.id, latest_price_to_retrieve)
+
+    def test_latest_sales_price_invalid_ids(self) -> None:
+        """
+        Test retrieval of the latest sales price with invalid productIDs.
+        """
+        customer_id = 2
+        invalid_product_id = "not-an-integer"
+
+        self._get_latest_price_invalid_product_id(customer_id, invalid_product_id)
