@@ -1,5 +1,8 @@
+import datetime
 from typing import Any, Dict
 
+from catalog.models import SalesPriceHistory
+from catalog.tests.api.factories import ProductFactory, SalePriceHistoryFactory
 from contacts.factories import ContactFactory
 from core.tests.base_test_case import BaseAPIMixin
 from core.tests.utils import FieldSpec
@@ -151,3 +154,40 @@ class TestCustomerConstructionObjectsAPIDetailAPI(BaseAPIMixin):
             pk=self.obj.customer.id,
             object_pk=self.obj.id,
         )
+
+
+class TestCustomerPriceHistory(BaseAPIMixin):
+    __test__ = True
+    pk_url_name = f"order_customers:{CustomerRoutes.PRICES.name}"
+    model = SalesPriceHistory
+    factory = SalePriceHistoryFactory
+
+    def test_latest_sales_price(self) -> None:
+        customer = CustomerFactory.create()
+        product = ProductFactory.create()
+
+        latest_price_date = datetime.date.today()
+        price_a_day_before = latest_price_date - datetime.timedelta(days=1)
+
+        self.factory.create(
+            customer=customer,
+            product=product,
+            date=price_a_day_before,
+        )
+
+        latest_price_to_retrieve = self.factory.create(
+            customer=customer,
+            product=product,
+            date=latest_price_date,
+        )
+
+        self._get_latest_price(customer.id, product.id, latest_price_to_retrieve)
+
+    def test_latest_sales_price_invalid_ids(self) -> None:
+        """
+        Test retrieval of the latest sales price with invalid productIDs.
+        """
+        customer_id = 2
+        invalid_product_id = "not-an-integer"
+
+        self._get_latest_price_invalid_product_id(customer_id, invalid_product_id)

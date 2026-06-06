@@ -231,7 +231,7 @@ class CrudContractMixin(_Base):
         resp = self.client.patch(self.url, data={}, format="multipart")
         self.assertEqual(resp.status_code, status.HTTP_400_BAD_REQUEST)
         error_found = any(
-            (spec.field_name.lower() in error.lower()) for error in resp.data
+            spec.field_name.lower() in error.lower() for error in resp.data["messages"]
         )
 
         self.assertTrue(

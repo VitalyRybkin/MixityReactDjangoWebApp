@@ -64,7 +64,9 @@ class QuerysetContractMixin(_Base):
         response = self.client.get(detail_url, {"products": [invalid_product_id]})
         self.assertEqual(response.status_code, 400)
 
-        self.assertEqual(response.data, ["products: Product ids must be integers."])
+        self.assertEqual(
+            response.data["messages"], ["products: Product ids must be integers."]
+        )
 
         print(
             f"    {self.COLOR['OK']}✓ Retrieval of latest price with invalid product ID passed{self.COLOR['END']}"

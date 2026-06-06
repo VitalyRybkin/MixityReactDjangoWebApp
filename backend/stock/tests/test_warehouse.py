@@ -189,13 +189,13 @@ class TestWarehousePriceHistory(BaseAPIMixin):
             product=product,
             date=price_a_date_before,
         )
-        price_to_get = self.factory.create(
+        latest_price_to_retrieve = self.factory.create(
             warehouse=warehouse,
             product=product,
             date=latest_price_date,
         )
 
-        self._get_latest_price(warehouse.id, product.id, price_to_get)
+        self._get_latest_price(warehouse.id, product.id, latest_price_to_retrieve)
 
     def test_latest_purchase_price_invalid_ids(self) -> None:
         """
