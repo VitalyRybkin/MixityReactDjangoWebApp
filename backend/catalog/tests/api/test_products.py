@@ -1,4 +1,5 @@
 import datetime
+from typing import Any, ClassVar
 
 from catalog.api.routes import ProductRoutes
 from catalog.models import Product
@@ -28,10 +29,17 @@ class TestProductAPIList(BaseAPIMixin):
 
 
 class BaseTestPriceHistory(BaseAPIMixin):
-    price_context_factory = None
-    context_field = None
+    price_context_factory: ClassVar[Any | None] = None
+    context_field: ClassVar[str | None] = None
 
     def test_latest_sales_price(self) -> None:
+
+        if self.price_context_factory is None:
+            raise AssertionError("price_context_factory is not configured")
+
+        if self.context_field is None:
+            raise AssertionError("context_field is not configured")
+
         context_obj = self.price_context_factory.create()
         product = ProductFactory.create()
 

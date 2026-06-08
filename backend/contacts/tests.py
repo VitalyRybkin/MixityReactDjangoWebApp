@@ -6,7 +6,7 @@ from contacts.routes import ContactRoutes
 from contacts.serializers import ContactSerializer
 from contacts.views import ContactListCreateAPIView
 from core.tests.base_test_case import BaseAPIMixin
-from core.tests.base_view_test_case import BaseViewTestCase
+from core.tests.base_view_test_case import BaseQuerysetTestCase
 from core.tests.utils import FieldSpec
 from logistic.routes import CarrierRoutes
 from logistic.tests.factories import CarrierFactory
@@ -190,7 +190,7 @@ class TestContactAPIDelete(BaseAPIMixin):
         self._delete_logic(expected_status=204)
 
 
-class TestContactListCreateAPIView(BaseViewTestCase):
+class TestContactListCreateAPIView(BaseQuerysetTestCase):
     _factory = ContactFactory
     _view_class = ContactListCreateAPIView
 
