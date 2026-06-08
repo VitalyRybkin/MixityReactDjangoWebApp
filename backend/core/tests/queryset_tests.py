@@ -1,4 +1,5 @@
 from typing import TYPE_CHECKING
+from urllib.parse import urlencode
 
 from rest_framework.response import Response
 from rest_framework.reverse import reverse
@@ -97,4 +98,23 @@ class QuerysetContractMixin(_Base):
 
         print(
             f"    {self.COLOR['OK']}✓ Retrieval of {entity} list passed{self.COLOR['END']}"
+        )
+
+    def _assert_filtered_count(self, expected_count: int, params: dict) -> None:
+        """
+        Asserts that the filtered queryset returns the expected count of results.
+        """
+        assert self.url_name is not None
+
+        self._logger_header(
+            f"ENDPOINT GET: {reverse(self.url_name)}?{urlencode(params)}"
+        )
+
+        response = self.client.get(reverse(self.url_name), data=params)
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(len(response.data), expected_count)
+        print(
+            f"    {self.COLOR['OK']}✓ Retrieval of filtered queryset passed: "
+            f"\n \t - response count - {len(response.data)}, expected count - {expected_count}{self.COLOR['END']}"
         )
