@@ -1,16 +1,29 @@
 from dataclasses import dataclass
 from datetime import date, timedelta
+from typing import ClassVar
 
+from django.urls import reverse
+from rest_framework import status
+from rest_framework.test import APITestCase
+
+from catalog.tests.api.factories import ProductFactory
 from core.tests.base_test_case import BaseAPIMixin
 from core.tests.base_view_test_case import BaseViewTestCase
+from core.tests.utils import TestLoggingMixin
 from order.models import Order
 from order.routes import OrderRoutes
 from order.serializers.order_serializers.create_order_serializers import (
     OrderReadSerializer,
     OrderWriteSerializer,
 )
-from order.tests.factories import CustomerFactory, OrderFactory
+from order.tests.factories import (
+    ClientFactory,
+    CustomerFactory,
+    OrderFactory,
+    PackTypeFactory,
+)
 from order.views.orders import OrderListCreateAPIView, OrderRetrieveUpdateDestroyAPIView
+from stock.tests.factories import WarehouseFactory
 
 
 class BaseOrderSerializersTestCase(BaseViewTestCase):
@@ -141,3 +154,62 @@ class TestOrderFilteredAPIListCreate(BaseAPIMixin):
                     expected_count=case.expected_count,
                     params=case.params,
                 )
+
+
+class TestOrderResourcesAPIView(APITestCase, TestLoggingMixin):
+    url_name = f"order_orders:{OrderRoutes.RESOURCES.name}"
+    AMOUNT_OF_RESOURCES: ClassVar[int] = 3
+
+    def test_order_resources(self) -> None:
+
+        ClientFactory.create_batch(self.AMOUNT_OF_RESOURCES)
+        CustomerFactory.create_batch(self.AMOUNT_OF_RESOURCES)
+        ProductFactory.create_batch(self.AMOUNT_OF_RESOURCES)
+        WarehouseFactory.create_batch(self.AMOUNT_OF_RESOURCES)
+        PackTypeFactory.create_batch(self.AMOUNT_OF_RESOURCES)
+
+        url = reverse(self.url_name)
+
+        self._logger_header(f"ENDPOINT GET: {url}")
+        response = self.client.get(url)
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+        expected_resources = {
+            "clients": self.AMOUNT_OF_RESOURCES,
+            "customers": self.AMOUNT_OF_RESOURCES,
+            "products": self.AMOUNT_OF_RESOURCES,
+            "warehouses": self.AMOUNT_OF_RESOURCES,
+            "pack_types": self.AMOUNT_OF_RESOURCES,
+        }
+
+        for resource_name, expected_count in expected_resources.items():
+            with self.subTest(resource=resource_name):
+                self.assertIn(resource_name, response.data)
+                self.assertEqual(len(response.data[resource_name]), expected_count)
+
+                for item in response.data[resource_name]:
+                    self.assertIn("id", item)
+
+                print(
+                    f"    {self.COLOR['OK']}✓ "
+                    f"{resource_name} and id's are available in response, expected amount received."
+                    f"{self.COLOR['END']}"
+                )
+
+    def test_order_resources_returns_only_active_items(self) -> None:
+        ClientFactory.create_batch(self.AMOUNT_OF_RESOURCES, is_active=True)
+        ClientFactory.create_batch(2, is_active=False)
+
+        url = reverse(self.url_name)
+        self._logger_header(f"ENDPOINT GET (CHECK ACTIVE ONLY): {url}")
+        response = self.client.get(url)
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(len(response.data["clients"]), self.AMOUNT_OF_RESOURCES)
+
+        print(
+            f"    {self.COLOR['OK']}✓ "
+            f"Only active clients are returned in response."
+            f"{self.COLOR['END']}"
+        )
