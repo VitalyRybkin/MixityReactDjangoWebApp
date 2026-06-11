@@ -2,7 +2,7 @@ from datetime import date, timedelta
 
 import factory.fuzzy
 
-from order.models import Client, ConstructionObject, Customer, Order
+from order.models import Client, ConstructionObject, Customer, Order, OrderItem
 
 
 class PackTypeFactory(factory.django.DjangoModelFactory):
@@ -16,7 +16,7 @@ class BaseOrganizationFactory(factory.django.DjangoModelFactory):
     class Meta:
         abstract = True
 
-    name = factory.Faker("word")
+    name = factory.Sequence(lambda n: f"word-{n}")
     organization = factory.Faker("company")
     address = factory.Faker("address")
     phone = factory.Faker("numerify", text="+79#########")
@@ -58,3 +58,13 @@ class OrderFactory(factory.django.DjangoModelFactory):
             Order.Status.CREATED,
         ]
     )
+
+
+class OrderItemFactory(factory.django.DjangoModelFactory):
+    class Meta:
+        model = OrderItem
+
+    order = factory.SubFactory(OrderFactory)
+    product = factory.SubFactory("catalog.tests.api.factories.ProductFactory")
+    weight_quantity = 1
+    price_at_purchase = 1000

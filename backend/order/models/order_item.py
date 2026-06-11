@@ -66,7 +66,8 @@ class OrderItem(models.Model):
             )
         ]
 
-    def get_total_price(self) -> Decimal:
+    @property
+    def get_total(self) -> Decimal:
         if not self.price_at_purchase:
             return Decimal("0.00")
         quantity = Decimal(self.piece_based_quantity or 0) + (

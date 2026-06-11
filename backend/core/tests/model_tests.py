@@ -1,4 +1,4 @@
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 
 if TYPE_CHECKING:
     from core.tests.type_stubs import BaseMixinProto as _Base
@@ -29,3 +29,28 @@ class ModelContractMixin(_Base):
         self._logger_header(f"METHOD: __str__ for {self.model.__name__}")
         self.assertEqual(str(self.obj), expected_output)
         self._logger_success(f"{str(self.obj)!r}", "String matches expected")
+
+    def _get_total_logic(self, expected_total: Any) -> None:
+        """
+        Executes the logic for testing the get_total method/property of an object against
+        an expected total. Logs the test details, checks for the presence of the get_total
+        method/property, calls it if necessary, and compares the result with the expected value.
+
+        Parameters:
+            expected_total (Any): The expected total value.
+        """
+        self._logger_header(f"METHOD: get_total for {self.model.__name__}")
+
+        self.assertTrue(
+            hasattr(self.obj, "get_total"),
+            msg=f"Model {self.model.__name__} does not implement the get_total method/property",
+        )
+
+        actual_total = self.obj.get_total
+        if callable(actual_total):
+            actual_total = actual_total()
+
+        self.assertEqual(actual_total, expected_total)
+        self._logger_success(
+            f"{actual_total!r}", f"Total matches expected: {expected_total}"
+        )
