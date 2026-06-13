@@ -1,15 +1,17 @@
 from dataclasses import dataclass
 from datetime import date, timedelta
 from decimal import Decimal
-from typing import ClassVar
+from typing import Any, ClassVar
 from unittest import SkipTest
 
 import pytest
+from django.contrib.auth.models import User
 from django.urls import reverse
 from rest_framework import status
 from rest_framework.test import APITestCase
 
 from catalog.tests.api.factories import ProductFactory
+from contacts.factories import ContactFactory
 from core.tests.base_test_case import BaseAPIMixin
 from core.tests.base_view_test_case import BaseViewTestCase
 from core.tests.model_tests import ModelContractMixin
@@ -23,12 +25,67 @@ from order.serializers.order_serializers.create_order_serializers import (
 from order.tests.factories import (
     ClientFactory,
     CustomerFactory,
+    OrderDeliveryDataFactory,
     OrderFactory,
     OrderItemFactory,
     PackTypeFactory,
 )
 from order.views.orders import OrderListCreateAPIView, OrderRetrieveUpdateDestroyAPIView
 from stock.tests.factories import WarehouseFactory
+
+
+class TestOrderListCreateAPIView(BaseAPIMixin):
+    __test__ = True
+    url_name = f"order_orders:{OrderRoutes.LIST_CREATE.name}"
+    factory = OrderFactory
+    model = Order
+
+    def test_create_order_no_data(self) -> None:
+        self.client.force_authenticate(
+            user=User.objects.create_user(username="testuser", password="")
+        )
+        self._create_logic(self.payload_generator()[0])
+
+    def test_create_order(self) -> None:
+        self.client.force_authenticate(
+            user=User.objects.create_user(username="testuser", password="")
+        )
+
+        payload, temp_order = self.payload_generator()
+        delivery_data = OrderDeliveryDataFactory.create(order=temp_order)
+        delivery = {"order": delivery_data.order.id}
+        payload["delivery"] = delivery
+
+        products = OrderItemFactory.create_batch(3, order=temp_order)
+        payload["products"] = [
+            {
+                "product": item.product.id,
+                "quantity": str(item.weight_quantity),
+                "package": item.pack_type.id,
+                "price_at_sale": item.price_at_sale,
+                "price_at_purchase": str(item.price_at_purchase),
+            }
+            for item in products
+        ]
+
+        self._create_logic(payload)
+
+    def payload_generator(self) -> tuple[dict[str, list[Any] | Any], Any]:
+        """Generates a payload for order creation tests."""
+        temp = self.factory.create()
+        contacts = ContactFactory.create_batch(3, client=temp.client, carrier=None)
+
+        return (
+            {
+                "client": temp.client.id,
+                "customer": temp.customer.id,
+                "warehouse": temp.warehouse.id,
+                "delivery_date": temp.delivery_date,
+                "status": temp.status,
+                "contacts": [contact.id for contact in contacts],
+            },
+            temp,
+        )
 
 
 class BaseOrderSerializersTestCase(BaseViewTestCase):

@@ -16,3 +16,8 @@ def temp_media_root(request):
 
     request.addfinalizer(cleanup)
     return temp_dir
+
+def pytest_report_teststatus(report, config):
+    if report.when == 'call' and report.passed:
+        return report.outcome, '', ''
+    return None
