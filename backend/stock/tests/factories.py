@@ -9,7 +9,7 @@ class WarehouseFactory(factory.django.DjangoModelFactory):
     class Meta:
         model = "stock.Warehouse"
 
-    name = factory.Faker("word")
+    name = factory.Sequence(lambda n: f"word-{n}")
     organization = factory.Faker("company")
     address = factory.Faker("address")
     phone = factory.Faker("numerify", text="+79#########")

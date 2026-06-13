@@ -17,7 +17,7 @@ class PackTypeFactory(factory.django.DjangoModelFactory):
     class Meta:
         model = "order.PackType"
 
-    name = factory.Faker("word")
+    name = factory.Sequence(lambda n: f"word-{n}")
 
 
 class BaseOrganizationFactory(factory.django.DjangoModelFactory):
@@ -47,7 +47,7 @@ class ConstructionObjectFactory(factory.django.DjangoModelFactory):
         model = ConstructionObject
 
     customer = factory.SubFactory(CustomerFactory)
-    name = factory.Faker("word")
+    name = factory.Sequence(lambda n: f"word-{n}")
     address = factory.Faker("address")
     is_active = True
 

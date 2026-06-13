@@ -30,7 +30,7 @@ class ProductGroupFactory(factory.django.DjangoModelFactory):
     class Meta:
         model = "catalog.ProductGroup"
 
-    name = factory.Faker("word")
+    name = factory.Sequence(lambda n: f"word-{n}")
     order = factory.Sequence(lambda n: n)
 
 
@@ -38,8 +38,8 @@ class ProductFactory(factory.django.DjangoModelFactory):
     class Meta:
         model = "catalog.Product"
 
-    name = factory.Faker("word")
-    title = factory.Faker("word")
+    name = factory.Sequence(lambda n: f"word-{n}")
+    title = factory.Sequence(lambda n: f"word-{n}")
     product_group = factory.SubFactory(ProductGroupFactory)
     product_image = None
     for_web = True
@@ -50,7 +50,7 @@ class DescriptionItemFactory(factory.django.DjangoModelFactory):
     class Meta:
         model = "catalog.DescriptionItem"
 
-    title = factory.Faker("word")
+    title = factory.Sequence(lambda n: f"word-{n}")
 
 
 class PurchasePriceHistoryFactory(factory.django.DjangoModelFactory):
@@ -81,14 +81,14 @@ class SpecificationGroupFactory(factory.django.DjangoModelFactory):
     class Meta:
         model = "catalog.SpecificationGroup"
 
-    name = factory.Faker("word")
+    name = factory.Sequence(lambda n: f"word-{n}")
 
 
 class ProductSpecNameFactory(factory.django.DjangoModelFactory):
     class Meta:
         model = "catalog.ProductSpecName"
 
-    title = factory.Faker("word")
+    title = factory.Sequence(lambda n: f"word-{n}")
     group = factory.SubFactory(SpecificationGroupFactory)
     order = factory.Sequence(lambda n: n)
 
@@ -99,7 +99,7 @@ class ProductSpecificationFactory(factory.django.DjangoModelFactory):
 
     product = factory.SubFactory(ProductFactory)
     name = factory.SubFactory(ProductSpecNameFactory)
-    value = factory.Faker("word")
+    value = factory.Sequence(lambda n: f"word-{n}")
     unit = factory.SubFactory(UnitFactory)
 
 
