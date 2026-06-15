@@ -72,7 +72,7 @@ class TestOrderAPIList(BaseAPIMixin):
 
         self._create_logic(payload)
 
-    def test_create_order_invalid_data(self) -> None:
+    def test_create_order_invalid_quantity(self) -> None:
         """Test creating an order with invalid quantity data."""
         self.client.force_authenticate(
             user=User.objects.create_user(username="testuser", password="")
@@ -97,6 +97,43 @@ class TestOrderAPIList(BaseAPIMixin):
             payload,
             expected_error="Products: Для штучного товара количество должно быть целым числом.",
         )
+
+    def test_create_piece_based_and_weight_quantity(self) -> None:
+        """Test creating an order with both piece-based and weight-based quantities."""
+        self.client.force_authenticate(
+            user=User.objects.create_user(username="testuser", password="")
+        )
+
+        payload, temp_order = self.payload_generator()
+        delivery_data = OrderDeliveryDataFactory.create(order=temp_order)
+        delivery = {"order": delivery_data.order.id}
+        payload["delivery"] = delivery
+
+        product_1 = OrderItemFactory.create(order=temp_order)
+        product_2 = OrderItemFactory.create(
+            order=temp_order,
+            weight_quantity=None,
+            piece_based_quantity=5,
+            product=ProductFactory.create(is_piece_based=False),
+        )
+
+        payload["products"] = [
+            {
+                "product": product_1.product.id,
+                "quantity": str(product_1.weight_quantity),
+                "package": product_1.pack_type.id,
+                "price_at_sale": product_1.price_at_sale,
+                "price_at_purchase": str(product_1.price_at_purchase),
+            },
+            {
+                "product": product_2.product.id,
+                "quantity": str(product_2.piece_based_quantity),
+                "package": product_2.pack_type.id,
+                "price_at_sale": product_2.price_at_sale,
+                "price_at_purchase": str(product_2.price_at_purchase),
+            },
+        ]
+        self._create_logic(payload)
 
     def payload_generator(self) -> tuple[dict[str, list[Any] | Any], Any]:
         """Generates a payload for order creation tests."""
