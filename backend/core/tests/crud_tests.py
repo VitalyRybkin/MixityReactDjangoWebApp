@@ -46,6 +46,7 @@ class CrudContractMixin(_Base):
         self,
         payload: Dict[str, Any],
         expected_status: int = status.HTTP_201_CREATED,
+        expected_error: str | None = None,
         pk: int | None = None,
     ) -> None:
         """
@@ -65,10 +66,18 @@ class CrudContractMixin(_Base):
 
         response = self.client.post(url, data=payload, format="json")
         if response.status_code != expected_status:
-            self.fail(f"PATCH failed\nPayload: {payload}\nErrors: {response.data}")
+            self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+            response_data = response.data
+
+            self.assertIn("errors", response_data)
+            self.assertIn("messages", response_data)
+            self.assertEqual(response_data["messages"], [expected_error])
+            print(f"    {self.COLOR['ERR']}✗ Object creation failed{self.COLOR['END']}")
+            return
 
         is_created = self.model.objects.filter(pk=response.data["id"]).exists()
-        self.assertTrue(is_created, msg="Object was not created successfully")
+        if not is_created:
+            self.assertTrue(is_created, msg="Object was not created successfully")
 
         print(f"    {self.COLOR['OK']}✓ Object created successfully{self.COLOR['END']}")
 

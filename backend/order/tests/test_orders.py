@@ -34,19 +34,21 @@ from order.views.orders import OrderListCreateAPIView, OrderRetrieveUpdateDestro
 from stock.tests.factories import WarehouseFactory
 
 
-class TestOrderListCreateAPIView(BaseAPIMixin):
+class TestOrderAPIList(BaseAPIMixin):
     __test__ = True
     url_name = f"order_orders:{OrderRoutes.LIST_CREATE.name}"
     factory = OrderFactory
     model = Order
 
     def test_create_order_no_data(self) -> None:
+        """Test creating an order with no data."""
         self.client.force_authenticate(
             user=User.objects.create_user(username="testuser", password="")
         )
         self._create_logic(self.payload_generator()[0])
 
     def test_create_order(self) -> None:
+        """Test creating an order with valid data."""
         self.client.force_authenticate(
             user=User.objects.create_user(username="testuser", password="")
         )
@@ -69,6 +71,32 @@ class TestOrderListCreateAPIView(BaseAPIMixin):
         ]
 
         self._create_logic(payload)
+
+    def test_create_order_invalid_data(self) -> None:
+        """Test creating an order with invalid quantity data."""
+        self.client.force_authenticate(
+            user=User.objects.create_user(username="testuser", password="")
+        )
+
+        payload, temp_order = self.payload_generator()
+        delivery_data = OrderDeliveryDataFactory.create(order=temp_order)
+        delivery = {"order": delivery_data.order.id}
+        payload["delivery"] = delivery
+
+        item = OrderItemFactory.create(order=temp_order)
+        payload["products"] = [
+            {
+                "product": item.product.id,
+                "quantity": "2.5",
+                "package": item.pack_type.id,
+                "price_at_sale": item.price_at_sale,
+                "price_at_purchase": str(item.price_at_purchase),
+            }
+        ]
+        self._create_logic(
+            payload,
+            expected_error="Products: Для штучного товара количество должно быть целым числом.",
+        )
 
     def payload_generator(self) -> tuple[dict[str, list[Any] | Any], Any]:
         """Generates a payload for order creation tests."""

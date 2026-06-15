@@ -218,13 +218,25 @@ class OrderProductWriteSerializer(serializers.Serializer):
     Methods:
         validate(data: dict) -> dict:
             Validates the given data against rules for piece-based and
-            weight-based products, and adjusts the serialized output accordingly.
+            weight-based products and adjusts the serialized output accordingly.
     """
 
-    product = serializers.PrimaryKeyRelatedField(queryset=Product.objects.all())
+    product = serializers.PrimaryKeyRelatedField(
+        queryset=Product.objects.all(),
+        error_messages={
+            "null": "Выберите продукцию.",
+            "required": "Выберите продукцию.",
+            "does_not_exist": "Выбранная продукция не существует.",
+        },
+    )
     quantity = serializers.DecimalField(
         max_digits=10,
         decimal_places=2,
+        error_messages={
+            "null": "Укажите количество.",
+            "required": "Укажите количество.",
+            "invalid": "Введите корректное число.",
+        },
     )
     package = serializers.PrimaryKeyRelatedField(
         queryset=PackType.objects.all(),
@@ -246,11 +258,8 @@ class OrderProductWriteSerializer(serializers.Serializer):
         product = data.get("product")
         quantity = data.get("quantity")
 
-        if not product:
-            raise serializers.ValidationError({"product": "Выберите продукцию."})
-
-        if quantity is None:
-            raise serializers.ValidationError({"quantity": "Укажите количество."})
+        assert product is not None, "Product is required after DRF validation"
+        assert quantity is not None, "Quantity is required after DRF validation"
 
         if product.is_piece_based:
             if quantity != quantity.to_integral_value():
