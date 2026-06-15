@@ -133,7 +133,7 @@ class CrudContractMixin(_Base):
 
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
         print(
-            f"    {self.COLOR['OK']}✓ Object not found successfully{self.COLOR['END']}"
+            f"    {self.COLOR['ERR']}✗ Object not found successfully{self.COLOR['END']}"
         )
 
     def _get_resources_logic(
@@ -309,7 +309,7 @@ class CrudContractMixin(_Base):
             f"    {self.COLOR['OK']}✓ PATCH failed as expected for payload - {payload}{self.COLOR['END']}"
         )
 
-    def _delete_logic(self, expected_status: int = 200) -> None:
+    def _delete_logic(self, expected_status: int = status.HTTP_204_NO_CONTENT) -> None:
         """
         Deletes an object by making a DELETE request to the corresponding endpoint and verifies
         the operation's result by comparing the response status code with the expected value.

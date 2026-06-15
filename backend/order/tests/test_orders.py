@@ -55,7 +55,10 @@ class TestOrderAPIList(BaseAPIMixin):
 
         payload, temp_order = self.payload_generator()
         delivery_data = OrderDeliveryDataFactory.create(order=temp_order)
-        delivery = {"order": delivery_data.order.id}
+        delivery = {
+            "order": delivery_data.order.id,
+            "delivery_cost": "1000.00",
+        }
         payload["delivery"] = delivery
 
         products = OrderItemFactory.create_batch(3, order=temp_order)
@@ -194,7 +197,7 @@ class TestOrderRetrieveUpdateDestroySerializers(
         ("GET", OrderReadSerializer),
         ("PUT", OrderWriteSerializer),
         ("PATCH", OrderWriteSerializer),
-        ("DELETE", OrderReadSerializer),
+        ("DELETE", OrderWriteSerializer),
     ]
 
 
@@ -424,3 +427,32 @@ class TestOrderItem(APITestCase, ModelContractMixin, TestLoggingMixin):
             piece_based_quantity=5, weight_quantity=None, price_at_purchase=None
         )
         self._get_total_logic(Decimal("0.00"))
+
+
+class TestOrderRetrieveUpdateDestroy(BaseAPIMixin):
+    """Test suite for validating the behavior of the OrderRetrieveUpdateDestroy API view."""
+
+    __test__ = True
+    model = Order
+    factory = OrderFactory
+
+    pk_url_name = f"order_orders:{OrderRoutes.DETAIL.name}"
+
+    def test_retrieve_update_logic(self) -> None:
+        self._retrieve_object_by_id()
+
+    def test_not_found_error(self) -> None:
+        self._retrieve_object_by_id_not_found()
+
+    def test_patch_logic(self) -> None:
+        payload = {
+            "status": Order.Status.CREATED,
+            "contacts": [],
+            "products": [],
+        }
+        self._patch_logic_success(payload)
+
+    def test_delete_logic(self) -> None:
+        initial_count = Order.objects.count()
+        self._delete_logic(expected_status=status.HTTP_204_NO_CONTENT)
+        self.assertEqual(Order.objects.count(), initial_count)

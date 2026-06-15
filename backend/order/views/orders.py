@@ -104,7 +104,15 @@ class OrderRetrieveUpdateDestroyAPIView(BaseRetrieveUpdateDestroyAPIView):
     queryset = Order.objects.all().prefetch_related("delivery")
 
     def get_serializer_class(self) -> type[OrderWriteSerializer | OrderReadSerializer]:
-        if self.request.method in ("PUT", "PATCH"):
+        if self.request.method in ("PUT", "PATCH", "DELETE"):
             return OrderWriteSerializer
 
         return OrderReadSerializer
+
+    def destroy(self, request: Request, *args: Any, **kwargs: Any) -> Response:
+        instance = self.get_object()
+        serializer = OrderWriteSerializer(
+            instance, context=self.get_serializer_context()
+        )
+        serializer.destroy(instance)
+        return Response(status=status.HTTP_204_NO_CONTENT)
