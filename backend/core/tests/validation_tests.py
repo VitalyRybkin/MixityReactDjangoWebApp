@@ -269,10 +269,14 @@ class ValidationContractMixin(_Base):
                     )
 
                 if expected_status == 400 and expected_error_text:
-                    errors = [str(error) for error in response.data]
-                    error_found = any(
-                        expected_error_text.lower() in error.lower() for error in errors
+                    error_messages = response.data.get('messages', [])
+                    errors_dict_str = str(response.data.get('errors', {}))
+
+                    error_found = (
+                            any(expected_error_text.lower() in str(msg).lower() for msg in error_messages) or
+                            expected_error_text.lower() in errors_dict_str.lower()
                     )
+
                     self.assertTrue(
                         error_found,
                         msg=(
@@ -297,7 +301,7 @@ class ValidationContractMixin(_Base):
         self.assertEqual(response.status_code, 400)
 
         self.assertTrue(
-            any(expected_error in error for error in response.data),
+            expected_error in str(response.data),
             msg=f"Unexpected errors: {response.data}",
         )
         self._logger_error(
@@ -348,7 +352,7 @@ class ValidationContractMixin(_Base):
 
         self.assertEqual(response.status_code, 400)
         self.assertTrue(
-            any(expected_error in str(error) for error in response.data),
+            expected_error in str(response.data),
             msg=f"Unexpected errors: {response.data}",
         )
 

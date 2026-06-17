@@ -337,17 +337,17 @@ class CrudContractMixin(_Base):
         """
         self._logger_header(f"ENDPOINT POST: {self.url_name}")
 
-        resp = self.client.post(self.url, data=payload, format="json")
+        response = self.client.post(self.url, data=payload, format="json")
 
-        self.assertEqual(resp.status_code, 400)
+        self.assertEqual(response.status_code, 400)
         error_text = "Provide exactly one of carrier, warehouse, client, customer."
 
         error_found = any(
-            (error_text in err or "non_field_errors" in err) for err in resp.data
+            (error_text in err or "non_field_errors" in err) for err in response.data.get('messages', [])
         )
 
         self.assertTrue(
-            error_found, msg=f"Expected XOR validation error, but got: {resp.data}"
+            error_found, msg=f"Expected XOR validation error, but got: {response.data}"
         )
         print(
             f"      {self.COLOR['OK']}✓ Correctly rejected double parent assignment.{self.COLOR['END']}"
