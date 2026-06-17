@@ -5,6 +5,7 @@ CATS := catalog logistic stock core/tests contacts order common
 # ---- VIRTUALENV & SETUP ----
 sync:
 	rm -rf .venv
+	uv venv --python cpython-3.12.11-macos-aarch64-none
 	uv sync --all-groups
 	uv run pre-commit install
 

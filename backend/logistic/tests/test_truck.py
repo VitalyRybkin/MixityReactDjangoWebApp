@@ -9,8 +9,8 @@ from logistic.models import Carrier, Truck, TruckCapacity, TruckType
 from logistic.routes import TruckCapacityRoutes, TruckRoutes, TruckTypeRoutes
 from logistic.serializers.truck_serializers import (
     TruckCapacityWriteSerializer,
-    TruckSerializer,
     TruckTypeSerializer,
+    TruckWriteSerializer,
 )
 from logistic.tests.factories import (
     CarrierFactory,
@@ -239,8 +239,8 @@ class TruckBaseTest:
         "description": FieldSpec("description", str),
     }
 
-    def get_serializer(self) -> TruckSerializer:
-        return TruckSerializer()
+    def get_serializer(self) -> TruckWriteSerializer:
+        return TruckWriteSerializer()
 
 
 class TestTruckAPIList(TruckBaseTest, BaseAPIMixin):

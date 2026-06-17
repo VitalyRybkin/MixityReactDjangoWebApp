@@ -269,12 +269,15 @@ class ValidationContractMixin(_Base):
                     )
 
                 if expected_status == 400 and expected_error_text:
-                    error_messages = response.data.get('messages', [])
-                    errors_dict_str = str(response.data.get('errors', {}))
+                    error_messages = response.data.get("messages", [])
+                    errors_dict_str = str(response.data.get("errors", {}))
 
                     error_found = (
-                            any(expected_error_text.lower() in str(msg).lower() for msg in error_messages) or
-                            expected_error_text.lower() in errors_dict_str.lower()
+                        any(
+                            expected_error_text.lower() in str(msg).lower()
+                            for msg in error_messages
+                        )
+                        or expected_error_text.lower() in errors_dict_str.lower()
                     )
 
                     self.assertTrue(

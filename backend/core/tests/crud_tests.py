@@ -343,7 +343,8 @@ class CrudContractMixin(_Base):
         error_text = "Provide exactly one of carrier, warehouse, client, customer."
 
         error_found = any(
-            (error_text in err or "non_field_errors" in err) for err in response.data.get('messages', [])
+            (error_text in err or "non_field_errors" in err)
+            for err in response.data.get("messages", [])
         )
 
         self.assertTrue(

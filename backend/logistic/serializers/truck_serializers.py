@@ -1,5 +1,6 @@
 import re
 
+from django.db import transaction
 from drf_spectacular.utils import extend_schema_field
 from rest_framework import serializers
 from rest_framework.validators import UniqueValidator
@@ -145,7 +146,7 @@ class TruckBaseSerializer(serializers.ModelSerializer):
         return value
 
 
-class TruckSerializer(TruckBaseSerializer):
+class TruckWriteSerializer(TruckBaseSerializer):
     """
     Serializer for the `Truck` model that inherits common functionality and fields from
     TruckBaseSerializer.
@@ -163,6 +164,13 @@ class TruckSerializer(TruckBaseSerializer):
 
     class Meta(TruckBaseSerializer.Meta):
         fields = TruckBaseSerializer.Meta.fields + ["carrier"]
+
+    @transaction.atomic
+    def destroy(self, instance: Truck) -> None:
+        """
+        Deletes the truck and associated truck items.
+        """
+        instance.delete()
 
 
 class TruckBaseReadSerializer(serializers.ModelSerializer):

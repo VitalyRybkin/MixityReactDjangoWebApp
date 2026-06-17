@@ -15,8 +15,8 @@ from logistic.serializers.truck_serializers import (
     TruckCapacityReadSerializer,
     TruckCapacityWriteSerializer,
     TruckReadSerializer,
-    TruckSerializer,
     TruckTypeSerializer,
+    TruckWriteSerializer,
 )
 
 
@@ -34,14 +34,14 @@ class TruckListCreateAPIView(BaseListCreateAPIView):
     """
 
     read_serializer_class = TruckReadSerializer
-    write_serializer_class = TruckSerializer
+    write_serializer_class = TruckWriteSerializer
     resource_name = "Truck"
     schema_tags = ["Truck"]
 
     queryset = Truck.objects.select_related("truck_type", "capacity", "carrier")
     permission_classes = [AllowAny]
 
-    def get_serializer_class(self) -> type[TruckReadSerializer | TruckSerializer]:
+    def get_serializer_class(self) -> type[TruckReadSerializer | TruckWriteSerializer]:
         if self.request.method == "GET":
             return self.read_serializer_class
         return self.write_serializer_class
@@ -72,7 +72,7 @@ class TruckRetrieveUpdateDestroyAPIView(BaseRetrieveUpdateDestroyAPIView):
     resource_name = "Truck"
     schema_tags = ["Truck"]
     read_serializer_class = TruckReadSerializer
-    write_serializer_class = TruckSerializer
+    write_serializer_class = TruckWriteSerializer
 
     queryset = Truck.objects.select_related("truck_type", "capacity", "carrier")
     permission_classes = [AllowAny]
@@ -95,10 +95,11 @@ class TruckRetrieveUpdateDestroyAPIView(BaseRetrieveUpdateDestroyAPIView):
 
     def destroy(self, request: Request, *args: Any, **kwargs: Any) -> Response:
         instance = self.get_object()
-        self.perform_destroy(instance)
-
-        data = TruckReadSerializer(instance, context={"request": request}).data
-        return Response(data, status=status.HTTP_200_OK)
+        serializer = TruckWriteSerializer(
+            instance, context=self.get_serializer_context()
+        )
+        serializer.destroy(instance)
+        return Response(status=status.HTTP_204_NO_CONTENT)
 
 
 class TruckCapacitiesListCreateAPIView(BaseListCreateAPIView):
