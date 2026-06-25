@@ -22,7 +22,7 @@ from order.serializers.order_serializers.create_order_serializers import (
     OrderResourcesSerializer,
     OrderWriteSerializer,
 )
-from stock.models import Warehouse
+from stock.models import Warehouse, warehouse
 
 
 class OrderResourcesAPIView(BaseGenericAPIView):
@@ -108,6 +108,7 @@ class OrderListCreateAPIView(BaseListCreateAPIView):
         OpenApiParameter("date_to", OpenApiTypes.DATE, OpenApiParameter.QUERY),
         OpenApiParameter("status", OpenApiTypes.STR, OpenApiParameter.QUERY),
         OpenApiParameter("customer", OpenApiTypes.INT, OpenApiParameter.QUERY),
+        OpenApiParameter("warehouse", OpenApiTypes.INT, OpenApiParameter.QUERY),
     ]
 
     permission_classes = [AllowAny]
@@ -119,6 +120,7 @@ class OrderListCreateAPIView(BaseListCreateAPIView):
         date_to = self.request.query_params.get("date_to")
         order_status = self.request.query_params.get("status")
         customer_id = self.request.query_params.get("customer")
+        warehouse_id = self.request.query_params.get("warehouse")
 
         if date_from:
             queryset = queryset.filter(delivery_date__gte=date_from)
@@ -131,6 +133,9 @@ class OrderListCreateAPIView(BaseListCreateAPIView):
 
         if customer_id:
             queryset = queryset.filter(customer_id=customer_id)
+
+        if warehouse_id:
+            queryset = queryset.filter(warehouse_id=warehouse_id)
 
         return queryset.order_by("-delivery_date", "-created_at")
 
