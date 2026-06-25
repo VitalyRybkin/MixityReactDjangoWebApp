@@ -65,14 +65,14 @@ export const deleteWarehouse = async (id) => {
 
 // --- HOOKS ---
 
-export function useWarehouses() {
+export function useGetWarehouses() {
     return useQuery({
         queryKey: warehouseKeys.list(),
         queryFn: fetchWarehouses,
     })
 }
 
-export function useWarehouse(id) {
+export function useGetWarehouse(id) {
     return useQuery({
         queryKey: warehouseKeys.detail(id),
         queryFn: () => fetchWarehouse(id),

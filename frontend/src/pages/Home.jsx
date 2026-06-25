@@ -13,6 +13,7 @@ import ConfirmDialog from '../components/ui/feedback/ConfirmDialog.jsx'
 import { useGetCustomers } from '../features/customers/utils/customers.queries.js'
 import { getOrdersColumns, localeText } from '../features/orders/utils/order.columns.jsx'
 import { useDeleteOrder, useGetOrders } from '../features/orders/utils/orders.queries.js'
+import { useGetWarehouses } from '../features/warehouses/utils/stocks.queries.js'
 import { sidebarPageSx } from '../layouts/AppSidebar.jsx'
 
 import CustomPagination from './components/CustomPagination.jsx'
@@ -63,6 +64,7 @@ const Home = () => {
         dateTo: today,
         status: '',
         customerId: '',
+        warehouseId: '',
         selectedPreset: 'today',
     }
 
@@ -80,6 +82,7 @@ const Home = () => {
 
     const { data: orders, isPending: loadingOrders } = useGetOrders(formattedFilters)
     const { data: customers, isPending: loadingCustomers } = useGetCustomers()
+    const { data: warehouses, isPending: loadingWarehouses } = useGetWarehouses()
 
     const rows = orders ?? []
     // const columns = useMemo(() => getOrdersColumns(), [])
@@ -97,7 +100,7 @@ const Home = () => {
             ...prev,
             dateFrom: range.dateFrom,
             dateTo: range.dateTo,
-            selectedPreset: preset, // Добавляем сюда!
+            selectedPreset: preset,
         }))
     }
 
@@ -160,6 +163,7 @@ const Home = () => {
                 selectedPreset={selectedPreset}
                 onDraftFilterChange={handleDraftFilterChange}
                 customers={customers ?? []}
+                warehouses={warehouses ?? []}
                 statusOptions={ORDER_STATUS_OPTIONS}
             />
 
