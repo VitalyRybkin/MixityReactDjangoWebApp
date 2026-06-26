@@ -19,6 +19,7 @@ import { sidebarPageSx } from '../layouts/AppSidebar.jsx'
 import CustomPagination from './components/CustomPagination.jsx'
 import FilterSidebar from './components/FilterSidebar.jsx'
 import { formatDate, getPresetRange } from './utils/orders.date-filters.js'
+import DownloadAction from "../components/ui/buttons/DownloadAction.jsx";
 
 const ORDER_STATUS_OPTIONS = [
     { value: 'draft', label: 'Черновик' },
@@ -86,6 +87,10 @@ const Home = () => {
 
     const rows = orders ?? []
     // const columns = useMemo(() => getOrdersColumns(), [])
+
+    const handleDownloadOrders = () => {
+        console.log('Download orders', orders)
+    }
 
     const handleApplyFilters = () => {
         setFilters(draftFilters)
@@ -175,8 +180,15 @@ const Home = () => {
                         <Typography variant="h4" gutterBottom fontWeight={600}>
                             Заявки
                         </Typography>
-
-                        <AddAction onClick={() => navigate('/orders/create', { state: { from: location.pathname } })} />
+                        <Box sx={{ p: 2, display: 'flex', gap: 2 }}>
+                            <DownloadAction
+                                title="Сохранить заявки"
+                                onClick={handleDownloadOrders}
+                                disabled={loadingOrders}
+                                loading={loadingOrders}
+                            />
+                            <AddAction onClick={() => navigate('/orders/create', { state: { from: location.pathname } })} />
+                        </Box>
                     </Box>
 
                     <Divider sx={{ mb: 1 }} />
