@@ -4,166 +4,84 @@ import { useLocation, useNavigate } from 'react-router-dom'
 import { Box, Container, Divider, Typography } from '@mui/material'
 import { DataGrid } from '@mui/x-data-grid'
 
-import dayjs from 'dayjs'
-
 import AppBreadcrumbs from '../components/AppBreadcrumbs.jsx'
 import AddAction from '../components/ui/buttons/AddAction.jsx'
+import DownloadAction from '../components/ui/buttons/DownloadAction.jsx'
 import AppSnackbar from '../components/ui/feedback/AppSnackbar.jsx'
 import ConfirmDialog from '../components/ui/feedback/ConfirmDialog.jsx'
 import { useGetCustomers } from '../features/customers/utils/customers.queries.js'
 import { getOrdersColumns, localeText } from '../features/orders/utils/order.columns.jsx'
-import { useDeleteOrder, useGetOrders } from '../features/orders/utils/orders.queries.js'
+import {useExportOrders, useGetOrders} from '../features/orders/utils/orders.queries.js'
 import { useGetWarehouses } from '../features/warehouses/utils/stocks.queries.js'
 import { sidebarPageSx } from '../layouts/AppSidebar.jsx'
 
 import CustomPagination from './components/CustomPagination.jsx'
 import FilterSidebar from './components/FilterSidebar.jsx'
-import { formatDate, getPresetRange } from './utils/orders.date-filters.js'
-import DownloadAction from "../components/ui/buttons/DownloadAction.jsx";
+import { useOrdersFilters } from './hooks/useOrdersFilters.js'
+import { useDeleteOrderFlow } from './hooks/useDeleteOrderFlow.js'
+import { exportOrdersToExcel } from './utils/exportOrders.js'
 
 const ORDER_STATUS_OPTIONS = [
-    { value: 'draft', label: 'Черновик' },
-    { value: 'created', label: 'Создана' },
+    { value: 'draft',       label: 'Черновик' },
+    { value: 'created',     label: 'Создана'  },
     { value: 'in_progress', label: 'В работе' },
-    { value: 'done', label: 'Завершена' },
+    { value: 'done',        label: 'Завершена' },
 ]
-
-const STORAGE_KEY = 'orders_filters_cache'
-
-const saveFiltersToStorage = (filters) => {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(filters))
-}
-
-const loadFiltersFromStorage = (defaults) => {
-    const saved = localStorage.getItem(STORAGE_KEY)
-    if (!saved) return defaults
-
-    try {
-        const parsed = JSON.parse(saved)
-        return {
-            ...defaults,
-            ...parsed,
-            dateFrom: parsed.dateFrom || defaults.dateFrom,
-            dateTo: parsed.dateTo || defaults.dateTo,
-        }
-    } catch (e) {
-        console.error('Error parsing filters', e)
-        return defaults
-    }
-}
 
 const Home = () => {
     const navigate = useNavigate()
     const location = useLocation()
 
-    const today = formatDate(new Date())
+    const [sidebarOpen, setSidebarOpen] = useState(false)
+    const [snackbar, setSnackbar] = useState({ open: false, message: '', severity: 'success' })
 
-    const [open, setOpen] = useState(false)
+    const showSnackbar = (message, severity = 'success') =>
+        setSnackbar({ open: true, message, severity })
 
-    const initialDefaults = {
-        dateFrom: today,
-        dateTo: today,
-        status: '',
-        customerId: '',
-        warehouseId: '',
-        selectedPreset: 'today',
-    }
+    const {
+        formattedFilters,
+        draftFilters,
+        setDraftFilters,
+        selectedPreset,
+        applyFilters,
+        handlePresetClick,
+        handleDraftFilterChange,
+    } = useOrdersFilters()
 
-    const savedData = useMemo(() => loadFiltersFromStorage(initialDefaults), [])
+    const { data: orders,     isPending: loadingOrders    } = useGetOrders(formattedFilters)
+    const { data: customers} = useGetCustomers()
+    const { data: warehouses} = useGetWarehouses()
+    const { refetch: fetchDownload, isFetching: isDownloading } = useExportOrders(formattedFilters)
 
-    const [selectedPreset, setSelectedPreset] = useState(savedData.selectedPreset)
-    const [filters, setFilters] = useState(savedData)
-    const [draftFilters, setDraftFilters] = useState(savedData)
-
-    const formattedFilters = {
-        ...filters,
-        dateFrom: filters.dateFrom || '',
-        dateTo: filters.dateTo || '',
-    }
-
-    const { data: orders, isPending: loadingOrders } = useGetOrders(formattedFilters)
-    const { data: customers, isPending: loadingCustomers } = useGetCustomers()
-    const { data: warehouses, isPending: loadingWarehouses } = useGetWarehouses()
-
-    const rows = orders ?? []
-    // const columns = useMemo(() => getOrdersColumns(), [])
-
-    const handleDownloadOrders = () => {
-        console.log('Download orders', orders)
-    }
-
-    const handleApplyFilters = () => {
-        setFilters(draftFilters)
-        saveFiltersToStorage(draftFilters)
-        // setOpen(false)
-    }
-
-    const handlePresetClick = (preset) => {
-        const range = getPresetRange(preset)
-        setSelectedPreset(preset)
-        setDraftFilters((prev) => ({
-            ...prev,
-            dateFrom: range.dateFrom,
-            dateTo: range.dateTo,
-            selectedPreset: preset,
-        }))
-    }
-
-    const handleDraftFilterChange = (field, value) => {
-        const isDateField = field === 'dateFrom' || field === 'dateTo'
-
-        setDraftFilters((prev) => ({
-            ...prev,
-            [field]: isDateField && value ? dayjs(value).format('YYYY-MM-DD') : value,
-            ...(isDateField ? { selectedPreset: null } : {}),
-        }))
-
-        if (isDateField) {
-            setSelectedPreset(null)
-        }
-    }
-
-    const [orderToDelete, setOrderToDelete] = useState(null)
-
-    const [snackbar, setSnackbar] = useState({
-        open: false,
-        message: '',
-        severity: 'success',
-    })
-
-    const deleteOrder = useDeleteOrder()
+    const { orderToDelete, setOrderToDelete, handleConfirmDelete, isDeleting } =
+        useDeleteOrderFlow(() => showSnackbar('Заявка удалена'))
 
     const columns = useMemo(
-        () =>
-            getOrdersColumns({
-                onDelete: (order) => setOrderToDelete(order),
-            }),
+        () => getOrdersColumns({ onDelete: (order) => setOrderToDelete(order) }),
         [],
     )
 
-    const handleConfirmDelete = () => {
-        if (!orderToDelete) return
-
-        deleteOrder.mutate(orderToDelete.id, {
-            onSuccess: () => {
-                setOrderToDelete(null)
-                setSnackbar({
-                    open: true,
-                    message: 'Заявка удалена',
-                    severity: 'success',
-                })
-            },
-        })
+    const handleExport = async () => {
+        try {
+            const { data } = await fetchDownload()
+            await exportOrdersToExcel(data, formattedFilters, warehouses ?? [])
+        } catch (e) {
+            if (e.message === 'NO_DATA') {
+                showSnackbar('Нет заявок для экспорта.', 'info')
+            } else {
+                showSnackbar('Ошибка при экспорте.', 'error')
+            }
+        }
     }
 
     return (
         <Box sx={sidebarPageSx.page}>
             <FilterSidebar
-                open={open}
-                setOpen={setOpen}
+                open={sidebarOpen}
+                setOpen={setSidebarOpen}
                 draftFilters={draftFilters}
                 setDraftFilters={setDraftFilters}
-                onApply={handleApplyFilters}
+                onApply={applyFilters}
                 onPresetClick={handlePresetClick}
                 selectedPreset={selectedPreset}
                 onDraftFilterChange={handleDraftFilterChange}
@@ -172,7 +90,7 @@ const Home = () => {
                 statusOptions={ORDER_STATUS_OPTIONS}
             />
 
-            <Box sx={{ ...sidebarPageSx.content, ...(open ? sidebarPageSx.contentWithSidebar : {}) }}>
+            <Box sx={{ ...sidebarPageSx.content, ...(sidebarOpen ? sidebarPageSx.contentWithSidebar : {}) }}>
                 <Container maxWidth="xl" sx={{ mt: 1 }}>
                     <AppBreadcrumbs />
 
@@ -183,51 +101,43 @@ const Home = () => {
                         <Box sx={{ p: 2, display: 'flex', gap: 2 }}>
                             <DownloadAction
                                 title="Сохранить заявки"
-                                onClick={handleDownloadOrders}
+                                onClick={handleExport}
+                                disabled={isDownloading}
+                                loading={isDownloading}
+                            />
+                            <AddAction
+                                onClick={() => navigate('/orders/create', { state: { from: location.pathname } })}
                                 disabled={loadingOrders}
                                 loading={loadingOrders}
                             />
-                            <AddAction onClick={() => navigate('/orders/create', { state: { from: location.pathname } })} />
                         </Box>
                     </Box>
 
                     <Divider sx={{ mb: 1 }} />
 
                     <DataGrid
-                        rows={rows}
+                        rows={orders ?? []}
                         columns={columns}
                         loading={loadingOrders}
                         getRowId={(row) => row.id}
                         disableRowSelectionOnClick
                         pageSizeOptions={[10, 25, 50]}
-                        initialState={{
-                            pagination: {
-                                paginationModel: {
-                                    pageSize: 10,
-                                    page: 0,
-                                },
-                            },
-                        }}
+                        initialState={{ pagination: { paginationModel: { pageSize: 10, page: 0 } } }}
                         localeText={localeText}
-                        slots={{
-                            pagination: CustomPagination,
-                        }}
+                        slots={{ pagination: CustomPagination }}
                         onRowClick={(params) => navigate(`/orders/${params.row.id}/edit`)}
-                        sx={{
-                            '& .MuiDataGrid-row': {
-                                cursor: 'pointer',
-                            },
-                        }}
+                        sx={{ '& .MuiDataGrid-row': { cursor: 'pointer' } }}
                     />
+
                     <ConfirmDialog
                         open={Boolean(orderToDelete)}
                         title="Удалить заявку?"
                         text={`Заявка №${orderToDelete?.id} будет удалена без возможности восстановления.`}
-                        confirmText={deleteOrder.isPending ? 'Удаление...' : 'Удалить'}
+                        confirmText={isDeleting ? 'Удаление...' : 'Удалить'}
                         cancelText="Отмена"
-                        onClose={() => !deleteOrder.isPending && setOrderToDelete(null)}
+                        onClose={() => !isDeleting && setOrderToDelete(null)}
                         onConfirm={handleConfirmDelete}
-                        loading={deleteOrder.isPending}
+                        loading={isDeleting}
                     />
 
                     <AppSnackbar
