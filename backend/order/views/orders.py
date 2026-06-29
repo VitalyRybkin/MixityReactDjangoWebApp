@@ -20,9 +20,10 @@ from order.models import Client, Customer, Order, PackType
 from order.serializers.order_serializers.create_order_serializers import (
     OrderReadSerializer,
     OrderResourcesSerializer,
+    OrdersExportReadSerializer,
     OrderWriteSerializer,
 )
-from stock.models import Warehouse, warehouse
+from stock.models import Warehouse
 
 
 class OrderResourcesAPIView(BaseGenericAPIView):
@@ -205,27 +206,31 @@ class OrdersDownloadAPIView(BaseListAPIView):
             API representation.
     """
 
-    resource_name = "Orders"
+    resource_name = "Orders export"
     schema_tags = ["Order"]
-    permission_classes = [AllowAny]
-
-    read_serializer_class = OrderReadSerializer
+    read_serializer_class = OrdersExportReadSerializer
     errors_read = ERRORS_DETAIL
     errors_write = ERRORS_DETAIL_WRITE
     schema_parameters = [
         OpenApiParameter("date_from", OpenApiTypes.DATE, OpenApiParameter.QUERY),
         OpenApiParameter("date_to", OpenApiTypes.DATE, OpenApiParameter.QUERY),
         OpenApiParameter("status", OpenApiTypes.STR, OpenApiParameter.QUERY),
+        OpenApiParameter("customer", OpenApiTypes.INT, OpenApiParameter.QUERY),
+        OpenApiParameter("warehouse", OpenApiTypes.INT, OpenApiParameter.QUERY),
     ]
 
-    serializer_class = OrderReadSerializer
+    permission_classes = [AllowAny]
+
+    serializer_class = OrdersExportReadSerializer
 
     def get_queryset(self) -> QuerySet[Order]:
-        queryset = Order.objects.select_related("client", "customer")
+        queryset = Order.objects.select_related("client", "delivery__driver")
 
         date_from = self.request.query_params.get("date_from")
         date_to = self.request.query_params.get("date_to")
         order_status = self.request.query_params.get("status")
+        customer_id = self.request.query_params.get("customer")
+        warehouse_id = self.request.query_params.get("warehouse")
 
         if date_from:
             queryset = queryset.filter(delivery_date__gte=date_from)
@@ -235,5 +240,11 @@ class OrdersDownloadAPIView(BaseListAPIView):
 
         if order_status:
             queryset = queryset.filter(status=order_status)
+
+        if customer_id:
+            queryset = queryset.filter(customer_id=customer_id)
+
+        if warehouse_id:
+            queryset = queryset.filter(warehouse_id=warehouse_id)
 
         return queryset.order_by("-delivery_date", "-created_at")
