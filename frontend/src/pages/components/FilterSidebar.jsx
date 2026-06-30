@@ -46,6 +46,7 @@ export default function FilterSidebar(props) {
         selectedPreset,
         onDraftFilterChange,
         customers = [],
+        warehouses = [],
         statusOptions = [],
     } = props
 
@@ -114,6 +115,25 @@ export default function FilterSidebar(props) {
                     {customers.map((customer) => (
                         <MenuItem key={customer.id} value={customer.id}>
                             {customer.name}
+                        </MenuItem>
+                    ))}
+                </Select>
+            </FormControl>
+
+            <FormControl fullWidth size="small" margin="normal">
+                <InputLabel id="orders-warehouse-label">Склад</InputLabel>
+                <Select
+                    labelId="orders-warehouse-label"
+                    id="orders-customer"
+                    value={draftFilters.warehouseId}
+                    label="Склад"
+                    variant="outlined"
+                    onChange={(e) => setDraftFilters((prev) => ({ ...prev, warehouseId: e.target.value }))}
+                >
+                    <MenuItem value="">Все</MenuItem>
+                    {warehouses.map((warehouse) => (
+                        <MenuItem key={warehouse.id} value={warehouse.id}>
+                            {warehouse.name}
                         </MenuItem>
                     ))}
                 </Select>

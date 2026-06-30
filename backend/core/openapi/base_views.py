@@ -16,6 +16,7 @@ class BaseListCreateAPIView(generics.ListCreateAPIView):
     write_serializer: Any
     errors_read: dict[int, Any]
     errors_write: dict[int, Any]
+    query_parameters: ClassVar[list[OpenApiParameter]] = []
 
 
     read_serializer_class: ClassVar[Type[serializers.BaseSerializer]] = serializers.Serializer
@@ -28,6 +29,7 @@ class BaseListCreateAPIView(generics.ListCreateAPIView):
             tags=cls.schema_tags,
             read_serializer=cls.read_serializer_class,
             write_serializer=cls.write_serializer_class,
+            parameters=cls.query_parameters,
         )(cls)
         return super(BaseListCreateAPIView, decorated).as_view(**kwargs)
 

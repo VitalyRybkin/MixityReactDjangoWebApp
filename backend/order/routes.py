@@ -43,3 +43,4 @@ class OrderRoutes:
     LIST_CREATE = ApiRoute("", "order_list_create")
     DETAIL = ApiRoute("<int:pk>/", "order_detail")
     RESOURCES = ApiRoute("resources/", "order_resources")
+    DOWNLOAD = ApiRoute("download/", "orders_download")

@@ -399,3 +399,36 @@ class OrderWriteSerializer(serializers.ModelSerializer):
         Deletes the order and associated order items.
         """
         instance.delete()
+
+
+class OrderItemExportSerializer(OrderItemSerializer):
+    class Meta(OrderItemSerializer.Meta):
+        fields = [
+            f
+            for f in OrderItemSerializer.Meta.fields
+            if f not in ("price_at_purchase", "price_at_sale")
+        ]
+
+
+class OrdersExportReadSerializer(serializers.ModelSerializer):
+    id = serializers.IntegerField()
+    client = serializers.ReadOnlyField(source="client.name")
+    order_products = OrderItemExportSerializer(
+        source="order_items", many=True, read_only=True
+    )
+    warehouse = serializers.ReadOnlyField(source="warehouse.name")
+    delivery = serializers.ReadOnlyField(source="delivery.driver.full_name", default="")
+
+    class Meta:
+        model = Order
+        fields = [
+            "id",
+            "client",
+            "delivery_date",
+            "status",
+            "description",
+            "samples",
+            "order_products",
+            "warehouse",
+            "delivery",
+        ]

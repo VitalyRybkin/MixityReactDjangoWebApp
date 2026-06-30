@@ -22,10 +22,22 @@ export const orderKeys = {
             dateTo: filters.dateTo || '',
             status: filters.status || '',
             customerId: filters.customerId || '',
+            warehouseId: filters.warehouseId || '',
         },
     ],
     detail: (id) => [...orderKeys.all, 'detail', String(id)],
     resources: () => [...orderKeys.all, 'resources'],
+    download: (filters = {}) => [
+        ...orderKeys.all,
+        'download',
+        {
+            dateFrom:    filters.dateFrom    || '',
+            dateTo:      filters.dateTo      || '',
+            status:      filters.status      || '',
+            customerId:  filters.customerId  || '',
+            warehouseId: filters.warehouseId || '',
+        },
+    ],
 }
 
 // --- API FUNCTIONS ---
@@ -35,15 +47,31 @@ export const fetchOrderResources = async () => {
     return res.data
 }
 
-export const fetchOrders = async ({ dateFrom, dateTo, status, customerId } = {}) => {
+export const fetchOrders = async ({ dateFrom, dateTo, status, customerId, warehouseId } = {}) => {
     const params = {}
 
     if (dateFrom) params.date_from = dateFrom
     if (dateTo) params.date_to = dateTo
     if (status) params.status = status
     if (customerId) params.customer = customerId
+    if (warehouseId) params.warehouse = warehouseId
+
 
     const res = await api.get(orderApiPaths.listCreate(), { params })
+    return unwrapList(res.data)
+}
+
+export const fetchExportOrders = async ({ dateFrom, dateTo, status, customerId, warehouseId } = {}) => {
+    const params = {}
+
+    if (dateFrom) params.date_from = dateFrom
+    if (dateTo) params.date_to = dateTo
+    if (status) params.status = status
+    if (customerId) params.customer = customerId
+    if (warehouseId) params.warehouse = warehouseId
+
+
+    const res = await api.get(orderApiPaths.download(), { params })
     return unwrapList(res.data)
 }
 
@@ -86,7 +114,23 @@ export function useGetOrders(filters = {}) {
                 dateTo: filters.dateTo || '',
                 status: filters.status || '',
                 customerId: filters.customerId || '',
+                warehouseId: filters.warehouseId || '',
             }),
+    })
+}
+
+export function useExportOrders(filters = {}) {
+    return useQuery({
+        queryKey: orderKeys.download(filters),
+        queryFn: () =>
+            fetchExportOrders({
+                dateFrom: filters.dateFrom || '',
+                dateTo: filters.dateTo || '',
+                status: filters.status || '',
+                customerId: filters.customerId || '',
+                warehouseId: filters.warehouseId || '',
+            }),
+        enabled: false,
     })
 }
 

@@ -6,10 +6,10 @@ import useConfirm from '../../hooks/useConfirm.js'
 import { useConfirmDelete } from '../../hooks/useConfirmDelete.js'
 import useSnackbar from '../../hooks/useSnackbar.js'
 
-import { useDeleteWarehouse, useWarehouses } from './utils/stocks.queries.js'
+import { useDeleteWarehouse, useGetWarehouses } from './utils/stocks.queries.js'
 
 export default function WarehousesList() {
-    const { data: warehouses = [], isPending, error, refetch } = useWarehouses()
+    const { data: warehouses = [], isPending, error, refetch } = useGetWarehouses()
     const deleteWarehouse = useDeleteWarehouse()
 
     const { confirm, askConfirm, closeConfirm, handleConfirm } = useConfirm()

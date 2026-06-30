@@ -9,7 +9,7 @@ import { useFormLogic } from '../../hooks/useEntityForm.js'
 import useLoadImage from '../../hooks/useLoadImage.jsx'
 import { EMAIL_HINT } from '../../utils/email.js'
 
-import { useCreateWarehouse, useUpdateWarehouse, useWarehouse } from './utils/stocks.queries.js'
+import { useCreateWarehouse, useGetWarehouse, useUpdateWarehouse } from './utils/stocks.queries.js'
 
 const emptyForm = {
     name: '',
@@ -27,7 +27,7 @@ export default function WarehouseFormPage() {
     const location = useLocation()
     const backPath = location.state?.from || '/'
 
-    const { data: warehouse, isPending: loadingWarehouse, error: loadError } = useWarehouse(id)
+    const { data: warehouse, isPending: loadingWarehouse, error: loadError } = useGetWarehouse(id)
     const createWarehouse = useCreateWarehouse()
     const updateWarehouse = useUpdateWarehouse()
 

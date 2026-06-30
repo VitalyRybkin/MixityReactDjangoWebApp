@@ -5,6 +5,7 @@ from order.views.orders import (
     OrderListCreateAPIView,
     OrderResourcesAPIView,
     OrderRetrieveUpdateDestroyAPIView,
+    OrdersDownloadAPIView,
 )
 
 app_name = "order_orders"
@@ -24,5 +25,10 @@ urlpatterns = [
         OrderRoutes.DETAIL.path,
         OrderRetrieveUpdateDestroyAPIView.as_view(),
         name=OrderRoutes.DETAIL.name,
+    ),
+    path(
+        OrderRoutes.DOWNLOAD.path,
+        OrdersDownloadAPIView.as_view(),
+        name=OrderRoutes.DOWNLOAD.name,
     ),
 ]

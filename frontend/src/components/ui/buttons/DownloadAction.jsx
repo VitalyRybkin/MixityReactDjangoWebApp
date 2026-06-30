@@ -5,10 +5,16 @@ import FileDownloadIcon from '@mui/icons-material/FileDownload'
 
 import IconAction from './IconAction.jsx'
 
-export default function DownloadAction(props) {
+import CircularProgress from '@mui/material/CircularProgress'
+
+export default function DownloadAction({ loading, ...props }) {
     return (
         <IconAction title="Скачать" {...props}>
-            <FileDownloadIcon fontSize="small" />
+            {loading ? (
+                <CircularProgress size={18} />
+            ) : (
+                <FileDownloadIcon fontSize="small" />
+            )}
         </IconAction>
     )
 }
