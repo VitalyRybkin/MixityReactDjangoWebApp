@@ -11,21 +11,21 @@ import AppSnackbar from '../components/ui/feedback/AppSnackbar.jsx'
 import ConfirmDialog from '../components/ui/feedback/ConfirmDialog.jsx'
 import { useGetCustomers } from '../features/customers/utils/customers.queries.js'
 import { getOrdersColumns, localeText } from '../features/orders/utils/order.columns.jsx'
-import {useExportOrders, useGetOrders} from '../features/orders/utils/orders.queries.js'
+import { useExportOrders, useGetOrders } from '../features/orders/utils/orders.queries.js'
 import { useGetWarehouses } from '../features/warehouses/utils/stocks.queries.js'
 import { sidebarPageSx } from '../layouts/AppSidebar.jsx'
 
 import CustomPagination from './components/CustomPagination.jsx'
 import FilterSidebar from './components/FilterSidebar.jsx'
-import { useOrdersFilters } from './hooks/useOrdersFilters.js'
 import { useDeleteOrderFlow } from './hooks/useDeleteOrderFlow.js'
+import { useOrdersFilters } from './hooks/useOrdersFilters.js'
 import { exportOrdersToExcel } from './utils/exportOrders.js'
 
 const ORDER_STATUS_OPTIONS = [
-    { value: 'draft',       label: 'Черновик' },
-    { value: 'created',     label: 'Создана'  },
+    { value: 'draft', label: 'Черновик' },
+    { value: 'created', label: 'Создана' },
     { value: 'in_progress', label: 'В работе' },
-    { value: 'done',        label: 'Завершена' },
+    { value: 'done', label: 'Завершена' },
 ]
 
 const Home = () => {
@@ -35,8 +35,7 @@ const Home = () => {
     const [sidebarOpen, setSidebarOpen] = useState(false)
     const [snackbar, setSnackbar] = useState({ open: false, message: '', severity: 'success' })
 
-    const showSnackbar = (message, severity = 'success') =>
-        setSnackbar({ open: true, message, severity })
+    const showSnackbar = (message, severity = 'success') => setSnackbar({ open: true, message, severity })
 
     const {
         formattedFilters,
@@ -48,17 +47,18 @@ const Home = () => {
         handleDraftFilterChange,
     } = useOrdersFilters()
 
-    const { data: orders,     isPending: loadingOrders    } = useGetOrders(formattedFilters)
-    const { data: customers} = useGetCustomers()
-    const { data: warehouses} = useGetWarehouses()
+    const { data: orders, isPending: loadingOrders } = useGetOrders(formattedFilters)
+    const { data: customers } = useGetCustomers()
+    const { data: warehouses } = useGetWarehouses()
     const { refetch: fetchDownload, isFetching: isDownloading } = useExportOrders(formattedFilters)
 
-    const { orderToDelete, setOrderToDelete, handleConfirmDelete, isDeleting } =
-        useDeleteOrderFlow(() => showSnackbar('Заявка удалена'))
+    const { orderToDelete, setOrderToDelete, handleConfirmDelete, isDeleting } = useDeleteOrderFlow(() =>
+        showSnackbar('Заявка удалена'),
+    )
 
     const columns = useMemo(
         () => getOrdersColumns({ onDelete: (order) => setOrderToDelete(order) }),
-        [],
+        [setOrderToDelete],
     )
 
     const handleExport = async () => {
@@ -102,8 +102,8 @@ const Home = () => {
                             <DownloadAction
                                 title="Сохранить заявки"
                                 onClick={handleExport}
-                                disabled={isDownloading}
-                                loading={isDownloading}
+                                disabled={isDownloading || loadingOrders}
+                                loading={isDownloading || loadingOrders}
                             />
                             <AddAction
                                 onClick={() => navigate('/orders/create', { state: { from: location.pathname } })}

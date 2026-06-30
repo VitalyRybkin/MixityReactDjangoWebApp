@@ -11,11 +11,7 @@ function formatDate(dateStr, includeYear = false) {
 }
 
 export async function exportOrdersToExcel(orders, filters, warehouses) {
-    const jsonData = Array.isArray(orders)
-        ? orders
-        : Array.isArray(orders?.results)
-            ? orders.results
-            : []
+    const jsonData = Array.isArray(orders) ? orders : Array.isArray(orders?.results) ? orders.results : []
 
     if (!jsonData.length) {
         throw new Error('NO_DATA')
@@ -24,50 +20,67 @@ export async function exportOrdersToExcel(orders, filters, warehouses) {
     const flattenedData = jsonData.flatMap((order) => {
         const products = order.order_products ?? order.products ?? order.order_items ?? []
 
-        const baseRow = {
+        let baseRow = {
             'Номер': order.id ?? '',
             'Дата доставки': formatDate(order.delivery_date ?? '', true) ?? '',
             'Организация': order.client ?? '-',
             'Склад': order.warehouse ?? '-',
             'Водитель': order.delivery ?? '-',
+            'Образцы': order.samples ? '+' : '',
+            'Примечание': order.description ?? '',
         }
 
         if (!products.length) {
-            return [{
-                ...baseRow,
-                'Наименование': 'Нет товаров',
-                'Кол-во': 0,
-                'Ед.': '-',
-                'Вес уп. (кг)': '-',
-                'Всего (кг)': '-',
-                'Водитель': '-',
-                'Упаковка': '-',
-                isEmpty: true,
-            }]
+            return [
+                {
+                    ...baseRow,
+                    'Наименование': 'Нет товаров',
+                    'Кол-во': 0,
+                    'Ед.': '-',
+                    'Вес уп. (кг)': '-',
+                    'Всего (кг)': '-',
+                    'Водитель': '-',
+                    'Упаковка': '-',
+                    'Примечание': order.description ?? '',
+                    isEmpty: true,
+                },
+            ]
         }
 
-
-
         return products.map((item) => {
-            const factor = (item.product?.product_unit?.unit?.to_kg_factor ?? 0) *
-                (item.product?.product_unit?.value ?? 0)
+            const factor =
+                (item.product?.product_unit?.unit?.to_kg_factor ?? 0) * (item.product?.product_unit?.value ?? 0)
             const qty = Number(item.piece_based_quantity ?? item.weight_quantity ?? 0)
 
             return {
                 ...baseRow,
                 'Наименование': item.product?.name ?? '-',
-                'Кол-во':       qty,
-                'Ед.':          item.product?.product_unit?.unit?.display_name ?? '-',
-                'Вес уп. (кг)':      factor || '-',
-                'Всего (кг)':   qty && factor ? qty * factor : '-',
-                'Водитель':     order.delivery ?? '-',
-                'Упаковка':     item.pack_type?.name ?? '-',
-                isEmpty:        false,
+                'Кол-во': qty,
+                'Ед.': item.product?.product_unit?.unit?.display_name ?? '-',
+                'Вес уп. (кг)': factor || '-',
+                'Всего (кг)': qty && factor ? qty * factor : '-',
+                'Водитель': order.delivery ?? '-',
+                'Упаковка': item.pack_type?.name ?? '-',
+                isEmpty: false,
             }
         })
     })
 
-    const excelColumns = Object.keys(flattenedData[0]).filter((key) => key !== 'isEmpty')
+    const excelColumns = [
+        'Номер',
+        'Дата доставки',
+        'Организация',
+        'Склад',
+        'Наименование',
+        'Кол-во',
+        'Ед.',
+        'Вес уп. (кг)',
+        'Всего (кг)',
+        'Водитель',
+        'Упаковка',
+        'Образцы',
+        'Примечание',
+    ]
 
     const workbook = new ExcelJS.Workbook()
     const worksheet = workbook.addWorksheet('Заявки')
@@ -79,22 +92,26 @@ export async function exportOrdersToExcel(orders, filters, warehouses) {
         style: { alignment: { horizontal: 'left' } },
     }))
 
-    const numberCols = ['Кол-во', 'Вес уп.', 'Всего (кг)']
+    const numberCols = ['Кол-во', 'Вес уп. (кг)', 'Всего (кг)']
 
-    worksheet.columns.forEach(col => {
+    worksheet.columns.forEach((col) => {
         if (numberCols.includes(col.header)) {
-            col.alignment = { horizontal: 'left' }
-            col.numFmt = '#,##0'
+            col.style = {
+                ...col.style,
+                alignment: { horizontal: 'right' },
+                // numFmt: '#,##0.00',
+            }
         }
     })
 
     worksheet.addRows(flattenedData)
 
-    const mergeColumns = ['Номер', 'Дата доставки', 'Организация', 'Склад', 'Водитель']
+    const mergeColumns = ['Номер', 'Дата доставки', 'Организация', 'Склад', 'Водитель', 'Примечание']
 
     let rowIndex = 2
     for (const order of jsonData) {
-        const productCount = Math.max(order.order_products?.length ?? 0, 1)
+        const products = order.order_products ?? order.products ?? order.order_items ?? []
+        const productCount = Math.max(products.length, 1)
 
         if (productCount > 1) {
             for (const colKey of mergeColumns) {
@@ -114,7 +131,7 @@ export async function exportOrdersToExcel(orders, filters, warehouses) {
     worksheet.getRow(1).eachCell((cell) => {
         cell.font = { bold: true, color: { argb: 'FF000000' } }
         cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFF5EFEB' } }
-        cell.alignment = { horizontal: 'center' }
+        cell.alignment = { horizontal: 'center', vertical: 'middle' }
     })
 
     worksheet.eachRow((row, rowNumber) => {
@@ -136,13 +153,16 @@ export async function exportOrdersToExcel(orders, filters, warehouses) {
         })
     })
 
+    worksheet.autoFilter = {
+        from: { row: 1, column: 2 },
+        to: { row: worksheet.rowCount, column: 5 },
+    }
+
     const buffer = await workbook.xlsx.writeBuffer()
 
     const startPeriod = formatDate(filters.dateFrom, false)
     const endPeriod = formatDate(filters.dateTo, true)
-    const dateStr = filters.dateFrom === filters.dateTo
-        ? endPeriod
-        : `${startPeriod}-${endPeriod}`
+    const dateStr = filters.dateFrom === filters.dateTo ? endPeriod : `${startPeriod}-${endPeriod}`
 
     const warehouseName = filters.warehouseId
         ? (warehouses.find((w) => w.id === filters.warehouseId)?.name ?? 'unknown')
@@ -151,7 +171,7 @@ export async function exportOrdersToExcel(orders, filters, warehouses) {
     const warehouseStr = warehouseName ? `_склад_${warehouseName}` : '_ВСЕ_СКЛАДЫ'
 
     saveAs(
-        new Blob([buffer], { type: '...' }),
+        new Blob([buffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' }),
         `заявки${warehouseStr}_${dateStr}.xlsx`,
     )
 }
