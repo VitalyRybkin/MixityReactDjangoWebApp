@@ -36,11 +36,14 @@ export default function PowerOfAttorney({ order }) {
                 <h2>ДОВЕРЕННОСТЬ № {order.id}</h2>
 
                 <div className="poa-row">
-                    <span>Дата выдачи:</span>
-                    <b>{formatDate(order.delivery_date)}</b>
-
-                    <span>Действительна до:</span>
-                    <b>{formatDate(order.delivery_date)}</b>
+                    <div>
+                        <span>Дата выдачи:</span>
+                        <b>{formatDate(order.delivery_date)}</b>
+                    </div>
+                    <div>
+                        <span>Действительна до:</span>
+                        <b>{formatDate(order.delivery_date)}</b>
+                    </div>
                 </div>
 
                 <div className="poa-line">
@@ -100,8 +103,8 @@ export default function PowerOfAttorney({ order }) {
 
                 <div className="poa-signature-block poa-manager-block">
                     <div className="poa-signature-row">
-                        <span>Руководитель</span>
                         <div className="poa-signature-line-wrap">
+                            <span>Руководитель</span>
                             <div className="poa-signature-line"></div>
                             <div className="poa-signature-name">(Рыбкин В.Л.)</div>
                         </div>
@@ -114,8 +117,8 @@ export default function PowerOfAttorney({ order }) {
 
                 <div className="poa-signature-block">
                     <div className="poa-signature-row">
-                        <span>Главный бухгалтер</span>
                         <div className="poa-signature-line-wrap">
+                            <span>Главный бухгалтер</span>
                             <div className="poa-signature-line"></div>
                             <div className="poa-signature-name">(Данилова Н.Ю.)</div>
                         </div>

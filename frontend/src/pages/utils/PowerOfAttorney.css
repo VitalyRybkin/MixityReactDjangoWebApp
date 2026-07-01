@@ -35,8 +35,9 @@
 
 .poa-row {
     display: flex;
+    flex-direction: column;
     gap: 10px;
-    margin-bottom: 8px;
+    margin: 28px 0;
 }
 
 .poa-line {
@@ -88,10 +89,11 @@
     align-items: flex-end;
     gap: 8px;
     white-space: nowrap;
+    margin: 30px 0;
 }
 
 .poa-signature-row span {
-    flex: 0 0 220px;
+    flex: 0 0 40px;
 }
 
 .poa-signature-line-wrap {
@@ -108,7 +110,7 @@
 
 .poa-signature-name {
     margin-top: 4px;
-    text-align: right;
+    text-align: center;
 }
 
 .poa-manager-block {
@@ -117,10 +119,10 @@
 
 .poa-stamp {
     position: absolute;
-    left: 260px;
-    top: -35px;
+    left: 120px;
+    top: -45px;
 }
 
 .poa-stamp img {
-    width: 150px;
+    width: 250px;
 }
