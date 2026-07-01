@@ -1,3 +1,5 @@
+from typing import Any
+
 from django.db import transaction
 from rest_framework import serializers
 
@@ -417,7 +419,11 @@ class OrdersExportReadSerializer(serializers.ModelSerializer):
         source="order_items", many=True, read_only=True
     )
     warehouse = serializers.ReadOnlyField(source="warehouse.name")
-    delivery = serializers.ReadOnlyField(source="delivery.driver.full_name", default="")
+    supplier = serializers.ReadOnlyField(source="warehouse.organization", default="")
+    driver = serializers.ReadOnlyField(source="delivery.driver.full_name", default="")
+    passport = serializers.SerializerMethodField(
+        help_text="Формат: номер 1234 567890, выдан ТП УФМС, 2020-01-01"
+    )
 
     class Meta:
         model = Order
@@ -430,5 +436,24 @@ class OrdersExportReadSerializer(serializers.ModelSerializer):
             "samples",
             "order_products",
             "warehouse",
-            "delivery",
+            "supplier",
+            "driver",
+            "passport",
         ]
+
+    def get_passport(self, obj: Any) -> str:
+        delivery = getattr(obj, "delivery", None)
+        driver = getattr(delivery, "driver", None) if delivery else None
+
+        if not driver or not getattr(driver, "passport_number", None):
+            return ""
+
+        parts = [f"номер {driver.passport_number}"]
+
+        if getattr(driver, "passport_emitted_by", None):
+            parts.append(f"выдан {driver.passport_emitted_by}")
+
+        if getattr(driver, "passport_issue_date", None):
+            parts.append(str(driver.passport_issue_date))
+
+        return ", ".join(parts)
