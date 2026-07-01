@@ -20,6 +20,7 @@ import FilterSidebar from './components/FilterSidebar.jsx'
 import { useDeleteOrderFlow } from './hooks/useDeleteOrderFlow.js'
 import { useOrdersFilters } from './hooks/useOrdersFilters.js'
 import { exportOrdersToExcel } from './utils/exportOrders.js'
+import { exportPowerOfAttorney } from './utils/exportPowerOfAttorney.jsx'
 
 const ORDER_STATUS_OPTIONS = [
     { value: 'draft', label: 'Черновик' },
@@ -64,7 +65,15 @@ const Home = () => {
     const handleExport = async () => {
         try {
             const { data } = await fetchDownload()
-            await exportOrdersToExcel(data, formattedFilters, warehouses ?? [])
+
+            const orders = Array.isArray(data) ? data : Array.isArray(data?.results) ? data.results : []
+
+            if (!orders.length) {
+                throw new Error('NO_DATA')
+            }
+
+            await exportOrdersToExcel(orders, formattedFilters, warehouses ?? [])
+            await exportPowerOfAttorney(orders)
         } catch (e) {
             if (e.message === 'NO_DATA') {
                 showSnackbar('Нет заявок для экспорта.', 'info')
@@ -100,7 +109,7 @@ const Home = () => {
                         </Typography>
                         <Box sx={{ p: 2, display: 'flex', gap: 2 }}>
                             <DownloadAction
-                                title="Сохранить заявки"
+                                title="Экспорт заявок и довернностей"
                                 onClick={handleExport}
                                 disabled={isDownloading || loadingOrders}
                                 loading={isDownloading || loadingOrders}

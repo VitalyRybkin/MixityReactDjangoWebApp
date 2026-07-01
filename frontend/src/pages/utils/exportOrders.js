@@ -25,7 +25,7 @@ export async function exportOrdersToExcel(orders, filters, warehouses) {
             'Дата доставки': formatDate(order.delivery_date ?? '', true) ?? '',
             'Организация': order.client ?? '-',
             'Склад': order.warehouse ?? '-',
-            'Водитель': order.delivery ?? '-',
+            'Водитель': order.driver ?? '-',
             'Образцы': order.samples ? '+' : '',
             'Примечание': order.description ?? '',
         }
@@ -59,7 +59,7 @@ export async function exportOrdersToExcel(orders, filters, warehouses) {
                 'Ед.': item.product?.product_unit?.unit?.display_name ?? '-',
                 'Вес уп. (кг)': factor || '-',
                 'Всего (кг)': qty && factor ? qty * factor : '-',
-                'Водитель': order.delivery ?? '-',
+                'Водитель': order.driver ?? '-',
                 'Упаковка': item.pack_type?.name ?? '-',
                 isEmpty: false,
             }

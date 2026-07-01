@@ -1,0 +1,126 @@
+@import url('https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap');
+
+.poa-page {
+    width: 190mm;
+    min-height: auto;
+    height: auto;
+    padding: 10mm;
+    background: white;
+    color: black;
+    font-family: Roboto, Arial, sans-serif;
+    font-size: 12px;
+    box-sizing: border-box;
+
+    page-break-after: auto !important;
+    break-after: auto !important;
+    overflow: hidden;
+}
+
+.poa-page:last-child {
+    page-break-after: auto;
+}
+
+.poa-cut {
+    border: 1px solid #000;
+    padding: 6px;
+    margin-bottom: 16px;
+    font-size: 11px;
+}
+
+.poa-page h2 {
+    text-align: center;
+    margin: 12px 0;
+    font-size: 18px;
+}
+
+.poa-row {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 8px;
+}
+
+.poa-line {
+    border-bottom: 1px solid #000;
+    min-height: 22px;
+    margin-bottom: 6px;
+}
+
+.poa-products {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 16px;
+}
+
+.poa-products th,
+.poa-products td {
+    border: 1px solid #000;
+    padding: 5px;
+}
+
+.poa-products th:nth-child(1),
+.poa-products td:nth-child(1) {
+    width: 35px;
+    text-align: center;
+}
+
+.poa-products th:nth-child(3),
+.poa-products td:nth-child(3),
+.poa-products th:nth-child(4),
+.poa-products td:nth-child(4) {
+    width: 90px;
+    text-align: center;
+}
+
+
+
+
+.poa-signatures {
+    width: 75%;
+    margin-top: 55px;
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    gap: 45px;
+}
+
+.poa-signature-row {
+    display: flex;
+    align-items: flex-end;
+    gap: 8px;
+    white-space: nowrap;
+}
+
+.poa-signature-row span {
+    flex: 0 0 220px;
+}
+
+.poa-signature-line-wrap {
+    flex: 1;
+    min-width: 150px;
+    display: flex;
+    flex-direction: column;
+}
+
+.poa-signature-line {
+    border-bottom: 1px solid #000;
+    height: 20px;
+}
+
+.poa-signature-name {
+    margin-top: 4px;
+    text-align: right;
+}
+
+.poa-manager-block {
+    position: relative;
+}
+
+.poa-stamp {
+    position: absolute;
+    left: 260px;
+    top: -35px;
+}
+
+.poa-stamp img {
+    width: 150px;
+}
