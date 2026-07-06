@@ -1,7 +1,7 @@
 import ExcelJS from 'exceljs'
 import { saveAs } from 'file-saver'
 
-function formatDate(dateStr, includeYear = false) {
+export function formatDate(dateStr, includeYear = false) {
     if (!dateStr) return ''
     const [year, month, day] = dateStr.split('-')
     if (includeYear) {

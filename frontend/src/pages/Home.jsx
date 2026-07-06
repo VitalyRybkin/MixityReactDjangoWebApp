@@ -20,6 +20,7 @@ import FilterSidebar from './components/FilterSidebar.jsx'
 import { useDeleteOrderFlow } from './hooks/useDeleteOrderFlow.js'
 import { useOrdersFilters } from './hooks/useOrdersFilters.js'
 import { exportOrdersToExcel } from './utils/exportOrders.js'
+import { formatDate } from './utils/exportOrders.js'
 import { exportPowerOfAttorney } from './utils/exportPowerOfAttorney.jsx'
 
 const ORDER_STATUS_OPTIONS = [
@@ -57,6 +58,22 @@ const Home = () => {
         showSnackbar('Заявка удалена'),
     )
 
+    const startPeriod = formatDate(formattedFilters.dateFrom, false)
+    const endPeriod = formatDate(formattedFilters.dateTo, true)
+    const dateStr = formattedFilters.dateFrom === formattedFilters.dateTo ? endPeriod : `${startPeriod}-${endPeriod}`
+
+    const customerInputValue = Array.isArray(customers)
+        ? customers.find((c) => c.id === formattedFilters.customerId)?.name || '-'
+        : '-'
+
+    const warehouseInputValue = Array.isArray(warehouses)
+        ? warehouses.find((w) => w.id === formattedFilters.warehouseId)?.name || '-'
+        : '-'
+
+    const selectedStatus = Array.isArray(ORDER_STATUS_OPTIONS)
+        ? ORDER_STATUS_OPTIONS.find((s) => s.value === formattedFilters.status)?.label || '-'
+        : '-'
+
     const columns = useMemo(
         () => getOrdersColumns({ onDelete: (order) => setOrderToDelete(order) }),
         [setOrderToDelete],
@@ -64,22 +81,28 @@ const Home = () => {
 
     const handleExport = async () => {
         try {
-            const { data } = await fetchDownload()
+            if (!warehouses.some((w) => w.id === formattedFilters.warehouseId)) {
+                showSnackbar('Склад не выбран!', 'error')
+                return
+            }
 
+            if (formattedFilters.status !== 'in_progress') {
+                showSnackbar('Экспорт только для заявок в статусе "В работе"', 'error')
+                return
+            }
+
+            const { data } = await fetchDownload()
             const orders = Array.isArray(data) ? data : Array.isArray(data?.results) ? data.results : []
 
             if (!orders.length) {
-                throw new Error('NO_DATA')
+                showSnackbar('Нет заявок для экспорта.', 'info')
+                return
             }
 
             await exportOrdersToExcel(orders, formattedFilters, warehouses ?? [])
             await exportPowerOfAttorney(orders)
         } catch (e) {
-            if (e.message === 'NO_DATA') {
-                showSnackbar('Нет заявок для экспорта.', 'info')
-            } else {
-                showSnackbar('Ошибка при экспорте.', 'error')
-            }
+            showSnackbar('Ошибка при экспорте.', 'error')
         }
     }
 
@@ -103,11 +126,11 @@ const Home = () => {
                 <Container maxWidth="xl" sx={{ mt: 1 }}>
                     <AppBreadcrumbs />
 
-                    <Box sx={{ p: 2, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <Box sx={{ pl: 1, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                         <Typography variant="h4" gutterBottom fontWeight={600}>
                             Заявки
                         </Typography>
-                        <Box sx={{ p: 2, display: 'flex', gap: 2 }}>
+                        <Box sx={{ display: 'flex', gap: 2 }}>
                             <DownloadAction
                                 title="Экспорт заявок и довернностей"
                                 onClick={handleExport}
@@ -120,6 +143,33 @@ const Home = () => {
                                 loading={loadingOrders}
                             />
                         </Box>
+                    </Box>
+
+                    <Box sx={{ display: 'flex', justifyContent: 'flex-start', gap: 2, p: 1 }}>
+                        <Typography variant="body1" sx={{ color: 'text.secondary' }}>
+                            Период:
+                        </Typography>
+                        <Typography variant="body1" sx={{ color: '#fc9e34' }}>
+                            {dateStr}
+                        </Typography>
+                        <Typography variant="body1" sx={{ color: 'text.secondary' }}>
+                            Статус:
+                        </Typography>
+                        <Typography variant="body1" sx={{ color: '#fc9e34' }}>
+                            {selectedStatus}
+                        </Typography>
+                        <Typography variant="body1" sx={{ color: 'text.secondary' }}>
+                            Контрагент:
+                        </Typography>
+                        <Typography variant="body1" sx={{ color: '#fc9e34' }}>
+                            {customerInputValue}
+                        </Typography>
+                        <Typography variant="body1" sx={{ color: 'text.secondary' }}>
+                            Склад:
+                        </Typography>
+                        <Typography variant="body1" sx={{ color: '#fc9e34' }}>
+                            {warehouseInputValue}
+                        </Typography>
                     </Box>
 
                     <Divider sx={{ mb: 1 }} />

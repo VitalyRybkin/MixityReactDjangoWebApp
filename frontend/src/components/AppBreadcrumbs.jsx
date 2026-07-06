@@ -47,7 +47,7 @@ export default function AppBreadcrumbs({ dynamicLabels = {} }) {
         .filter(Boolean)
 
     return (
-        <Breadcrumbs sx={{ mb: 0 }}>
+        <Breadcrumbs sx={{ mb: 2, pl: 2 }}>
             <Link component={RouterLink} underline="hover" color="inherit" to="/">
                 Главная
             </Link>
