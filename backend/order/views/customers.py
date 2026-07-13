@@ -4,7 +4,6 @@ from django.db.models import QuerySet
 from drf_spectacular.utils import OpenApiParameter
 from rest_framework import generics
 from rest_framework.exceptions import ValidationError
-from rest_framework.permissions import AllowAny
 from rest_framework.serializers import BaseSerializer
 
 from catalog.models import SalesPriceHistory
@@ -31,7 +30,7 @@ class BaseCustomerGenericAPIView(generics.GenericAPIView):
     """
 
     queryset = Customer.objects.active()
-    permission_classes = [AllowAny]
+
     serializer_class = CustomerSerializer
 
 
@@ -68,7 +67,7 @@ class CustomerContactListAPIView(BaseListAPIView):
 
     resource_name = "Contact"
     schema_tags = ["Customer"]
-    permission_classes = [AllowAny]
+
     read_serializer_class = ContactSerializer
     serializer_class = ContactSerializer
 
@@ -85,7 +84,6 @@ class CustomerObjectsListCreateAPIView(BaseListCreateAPIView):
     schema_tags = ["Construction Objects"]
     read_serializer_class = CustomerObjectsSerializer
     write_serializer_class = CustomerObjectsSerializer
-    permission_classes = [AllowAny]
 
     serializer_class = CustomerObjectsSerializer
 
@@ -105,7 +103,6 @@ class CustomerObjectRetrieveUpdateDestroyAPIView(BaseRetrieveUpdateDestroyAPIVie
     schema_tags = ["Construction Objects"]
     read_serializer_class = CustomerObjectsSerializer
     write_serializer_class = CustomerObjectsSerializer
-    permission_classes = [AllowAny]
 
     serializer_class = CustomerObjectsSerializer
 
@@ -119,7 +116,7 @@ class CustomerPriceListAPIView(BaseListAPIView):
     resource_name = "CustomerPrice"
     schema_tags = ["Customer"]
     read_serializer_class = CustomerPriceSerializer
-    permission_classes = [AllowAny]
+
     serializer_class = CustomerPriceSerializer
 
     schema_parameters = [

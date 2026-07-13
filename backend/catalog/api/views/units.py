@@ -1,5 +1,4 @@
 from rest_framework import generics
-from rest_framework.permissions import AllowAny
 
 from catalog.api.serializers.unit_serializers import (
     UnitSerializer,
@@ -13,7 +12,7 @@ from core.openapi.base_views import (
 
 class BaseGenericAPIView(generics.GenericAPIView):
     queryset = AppUnit.objects.all()
-    permission_classes = [AllowAny]
+
     serializer_class = UnitSerializer
 
 
@@ -23,8 +22,6 @@ class UnitListCreateAPIView(BaseListCreateAPIView, BaseGenericAPIView):
 
     Attributes:
         queryset : The set of AppUnit objects to be operated upon.
-        permission_classes : The list of permissions is applied to this view. Defaults to allowing
-            public access.
         serializer_class : The serializer class is used for validating and serializing the data
             related to AppUnit entities.
         resource_name : Name of the resource for API documentation
@@ -47,8 +44,6 @@ class UnitRetrieveUpdateDestroyAPIView(
 
     Attributes:
         queryset: A QuerySet defining all the unit instances to be operated on.
-        permission_classes: A list of permission classes to control access to
-            this view.
         serializer_class: The serializer class is used to process data to and from
             the client.
         resource_name: Name of the resource for API documentation purposes.

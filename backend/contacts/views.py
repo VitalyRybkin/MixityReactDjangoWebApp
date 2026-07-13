@@ -1,5 +1,4 @@
 from django.db.models import QuerySet
-from rest_framework.permissions import AllowAny
 
 from contacts.models import Contact
 from contacts.selectors import ContactSelector
@@ -20,8 +19,6 @@ class WarehouseContactListAPIView(BaseListAPIView):
             case, it is "Contact".
         schema_tags: A list of schema tags used for categorizing the API endpoint in
             the OpenAPI schema. This is tagged under "Warehouse".
-        permission_classes: The permission classes applied to this API view,
-            determining access control. For this view, unrestricted access is allowed.
         read_serializer_class: The serializer class used for read operations to
             properly format and validate the contact data for response purposes.
         serializer_class: The serializer class used for standard handling of data
@@ -30,7 +27,7 @@ class WarehouseContactListAPIView(BaseListAPIView):
 
     resource_name = "Contact"
     schema_tags = ["Warehouse"]
-    permission_classes = [AllowAny]
+
     read_serializer_class = ContactSerializer
     serializer_class = ContactSerializer
 
@@ -45,8 +42,6 @@ class CarrierContactListAPIView(BaseListAPIView):
     Attributes:
         resource_name (str): The name of the resource the API is handling.
         schema_tags (list[str]): Tags for API documentation grouping.
-        permission_classes (list): List of permission classes that define access
-            control for the view.
         read_serializer_class: The serializer class used for read operations.
         serializer_class: The default serializer class for the view.
 
@@ -57,7 +52,7 @@ class CarrierContactListAPIView(BaseListAPIView):
 
     resource_name = "Contact"
     schema_tags = ["Carrier"]
-    permission_classes = [AllowAny]
+
     read_serializer_class = ContactSerializer
     serializer_class = ContactSerializer
 
@@ -73,8 +68,6 @@ class ContactListCreateAPIView(BaseListCreateAPIView):
         resource_name (str): The name associated with the resource, in this case, "Contact".
         schema_tags (list of str): Tags used for organizing and grouping the schema
             representations for documentation purposes.
-        permission_classes (list): Permissions required to access this endpoint.
-            Defaults to AllowAny.
         read_serializer_class (Serializer): Serializer class used for reading
             Contact data.
         write_serializer_class (Serializer): Serializer class used for writing
@@ -85,7 +78,6 @@ class ContactListCreateAPIView(BaseListCreateAPIView):
 
     resource_name = "Contact"
     schema_tags = ["Contacts"]
-    permission_classes = [AllowAny]
 
     read_serializer_class = ContactSerializer
     write_serializer_class = ContactSerializer
@@ -103,8 +95,6 @@ class ContactRetrieveUpdateAPIView(BaseRetrieveUpdateDestroyAPIView):
         resource_name (str): Name of the resource for identification.
         schema_tags (List[str]): Tags used for schema grouping in API
         documentation.
-        permission_classes (List[Type]): Permission classes determining access
-        control.
         queryset: Queryset representing the collection of resources this API
         operates on.
         read_serializer_class: Serializer class used for read operations.
@@ -114,7 +104,6 @@ class ContactRetrieveUpdateAPIView(BaseRetrieveUpdateDestroyAPIView):
 
     resource_name = "Contact"
     schema_tags = ["Contacts"]
-    permission_classes = [AllowAny]
 
     queryset = ContactSelector.get_base_qs()
     read_serializer_class = ContactSerializer

@@ -3,7 +3,6 @@ from typing import Any
 from django.db.models import Prefetch, QuerySet
 from rest_framework import status
 from rest_framework.generics import GenericAPIView, get_object_or_404
-from rest_framework.permissions import AllowAny
 from rest_framework.request import Request
 from rest_framework.response import Response
 
@@ -32,12 +31,9 @@ class CarrierBaseAPIView(GenericAPIView):
     Attributes:
         serializer_class: The serializer class is used for handling serialization
             and deserialization of Carrier objects.
-        permission_classes: List of permission classes required to access the
-            view. Defaults to allowing any user.
     """
 
     serializer_class = CarrierSerializer
-    permission_classes = [AllowAny]
 
     def get_queryset(self) -> QuerySet[Carrier]:
         _trucks_qs = Truck.objects.select_related("truck_type", "capacity")
@@ -63,7 +59,7 @@ class CarrierListCreateAPIView(BaseListCreateAPIView):
     write_serializer_class = CarrierSerializer
 
     serializer_class = CarrierSerializer
-    permission_classes = [AllowAny]
+
     queryset = Carrier.objects.active()
 
 
@@ -106,7 +102,6 @@ class CarrierResourcesAPIView(BaseGenericAPIView):
     schema_tags = ["Carrier"]
     read_serializer_class = CarrierResourcesSerializer
 
-    permission_classes = [AllowAny]
     serializer_class = CarrierResourcesSerializer
 
     def get(self, request: Request, *args: Any, **kwargs: Any) -> Response:
@@ -136,13 +131,10 @@ class CarrierResourcesListAPIView(BaseListAPIView):
     Attributes:
         resource_name: Name of the resource being managed.
         schema_tags: List of schema tags used for the API documentation.
-        permission_classes: List of permission classes applied to this view.
     """
 
     resource_name = ""
     schema_tags = []
-
-    permission_classes = [AllowAny]
 
     def get_queryset(self) -> QuerySet:
         pk = self.kwargs.get("pk")

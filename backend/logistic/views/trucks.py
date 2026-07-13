@@ -1,7 +1,6 @@
 from typing import Any
 
 from rest_framework import status
-from rest_framework.permissions import AllowAny
 from rest_framework.request import Request
 from rest_framework.response import Response
 from rest_framework.serializers import BaseSerializer
@@ -39,7 +38,6 @@ class TruckListCreateAPIView(BaseListCreateAPIView):
     schema_tags = ["Truck"]
 
     queryset = Truck.objects.select_related("truck_type", "capacity", "carrier")
-    permission_classes = [AllowAny]
 
     def get_serializer_class(self) -> type[TruckReadSerializer | TruckWriteSerializer]:
         if self.request.method == "GET":
@@ -75,7 +73,6 @@ class TruckRetrieveUpdateDestroyAPIView(BaseRetrieveUpdateDestroyAPIView):
     write_serializer_class = TruckWriteSerializer
 
     queryset = Truck.objects.select_related("truck_type", "capacity", "carrier")
-    permission_classes = [AllowAny]
 
     def get_serializer_class(self) -> type[BaseSerializer]:
         if self.request.method == "GET":
@@ -111,7 +108,6 @@ class TruckCapacitiesListCreateAPIView(BaseListCreateAPIView):
         objects.
         serializer_class: Defines the serializer to be used to validate and
         transform truck capacity data.
-        permission_classes: Lists the permissions required to access the API,
         allowing unrestricted access in this case.
     """
 
@@ -120,7 +116,6 @@ class TruckCapacitiesListCreateAPIView(BaseListCreateAPIView):
     resource_name = "TruckCapacity"
     schema_tags = ["TruckCapacity"]
     queryset = TruckCapacity.objects.all()
-    permission_classes = [AllowAny]
 
     def get_serializer_class(
         self,
@@ -139,7 +134,6 @@ class TruckCapacitiesRetrieveUpdateDestroyAPIView(BaseRetrieveUpdateDestroyAPIVi
         objects.
         serializer_class: Defines the serializer to be used to validate and
         transform truck capacity data.
-        permission_classes: Lists the permissions required to access the API,
         allowing unrestricted access in this case.
         resource_name: Name of the resource for API documentation
         schema_tags: Tags for API documentation
@@ -153,7 +147,7 @@ class TruckCapacitiesRetrieveUpdateDestroyAPIView(BaseRetrieveUpdateDestroyAPIVi
     write_serializer_class = TruckCapacityWriteSerializer
 
     queryset = TruckCapacity.objects.all()
-    permission_classes = [AllowAny]
+
     serializer_class = write_serializer_class
 
 
@@ -166,7 +160,6 @@ class TruckTypesListCreateAPIView(BaseListCreateAPIView):
         objects.
         serializer_class: Defines the serializer to be used to validate and
         transform truck type data.
-        permission_classes: Lists the permissions required to access the API,
         allowing unrestricted access in this case.
         read_serializer_class: Defines the serializer to be used for reading
         write_serializer_class: Defines the serializer to be used for writing
@@ -181,7 +174,6 @@ class TruckTypesListCreateAPIView(BaseListCreateAPIView):
 
     queryset = TruckType.objects.all()
     serializer_class = read_serializer_class
-    permission_classes = [AllowAny]
 
 
 class TruckTypeRetrieveUpdateDestroyAPIView(BaseRetrieveUpdateDestroyAPIView):
@@ -193,7 +185,6 @@ class TruckTypeRetrieveUpdateDestroyAPIView(BaseRetrieveUpdateDestroyAPIView):
         objects.
         serializer_class: Defines the serializer to be used to validate and
         transform truck type data.
-        permission_classes: Lists the permissions required to access the API,
         allowing unrestricted access in this case.
     """
 
@@ -203,5 +194,5 @@ class TruckTypeRetrieveUpdateDestroyAPIView(BaseRetrieveUpdateDestroyAPIView):
     write_serializer_class = TruckTypeSerializer
 
     queryset = TruckType.objects.all()
-    permission_classes = [AllowAny]
+
     serializer_class = TruckTypeSerializer

@@ -3,7 +3,6 @@ from drf_spectacular.utils import OpenApiParameter
 from rest_framework import generics
 from rest_framework.exceptions import ValidationError
 from rest_framework.parsers import FormParser, MultiPartParser
-from rest_framework.permissions import AllowAny
 
 from catalog.models import PurchasePriceHistory
 from core.api.mixins import SoftDeleteResponseMixin
@@ -28,7 +27,7 @@ class BaseWarehouseGenericAPIView(generics.GenericAPIView):
     """
 
     queryset = Warehouse.objects.active()
-    permission_classes = [AllowAny]
+
     serializer_class = WarehouseListCreateSerializer
 
 
@@ -72,7 +71,7 @@ class WarehouseUploadMapAPIView(BaseUpdateGenericAPIView):
 
     queryset = Warehouse.objects.all()
     serializer_class = WarehouseMapSerializer
-    permission_classes = [AllowAny]
+
     parser_classes = (MultiPartParser, FormParser)
 
 
@@ -94,7 +93,6 @@ class WarehousePricesListAPIView(BaseListAPIView):
         ),
     ]
 
-    permission_classes = [AllowAny]
     serializer_class = WarehousePriceHistorySerializer
 
     def get_queryset(self) -> QuerySet[PurchasePriceHistory]:

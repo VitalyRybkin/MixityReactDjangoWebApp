@@ -4,7 +4,6 @@ from django.db.models import QuerySet
 from drf_spectacular.types import OpenApiTypes
 from drf_spectacular.utils import OpenApiParameter
 from rest_framework import status
-from rest_framework.permissions import AllowAny
 from rest_framework.request import Request
 from rest_framework.response import Response
 
@@ -35,7 +34,6 @@ class OrderResourcesAPIView(BaseGenericAPIView):
         resource_name: A string representing the name of this resource.
         schema_tags: A list of strings used to tag the schema for documentation purposes.
         read_serializer_class: The serializer class for reading the data.
-        permission_classes: A list of permissions required to access the view.
         serializer_class: The default serializer class for data manipulation.
 
     Methods:
@@ -47,7 +45,6 @@ class OrderResourcesAPIView(BaseGenericAPIView):
     schema_tags = ["Order"]
     read_serializer_class = OrderResourcesSerializer
 
-    permission_classes = [AllowAny]
     serializer_class = OrderResourcesSerializer
 
     def get(self, request: Request, *args: Any, **kwargs: Any) -> Response:
@@ -87,7 +84,6 @@ class OrderListCreateAPIView(BaseListCreateAPIView):
         errors_read: Error details used for read operations.
         errors_write: Error details used for write operations.
         query_parameters: List of query parameters used for filtering the retrieved data.
-        permission_classes: List of permission classes defining access control for the view.
 
     Methods:
         get_queryset: Retrieves and filters the query set of orders based on the provided query
@@ -111,8 +107,6 @@ class OrderListCreateAPIView(BaseListCreateAPIView):
         OpenApiParameter("customer", OpenApiTypes.INT, OpenApiParameter.QUERY),
         OpenApiParameter("warehouse", OpenApiTypes.INT, OpenApiParameter.QUERY),
     ]
-
-    permission_classes = [AllowAny]
 
     def get_queryset(self) -> QuerySet[Order]:
         queryset = Order.objects.select_related("client", "customer")
@@ -160,7 +154,6 @@ class OrderRetrieveUpdateDestroyAPIView(BaseRetrieveUpdateDestroyAPIView):
         write_serializer_class: The serializer class used for writing or updating Order objects.
         errors_read: The dictionary or constant defining error messages used for read operations.
         errors_write: The dictionary or constant defining error messages used for write operations.
-        permission_classes: A list of permissions to determine access control, defaulting to AllowAny.
         queryset: The queryset to retrieve Order objects, prefetched with related "delivery" data.
 
     Methods:
@@ -176,7 +169,6 @@ class OrderRetrieveUpdateDestroyAPIView(BaseRetrieveUpdateDestroyAPIView):
     errors_read = ERRORS_DETAIL
     errors_write = ERRORS_DETAIL_WRITE
 
-    permission_classes = [AllowAny]
     queryset = Order.objects.all().prefetch_related("delivery")
 
     def get_serializer_class(self) -> type[OrderWriteSerializer | OrderReadSerializer]:
@@ -204,7 +196,6 @@ class OrdersDownloadAPIView(BaseListAPIView):
     Attributes:
         resource_name: A string representing the name of the resource.
         schema_tags: A list of schema tags for grouping endpoints in API documentation.
-        permission_classes: A list of permission classes used to determine access control.
         read_serializer_class: A serializer class for reading order data.
         errors_read: A detailed dictionary or constant for READ error responses.
         errors_write: A detailed dictionary or constant for WRITE error responses.
@@ -226,8 +217,6 @@ class OrdersDownloadAPIView(BaseListAPIView):
         OpenApiParameter("customer", OpenApiTypes.INT, OpenApiParameter.QUERY),
         OpenApiParameter("warehouse", OpenApiTypes.INT, OpenApiParameter.QUERY),
     ]
-
-    permission_classes = [AllowAny]
 
     serializer_class = OrdersExportReadSerializer
 

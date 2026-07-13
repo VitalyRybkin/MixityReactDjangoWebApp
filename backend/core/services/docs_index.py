@@ -3,6 +3,7 @@ from django.urls import NoReverseMatch, reverse
 
 def build_docs_index_sections() -> list[dict[str, str]]:
     sections = {
+        "Authentication": "swagger-auth",
         "Catalog Documentation": "swagger-catalog",
         "Logistic Documentation": "swagger-logistic",
         "Stock Documentation": "swagger-stock",

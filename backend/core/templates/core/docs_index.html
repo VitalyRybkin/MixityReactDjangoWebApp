@@ -12,7 +12,12 @@
 
     <section class="grid">
         {% for doc in docs %}
-            <a href="{{ doc.url }}" class="card">
+            <a
+                href="{{ doc.url }}"
+                class="card"
+                target="_blank"
+                rel="noopener noreferrer"
+            >
                 <h2 class="card-title">{{ doc.title }}</h2>
                 <div class="card-url">{{ doc.url }}</div>
                 <div class="card-action">Open →</div>

@@ -3,7 +3,6 @@ from typing import Any
 from django.http import FileResponse, HttpRequest, HttpResponse
 from django.shortcuts import get_object_or_404, render
 from rest_framework import generics
-from rest_framework.permissions import AllowAny
 from rest_framework.request import Request
 from rest_framework.views import APIView
 
@@ -36,7 +35,6 @@ class DocumentsListAPIView(BaseListAPIView, generics.ListAPIView):
 
     queryset = Documentation.objects.all()
     serializer_class = DocumentationSerializer
-    permission_classes = [AllowAny]
 
 
 class DocumentationDetailView(BaseGenericAPIView, APIView):
@@ -47,7 +45,6 @@ class DocumentationDetailView(BaseGenericAPIView, APIView):
     resource_name = "Documentation"
     schema_tags = ["Documentation"]
     read_serializer_class = DocumentationSerializer
-    permission_classes = [AllowAny]
 
     def get(self, request: HttpRequest, pk: int) -> FileResponse:
         doc = get_object_or_404(Documentation, pk=pk)
@@ -64,8 +61,6 @@ class DocumentationDownloadView(BaseGenericAPIView, APIView):
     resource_name = "Documentation load"
     schema_tags = ["Documentation"]
     read_serializer_class = DocumentationSerializer
-
-    permission_classes = [AllowAny]
 
     def get(self, request: HttpRequest, pk: int) -> FileResponse:
         doc = get_object_or_404(Documentation, pk=pk)
@@ -86,7 +81,7 @@ class DocumentationBulkDownloadView(BaseCreateAPIView, generics.GenericAPIView):
     resource_name = "Documentation bulk download"
     schema_tags = ["Documentation"]
     read_serializer_class = DocumentationBulkDownloadRequestSerializer
-    permission_classes = [AllowAny]
+
     serializer_class = DocumentationBulkDownloadRequestSerializer
 
     def post(self, request: Request, *args: Any, **kwargs: Any) -> HttpResponse:  # type: ignore[override]

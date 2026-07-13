@@ -1,5 +1,4 @@
 from rest_framework import generics
-from rest_framework.permissions import AllowAny
 
 from catalog.api.serializers.product_serializers import ProductListCreateAPISerializer
 from catalog.models import Product
@@ -11,7 +10,7 @@ from core.openapi.base_views import (
 
 class BaseProductGenericAPIView(generics.GenericAPIView):
     queryset = Product.objects.all()
-    permission_classes = [AllowAny]
+
     serializer_class = ProductListCreateAPISerializer
 
 

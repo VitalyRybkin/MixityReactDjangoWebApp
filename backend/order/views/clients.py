@@ -1,5 +1,4 @@
 from django.db.models import QuerySet
-from rest_framework.permissions import AllowAny
 
 from contacts.models import Contact
 from contacts.selectors import ContactSelector
@@ -26,7 +25,6 @@ class ClientListCreateAPIView(BaseListCreateAPIView):
     queryset = Client.objects.active()
 
     serializer_class = ClientSerializer
-    permission_classes = [AllowAny]
 
 
 class ClientRetrieveUpdateDestroyAPIView(
@@ -43,7 +41,6 @@ class ClientRetrieveUpdateDestroyAPIView(
     queryset = Client.objects.active()
 
     serializer_class = ClientSerializer
-    permission_classes = [AllowAny]
 
 
 class ClientContactListAPIView(BaseListAPIView):
@@ -53,7 +50,7 @@ class ClientContactListAPIView(BaseListAPIView):
 
     resource_name = "Contact"
     schema_tags = ["Client"]
-    permission_classes = [AllowAny]
+
     read_serializer_class = ContactSerializer
     serializer_class = ContactSerializer
 
