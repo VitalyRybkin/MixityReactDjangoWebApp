@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import json
 from pathlib import Path
+from typing import Any
 
 from django.conf import settings
 from django.contrib.auth import get_user_model
@@ -16,77 +17,135 @@ User = get_user_model()
 class Command(BaseCommand):
     help = "Seed/update users from SEED_USERS_FILE defined in credentials/.env"
 
-    def add_arguments(self, parser):
+    def add_arguments(self, parser) -> None:
         parser.add_argument(
             "--allow-non-debug",
             action="store_true",
             help="Allow running when DEBUG=False (use carefully).",
         )
 
-    def handle(self, *args, **options):
+    def handle(self, *args: Any, **options: Any) -> None:
         if not settings.DEBUG and not options["allow_non_debug"]:
-            self.stderr.write("Refusing to seed users because DEBUG=False")
+            self.stderr.write(
+                self.style.ERROR(
+                    "Refusing to seed users because DEBUG=False"
+                )
+            )
             return
 
         users = self._load_users()
+
         if not users:
-            self.stdout.write(self.style.WARNING("No users found to seed."))
+            self.stdout.write(
+                self.style.WARNING("No users found to seed.")
+            )
             return
 
         for data in users:
-            username = data.get("username")
-            if not username:
-                self.stdout.write(self.style.WARNING(f"Skipping entry without username: {data!r}"))
-                continue
-
-            user, _ = User.objects.get_or_create(username=username)
-
-            user.is_active = True
-            user.is_staff = bool(data.get("is_staff", False))
-            user.is_superuser = bool(data.get("is_superuser", False))
-
-            if "email" in data:
-                user.email = data["email"]
-
-            # only rotate password if explicitly provided
-            if data.get("password"):
-                user.set_password(data["password"])
-
-            user.save()
-
-            # groups
-            for group_name in data.get("groups", []):
-                try:
-                    group = Group.objects.get(name=group_name)
-                except Group.DoesNotExist:
-                    self.stdout.write(
-                        self.style.WARNING(
-                            f"Group '{group_name}' not found (did you load fixtures?)"
-                        )
-                    )
-                    continue
-                user.groups.add(group)
-
-            self.stdout.write(self.style.SUCCESS(f"Ready: {username}"))
+            self._seed_user(data)
 
         self.stdout.write(self.style.SUCCESS("Done."))
 
-    def _load_users(self) -> list[dict]:
+    def _seed_user(self, data: dict[str, Any]) -> None:
+        username = data.get("username")
+
+        if not username:
+            self.stdout.write(
+                self.style.WARNING(
+                    f"Skipping entry without username: {data!r}"
+                )
+            )
+            return
+
+        user, created = User.objects.get_or_create(username=username)
+
+        user.is_active = bool(data.get("is_active", True))
+        user.is_staff = bool(data.get("is_staff", False))
+        user.is_superuser = bool(data.get("is_superuser", False))
+
+        if "email" in data:
+            user.email = data["email"] or ""
+
+        password = data.get("password")
+        if password:
+            user.set_password(password)
+        elif created:
+            user.set_unusable_password()
+
+        user.save()
+
+        self._set_groups(user, data.get("groups", []))
+
+        action = "Created" if created else "Updated"
+        self.stdout.write(
+            self.style.SUCCESS(f"{action}: {username}")
+        )
+
+    def _set_groups(self, user, group_names: list[str]) -> None:
+        groups: list[Group] = []
+
+        for group_name in group_names:
+            try:
+                group = Group.objects.get(name__iexact=group_name)
+            except Group.DoesNotExist:
+                self.stdout.write(
+                    self.style.WARNING(
+                        f"Group '{group_name}' not found "
+                        "(did you load fixtures?)"
+                    )
+                )
+                continue
+            except Group.MultipleObjectsReturned:
+                self.stdout.write(
+                    self.style.ERROR(
+                        f"Multiple groups match '{group_name}' "
+                        "case-insensitively."
+                    )
+                )
+                continue
+
+            groups.append(group)
+
+        user.groups.set(groups)
+
+    def _load_users(self) -> list[dict[str, Any]]:
         seed_file = project_settings.SEED_USERS_FILE
+
         if not seed_file:
-            self.stderr.write("SEED_USERS_FILE is not set in .env")
+            self.stderr.write(
+                self.style.ERROR(
+                    "SEED_USERS_FILE is not set in .env"
+                )
+            )
             return []
 
         path = Path(seed_file)
+
         if not path.is_absolute():
             path = Path(settings.BASE_DIR) / path
 
         if not path.exists():
-            self.stderr.write(f"SEED_USERS_FILE not found: {path}")
+            self.stderr.write(
+                self.style.ERROR(
+                    f"SEED_USERS_FILE not found: {path}"
+                )
+            )
             return []
 
         try:
-            return json.loads(path.read_text(encoding="utf-8"))
+            data = json.loads(path.read_text(encoding="utf-8"))
         except json.JSONDecodeError as exc:
-            self.stderr.write(f"Invalid JSON in {path}: {exc}")
+            self.stderr.write(
+                self.style.ERROR(f"Invalid JSON in {path}: {exc}")
+            )
             return []
+
+        if not isinstance(data, list):
+            self.stderr.write(
+                self.style.ERROR(
+                    f"Invalid seed data in {path}: expected a JSON list."
+                )
+            )
+            return []
+
+        return data

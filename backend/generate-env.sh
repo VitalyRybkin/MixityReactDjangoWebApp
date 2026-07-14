@@ -28,6 +28,8 @@ get() {
   echo "$ITEM_JSON" | jq -r ".fields[]? | select(.name==\"$1\") | .value"
 }
 
+mkdir -p credentials
+
 cat > credentials/.env <<EOF
 DB_NAME=$(get DB_NAME)
 DB_USER=$(get DB_USER)

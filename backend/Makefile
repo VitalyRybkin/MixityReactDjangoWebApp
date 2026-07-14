@@ -72,29 +72,84 @@ reset:
 
 # ---- BITWARDEN WORKFLOW ----
 
-.PHONY: env env-check seeds-check db fixtures users seed bootstrap bootstrap-no-bw
+.PHONY: \
+	bw-check \
+	env-pull \
+	seeds-pull \
+	seeds-push \
+	env-check \
+	seeds-check \
+	fixtures \
+	users \
+	seed \
+	bootstrap \
+	bootstrap-no-bw
 
 ENV_FILE := credentials/.env
 SEED_FILE := credentials/seed_users.json
 FIXTURE_USERS := django_groups_fixture.json
 
-# ---- env generation (Bitwarden → .env) ----
-env:
+# Verify that Bitwarden CLI is available and unlocked
+bw-check:
+	@command -v bw >/dev/null 2>&1 || \
+		(echo "Bitwarden CLI is not installed." && exit 1)
+	@command -v jq >/dev/null 2>&1 || \
+		(echo "jq is not installed. Run: brew install jq" && exit 1)
+	@test -n "$$BW_SESSION" || \
+		(echo 'BW_SESSION is not set. Run:' && \
+		 echo '  bw login' && \
+		 echo '  export BW_SESSION="$$(bw unlock --raw)"' && \
+		 exit 1)
+	@bw status --session "$$BW_SESSION" \
+		| jq -e '.status == "unlocked"' >/dev/null || \
+		(echo "Bitwarden session is not unlocked." && \
+		 echo 'Run: export BW_SESSION="$$(bw unlock --raw)"' && \
+		 exit 1)
+
+# Bitwarden → local .env
+env-pull: bw-check
 	@./generate-env.sh
-	@test -f "$(ENV_FILE)" || (echo "Missing $(ENV_FILE)" && exit 1)
+	@test -f "$(ENV_FILE)" || \
+		(echo "Missing $(ENV_FILE)" && exit 1)
 
-# ---- seed_users.json generation (Bitwarden → file) ----
-seeds:
+# Bitwarden → local seed_users.json
+seeds-pull: bw-check
 	@./generate-json.sh
+	@test -f "$(SEED_FILE)" || \
+		(echo "Missing $(SEED_FILE)" && exit 1)
+	@$(UV) -m json.tool "$(SEED_FILE)" >/dev/null
 
-# ---- checks for machines without Bitwarden ----
+# Local seed_users.json → Bitwarden
+seeds-push: bw-check seeds-check
+	@./upload-json.sh
+
+# Checks for machines without Bitwarden
 env-check:
-	@test -f "$(ENV_FILE)" || (echo "Missing $(ENV_FILE). Copy it here." && exit 1)
+	@test -f "$(ENV_FILE)" || \
+		(echo "Missing $(ENV_FILE). Copy it here." && exit 1)
 
 seeds-check:
-	@test -f "$(SEED_FILE)" || (echo "Missing $(SEED_FILE). Copy it here." && exit 1)
-	@python -m json.tool "$(SEED_FILE)" >/dev/null
+	@test -f "$(SEED_FILE)" || \
+		(echo "Missing $(SEED_FILE). Copy it here." && exit 1)
+	@$(UV) -m json.tool "$(SEED_FILE)" >/dev/null
 
+# ---- DJANGO SEEDING ----
+
+fixtures:
+	$(DJ) loaddata "$(FIXTURE_USERS)"
+
+users:
+	$(DJ) seed_data
+
+seed: migrate fixtures users
+
+# Bitwarden → local files → database
+bootstrap: env-pull seeds-pull seed
+	@echo "Bootstrap complete (Bitwarden)."
+
+# Existing local files → database
+bootstrap-no-bw: env-check seeds-check seed
+	@echo "Bootstrap complete (no Bitwarden)."
 # ---- DJANGO COMMANDS ----
 
 run:
@@ -116,17 +171,3 @@ shell:
 collectstatic:
 	$(DJ) collectstatic --noinput
 
-fixtures:
-	$(DJ) loaddata "$(FIXTURE_USERS)"
-
-users:
-	$(DJ) seed_data
-
-seed: migrate fixtures users
-
-# ---- WORKFLOWS ----
-bootstrap: env seeds seed
-	@echo "Bootstrap complete (Bitwarden)."
-
-bootstrap-no-bw: env-check seeds-check seed
-	@echo "Bootstrap complete (no Bitwarden)."
