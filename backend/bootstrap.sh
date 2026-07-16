@@ -6,6 +6,11 @@ command -v bw >/dev/null 2>&1 || {
   exit 1
 }
 
+command -v jq >/dev/null 2>&1 || {
+  echo "jq is not installed. Run: brew install jq"
+  exit 1
+}
+
 STATUS="$(bw status | jq -r '.status')"
 
 if [ "$STATUS" = "unauthenticated" ]; then
