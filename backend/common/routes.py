@@ -6,3 +6,6 @@ class DocumentationRoutes:
     DETAIL = ApiRoute("documentation/<int:pk>/", "documentation_detail")
     DOWNLOAD = ApiRoute("documentation/<int:pk>/download/", "documentation_download")
     DOWNLOAD_ZIP = ApiRoute("documentation/download-zip/", "documentation_download_zip")
+
+class UserRoutes:
+    ME = ApiRoute("user/me/", "user_me")

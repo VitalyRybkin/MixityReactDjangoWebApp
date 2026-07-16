@@ -2,13 +2,15 @@ from typing import Any
 
 from django.http import FileResponse, HttpRequest, HttpResponse
 from django.shortcuts import get_object_or_404, render
+from drf_spectacular.utils import extend_schema
 from rest_framework import generics
+from rest_framework.generics import RetrieveAPIView
 from rest_framework.request import Request
 from rest_framework.views import APIView
 
 from common.serializers import (
     DocumentationBulkDownloadRequestSerializer,
-    DocumentationSerializer,
+    DocumentationSerializer, CurrentUserSerializer,
 )
 from common.services.documentation_files import (
     build_documents_zip,
@@ -23,6 +25,15 @@ from core.services.docs_index import build_docs_index_sections
 
 from .models import Documentation
 
+@extend_schema(
+    tags=["User"],
+    summary="User groups and permissions",
+)
+class UserMeView(RetrieveAPIView):
+    serializer_class = CurrentUserSerializer
+
+    def get_object(self):
+        return self.request.user
 
 class DocumentsListAPIView(BaseListAPIView, generics.ListAPIView):
     """

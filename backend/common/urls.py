@@ -1,11 +1,11 @@
 from django.urls import path
 
-from .routes import DocumentationRoutes
+from .routes import DocumentationRoutes, UserRoutes
 from .views import (
     DocumentationBulkDownloadView,
     DocumentationDetailView,
     DocumentationDownloadView,
-    DocumentsListAPIView,
+    DocumentsListAPIView, UserMeView,
 )
 
 app_name = "common"
@@ -31,4 +31,5 @@ urlpatterns = [
         DocumentationBulkDownloadView.as_view(),
         name=DocumentationRoutes.DOWNLOAD_ZIP.name,
     ),
+    path(UserRoutes.ME.path, UserMeView.as_view(), name=UserRoutes.ME.name,),
 ]
