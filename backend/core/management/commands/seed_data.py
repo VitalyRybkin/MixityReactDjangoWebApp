@@ -6,10 +6,11 @@ from typing import Any
 
 from django.conf import settings
 from django.contrib.auth import get_user_model
-from django.contrib.auth.models import Group
+from django.contrib.auth.models import Permission, Group
 from django.core.management.base import BaseCommand
 
 from app_settings import project_settings
+from core.seed.group_permissions import ALL_PERMISSIONS, GROUP_PERMISSIONS
 
 User = get_user_model()
 
@@ -32,6 +33,8 @@ class Command(BaseCommand):
                 )
             )
             return
+
+        self._seed_groups()
 
         users = self._load_users()
 
@@ -149,3 +152,40 @@ class Command(BaseCommand):
             return []
 
         return data
+
+    def _seed_groups(self) -> None:
+        for group_name, permission_names in GROUP_PERMISSIONS.items():
+            group, _ = Group.objects.get_or_create(name=group_name)
+
+            if permission_names == ALL_PERMISSIONS:
+                group.permissions.set(Permission.objects.all())
+                continue
+
+            permissions = []
+
+            for permission_name in permission_names:
+                app_label, codename = permission_name.split(".", 1)
+
+                try:
+                    permission = Permission.objects.get(
+                        content_type__app_label=app_label,
+                        codename=codename,
+                    )
+                except Permission.DoesNotExist:
+                    self.stderr.write(
+                        self.style.ERROR(
+                            f"Permission '{permission_name}' does not exist."
+                        )
+                    )
+                    continue
+
+                permissions.append(permission)
+
+            group.permissions.set(permissions)
+
+            self.stdout.write(
+                self.style.SUCCESS(
+                    f"Configured group '{group_name}' "
+                    f"with {len(permissions)} permissions."
+                )
+            )
