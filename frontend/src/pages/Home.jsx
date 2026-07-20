@@ -15,6 +15,8 @@ import { useExportOrders, useGetOrders } from '../features/orders/utils/orders.q
 import { useGetWarehouses } from '../features/warehouses/utils/stocks.queries.js'
 import { sidebarPageSx } from '../layouts/AppSidebar.jsx'
 
+import Can from './auth/components/Can.jsx'
+import { GROUPS } from './auth/permissions.js'
 import CustomPagination from './components/CustomPagination.jsx'
 import FilterSidebar from './components/FilterSidebar.jsx'
 import { useDeleteOrderFlow } from './hooks/useDeleteOrderFlow.js'
@@ -131,12 +133,14 @@ const Home = () => {
                             Заявки
                         </Typography>
                         <Box sx={{ display: 'flex', gap: 2 }}>
-                            <DownloadAction
-                                title="Экспорт заявок и довернностей"
-                                onClick={handleExport}
-                                disabled={isDownloading || loadingOrders}
-                                loading={isDownloading || loadingOrders}
-                            />
+                            <Can group={GROUPS.LOGISTIC_MANAGER}>
+                                <DownloadAction
+                                    title="Экспорт заявок и довернностей"
+                                    onClick={handleExport}
+                                    disabled={isDownloading || loadingOrders}
+                                    loading={isDownloading || loadingOrders}
+                                />
+                            </Can>
                             <AddAction
                                 onClick={() => navigate('/orders/create', { state: { from: location.pathname } })}
                                 disabled={loadingOrders}

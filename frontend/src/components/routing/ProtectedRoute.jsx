@@ -16,7 +16,6 @@ function ProtectedRoute({ children }) {
         // helps in dev StrictMode (avoid duplicate auth runs)
         if (ranRef.current) return
         ranRef.current = true
-
         ;(async () => {
             try {
                 await auth()
@@ -65,7 +64,7 @@ function ProtectedRoute({ children }) {
         }
     }
 
-    if (isAuthorized === null) return <div>Loading...</div>
+    if (isAuthorized === null) return <div>Загрузка...</div>
     return isAuthorized ? children : <Navigate to="/login" replace />
 }
 

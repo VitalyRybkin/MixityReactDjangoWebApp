@@ -4,3 +4,7 @@ export const documentationApiPaths = {
     download: (id) => `/api/core/documentation/${id}/download/`,
     downloadZip: () => '/api/common/documentation/download-zip/',
 }
+
+export const userApiPaths = {
+    me: () => '/api/auth/user/me/',
+}

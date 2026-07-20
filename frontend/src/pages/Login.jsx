@@ -6,6 +6,7 @@ import { Alert, Box, Button, Container, Paper, TextField, Typography } from '@mu
 import api from '../api.js'
 import ThemeToggle from '../components/ThemeToggle.jsx'
 import { ACCESS_TOKEN, REFRESH_TOKEN } from '../constants.js'
+import { fetchUserMe } from '../features/common/common.queries.js'
 
 const sx = {
     page: { minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center' },
@@ -34,6 +35,9 @@ const Login = () => {
             localStorage.removeItem(REFRESH_TOKEN)
             localStorage.setItem(ACCESS_TOKEN, res.data.access)
             localStorage.setItem(REFRESH_TOKEN, res.data.refresh)
+
+            const userData = await fetchUserMe()
+            console.log(userData)
 
             navigate('/', { replace: true })
         } catch (err) {

@@ -1,4 +1,5 @@
 import { Navigate, Route, Routes } from 'react-router-dom'
+import { Outlet } from 'react-router-dom'
 
 import ProtectedRoute from './components/routing/ProtectedRoute.jsx'
 import { ACCESS_TOKEN, REFRESH_TOKEN } from './constants.js'
@@ -28,11 +29,22 @@ import MainLayout from './layouts/MainLayout'
 import Home from './pages/Home.jsx'
 import Login from './pages/Login.jsx'
 import NotFound from './pages/NotFound.jsx'
+import { AuthProvider } from './pages/auth/context/AuthContext.jsx'
 
 function Logout() {
     localStorage.removeItem(ACCESS_TOKEN)
     localStorage.removeItem(REFRESH_TOKEN)
     return <Navigate to="/login" replace />
+}
+
+function AuthenticatedApp() {
+    return (
+        <ProtectedRoute>
+            <AuthProvider>
+                <Outlet />
+            </AuthProvider>
+        </ProtectedRoute>
+    )
 }
 
 function App() {
@@ -42,65 +54,54 @@ function App() {
             <Route path="/login" element={<Login />} />
             <Route path="/logout" element={<Logout />} />
 
-            {/* Protected + Layout */}
-            <Route
-                element={
-                    <ProtectedRoute>
-                        <MainLayout />
-                    </ProtectedRoute>
-                }
-            >
-                {/*<Route path="/" element={<Home />} />*/}
-                <Route path="/carriers" element={<CarriersList />} />
-                <Route path="/carriers/create" element={<CarrierFormPage />} />
-                <Route path="/carriers/:id" element={<CarrierDetailPage />} />
-                <Route path="/carriers/:id/edit" element={<CarrierFormPage />} />
-                <Route path="/carriers/:id/trucks" element={<CarrierTruckListPage />} />
-                <Route path="/carriers/:carrierId/trucks/create" element={<TruckFormPage />} />
-                <Route path="/carriers/:carrierId/trucks/:truckId/edit" element={<TruckFormPage />} />
-                <Route path="/carriers/:id/drivers" element={<CarrierDriverListPage />} />
-                <Route path="/carriers/:carrierId/drivers/create" element={<DriverFormPage />} />
-                <Route path="/carriers/:carrierId/drivers/:driverId/edit" element={<DriverFormPage />} />
+            {/* All authenticated routes share one AuthProvider */}
+            <Route element={<AuthenticatedApp />}>
+                {/* Standard layout */}
+                <Route element={<MainLayout />}>
+                    <Route path="/carriers" element={<CarriersList />} />
+                    <Route path="/carriers/create" element={<CarrierFormPage />} />
+                    <Route path="/carriers/:id" element={<CarrierDetailPage />} />
+                    <Route path="/carriers/:id/edit" element={<CarrierFormPage />} />
+                    <Route path="/carriers/:id/trucks" element={<CarrierTruckListPage />} />
+                    <Route path="/carriers/:carrierId/trucks/create" element={<TruckFormPage />} />
+                    <Route path="/carriers/:carrierId/trucks/:truckId/edit" element={<TruckFormPage />} />
+                    <Route path="/carriers/:id/drivers" element={<CarrierDriverListPage />} />
+                    <Route path="/carriers/:carrierId/drivers/create" element={<DriverFormPage />} />
+                    <Route path="/carriers/:carrierId/drivers/:driverId/edit" element={<DriverFormPage />} />
 
-                <Route path="/warehouses" element={<WarehousesList />} />
-                <Route path="/warehouses/create" element={<WarehouseFormPage />} />
-                <Route path="/warehouses/:id" element={<WarehouseInfoPage />} />
-                <Route path="/warehouses/:id/edit" element={<WarehouseFormPage />} />
-                <Route path="/warehouses/:id/map" element={<WarehouseMapUploadPage />} />
+                    <Route path="/warehouses" element={<WarehousesList />} />
+                    <Route path="/warehouses/create" element={<WarehouseFormPage />} />
+                    <Route path="/warehouses/:id" element={<WarehouseInfoPage />} />
+                    <Route path="/warehouses/:id/edit" element={<WarehouseFormPage />} />
+                    <Route path="/warehouses/:id/map" element={<WarehouseMapUploadPage />} />
 
-                <Route path="/clients" element={<ClientsList />} />
-                <Route path="/clients/create" element={<ClientFormPage />} />
-                <Route path="/clients/:id" element={<ClientDetailPage />} />
-                <Route path="/clients/:id/edit" element={<ClientFormPage />} />
+                    <Route path="/clients" element={<ClientsList />} />
+                    <Route path="/clients/create" element={<ClientFormPage />} />
+                    <Route path="/clients/:id" element={<ClientDetailPage />} />
+                    <Route path="/clients/:id/edit" element={<ClientFormPage />} />
 
-                <Route path="/customers" element={<CustomersList />} />
-                <Route path="/customers/create" element={<CustomerFormPage />} />
-                <Route path="/customers/:id" element={<CustomerDetailPage />} />
-                <Route path="/customers/:id/edit" element={<CustomerFormPage />} />
-                <Route path="/customers/:id/construction_objects" element={<CustomerObjectListPage />} />
-                <Route
-                    path="/customers/:id/construction_objects/:objectId/edit"
-                    element={<ConstructionObjectFormPage />}
-                />
-                <Route path="/customers/:id/construction_objects/create" element={<ConstructionObjectFormPage />} />
+                    <Route path="/customers" element={<CustomersList />} />
+                    <Route path="/customers/create" element={<CustomerFormPage />} />
+                    <Route path="/customers/:id" element={<CustomerDetailPage />} />
+                    <Route path="/customers/:id/edit" element={<CustomerFormPage />} />
+                    <Route path="/customers/:id/construction_objects" element={<CustomerObjectListPage />} />
+                    <Route
+                        path="/customers/:id/construction_objects/:objectId/edit"
+                        element={<ConstructionObjectFormPage />}
+                    />
+                    <Route path="/customers/:id/construction_objects/create" element={<ConstructionObjectFormPage />} />
 
-                <Route path="/documentation" element={<DocumentationListPage />} />
+                    <Route path="/documentation" element={<DocumentationListPage />} />
+                </Route>
+
+                {/* Full-width layout */}
+                <Route element={<FullWidthLayout />}>
+                    <Route path="/" element={<Home />} />
+                    <Route path="/orders/create" element={<OrderFormPage />} />
+                    <Route path="/orders/:id/edit" element={<OrderFormPage />} />
+                </Route>
             </Route>
 
-            {/* Protected pages with full-width layout */}
-            <Route
-                element={
-                    <ProtectedRoute>
-                        <FullWidthLayout />
-                    </ProtectedRoute>
-                }
-            >
-                <Route path="/" element={<Home />} />
-                <Route path="/orders/create" element={<OrderFormPage />} />
-                <Route path="/orders/:id/edit" element={<OrderFormPage />} />
-            </Route>
-
-            {/* 404 */}
             <Route path="*" element={<NotFound />} />
         </Routes>
     )
