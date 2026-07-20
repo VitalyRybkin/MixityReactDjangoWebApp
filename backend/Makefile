@@ -92,20 +92,20 @@ BW_SESSION_CMD = BW_SESSION="$$(bw unlock --raw)"
 
 # Bitwarden → local .env
 env-pull:
-	@$(BW_SESSION_CMD) ./generate-env.sh
+	@$(BW_SESSION_CMD) ./scripts/generate-env.sh
 	@test -f "$(ENV_FILE)" || \
 		(echo "Missing $(ENV_FILE)" && exit 1)
 
 # Bitwarden → local seed_users.json
 seeds-pull:
-	@$(BW_SESSION_CMD) ./generate-json.sh
+	@$(BW_SESSION_CMD) ./scripts/generate-json.sh
 	@test -f "$(SEED_FILE)" || \
 		(echo "Missing $(SEED_FILE)" && exit 1)
 	@$(UV) -m json.tool "$(SEED_FILE)" >/dev/null
 
 # Local seed_users.json → Bitwarden
 seeds-push: seeds-check
-	@$(BW_SESSION_CMD) ./upload-json.sh
+	@$(BW_SESSION_CMD) ./scripts/upload-json.sh
 
 # Local file checks
 env-check:

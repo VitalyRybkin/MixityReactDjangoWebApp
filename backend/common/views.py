@@ -1,5 +1,7 @@
 from typing import Any
 
+from django.contrib.auth.base_user import AbstractBaseUser
+from django.contrib.auth.models import AnonymousUser
 from django.http import FileResponse, HttpRequest, HttpResponse
 from django.shortcuts import get_object_or_404, render
 from drf_spectacular.utils import extend_schema
@@ -9,8 +11,9 @@ from rest_framework.request import Request
 from rest_framework.views import APIView
 
 from common.serializers import (
+    CurrentUserSerializer,
     DocumentationBulkDownloadRequestSerializer,
-    DocumentationSerializer, CurrentUserSerializer,
+    DocumentationSerializer,
 )
 from common.services.documentation_files import (
     build_documents_zip,
@@ -25,6 +28,7 @@ from core.services.docs_index import build_docs_index_sections
 
 from .models import Documentation
 
+
 @extend_schema(
     tags=["User"],
     summary="User groups and permissions",
@@ -32,8 +36,9 @@ from .models import Documentation
 class UserMeView(RetrieveAPIView):
     serializer_class = CurrentUserSerializer
 
-    def get_object(self):
+    def get_object(self) -> AbstractBaseUser | AnonymousUser:
         return self.request.user
+
 
 class DocumentsListAPIView(BaseListAPIView, generics.ListAPIView):
     """

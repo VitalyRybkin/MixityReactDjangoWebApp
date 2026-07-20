@@ -7,9 +7,7 @@ from drf_spectacular.views import SpectacularAPIView, SpectacularSwaggerView
 from rest_framework.permissions import AllowAny
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 
-from common.auth_views import CustomTokenRefreshView, CustomTokenObtainPairView
-from common.views import doc_page
-
+from common.views import doc_page, UserMeView
 
 urlpatterns = [
     path("admin/", admin.site.urls),
@@ -25,6 +23,7 @@ urlpatterns = [
         TokenRefreshView.as_view(),
         name="token_refresh",
     ),
+    path("api/auth/user/me/", UserMeView.as_view(), name="current_user", ),
 
     # API
     path("api/logistic/", include("logistic.urls")),

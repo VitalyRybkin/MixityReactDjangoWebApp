@@ -4,6 +4,7 @@ from common.auth_views import (
     CustomTokenObtainPairView,
     CustomTokenRefreshView,
 )
+from common.views import UserMeView
 
 urlpatterns = [
     path(
@@ -15,5 +16,10 @@ urlpatterns = [
         "api/auth/token/refresh/",
         CustomTokenRefreshView.as_view(),
         name="schema-auth-token-refresh",
+    ),
+    path(
+        "api/auth/user/me/",
+        UserMeView.as_view(),
+        name="current_user",
     ),
 ]
