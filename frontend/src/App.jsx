@@ -26,10 +26,13 @@ import WarehouseMapUploadPage from './features/warehouses/WarehouseMapUpload.jsx
 import WarehousesList from './features/warehouses/WarehousesList.jsx'
 import FullWidthLayout from './layouts/FullWidthLayout.jsx'
 import MainLayout from './layouts/MainLayout'
+import Forbidden from './pages/Forbidden.jsx'
 import Home from './pages/Home.jsx'
 import Login from './pages/Login.jsx'
 import NotFound from './pages/NotFound.jsx'
+import GroupRoute from './pages/auth/components/GroupRoute.jsx'
 import { AuthProvider } from './pages/auth/context/AuthContext.jsx'
+import { GROUPS } from './pages/auth/permissions.js'
 
 function Logout() {
     localStorage.removeItem(ACCESS_TOKEN)
@@ -58,39 +61,43 @@ function App() {
             <Route element={<AuthenticatedApp />}>
                 {/* Standard layout */}
                 <Route element={<MainLayout />}>
-                    <Route path="/carriers" element={<CarriersList />} />
-                    <Route path="/carriers/create" element={<CarrierFormPage />} />
-                    <Route path="/carriers/:id" element={<CarrierDetailPage />} />
-                    <Route path="/carriers/:id/edit" element={<CarrierFormPage />} />
-                    <Route path="/carriers/:id/trucks" element={<CarrierTruckListPage />} />
-                    <Route path="/carriers/:carrierId/trucks/create" element={<TruckFormPage />} />
-                    <Route path="/carriers/:carrierId/trucks/:truckId/edit" element={<TruckFormPage />} />
-                    <Route path="/carriers/:id/drivers" element={<CarrierDriverListPage />} />
-                    <Route path="/carriers/:carrierId/drivers/create" element={<DriverFormPage />} />
-                    <Route path="/carriers/:carrierId/drivers/:driverId/edit" element={<DriverFormPage />} />
+                    <Route element={<GroupRoute groups={[GROUPS.LOGISTIC_MANAGER, GROUPS.ACCOUNTANT]} />}>
+                        <Route path="/carriers" element={<CarriersList />} />
+                        <Route path="/carriers/create" element={<CarrierFormPage />} />
+                        <Route path="/carriers/:id" element={<CarrierDetailPage />} />
+                        <Route path="/carriers/:id/edit" element={<CarrierFormPage />} />
+                        <Route path="/carriers/:id/trucks" element={<CarrierTruckListPage />} />
+                        <Route path="/carriers/:carrierId/trucks/create" element={<TruckFormPage />} />
+                        <Route path="/carriers/:carrierId/trucks/:truckId/edit" element={<TruckFormPage />} />
+                        <Route path="/carriers/:id/drivers" element={<CarrierDriverListPage />} />
+                        <Route path="/carriers/:carrierId/drivers/create" element={<DriverFormPage />} />
+                        <Route path="/carriers/:carrierId/drivers/:driverId/edit" element={<DriverFormPage />} />
 
-                    <Route path="/warehouses" element={<WarehousesList />} />
-                    <Route path="/warehouses/create" element={<WarehouseFormPage />} />
-                    <Route path="/warehouses/:id" element={<WarehouseInfoPage />} />
-                    <Route path="/warehouses/:id/edit" element={<WarehouseFormPage />} />
-                    <Route path="/warehouses/:id/map" element={<WarehouseMapUploadPage />} />
+                        <Route path="/warehouses" element={<WarehousesList />} />
+                        <Route path="/warehouses/create" element={<WarehouseFormPage />} />
+                        <Route path="/warehouses/:id" element={<WarehouseInfoPage />} />
+                        <Route path="/warehouses/:id/edit" element={<WarehouseFormPage />} />
+                        <Route path="/warehouses/:id/map" element={<WarehouseMapUploadPage />} />
 
-                    <Route path="/clients" element={<ClientsList />} />
-                    <Route path="/clients/create" element={<ClientFormPage />} />
-                    <Route path="/clients/:id" element={<ClientDetailPage />} />
-                    <Route path="/clients/:id/edit" element={<ClientFormPage />} />
+                        <Route path="/clients" element={<ClientsList />} />
+                        <Route path="/clients/create" element={<ClientFormPage />} />
+                        <Route path="/clients/:id" element={<ClientDetailPage />} />
+                        <Route path="/clients/:id/edit" element={<ClientFormPage />} />
 
-                    <Route path="/customers" element={<CustomersList />} />
-                    <Route path="/customers/create" element={<CustomerFormPage />} />
-                    <Route path="/customers/:id" element={<CustomerDetailPage />} />
-                    <Route path="/customers/:id/edit" element={<CustomerFormPage />} />
-                    <Route path="/customers/:id/construction_objects" element={<CustomerObjectListPage />} />
-                    <Route
-                        path="/customers/:id/construction_objects/:objectId/edit"
-                        element={<ConstructionObjectFormPage />}
-                    />
-                    <Route path="/customers/:id/construction_objects/create" element={<ConstructionObjectFormPage />} />
-
+                        <Route path="/customers" element={<CustomersList />} />
+                        <Route path="/customers/create" element={<CustomerFormPage />} />
+                        <Route path="/customers/:id" element={<CustomerDetailPage />} />
+                        <Route path="/customers/:id/edit" element={<CustomerFormPage />} />
+                        <Route path="/customers/:id/construction_objects" element={<CustomerObjectListPage />} />
+                        <Route
+                            path="/customers/:id/construction_objects/:objectId/edit"
+                            element={<ConstructionObjectFormPage />}
+                        />
+                        <Route
+                            path="/customers/:id/construction_objects/create"
+                            element={<ConstructionObjectFormPage />}
+                        />
+                    </Route>
                     <Route path="/documentation" element={<DocumentationListPage />} />
                 </Route>
 
@@ -103,6 +110,7 @@ function App() {
             </Route>
 
             <Route path="*" element={<NotFound />} />
+            <Route path="/403" element={<Forbidden />} />
         </Routes>
     )
 }

@@ -7,6 +7,7 @@ from django.shortcuts import get_object_or_404, render
 from drf_spectacular.utils import extend_schema
 from rest_framework import generics
 from rest_framework.generics import RetrieveAPIView
+from rest_framework.permissions import IsAuthenticated
 from rest_framework.request import Request
 from rest_framework.views import APIView
 
@@ -34,7 +35,11 @@ from .models import Documentation
     summary="User groups and permissions",
 )
 class UserMeView(RetrieveAPIView):
+    """
+    API view to retrieve the current user's information.
+    """
     serializer_class = CurrentUserSerializer
+    permission_classes = [IsAuthenticated]
 
     def get_object(self) -> AbstractBaseUser | AnonymousUser:
         return self.request.user

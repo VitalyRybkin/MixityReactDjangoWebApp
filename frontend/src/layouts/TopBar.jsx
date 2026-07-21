@@ -1,10 +1,12 @@
 import { useNavigate } from 'react-router-dom'
 
-import { AppBar, Box, Button, Toolbar } from '@mui/material'
+import { AppBar, Box, Button, Toolbar, Typography } from '@mui/material'
 
 import ThemeToggle from '../components/ThemeToggle'
-import TopBarNav from './TopBarNav.jsx'
 import { ACCESS_TOKEN, REFRESH_TOKEN } from '../constants.js'
+import { useAuth } from '../pages/auth/context/AuthContext.jsx'
+
+import TopBarNav from './TopBarNav.jsx'
 
 const sx = {
     title: {
@@ -19,6 +21,7 @@ const sx = {
 
 const TopBar = () => {
     const navigate = useNavigate()
+    const { user } = useAuth()
 
     const handleLogout = () => {
         localStorage.removeItem(ACCESS_TOKEN)
@@ -35,6 +38,14 @@ const TopBar = () => {
                 <TopBarNav> </TopBarNav>
 
                 <Box sx={{ flexGrow: 1 }} />
+
+                <Typography variant="body2" color="text.secondary" sx={{ mr: 2 }}>
+                    Имя пользователя:
+                </Typography>
+
+                <Typography variant="body2" color="text.primary" sx={{ mr: 4 }}>
+                    {user?.first_name ? `${user.first_name} ${user.last_name}` : user?.username}
+                </Typography>
 
                 <ThemeToggle />
 

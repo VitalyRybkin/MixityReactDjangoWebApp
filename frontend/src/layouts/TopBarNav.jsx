@@ -2,6 +2,9 @@ import { NavLink } from 'react-router-dom'
 
 import { Button, Stack } from '@mui/material'
 
+import Can from '../pages/auth/components/Can.jsx'
+import { GROUPS } from '../pages/auth/permissions.js'
+
 const TopBarNav = () => {
     const buttonSx = {
         '&.active': {
@@ -17,21 +20,23 @@ const TopBarNav = () => {
                 Главная
             </Button>
 
-            <Button component={NavLink} to="/carriers" color="inherit" sx={buttonSx}>
-                Перевозчики
-            </Button>
+            <Can group={[GROUPS.LOGISTIC_MANAGER, GROUPS.ACCOUNTANT]}>
+                <Button component={NavLink} to="/carriers" color="inherit" sx={buttonSx}>
+                    Перевозчики
+                </Button>
 
-            <Button component={NavLink} to="/warehouses" color="inherit" sx={buttonSx}>
-                Склады
-            </Button>
+                <Button component={NavLink} to="/warehouses" color="inherit" sx={buttonSx}>
+                    Склады
+                </Button>
 
-            <Button component={NavLink} to="/clients" color="inherit" sx={buttonSx}>
-                Клиенты
-            </Button>
+                <Button component={NavLink} to="/clients" color="inherit" sx={buttonSx}>
+                    Клиенты
+                </Button>
 
-            <Button component={NavLink} to="/customers" color="inherit" sx={buttonSx}>
-                Заказчики
-            </Button>
+                <Button component={NavLink} to="/customers" color="inherit" sx={buttonSx}>
+                    Заказчики
+                </Button>
+            </Can>
 
             <Button component={NavLink} to="/documentation" color="inherit" sx={buttonSx}>
                 Документация

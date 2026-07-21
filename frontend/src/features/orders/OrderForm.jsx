@@ -8,6 +8,8 @@ import ErrorState from '../../components/ui/ErrorState.jsx'
 import ConfirmDialog from '../../components/ui/feedback/ConfirmDialog.jsx'
 import { useFormLogic } from '../../hooks/useEntityForm.js'
 import { sidebarPageSx } from '../../layouts/AppSidebar.jsx'
+import Can from '../../pages/auth/components/Can.jsx'
+import { GROUPS } from '../../pages/auth/permissions.js'
 import { useGetCustomerPrices } from '../customers/utils/customers.queries.js'
 import { useGetWarehousePrices } from '../warehouses/utils/stocks.queries.js'
 
@@ -160,20 +162,22 @@ export default function OrderFormPage() {
     return (
         <DeliveryContext.Provider value={deliveryContextValue}>
             <Box sx={sidebarPageSx.page}>
-                <OrderDetailSideBar
-                    isEdit={isEdit}
-                    open={open}
-                    setOpen={setOpen}
-                    customerPrices={customerPrices}
-                    loadingCustomerPrices={isLoadingCustomerPrices}
-                    warehousePrices={warehousePrices}
-                    loadingWarehousePrices={isLoadingWarehousePrices}
-                    orderProducts={orderProducts}
-                    setOrderProducts={setOrderProducts}
-                    orderResources={orderResources}
-                    form={form}
-                    setForm={setForm}
-                />
+                <Can group={GROUPS.LOGISTIC_MANAGER}>
+                    <OrderDetailSideBar
+                        isEdit={isEdit}
+                        open={open}
+                        setOpen={setOpen}
+                        customerPrices={customerPrices}
+                        loadingCustomerPrices={isLoadingCustomerPrices}
+                        warehousePrices={warehousePrices}
+                        loadingWarehousePrices={isLoadingWarehousePrices}
+                        orderProducts={orderProducts}
+                        setOrderProducts={setOrderProducts}
+                        orderResources={orderResources}
+                        form={form}
+                        setForm={setForm}
+                    />
+                </Can>
 
                 <Box sx={{ ...sidebarPageSx.content, ...(open ? sidebarPageSx.contentWithSidebar : {}) }}>
                     <Container maxWidth="lg" sx={{ mt: 1 }}>

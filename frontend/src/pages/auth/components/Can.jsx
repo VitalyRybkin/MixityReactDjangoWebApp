@@ -6,7 +6,9 @@ export default function Can({ permission, group, any = [], all = [], fallback = 
     let allowed = true
 
     if (group) {
-        allowed = hasGroup(group)
+        const requiredGroups = Array.isArray(group) ? group : [group]
+
+        allowed = requiredGroups.some(hasGroup)
     }
 
     if (permission) {
