@@ -1,6 +1,7 @@
 import { Box, Button, Divider, TextField, Tooltip, Typography } from '@mui/material'
 
 import AppSelectField from '../../AppSelectField.jsx'
+import ApplyAction from '../../components/ui/buttons/ApplyAction.jsx'
 import AppSidebar from '../../layouts/AppSidebar.jsx'
 
 const quickPresetButtons = [
@@ -131,9 +132,7 @@ export default function FilterSidebar(props) {
 
             <Divider sx={{ my: 2, mb: 1 }} />
 
-            <Button variant="contained" fullWidth sx={{ mt: 1 }} onClick={onApply}>
-                Применить
-            </Button>
+            <ApplyAction onClick={onApply} sx={{ width: '100%' }} />
         </AppSidebar>
     )
 }

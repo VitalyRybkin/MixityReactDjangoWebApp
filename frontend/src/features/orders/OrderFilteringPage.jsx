@@ -1,10 +1,11 @@
 import React from 'react'
 import { useLocation } from 'react-router-dom'
 
-import { Box, Button, Divider, TextField, Typography } from '@mui/material'
+import { Box, Divider, TextField, Typography } from '@mui/material'
 
 import AppSelectField from '../../AppSelectField.jsx'
 import AppBreadcrumbs from '../../components/AppBreadcrumbs.jsx'
+import ApplyAction from '../../components/ui/buttons/ApplyAction.jsx'
 import { useOrdersFilters } from '../../pages/hooks/useOrdersFilters.js'
 import { formatDate } from '../../pages/utils/orders.date-filters.js'
 import { useGetCustomers } from '../customers/utils/customers.queries.js'
@@ -91,9 +92,7 @@ export default function OrderFilteringPage() {
             </Box>
 
             <Box sx={{ p: 1, display: 'flex', justifyContent: 'flex-end' }}>
-                <Button variant="contained" onClick={applyFilters}>
-                    Применить
-                </Button>
+                <ApplyAction onClick={applyFilters} sx={{ width: '200px' }} />
             </Box>
 
             <Divider sx={{ mb: 3 }} />
