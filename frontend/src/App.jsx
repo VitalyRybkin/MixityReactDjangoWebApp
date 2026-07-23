@@ -19,6 +19,7 @@ import DriverFormPage from './features/logistic/drivers/CarrierDriverForm.jsx'
 import CarrierDriverListPage from './features/logistic/drivers/CarrierDriverList.jsx'
 import TruckFormPage from './features/logistic/trucks/CarrierTruckForm.jsx'
 import CarrierTruckListPage from './features/logistic/trucks/CarrierTruckList.jsx'
+import OrderFilteringPage from './features/orders/OrderFilteringPage.jsx'
 import OrderFormPage from './features/orders/OrderForm.jsx'
 import WarehouseInfoPage from './features/warehouses/WarehouseDetail.jsx'
 import WarehouseFormPage from './features/warehouses/WarehouseForm.jsx'
@@ -99,6 +100,7 @@ function App() {
                         />
                     </Route>
                     <Route path="/documentation" element={<DocumentationListPage />} />
+                    <Route path="/filtering" element={<OrderFilteringPage />} />
                 </Route>
 
                 {/* Full-width layout */}

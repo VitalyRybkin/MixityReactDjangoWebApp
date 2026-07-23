@@ -99,4 +99,8 @@ export const routes = [
         path: '/orders/create',
         breadcrumb: 'Заявка',
     },
+    {
+        path: '/filtering',
+        breadcrumb: 'Фильтрация',
+    },
 ]
