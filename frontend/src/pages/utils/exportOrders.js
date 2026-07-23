@@ -1,7 +1,7 @@
 import ExcelJS from 'exceljs'
 import { saveAs } from 'file-saver'
 
-export function formatDate(dateStr, includeYear = false) {
+export function formatFilteringDate(dateStr, includeYear = false) {
     if (!dateStr) return ''
     const [year, month, day] = dateStr.split('-')
     if (includeYear) {
@@ -22,7 +22,7 @@ export async function exportOrdersToExcel(orders, filters, warehouses) {
 
         let baseRow = {
             'Номер': order.id ?? '',
-            'Дата доставки': formatDate(order.delivery_date ?? '', true) ?? '',
+            'Дата доставки': formatFilteringDate(order.delivery_date ?? '', true) ?? '',
             'Организация': order.client ?? '-',
             'Склад': order.warehouse ?? '-',
             'Водитель': order.driver ?? '-',
@@ -160,8 +160,8 @@ export async function exportOrdersToExcel(orders, filters, warehouses) {
 
     const buffer = await workbook.xlsx.writeBuffer()
 
-    const startPeriod = formatDate(filters.dateFrom, false)
-    const endPeriod = formatDate(filters.dateTo, true)
+    const startPeriod = formatFilteringDate(filters.dateFrom, false)
+    const endPeriod = formatFilteringDate(filters.dateTo, true)
     const dateStr = filters.dateFrom === filters.dateTo ? endPeriod : `${startPeriod}-${endPeriod}`
 
     const warehouseName = filters.warehouseId

@@ -1,8 +1,12 @@
 import React from 'react'
+import { useLocation } from 'react-router-dom'
 
-import { Box, Divider, FormControl, InputLabel, MenuItem, Select, TextField, Typography } from '@mui/material'
+import { Box, Button, Divider, TextField, Typography } from '@mui/material'
 
+import AppSelectField from '../../AppSelectField.jsx'
 import AppBreadcrumbs from '../../components/AppBreadcrumbs.jsx'
+import { useOrdersFilters } from '../../pages/hooks/useOrdersFilters.js'
+import { formatDate } from '../../pages/utils/orders.date-filters.js'
 import { useGetCustomers } from '../customers/utils/customers.queries.js'
 
 const dateFieldProps = {
@@ -14,31 +18,54 @@ const dateFieldProps = {
     },
 }
 
+const STORAGE_KEY = 'searching_orders_cache'
+
+const today = formatDate(new Date())
+
+const initialDefaults = {
+    dateFrom: today,
+    dateTo: today,
+    status: '',
+    customerId: '',
+    warehouseId: '',
+    selectedPreset: 'today',
+}
+
 export default function OrderFilteringPage() {
+    const location = useLocation()
     const entity = location.state?.entity
 
-    const todayStr = new Date().toISOString().split('T')[0]
-    const { data: customers } = useGetCustomers()
-    console.log(customers)
+    const { data: customers = [] } = useGetCustomers()
+
+    const { draftFilters, applyFilters, handleDraftFilterChange } = useOrdersFilters(STORAGE_KEY, initialDefaults)
 
     return (
         <Box sx={{ p: 3 }}>
             <AppBreadcrumbs dynamicLabels={entity ? { id: entity.name } : {}} />
-            <Box sx={{ p: 3, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+
+            <Box
+                sx={{
+                    p: 3,
+                    display: 'flex',
+                    justifyContent: 'space-between',
+                    alignItems: 'center',
+                }}
+            >
                 <Typography variant="h4" gutterBottom fontWeight={600}>
                     Фильтр по заявкам
                 </Typography>
             </Box>
 
             <Divider />
-            <Box sx={{ p: 1, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+
+            <Box sx={{ p: 1, display: 'flex', gap: 2 }}>
                 <TextField
                     id="orders-date-from"
                     name="dateFrom"
                     label="C:"
                     type="date"
-                    value={todayStr}
-                    onChange={(e) => onDraftFilterChange('dateFrom', e.target.value)}
+                    value={draftFilters.dateFrom}
+                    onChange={(e) => handleDraftFilterChange('dateFrom', e.target.value)}
                     {...dateFieldProps}
                 />
 
@@ -47,30 +74,26 @@ export default function OrderFilteringPage() {
                     name="dateTo"
                     label="По:"
                     type="date"
-                    value={todayStr}
-                    onChange={(e) => onDraftFilterChange('dateTo', e.target.value)}
+                    value={draftFilters.dateTo}
+                    onChange={(e) => handleDraftFilterChange('dateTo', e.target.value)}
                     {...dateFieldProps}
                 />
             </Box>
-            <Box sx={{ p: 1, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <FormControl fullWidth size="small" margin="normal">
-                    <InputLabel id="orders-customer-label">Контрагент</InputLabel>
-                    <Select
-                        labelId="orders-customer-label"
-                        id="orders-customer"
-                        value={draftFilters.customerId}
-                        label="Контрагент"
-                        variant="outlined"
-                        // onChange={(e) => setDraftFilters((prev) => ({ ...prev, customerId: e.target.value }))}
-                    >
-                        <MenuItem value="">Все</MenuItem>
-                        {customers?.map((customer) => (
-                            <MenuItem key={customer.id} value={customer.id}>
-                                {customer.name}
-                            </MenuItem>
-                        ))}
-                    </Select>
-                </FormControl>
+
+            <Box sx={{ p: 1 }}>
+                <AppSelectField
+                    id="orders-customer"
+                    label="Контрагент"
+                    value={draftFilters.customerId}
+                    options={customers}
+                    onChange={(value) => handleDraftFilterChange('customerId', value)}
+                />
+            </Box>
+
+            <Box sx={{ p: 1, display: 'flex', justifyContent: 'flex-end' }}>
+                <Button variant="contained" onClick={applyFilters}>
+                    Применить
+                </Button>
             </Box>
 
             <Divider sx={{ mb: 3 }} />

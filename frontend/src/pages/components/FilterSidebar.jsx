@@ -1,16 +1,6 @@
-import {
-    Box,
-    Button,
-    Divider,
-    FormControl,
-    InputLabel,
-    MenuItem,
-    Select,
-    TextField,
-    Tooltip,
-    Typography,
-} from '@mui/material'
+import { Box, Button, Divider, TextField, Tooltip, Typography } from '@mui/material'
 
+import AppSelectField from '../../AppSelectField.jsx'
 import AppSidebar from '../../layouts/AppSidebar.jsx'
 
 const quickPresetButtons = [
@@ -40,11 +30,10 @@ export default function FilterSidebar(props) {
         open,
         setOpen,
         draftFilters,
-        setDraftFilters,
+        handleDraftFilterChange,
         onApply,
         onPresetClick,
         selectedPreset,
-        onDraftFilterChange,
         customers = [],
         warehouses = [],
         statusOptions = [],
@@ -68,7 +57,7 @@ export default function FilterSidebar(props) {
                 label="C:"
                 type="date"
                 value={draftFilters.dateFrom}
-                onChange={(e) => onDraftFilterChange('dateFrom', e.target.value)}
+                onChange={(e) => handleDraftFilterChange('dateFrom', e.target.value)}
                 {...dateFieldProps}
             />
 
@@ -78,66 +67,35 @@ export default function FilterSidebar(props) {
                 label="По:"
                 type="date"
                 value={draftFilters.dateTo}
-                onChange={(e) => onDraftFilterChange('dateTo', e.target.value)}
+                onChange={(e) => handleDraftFilterChange('dateTo', e.target.value)}
                 {...dateFieldProps}
             />
 
-            <FormControl fullWidth size="small" margin="normal">
-                <InputLabel id="orders-status-label">Статус</InputLabel>
-                <Select
-                    labelId="orders-status-label"
-                    id="orders-status"
-                    value={draftFilters.status}
-                    variant="outlined"
-                    label="Статус"
-                    onChange={(e) => setDraftFilters((prev) => ({ ...prev, status: e.target.value }))}
-                >
-                    <MenuItem value="">Все</MenuItem>
-                    {statusOptions.map((option) => (
-                        <MenuItem key={option.value} value={option.value}>
-                            {option.label}
-                        </MenuItem>
-                    ))}
-                </Select>
-            </FormControl>
+            <AppSelectField
+                id="orders-status"
+                label="Статус"
+                value={draftFilters.status}
+                options={statusOptions}
+                valueKey="value"
+                labelKey="label"
+                onChange={(value) => handleDraftFilterChange('status', value)}
+            />
 
-            <FormControl fullWidth size="small" margin="normal">
-                <InputLabel id="orders-customer-label">Контрагент</InputLabel>
-                <Select
-                    labelId="orders-customer-label"
-                    id="orders-customer"
-                    value={draftFilters.customerId}
-                    label="Контрагент"
-                    variant="outlined"
-                    onChange={(e) => setDraftFilters((prev) => ({ ...prev, customerId: e.target.value }))}
-                >
-                    <MenuItem value="">Все</MenuItem>
-                    {customers.map((customer) => (
-                        <MenuItem key={customer.id} value={customer.id}>
-                            {customer.name}
-                        </MenuItem>
-                    ))}
-                </Select>
-            </FormControl>
+            <AppSelectField
+                id="orders-customer"
+                label="Контрагент"
+                value={draftFilters.customerId}
+                options={customers}
+                onChange={(value) => handleDraftFilterChange('customerId', value)}
+            />
 
-            <FormControl fullWidth size="small" margin="normal">
-                <InputLabel id="orders-warehouse-label">Склад</InputLabel>
-                <Select
-                    labelId="orders-warehouse-label"
-                    id="orders-customer"
-                    value={draftFilters.warehouseId}
-                    label="Склад"
-                    variant="outlined"
-                    onChange={(e) => setDraftFilters((prev) => ({ ...prev, warehouseId: e.target.value }))}
-                >
-                    <MenuItem value="">Все</MenuItem>
-                    {warehouses.map((warehouse) => (
-                        <MenuItem key={warehouse.id} value={warehouse.id}>
-                            {warehouse.name}
-                        </MenuItem>
-                    ))}
-                </Select>
-            </FormControl>
+            <AppSelectField
+                id="orders-warehouse"
+                label="Склад"
+                value={draftFilters.warehouseId}
+                options={warehouses}
+                onChange={(value) => handleDraftFilterChange('warehouseId', value)}
+            />
 
             <Divider sx={{ my: 2, mb: 0 }} />
 

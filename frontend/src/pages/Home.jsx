@@ -22,8 +22,9 @@ import FilterSidebar from './components/FilterSidebar.jsx'
 import { useDeleteOrderFlow } from './hooks/useDeleteOrderFlow.js'
 import { useOrdersFilters } from './hooks/useOrdersFilters.js'
 import { exportOrdersToExcel } from './utils/exportOrders.js'
-import { formatDate } from './utils/exportOrders.js'
+import { formatFilteringDate } from './utils/exportOrders.js'
 import { exportPowerOfAttorney } from './utils/exportPowerOfAttorney.jsx'
+import { formatDate } from './utils/orders.date-filters.js'
 
 const ORDER_STATUS_OPTIONS = [
     { value: 'draft', label: 'Черновик' },
@@ -31,6 +32,19 @@ const ORDER_STATUS_OPTIONS = [
     { value: 'in_progress', label: 'В работе' },
     { value: 'done', label: 'Завершена' },
 ]
+
+const STORAGE_KEY = 'orders_filters_cache'
+
+const today = formatDate(new Date())
+
+const initialDefaults = {
+    dateFrom: today,
+    dateTo: today,
+    status: '',
+    customerId: '',
+    warehouseId: '',
+    selectedPreset: 'today',
+}
 
 const Home = () => {
     const navigate = useNavigate()
@@ -49,7 +63,7 @@ const Home = () => {
         applyFilters,
         handlePresetClick,
         handleDraftFilterChange,
-    } = useOrdersFilters()
+    } = useOrdersFilters(STORAGE_KEY, initialDefaults)
 
     const { data: orders, isPending: loadingOrders } = useGetOrders(formattedFilters)
     const { data: customers } = useGetCustomers()
@@ -60,8 +74,8 @@ const Home = () => {
         showSnackbar('Заявка удалена'),
     )
 
-    const startPeriod = formatDate(formattedFilters.dateFrom, false)
-    const endPeriod = formatDate(formattedFilters.dateTo, true)
+    const startPeriod = formatFilteringDate(formattedFilters.dateFrom, false)
+    const endPeriod = formatFilteringDate(formattedFilters.dateTo, true)
     const dateStr = formattedFilters.dateFrom === formattedFilters.dateTo ? endPeriod : `${startPeriod}-${endPeriod}`
 
     const customerInputValue = Array.isArray(customers)
@@ -118,7 +132,7 @@ const Home = () => {
                 onApply={applyFilters}
                 onPresetClick={handlePresetClick}
                 selectedPreset={selectedPreset}
-                onDraftFilterChange={handleDraftFilterChange}
+                handleDraftFilterChange={handleDraftFilterChange}
                 customers={customers ?? []}
                 warehouses={warehouses ?? []}
                 statusOptions={ORDER_STATUS_OPTIONS}
