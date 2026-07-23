@@ -9,6 +9,7 @@ import ApplyAction from '../../components/ui/buttons/ApplyAction.jsx'
 import { useOrdersFilters } from '../../pages/hooks/useOrdersFilters.js'
 import { formatDate } from '../../pages/utils/orders.date-filters.js'
 import { useGetCustomers } from '../customers/utils/customers.queries.js'
+import { useGetWarehouses } from '../warehouses/utils/stocks.queries.js'
 
 const dateFieldProps = {
     fullWidth: true,
@@ -37,6 +38,7 @@ export default function OrderFilteringPage() {
     const entity = location.state?.entity
 
     const { data: customers = [] } = useGetCustomers()
+    const { data: warehouses = [] } = useGetWarehouses()
 
     const { draftFilters, applyFilters, handleDraftFilterChange } = useOrdersFilters(STORAGE_KEY, initialDefaults)
 
@@ -59,36 +61,47 @@ export default function OrderFilteringPage() {
 
             <Divider />
 
-            <Box sx={{ p: 1, display: 'flex', gap: 2 }}>
-                <TextField
-                    id="orders-date-from"
-                    name="dateFrom"
-                    label="C:"
-                    type="date"
-                    value={draftFilters.dateFrom}
-                    onChange={(e) => handleDraftFilterChange('dateFrom', e.target.value)}
-                    {...dateFieldProps}
-                />
-
-                <TextField
-                    id="orders-date-to"
-                    name="dateTo"
-                    label="По:"
-                    type="date"
-                    value={draftFilters.dateTo}
-                    onChange={(e) => handleDraftFilterChange('dateTo', e.target.value)}
-                    {...dateFieldProps}
-                />
-            </Box>
-
-            <Box sx={{ p: 1 }}>
-                <AppSelectField
-                    id="orders-customer"
-                    label="Контрагент"
-                    value={draftFilters.customerId}
-                    options={customers}
-                    onChange={(value) => handleDraftFilterChange('customerId', value)}
-                />
+            <Box sx={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 2 }}>
+                <Box sx={{ p: 1, display: 'flex', flexDirection: 'column', gap: 2 }}>
+                    <TextField
+                        id="orders-date-from"
+                        name="dateFrom"
+                        label="C:"
+                        type="date"
+                        value={draftFilters.dateFrom}
+                        onChange={(e) => handleDraftFilterChange('dateFrom', e.target.value)}
+                        {...dateFieldProps}
+                        fullWidth
+                    />
+                    <TextField
+                        id="orders-date-to"
+                        name="dateTo"
+                        label="По:"
+                        type="date"
+                        value={draftFilters.dateTo}
+                        onChange={(e) => handleDraftFilterChange('dateTo', e.target.value)}
+                        {...dateFieldProps}
+                        fullWidth
+                    />
+                </Box>
+                <Box sx={{ p: 1, display: 'flex', flexDirection: 'column', gap: 2 }}>
+                    <AppSelectField
+                        id="orders-customer"
+                        label="Контрагент"
+                        value={draftFilters.customerId}
+                        options={customers}
+                        onChange={(value) => handleDraftFilterChange('customerId', value)}
+                        fullWidth
+                    />
+                    <AppSelectField
+                        id="orders-warehouse"
+                        label="Склад"
+                        value={draftFilters.warehouseId}
+                        options={warehouses}
+                        onChange={(value) => handleDraftFilterChange('warehouseId', value)}
+                        fullWidth
+                    />
+                </Box>
             </Box>
 
             <Box sx={{ p: 1, display: 'flex', justifyContent: 'flex-end' }}>
