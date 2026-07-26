@@ -1,7 +1,7 @@
 import React from 'react'
 import { useLocation } from 'react-router-dom'
 
-import { Box, Divider, TextField, Typography } from '@mui/material'
+import { Box, Divider, Typography } from '@mui/material'
 
 import AppSelectField from '../../AppSelectField.jsx'
 import AppBreadcrumbs from '../../components/AppBreadcrumbs.jsx'
@@ -10,6 +10,8 @@ import { useOrdersFilters } from '../../pages/hooks/useOrdersFilters.js'
 import { formatDate } from '../../pages/utils/orders.date-filters.js'
 import { useGetCustomers } from '../customers/utils/customers.queries.js'
 import { useGetWarehouses } from '../warehouses/utils/stocks.queries.js'
+import DateRangeFields from "../../components/DateRangeFields.jsx";
+import {useExportOrders, useGetOrders} from "./utils/orders.queries.js";
 
 const dateFieldProps = {
     fullWidth: true,
@@ -40,7 +42,21 @@ export default function OrderFilteringPage() {
     const { data: customers = [] } = useGetCustomers()
     const { data: warehouses = [] } = useGetWarehouses()
 
-    const { draftFilters, applyFilters, handleDraftFilterChange } = useOrdersFilters(STORAGE_KEY, initialDefaults)
+    const {
+        formattedFilters,
+        draftFilters,
+        setDraftFilters,
+        selectedPreset,
+        applyFilters,
+        handlePresetClick,
+        handleDraftFilterChange,
+    } = useOrdersFilters(STORAGE_KEY, initialDefaults)
+
+    const { data: orders, isPending: loadingOrders } = useGetOrders(formattedFilters)
+    const { refetch: fetchDownload, isFetching: isDownloading } = useExportOrders(formattedFilters)
+
+    console.log(orders)
+
 
     return (
         <Box sx={{ p: 3 }}>
@@ -63,25 +79,11 @@ export default function OrderFilteringPage() {
 
             <Box sx={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 2 }}>
                 <Box sx={{ p: 1, display: 'flex', flexDirection: 'column', gap: 2 }}>
-                    <TextField
-                        id="orders-date-from"
-                        name="dateFrom"
-                        label="C:"
-                        type="date"
-                        value={draftFilters.dateFrom}
-                        onChange={(e) => handleDraftFilterChange('dateFrom', e.target.value)}
-                        {...dateFieldProps}
-                        fullWidth
-                    />
-                    <TextField
-                        id="orders-date-to"
-                        name="dateTo"
-                        label="По:"
-                        type="date"
-                        value={draftFilters.dateTo}
-                        onChange={(e) => handleDraftFilterChange('dateTo', e.target.value)}
-                        {...dateFieldProps}
-                        fullWidth
+                    <DateRangeFields
+                        filters={draftFilters}
+                        onChange={handleDraftFilterChange}
+                        fromId="orders-filtering-date-from"
+                        toId="orders-filtering-date-to"
                     />
                 </Box>
                 <Box sx={{ p: 1, display: 'flex', flexDirection: 'column', gap: 2 }}>

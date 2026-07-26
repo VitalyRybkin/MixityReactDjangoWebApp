@@ -1,8 +1,9 @@
-import { Box, Button, Divider, TextField, Tooltip, Typography } from '@mui/material'
+import { Box, Button, Divider, Tooltip, Typography } from '@mui/material'
 
 import AppSelectField from '../../AppSelectField.jsx'
 import ApplyAction from '../../components/ui/buttons/ApplyAction.jsx'
 import AppSidebar from '../../layouts/AppSidebar.jsx'
+import DateRangeFields from "../../components/DateRangeFields.jsx";
 
 const quickPresetButtons = [
     { value: 'yesterday', label: 'Вчера' },
@@ -52,24 +53,13 @@ export default function FilterSidebar(props) {
                 Дата доставки:
             </Typography>
 
-            <TextField
-                id="orders-date-from"
-                name="dateFrom"
-                label="C:"
-                type="date"
-                value={draftFilters.dateFrom}
-                onChange={(e) => handleDraftFilterChange('dateFrom', e.target.value)}
-                {...dateFieldProps}
-            />
-
-            <TextField
-                id="orders-date-to"
-                name="dateTo"
-                label="По:"
-                type="date"
-                value={draftFilters.dateTo}
-                onChange={(e) => handleDraftFilterChange('dateTo', e.target.value)}
-                {...dateFieldProps}
+            <DateRangeFields
+                filters={draftFilters}
+                onChange={handleDraftFilterChange}
+                fromField="dateFrom"
+                toField="dateTo"
+                fromId="orders-date-from"
+                toId="orders-date-to"
             />
 
             <AppSelectField
