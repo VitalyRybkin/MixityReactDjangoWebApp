@@ -88,6 +88,10 @@ export async function fetchOrders(filters = {}) {
         params.samples = ''
     }
 
+    if (filters.no_upd === true) {
+        params.no_upd = ''
+    }
+
     const res = await api.get(orderApiPaths.listCreate(), {
         params,
     })

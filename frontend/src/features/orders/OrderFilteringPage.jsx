@@ -23,7 +23,22 @@ const initialDefaults = {
     customerId: '',
     warehouseId: '',
     samples: false,
+    no_upd: false,
 }
+
+const innerBoxSx = {
+    display: 'flex',
+    flexDirection: 'column',
+    gap: 2,
+}
+
+const checkBoxSx = {
+    typography: {
+        fontSize: '14px',
+        color: 'text.secondary',
+    },
+}
+
 
 export default function OrderFilteringPage() {
     const location = useLocation()
@@ -40,7 +55,7 @@ export default function OrderFilteringPage() {
     } = useOrdersFilters(
         STORAGE_KEY,
         initialDefaults,
-        ['samples']
+        ['samples', 'no_upd']
     )
 
     const { data: orders, isPending: loadingOrders } = useGetOrders(formattedFilters)
@@ -82,11 +97,7 @@ export default function OrderFilteringPage() {
                 />
 
                 <Box
-                    sx={{
-                        display: 'flex',
-                        flexDirection: 'column',
-                        gap: 2,
-                    }}
+                    sx={innerBoxSx}
                 >
                     <AppSelectField
                         id="orders-customer"
@@ -111,11 +122,7 @@ export default function OrderFilteringPage() {
                     />
                 </Box>
                 <Box
-                    sx={{
-                        display: 'flex',
-                        flexDirection: 'column',
-                        gap: 2,
-                    }}
+                    sx={innerBoxSx}
                 >
                     <FormControlLabel
                         control={
@@ -128,20 +135,30 @@ export default function OrderFilteringPage() {
                             />
                         }
                         label="Образцы"
-                        slotProps={{
-                            typography: {
-                                sx: {
-                                    fontSize: '0.9rem',
-                                    color: 'text.secondary',
-                                },
-                            },
-                        }}
+                        slotProps={checkBoxSx}
+                    />
+                    <FormControlLabel
+                        control={
+                            <Checkbox
+                                size="small"
+                                checked={draftFilters.no_upd === true}
+                                onChange={(event) =>
+                                    handleDraftFilterChange('no_upd', event.target.checked)
+                                }
+                            />
+                        }
+                        label="Без УПД"
+                        slotProps={checkBoxSx}
                     />
                 </Box>
             </Box>
 
             <Box sx={{ p: 1, display: 'flex', justifyContent: 'flex-end' }}>
-                <ApplyAction onClick={applyFilters} sx={{ width: '200px' }} />
+                <ApplyAction
+                    onClick={applyFilters}
+                    loading={loadingOrders}
+                    sx={{width: '150px'}}
+                />
             </Box>
 
             <Divider sx={{ mb: 3 }} />
