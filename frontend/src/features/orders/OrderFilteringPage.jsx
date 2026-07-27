@@ -12,6 +12,7 @@ import { useGetCustomers } from '../customers/utils/customers.queries.js'
 import { useGetWarehouses } from '../warehouses/utils/stocks.queries.js'
 import DateRangeFields from "../../components/DateRangeFields.jsx";
 import {useExportOrders, useGetOrders} from "./utils/orders.queries.js";
+import {useGetProducts} from "../catalog/utils/catalog.queries.js";
 
 const STORAGE_KEY = 'searching_orders_cache'
 
@@ -24,6 +25,7 @@ const initialDefaults = {
     warehouseId: '',
     samples: false,
     no_upd: false,
+    productId: '',
 }
 
 const innerBoxSx = {
@@ -46,6 +48,7 @@ export default function OrderFilteringPage() {
 
     const { data: customers = [] } = useGetCustomers()
     const { data: warehouses = [] } = useGetWarehouses()
+    const { data: products = [] } = useGetProducts()
 
     const {
         formattedFilters,
@@ -57,6 +60,12 @@ export default function OrderFilteringPage() {
         initialDefaults,
         ['samples', 'no_upd']
     )
+
+    const productValue = products.some(
+        product => product.id === draftFilters.productId
+    )
+        ? draftFilters.productId
+        : ''
 
     const { data: orders, isPending: loadingOrders } = useGetOrders(formattedFilters)
     const { refetch: fetchDownload, isFetching: isDownloading } = useExportOrders(formattedFilters)
@@ -124,32 +133,44 @@ export default function OrderFilteringPage() {
                 <Box
                     sx={innerBoxSx}
                 >
-                    <FormControlLabel
-                        control={
-                            <Checkbox
-                                size="small"
-                                checked={draftFilters.samples === true}
-                                onChange={(event) =>
-                                    handleDraftFilterChange('samples', event.target.checked)
-                                }
-                            />
+                    <AppSelectField
+                        id="orders-product"
+                        label="Продукция"
+                        value={productValue}
+                        options={products}
+                        onChange={(value) =>
+                            handleDraftFilterChange('productId', value)
                         }
-                        label="Образцы"
-                        slotProps={checkBoxSx}
+                        fullWidth
                     />
-                    <FormControlLabel
-                        control={
-                            <Checkbox
-                                size="small"
-                                checked={draftFilters.no_upd === true}
-                                onChange={(event) =>
-                                    handleDraftFilterChange('no_upd', event.target.checked)
-                                }
-                            />
-                        }
-                        label="Без УПД"
-                        slotProps={checkBoxSx}
-                    />
+                    <Box>
+                        <FormControlLabel
+                            control={
+                                <Checkbox
+                                    size="small"
+                                    checked={draftFilters.samples === true}
+                                    onChange={(event) =>
+                                        handleDraftFilterChange('samples', event.target.checked)
+                                    }
+                                />
+                            }
+                            label="Образцы"
+                            slotProps={checkBoxSx}
+                        />
+                        <FormControlLabel
+                            control={
+                                <Checkbox
+                                    size="small"
+                                    checked={draftFilters.no_upd === true}
+                                    onChange={(event) =>
+                                        handleDraftFilterChange('no_upd', event.target.checked)
+                                    }
+                                />
+                            }
+                            label="Без УПД"
+                            slotProps={checkBoxSx}
+                        />
+                    </Box>
                 </Box>
             </Box>
 

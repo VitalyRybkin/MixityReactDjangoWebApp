@@ -25,6 +25,7 @@ export const orderKeys = {
             status: filters.status || '',
             customerId: filters.customerId || '',
             warehouseId: filters.warehouseId || '',
+            productId: filters.productId || '',
             samples: filters.samples === true,
         },
     ],
@@ -82,6 +83,10 @@ export async function fetchOrders(filters = {}) {
 
     if (filters.warehouseId) {
         params.warehouseId = filters.warehouseId
+    }
+
+    if (filters.productId) {
+        params.productId = filters.productId
     }
 
     if (filters.samples === true) {
