@@ -3,7 +3,6 @@ import { Box, TextField } from '@mui/material'
 const dateFieldProps = {
     fullWidth: true,
     size: 'small',
-    margin: 'normal',
     slotProps: {
         inputLabel: { shrink: true },
     },
@@ -18,10 +17,15 @@ export default function DateRangeFields({
                                             toId = 'date-to',
                                             fromLabel = 'С:',
                                             toLabel = 'По:',
-                                            sx,
                                         }) {
     return (
-        <Box sx={{ display: 'flex', flexDirection: 'column', ...sx }}>
+        <Box
+            sx={{
+                display: 'flex',
+                flexDirection: 'column',
+                gap: 2,
+            }}
+        >
             <TextField
                 id={fromId}
                 name={fromField}

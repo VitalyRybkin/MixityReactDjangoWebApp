@@ -4,6 +4,40 @@ import dayjs from 'dayjs'
 
 import { getPresetRange } from '../utils/orders.date-filters.js'
 
+const normalizeStoredValue = (value, defaultValue) => {
+    if (typeof defaultValue === 'boolean') {
+        return value === true || value === 'true'
+    }
+
+    return value
+}
+
+const loadFiltersFromStorage = (storageKey, defaults) => {
+    try {
+        const saved = localStorage.getItem(storageKey)
+
+        if (!saved) {
+            return { ...defaults }
+        }
+
+        const parsed = JSON.parse(saved)
+
+        return Object.keys(defaults).reduce((result, field) => {
+            const storedValue = parsed[field]
+
+            result[field] =
+                storedValue !== undefined
+                    ? normalizeStoredValue(storedValue, defaults[field])
+                    : defaults[field]
+
+            return result
+        }, {})
+    } catch (error) {
+        console.error('Failed to load order filters:', error)
+        return { ...defaults }
+    }
+}
+
 const saveFiltersToStorage = (storageKey, filters) => {
     try {
         localStorage.setItem(storageKey, JSON.stringify(filters))
@@ -12,32 +46,14 @@ const saveFiltersToStorage = (storageKey, filters) => {
     }
 }
 
-const loadFiltersFromStorage = (storageKey, defaults) => {
-    try {
-        const saved = localStorage.getItem(storageKey)
-
-        if (!saved) {
-            return defaults
-        }
-
-        const parsed = JSON.parse(saved)
-
-        return {
-            ...defaults,
-            ...parsed,
-            dateFrom: parsed.dateFrom || defaults.dateFrom,
-            dateTo: parsed.dateTo || defaults.dateTo,
-        }
-    } catch (error) {
-        console.error('Failed to load order filters:', error)
-        return defaults
-    }
-}
-
 export function useOrdersFilters(storageKey, initialDefaults) {
-    const [filters, setFilters] = useState(() => loadFiltersFromStorage(storageKey, initialDefaults))
+    const [filters, setFilters] = useState(() =>
+        loadFiltersFromStorage(storageKey, initialDefaults)
+    )
 
-    const [draftFilters, setDraftFilters] = useState(() => loadFiltersFromStorage(storageKey, initialDefaults))
+    const [draftFilters, setDraftFilters] = useState(() =>
+        loadFiltersFromStorage(storageKey, initialDefaults)
+    )
 
     const selectedPreset = draftFilters.selectedPreset ?? null
 
@@ -66,12 +82,18 @@ export function useOrdersFilters(storageKey, initialDefaults) {
     }
 
     const handleDraftFilterChange = (field, value) => {
-        const isDateField = field === 'dateFrom' || field === 'dateTo'
+        const isDateField =
+            field === 'dateFrom' || field === 'dateTo'
 
         setDraftFilters((prev) => ({
             ...prev,
-            [field]: isDateField && value ? dayjs(value).format('YYYY-MM-DD') : value,
-            ...(isDateField ? { selectedPreset: null } : {}),
+            [field]:
+                isDateField && value
+                    ? dayjs(value).format('YYYY-MM-DD')
+                    : value,
+            ...(isDateField
+                ? { selectedPreset: null }
+                : {}),
         }))
     }
 

@@ -14,7 +14,9 @@ const unwrapList = (data) => {
 // --- QUERY KEYS ---
 export const orderKeys = {
     all: ['orders'],
+
     lists: () => [...orderKeys.all, 'list'],
+
     list: (filters = {}) => [
         ...orderKeys.lists(),
         {
@@ -23,19 +25,31 @@ export const orderKeys = {
             status: filters.status || '',
             customerId: filters.customerId || '',
             warehouseId: filters.warehouseId || '',
+            samples: filters.samples === true,
         },
     ],
-    detail: (id) => [...orderKeys.all, 'detail', String(id)],
-    resources: () => [...orderKeys.all, 'resources'],
+
+    detail: (id) => [
+        ...orderKeys.all,
+        'detail',
+        String(id),
+    ],
+
+    resources: () => [
+        ...orderKeys.all,
+        'resources',
+    ],
+
     download: (filters = {}) => [
         ...orderKeys.all,
         'download',
         {
-            dateFrom:    filters.dateFrom    || '',
-            dateTo:      filters.dateTo      || '',
-            status:      filters.status      || '',
-            customerId:  filters.customerId  || '',
+            dateFrom: filters.dateFrom || '',
+            dateTo: filters.dateTo || '',
+            status: filters.status || '',
+            customerId: filters.customerId || '',
             warehouseId: filters.warehouseId || '',
+            samples: filters.samples === true,
         },
     ],
 }
@@ -47,18 +61,38 @@ export const fetchOrderResources = async () => {
     return res.data
 }
 
-export const fetchOrders = async ({ dateFrom, dateTo, status, customerId, warehouseId } = {}) => {
+export async function fetchOrders(filters = {}) {
     const params = {}
 
-    if (dateFrom) params.date_from = dateFrom
-    if (dateTo) params.date_to = dateTo
-    if (status) params.status = status
-    if (customerId) params.customer = customerId
-    if (warehouseId) params.warehouse = warehouseId
+    if (filters.dateFrom) {
+        params.dateFrom = filters.dateFrom
+    }
 
+    if (filters.dateTo) {
+        params.dateTo = filters.dateTo
+    }
 
-    const res = await api.get(orderApiPaths.listCreate(), { params })
-    return unwrapList(res.data)
+    if (filters.status) {
+        params.status = filters.status
+    }
+
+    if (filters.customerId) {
+        params.customerId = filters.customerId
+    }
+
+    if (filters.warehouseId) {
+        params.warehouseId = filters.warehouseId
+    }
+
+    if (filters.samples === true) {
+        params.samples = ''
+    }
+
+    const res = await api.get(orderApiPaths.listCreate(), {
+        params,
+    })
+
+    return res.data
 }
 
 export const fetchExportOrders = async ({ dateFrom, dateTo, status, customerId, warehouseId } = {}) => {
@@ -108,14 +142,7 @@ export function useGetOrderResources(options = {}) {
 export function useGetOrders(filters = {}) {
     return useQuery({
         queryKey: orderKeys.list(filters),
-        queryFn: () =>
-            fetchOrders({
-                dateFrom: filters.dateFrom || '',
-                dateTo: filters.dateTo || '',
-                status: filters.status || '',
-                customerId: filters.customerId || '',
-                warehouseId: filters.warehouseId || '',
-            }),
+        queryFn: () => fetchOrders(filters),
     })
 }
 

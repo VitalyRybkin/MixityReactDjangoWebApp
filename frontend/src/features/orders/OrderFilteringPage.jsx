@@ -1,7 +1,7 @@
 import React from 'react'
 import { useLocation } from 'react-router-dom'
 
-import { Box, Divider, Typography } from '@mui/material'
+import {Box, Checkbox, Divider, FormControlLabel, Typography} from '@mui/material'
 
 import AppSelectField from '../../AppSelectField.jsx'
 import AppBreadcrumbs from '../../components/AppBreadcrumbs.jsx'
@@ -13,15 +13,6 @@ import { useGetWarehouses } from '../warehouses/utils/stocks.queries.js'
 import DateRangeFields from "../../components/DateRangeFields.jsx";
 import {useExportOrders, useGetOrders} from "./utils/orders.queries.js";
 
-const dateFieldProps = {
-    fullWidth: true,
-    size: 'small',
-    margin: 'normal',
-    slotProps: {
-        inputLabel: { shrink: true },
-    },
-}
-
 const STORAGE_KEY = 'searching_orders_cache'
 
 const today = formatDate(new Date())
@@ -29,10 +20,9 @@ const today = formatDate(new Date())
 const initialDefaults = {
     dateFrom: today,
     dateTo: today,
-    status: '',
     customerId: '',
     warehouseId: '',
-    selectedPreset: 'today',
+    samples: false,
 }
 
 export default function OrderFilteringPage() {
@@ -45,18 +35,16 @@ export default function OrderFilteringPage() {
     const {
         formattedFilters,
         draftFilters,
-        setDraftFilters,
-        selectedPreset,
         applyFilters,
-        handlePresetClick,
         handleDraftFilterChange,
-    } = useOrdersFilters(STORAGE_KEY, initialDefaults)
+    } = useOrdersFilters(
+        STORAGE_KEY,
+        initialDefaults,
+        ['samples']
+    )
 
     const { data: orders, isPending: loadingOrders } = useGetOrders(formattedFilters)
     const { refetch: fetchDownload, isFetching: isDownloading } = useExportOrders(formattedFilters)
-
-    console.log(orders)
-
 
     return (
         <Box sx={{ p: 3 }}>
@@ -77,31 +65,77 @@ export default function OrderFilteringPage() {
 
             <Divider />
 
-            <Box sx={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 2 }}>
-                <Box sx={{ p: 1, display: 'flex', flexDirection: 'column', gap: 2 }}>
-                    <DateRangeFields
-                        filters={draftFilters}
-                        onChange={handleDraftFilterChange}
-                        fromId="orders-filtering-date-from"
-                        toId="orders-filtering-date-to"
-                    />
-                </Box>
-                <Box sx={{ p: 1, display: 'flex', flexDirection: 'column', gap: 2 }}>
+            <Box
+                sx={{
+                    display: 'grid',
+                    gridTemplateColumns: '1fr 1fr 1fr',
+                    gap: 3,
+                    pt: 2,
+                    alignItems: 'start',
+                }}
+            >
+                <DateRangeFields
+                    filters={draftFilters}
+                    onChange={handleDraftFilterChange}
+                    fromId="orders-date-from"
+                    toId="orders-date-to"
+                />
+
+                <Box
+                    sx={{
+                        display: 'flex',
+                        flexDirection: 'column',
+                        gap: 2,
+                    }}
+                >
                     <AppSelectField
                         id="orders-customer"
                         label="Контрагент"
                         value={draftFilters.customerId}
                         options={customers}
-                        onChange={(value) => handleDraftFilterChange('customerId', value)}
+                        onChange={(value) =>
+                            handleDraftFilterChange('customerId', value)
+                        }
                         fullWidth
                     />
+
                     <AppSelectField
                         id="orders-warehouse"
                         label="Склад"
                         value={draftFilters.warehouseId}
                         options={warehouses}
-                        onChange={(value) => handleDraftFilterChange('warehouseId', value)}
+                        onChange={(value) =>
+                            handleDraftFilterChange('warehouseId', value)
+                        }
                         fullWidth
+                    />
+                </Box>
+                <Box
+                    sx={{
+                        display: 'flex',
+                        flexDirection: 'column',
+                        gap: 2,
+                    }}
+                >
+                    <FormControlLabel
+                        control={
+                            <Checkbox
+                                size="small"
+                                checked={draftFilters.samples === true}
+                                onChange={(event) =>
+                                    handleDraftFilterChange('samples', event.target.checked)
+                                }
+                            />
+                        }
+                        label="Образцы"
+                        slotProps={{
+                            typography: {
+                                sx: {
+                                    fontSize: '0.9rem',
+                                    color: 'text.secondary',
+                                },
+                            },
+                        }}
                     />
                 </Box>
             </Box>

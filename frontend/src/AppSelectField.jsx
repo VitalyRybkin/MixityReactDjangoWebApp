@@ -13,7 +13,7 @@ export default function AppSelectField({
     ...props
 }) {
     return (
-        <FormControl fullWidth size="small" margin="normal" variant="outlined">
+        <FormControl fullWidth size="small" variant="outlined">
             <InputLabel id={`${id}-label`}>{label}</InputLabel>
 
             <Select
