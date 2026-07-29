@@ -23,7 +23,7 @@ export default function OrderPageHeader({ isEdit, orderId, saving, onCancel }) {
             </Typography>
 
             <Stack direction="row" spacing={1}>
-                <FormActions saving={saving} onCancel={onCancel} />
+                <FormActions saving={saving} />
             </Stack>
         </Box>
     )

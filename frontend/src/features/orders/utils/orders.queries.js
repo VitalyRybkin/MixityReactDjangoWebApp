@@ -30,16 +30,9 @@ export const orderKeys = {
         },
     ],
 
-    detail: (id) => [
-        ...orderKeys.all,
-        'detail',
-        String(id),
-    ],
+    detail: (id) => [...orderKeys.all, 'detail', String(id)],
 
-    resources: () => [
-        ...orderKeys.all,
-        'resources',
-    ],
+    resources: () => [...orderKeys.all, 'resources'],
 
     download: (filters = {}) => [
         ...orderKeys.all,
@@ -66,11 +59,11 @@ export async function fetchOrders(filters = {}) {
     const params = {}
 
     if (filters.dateFrom) {
-        params.dateFrom = filters.dateFrom
+        params.date_from = filters.dateFrom
     }
 
     if (filters.dateTo) {
-        params.dateTo = filters.dateTo
+        params.date_to = filters.dateTo
     }
 
     if (filters.status) {
@@ -78,15 +71,15 @@ export async function fetchOrders(filters = {}) {
     }
 
     if (filters.customerId) {
-        params.customerId = filters.customerId
+        params.customer_id = filters.customerId
     }
 
     if (filters.warehouseId) {
-        params.warehouseId = filters.warehouseId
+        params.warehouse_id = filters.warehouseId
     }
 
     if (filters.productId) {
-        params.productId = filters.productId
+        params.product_id = filters.productId
     }
 
     if (filters.samples === true) {
@@ -112,7 +105,6 @@ export const fetchExportOrders = async ({ dateFrom, dateTo, status, customerId, 
     if (status) params.status = status
     if (customerId) params.customer = customerId
     if (warehouseId) params.warehouse = warehouseId
-
 
     const res = await api.get(orderApiPaths.download(), { params })
     return unwrapList(res.data)

@@ -1,9 +1,9 @@
 import { Box, Button, Divider, Tooltip, Typography } from '@mui/material'
 
 import AppSelectField from '../../AppSelectField.jsx'
+import DateRangeFields from '../../components/DateRangeFields.jsx'
 import ApplyAction from '../../components/ui/buttons/ApplyAction.jsx'
 import AppSidebar from '../../layouts/AppSidebar.jsx'
-import DateRangeFields from "../../components/DateRangeFields.jsx";
 
 const quickPresetButtons = [
     { value: 'yesterday', label: 'Вчера' },
@@ -61,6 +61,8 @@ export default function FilterSidebar(props) {
                 fromId="orders-date-from"
                 toId="orders-date-to"
             />
+
+            <Divider sx={{ my: 2, mb: 0 }} />
 
             <AppSelectField
                 id="orders-status"

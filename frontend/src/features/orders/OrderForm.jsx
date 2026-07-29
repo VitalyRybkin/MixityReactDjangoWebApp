@@ -184,12 +184,7 @@ export default function OrderFormPage() {
                         <AppBreadcrumbs />
 
                         <form noValidate onSubmit={onSubmit}>
-                            <OrderPageHeader
-                                isEdit={isEdit}
-                                orderId={form.id}
-                                saving={saving}
-                                onCancel={() => handleNavigate('/')}
-                            />
+                            <OrderPageHeader isEdit={isEdit} orderId={form.id} saving={saving} />
 
                             <Divider sx={{ mb: 3 }} />
 
