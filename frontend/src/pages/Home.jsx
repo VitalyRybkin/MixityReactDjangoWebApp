@@ -10,10 +10,10 @@ import DownloadAction from '../components/ui/buttons/DownloadAction.jsx'
 import AppSnackbar from '../components/ui/feedback/AppSnackbar.jsx'
 import ConfirmDialog from '../components/ui/feedback/ConfirmDialog.jsx'
 import { useGetCustomers } from '../features/customers/utils/customers.queries.js'
-import { getOrdersColumns, localeText } from '../features/orders/utils/order.columns.jsx'
 import { useExportOrders, useGetOrders } from '../features/orders/utils/orders.queries.js'
 import { useGetWarehouses } from '../features/warehouses/utils/stocks.queries.js'
 import { sidebarPageSx } from '../layouts/AppSidebar.jsx'
+import { localeText } from '../utils/localeDataGridText.js'
 
 import Can from './auth/components/Can.jsx'
 import { GROUPS } from './auth/permissions.js'
@@ -24,6 +24,7 @@ import { useOrdersFilters } from './hooks/useOrdersFilters.js'
 import { exportOrdersToExcel } from './utils/exportOrders.js'
 import { formatFilteringDate } from './utils/exportOrders.js'
 import { exportPowerOfAttorney } from './utils/exportPowerOfAttorney.jsx'
+import { getHomeGridOrderColumns } from './utils/home_order.columns.jsx'
 import { formatDate } from './utils/orders.date-filters.js'
 
 const ORDER_STATUS_OPTIONS = [
@@ -91,7 +92,7 @@ const Home = () => {
         : '-'
 
     const columns = useMemo(
-        () => getOrdersColumns({ onDelete: (order) => setOrderToDelete(order) }),
+        () => getHomeGridOrderColumns({ onDelete: (order) => setOrderToDelete(order) }),
         [setOrderToDelete],
     )
 

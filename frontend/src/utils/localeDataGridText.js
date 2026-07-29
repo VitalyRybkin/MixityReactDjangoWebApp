@@ -1,0 +1,56 @@
+export const localeText = {
+    noRowsLabel: 'На выбранный период доставки заказов нет.',
+
+    filterPanelAddFilter: 'Добавить фильтр',
+    filterPanelDeleteIconLabel: 'Удалить',
+    filterPanelLinkOperator: 'Логика',
+    filterPanelOperators: 'Операторы',
+    filterPanelOperatorAnd: 'И',
+    filterPanelOperatorOr: 'ИЛИ',
+    filterPanelColumns: 'Колонки',
+    filterPanelInputLabel: 'Значение',
+    filterPanelInputPlaceholder: 'Значение фильтра',
+
+    filterOperatorContains: 'содержит',
+    filterOperatorDoesNotContain: 'не содержит',
+    filterOperatorEquals: 'равно',
+    filterOperatorDoesNotEqual: 'не равно',
+    filterOperatorStartsWith: 'начинается с',
+    filterOperatorEndsWith: 'заканчивается на',
+    filterOperatorIs: 'равно',
+    filterOperatorNot: 'не равно',
+    filterOperatorAfter: 'после',
+    filterOperatorOnOrAfter: 'в этот день или после',
+    filterOperatorBefore: 'до',
+    filterOperatorOnOrBefore: 'в этот день или до',
+    filterOperatorIsEmpty: 'пусто',
+    filterOperatorIsNotEmpty: 'не пусто',
+    filterOperatorIsAnyOf: 'любой из',
+
+    columnMenuLabel: 'Меню',
+    columnMenuShowColumns: 'Показать колонки',
+    columnMenuFilter: 'Фильтр',
+    columnMenuHideColumn: 'Скрыть колонку',
+    columnMenuUnsort: 'Отменить сортировку',
+    columnMenuSortAsc: 'Сортировать по возрастанию',
+    columnMenuSortDesc: 'Сортировать по убыванию',
+    columnMenuManageColumns: 'Управление колонками',
+
+    columnsPanelDragIconLabel: 'Изменить порядок колонок',
+    columnsPanelTextFieldLabel: 'Поиск колонки',
+    columnsPanelTextFieldPlaceholder: 'Найти...',
+    columnsManagementShowHideAllText: 'Показать/Скрыть все',
+    columnsManagementReset: 'Сбросить',
+
+    MuiTablePagination: {
+        labelRowsPerPage: 'Строк на странице:',
+        labelDisplayedRows: ({ from, to, count }) => `${from}–${to} из ${count !== -1 ? count : `более чем ${to}`}`,
+    },
+}
+export const ORDER_STATUS_LABELS = {
+    draft: 'Черновик',
+    created: 'Создана',
+    in_progress: 'В работе',
+    done: 'Завершена',
+    cancelled: 'Отменена',
+}
