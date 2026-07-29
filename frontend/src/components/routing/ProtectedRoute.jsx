@@ -1,6 +1,8 @@
 import { useEffect, useRef, useState } from 'react'
 import { Navigate } from 'react-router-dom'
 
+import { Box, CircularProgress, Typography } from '@mui/material'
+
 import { jwtDecode } from 'jwt-decode'
 
 import api from '../../api.js'
@@ -13,7 +15,7 @@ function ProtectedRoute({ children }) {
     const ranRef = useRef(false)
 
     useEffect(() => {
-        // helps in dev StrictMode (avoid duplicate auth runs)
+        // Helps avoid duplicate authentication runs in development StrictMode.
         if (ranRef.current) return
         ranRef.current = true
         ;(async () => {
@@ -27,24 +29,30 @@ function ProtectedRoute({ children }) {
 
     const refreshToken = async () => {
         const refresh = localStorage.getItem(REFRESH_TOKEN)
+
         if (!refresh) {
             setIsAuthorized(false)
             return
         }
 
-        const response = await api.post('/api/auth/token/refresh/', { refresh })
+        const response = await api.post('/api/auth/token/refresh/', {
+            refresh,
+        })
+
         localStorage.setItem(ACCESS_TOKEN, response.data.access)
         setIsAuthorized(true)
     }
 
     const auth = async () => {
         const token = localStorage.getItem(ACCESS_TOKEN)
+
         if (!token) {
             setIsAuthorized(false)
             return
         }
 
         let decoded
+
         try {
             decoded = jwtDecode(token)
         } catch {
@@ -64,7 +72,28 @@ function ProtectedRoute({ children }) {
         }
     }
 
-    if (isAuthorized === null) return <div>Загрузка...</div>
+    if (isAuthorized === null) {
+        return (
+            <Box
+                sx={{
+                    minHeight: '100vh',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    gap: 2,
+                    bgcolor: 'background.default',
+                }}
+            >
+                <CircularProgress size={42} thickness={4} />
+
+                <Typography variant="body1" color="text.secondary" sx={{ fontWeight: 500 }}>
+                    Проверяем авторизацию...
+                </Typography>
+            </Box>
+        )
+    }
+
     return isAuthorized ? children : <Navigate to="/login" replace />
 }
 

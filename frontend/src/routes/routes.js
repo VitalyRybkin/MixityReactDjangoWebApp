@@ -101,6 +101,6 @@ export const routes = [
     },
     {
         path: '/filtering',
-        breadcrumb: 'Фильтрация',
+        breadcrumb: 'Поиск',
     },
 ]

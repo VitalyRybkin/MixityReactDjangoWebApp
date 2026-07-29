@@ -1,29 +1,23 @@
 import { FormControl, InputLabel, MenuItem, Select } from '@mui/material'
 
 export default function AppSelectField({
-                                           id,
-                                           label,
-                                           value,
-                                           onChange,
-                                           options = [],
-                                           valueKey = 'id',
-                                           labelKey = 'name',
-                                           includeAll = true,
-                                           allLabel = 'Все',
-                                           ...props
-                                       }) {
-    const values = options.map(option => option[valueKey])
+    id,
+    label,
+    value,
+    onChange,
+    options = [],
+    valueKey = 'id',
+    labelKey = 'name',
+    includeAll = true,
+    allLabel = 'Все',
+    ...props
+}) {
+    const values = options.map((option) => option[valueKey])
 
-    const safeValue =
-        value === '' ||
-        value === null ||
-        value === undefined ||
-        values.includes(value)
-            ? value
-            : ''
+    const safeValue = value === '' || value === null || value === undefined || values.includes(value) ? value : ''
 
     return (
-        <FormControl fullWidth size="small" variant="outlined">
+        <FormControl fullWidth size="small" variant="outlined" sx={{ mt: 1 }}>
             <InputLabel id={`${id}-label`}>{label}</InputLabel>
 
             <Select
