@@ -1,20 +1,21 @@
 import React from 'react'
 
 import FileDownloadIcon from '@mui/icons-material/FileDownload'
-
+import CircularProgress from '@mui/material/CircularProgress'
 
 import IconAction from './IconAction.jsx'
 
-import CircularProgress from '@mui/material/CircularProgress'
-
-export default function DownloadAction({ loading, ...props }) {
+export default function DownloadAction({ sx, loading = false, ...props }) {
     return (
-        <IconAction title="Скачать" {...props}>
-            {loading ? (
-                <CircularProgress size={18} />
-            ) : (
-                <FileDownloadIcon fontSize="small" />
-            )}
+        <IconAction
+            title="Скачать"
+            disabled={false}
+            onClick={loading ? undefined : props.onClick}
+            sx={{
+                ...sx,
+            }}
+        >
+            {loading ? <CircularProgress size={20} /> : <FileDownloadIcon fontSize="small" />}
         </IconAction>
     )
 }

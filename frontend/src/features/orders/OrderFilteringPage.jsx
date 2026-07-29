@@ -1,4 +1,4 @@
-import React, { useMemo } from 'react'
+import React, { useMemo, useState } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
 
 import { Box, Checkbox, Divider, FormControlLabel, Typography } from '@mui/material'
@@ -8,8 +8,11 @@ import AppSelectField from '../../AppSelectField.jsx'
 import AppBreadcrumbs from '../../components/AppBreadcrumbs.jsx'
 import DateRangeFields from '../../components/DateRangeFields.jsx'
 import ApplyAction from '../../components/ui/buttons/ApplyAction.jsx'
+import DownloadAction from '../../components/ui/buttons/DownloadAction.jsx'
+import AppSnackbar from '../../components/ui/feedback/AppSnackbar.jsx'
 import CustomPagination from '../../pages/components/CustomPagination.jsx'
 import { useOrdersFilters } from '../../pages/hooks/useOrdersFilters.js'
+import { exportOrdersToExcel } from '../../pages/utils/exportOrders.js'
 import { formatDate } from '../../pages/utils/orders.date-filters.js'
 import { localeText } from '../../utils/localeDataGridText.js'
 import { useGetProducts } from '../catalog/utils/catalog.queries.js'
@@ -63,10 +66,28 @@ export default function OrderFilteringPage() {
 
     const productValue = products.some((product) => product.id === draftFilters.productId) ? draftFilters.productId : ''
 
+    const [snackbar, setSnackbar] = useState({ open: false, message: '', severity: 'success' })
     const { data: orders, isPending: loadingOrders } = useGetOrders(formattedFilters)
     const { refetch: fetchDownload, isFetching: isDownloading } = useExportOrders(formattedFilters)
 
     const columns = useMemo(() => getFilterGridOrderColumns(), [])
+    const showSnackbar = (message, severity = 'success') => setSnackbar({ open: true, message, severity })
+
+    const handleExport = async () => {
+        try {
+            const { data } = await fetchDownload()
+            const orders = Array.isArray(data) ? data : Array.isArray(data?.results) ? data.results : []
+
+            if (!orders.length) {
+                showSnackbar('Нет заявок для экспорта.', 'info')
+                return
+            }
+
+            await exportOrdersToExcel(orders, formattedFilters, warehouses ?? [])
+        } catch (e) {
+            showSnackbar('Ошибка при экспорте.', 'error')
+        }
+    }
 
     return (
         <Box sx={{ p: 3 }}>
@@ -83,6 +104,14 @@ export default function OrderFilteringPage() {
                 <Typography variant="h4" gutterBottom fontWeight={600}>
                     Поиск заявок
                 </Typography>
+                <Box sx={{ display: 'flex', gap: 2 }}>
+                    <DownloadAction
+                        title="Экспорт в Excel"
+                        onClick={handleExport}
+                        disabled={isDownloading || loadingOrders}
+                        loading={isDownloading || loadingOrders}
+                    />
+                </Box>
             </Box>
 
             <Divider />
@@ -176,6 +205,13 @@ export default function OrderFilteringPage() {
                 slots={{ pagination: CustomPagination }}
                 onRowClick={(params) => navigate(`/orders/${params.row.id}/edit`)}
                 sx={{ '& .MuiDataGrid-row': { cursor: 'pointer' } }}
+            />
+
+            <AppSnackbar
+                open={snackbar.open}
+                message={snackbar.message}
+                severity={snackbar.severity}
+                onClose={() => setSnackbar((prev) => ({ ...prev, open: false }))}
             />
         </Box>
     )

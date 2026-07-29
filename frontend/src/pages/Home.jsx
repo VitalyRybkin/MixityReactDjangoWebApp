@@ -1,31 +1,70 @@
-import React, { useMemo, useState } from 'react'
-import { useLocation, useNavigate } from 'react-router-dom'
+import React, { useMemo, useState } from 'react';
+import { useLocation, useNavigate } from 'react-router-dom';
 
-import { Box, Container, Divider, Typography } from '@mui/material'
-import { DataGrid } from '@mui/x-data-grid'
 
-import AppBreadcrumbs from '../components/AppBreadcrumbs.jsx'
-import AddAction from '../components/ui/buttons/AddAction.jsx'
-import DownloadAction from '../components/ui/buttons/DownloadAction.jsx'
-import AppSnackbar from '../components/ui/feedback/AppSnackbar.jsx'
-import ConfirmDialog from '../components/ui/feedback/ConfirmDialog.jsx'
-import { useGetCustomers } from '../features/customers/utils/customers.queries.js'
-import { useExportOrders, useGetOrders } from '../features/orders/utils/orders.queries.js'
-import { useGetWarehouses } from '../features/warehouses/utils/stocks.queries.js'
-import { sidebarPageSx } from '../layouts/AppSidebar.jsx'
-import { localeText } from '../utils/localeDataGridText.js'
 
-import Can from './auth/components/Can.jsx'
-import { GROUPS } from './auth/permissions.js'
-import CustomPagination from './components/CustomPagination.jsx'
-import FilterSidebar from './components/FilterSidebar.jsx'
-import { useDeleteOrderFlow } from './hooks/useDeleteOrderFlow.js'
-import { useOrdersFilters } from './hooks/useOrdersFilters.js'
-import { exportOrdersToExcel } from './utils/exportOrders.js'
-import { formatFilteringDate } from './utils/exportOrders.js'
-import { exportPowerOfAttorney } from './utils/exportPowerOfAttorney.jsx'
-import { getHomeGridOrderColumns } from './utils/home_order.columns.jsx'
-import { formatDate } from './utils/orders.date-filters.js'
+import { Box, Container, Divider, Typography } from '@mui/material';
+import { DataGrid } from '@mui/x-data-grid';
+
+
+
+import AppBreadcrumbs from '../components/AppBreadcrumbs.jsx';
+import AddAction from '../components/ui/buttons/AddAction.jsx';
+import DownloadAction from '../components/ui/buttons/DownloadAction.jsx';
+import AppSnackbar from '../components/ui/feedback/AppSnackbar.jsx';
+import ConfirmDialog from '../components/ui/feedback/ConfirmDialog.jsx';
+import { useGetCustomers } from '../features/customers/utils/customers.queries.js';
+import { useExportOrders, useGetOrders } from '../features/orders/utils/orders.queries.js';
+import { useGetWarehouses } from '../features/warehouses/utils/stocks.queries.js';
+import { sidebarPageSx } from '../layouts/AppSidebar.jsx';
+import { localeText } from '../utils/localeDataGridText.js';
+
+
+
+import Can from './auth/components/Can.jsx';
+import { GROUPS } from './auth/permissions.js';
+import CustomPagination from './components/CustomPagination.jsx';
+import FilterSidebar from './components/FilterSidebar.jsx';
+import { useDeleteOrderFlow } from './hooks/useDeleteOrderFlow.js';
+import { useOrdersFilters } from './hooks/useOrdersFilters.js';
+import { exportOrdersToExcel } from './utils/exportOrders.js';
+import { formatFilteringDate } from './utils/exportOrders.js';
+import { exportPowerOfAttorney } from './utils/exportPowerOfAttorney.jsx';
+import { getHomeGridOrderColumns } from './utils/home_order.columns.jsx';
+import { formatDate } from './utils/orders.date-filters.js';
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 const ORDER_STATUS_OPTIONS = [
     { value: 'draft', label: 'Черновик' },
@@ -97,17 +136,17 @@ const Home = () => {
     )
 
     const handleExport = async () => {
+        if (!warehouses.some((w) => w.id === formattedFilters.warehouseId)) {
+            showSnackbar('Склад не выбран!', 'error')
+            return
+        }
+
+        if (formattedFilters.status !== 'in_progress') {
+            showSnackbar('Экспорт только для заявок в статусе "В работе"', 'error')
+            return
+        }
+
         try {
-            if (!warehouses.some((w) => w.id === formattedFilters.warehouseId)) {
-                showSnackbar('Склад не выбран!', 'error')
-                return
-            }
-
-            if (formattedFilters.status !== 'in_progress') {
-                showSnackbar('Экспорт только для заявок в статусе "В работе"', 'error')
-                return
-            }
-
             const { data } = await fetchDownload()
             const orders = Array.isArray(data) ? data : Array.isArray(data?.results) ? data.results : []
 
