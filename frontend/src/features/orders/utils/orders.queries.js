@@ -131,6 +131,15 @@ export const deleteOrder = async (id) => {
     return id
 }
 
+export const uploadUpd = async ({ id, file }) => {
+    const formData = new FormData()
+    formData.append('upd_pdf', file)
+
+    const res = await api.patch(orderApiPaths.uploadUpd(id), formData)
+
+    return res.data
+}
+
 // --- HOOKS ---
 
 export function useGetOrderResources(options = {}) {
@@ -213,6 +222,24 @@ export function useDeleteOrder() {
 
             queryClient.removeQueries({
                 queryKey: orderKeys.detail(id),
+            })
+        },
+    })
+}
+
+export function useUploadUpd() {
+    const queryClient = useQueryClient()
+
+    return useMutation({
+        mutationFn: uploadUpd,
+
+        onSuccess: async (_, { id }) => {
+            await queryClient.invalidateQueries({
+                queryKey: orderKeys.detail(id),
+            })
+
+            await queryClient.invalidateQueries({
+                queryKey: orderKeys.lists(),
             })
         },
     })

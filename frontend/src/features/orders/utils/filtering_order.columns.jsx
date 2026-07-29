@@ -1,9 +1,8 @@
-import DownAction from '../../../components/ui/buttons/DownAction.jsx'
-import ViewAction from '../../../components/ui/buttons/ViewAction.jsx'
+import FileUploadAction from '../../../components/FileUploadAction.jsx'
 import { formatDateTime, formatTime } from '../../../utils/DateTimeFormatting.js'
 import { ORDER_STATUS_LABELS } from '../../../utils/localeDataGridText.js'
 
-export const getFilterGridOrderColumns = () => [
+export const getFilterGridOrderColumns = ({ onUploadUpd }) => [
     { field: 'id', headerName: '№', flex: 0.4 },
     {
         field: 'created_at',
@@ -48,28 +47,19 @@ export const getFilterGridOrderColumns = () => [
         valueGetter: (_, row) => ORDER_STATUS_LABELS[row.status] ?? row.status ?? '—',
     },
     {
-        field: 'udp_pdf',
+        field: 'upd_pdf',
         headerName: 'УПД',
         flex: 0.8,
         sortable: false,
         filterable: false,
-        renderCell: (params) => {
-            const hasUdpPdf = Boolean(params.row.udp_pdf)
-
-            const handleClick = (event) => {
-                event.stopPropagation()
-                if (hasUdpPdf) {
-                    window.open(params.row.udp_pdf, '_blank')
-                } else {
-                    console.log('download or generate udp')
-                }
-            }
-
-            return hasUdpPdf ? (
-                <ViewAction title="Просмотр" onClick={handleClick} />
-            ) : (
-                <DownAction title="Загрузить" onClick={handleClick} />
-            )
-        },
+        renderCell: ({ row }) => (
+            <FileUploadAction
+                entityId={row.id}
+                fileUrl={row.upd_pdf}
+                onUpload={onUploadUpd}
+                uploadTitle="Загрузить"
+                viewTitle="Просмотр"
+            />
+        ),
     },
 ]

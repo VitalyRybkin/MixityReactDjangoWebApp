@@ -12,8 +12,7 @@ import {
 } from '@mui/material'
 import { TimePicker } from '@mui/x-date-pickers'
 
-import DownAction from '../../../components/ui/buttons/DownAction.jsx'
-import ViewAction from '../../../components/ui/buttons/ViewAction.jsx'
+import FileUploadAction from '../../../components/FileUploadAction.jsx'
 import { fieldsetStyles, orderStatus } from '../utils/order.form.constants.js'
 
 export default function OrderMainFields({ form, setForm, onChange, orderResources, isEdit, order, onDownloadUpd }) {
@@ -47,6 +46,7 @@ export default function OrderMainFields({ form, setForm, onChange, orderResource
                             label="Статус"
                             value={form.status || ''}
                             onChange={onChange('status')}
+                            variant="outlined"
                         >
                             {Object.entries(orderStatus).map(([value, label]) => (
                                 <MenuItem key={value} value={value}>
@@ -95,6 +95,7 @@ export default function OrderMainFields({ form, setForm, onChange, orderResource
                         label="Клиент"
                         value={form.client || ''}
                         onChange={onChange('client')}
+                        variant="outlined"
                     >
                         <MenuItem value="">Не выбран</MenuItem>
 
@@ -116,12 +117,15 @@ export default function OrderMainFields({ form, setForm, onChange, orderResource
                         alignItems: 'center',
                     }}
                 >
-                    {isEdit &&
-                        (order?.udp_pdf ? (
-                            <ViewAction title="Просмотр УПД" onClick={() => window.open(order.udp_pdf, '_blank')} />
-                        ) : (
-                            <DownAction title="Загрузить УПД" onClick={() => onDownloadUpd(order.id)} />
-                        ))}
+                    {isEdit && (
+                        <FileUploadAction
+                            entityId={order.id}
+                            fileUrl={order.upd_pdf}
+                            onUpload={onDownloadUpd}
+                            uploadTitle="Загрузить УПД"
+                            viewTitle="Просмотр УПД"
+                        />
+                    )}
 
                     <FormControlLabel
                         control={

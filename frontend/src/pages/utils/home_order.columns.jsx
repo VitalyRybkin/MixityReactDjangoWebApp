@@ -1,10 +1,9 @@
+import FileUploadAction from '../../components/FileUploadAction.jsx'
 import DeleteAction from '../../components/ui/buttons/DeleteAction.jsx'
-import DownAction from '../../components/ui/buttons/DownAction.jsx'
-import ViewAction from '../../components/ui/buttons/ViewAction.jsx'
 import { formatDateTime, formatTime } from '../../utils/DateTimeFormatting.js'
 import { ORDER_STATUS_LABELS } from '../../utils/localeDataGridText.js'
 
-export const getHomeGridOrderColumns = ({ onDelete }) => [
+export const getHomeGridOrderColumns = ({ onDelete, onUploadUpd }) => [
     { field: 'id', headerName: '№', flex: 0.4 },
     {
         field: 'created_at',
@@ -49,29 +48,22 @@ export const getHomeGridOrderColumns = ({ onDelete }) => [
         valueGetter: (_, row) => ORDER_STATUS_LABELS[row.status] ?? row.status ?? '—',
     },
     {
-        field: 'udp_pdf',
+        field: 'upd_pdf',
         headerName: 'УПД',
-        flex: 0.8,
+        width: 90,
         sortable: false,
         filterable: false,
-        renderCell: (params) => {
-            const hasUdpPdf = Boolean(params.row.udp_pdf)
-
-            const handleClick = (event) => {
-                event.stopPropagation()
-                if (hasUdpPdf) {
-                    window.open(params.row.udp_pdf, '_blank')
-                } else {
-                    console.log('download or generate udp')
-                }
-            }
-
-            return hasUdpPdf ? (
-                <ViewAction title="Просмотр" onClick={handleClick} />
-            ) : (
-                <DownAction title="Загрузить" onClick={handleClick} />
-            )
-        },
+        disableColumnMenu: true,
+        align: 'center',
+        renderCell: ({ row }) => (
+            <FileUploadAction
+                entityId={row.id}
+                fileUrl={row.upd_pdf}
+                onUpload={onUploadUpd}
+                uploadTitle="Загрузить"
+                viewTitle="Просмотр"
+            />
+        ),
     },
     {
         field: 'actions',
@@ -81,12 +73,12 @@ export const getHomeGridOrderColumns = ({ onDelete }) => [
         filterable: false,
         disableColumnMenu: true,
         align: 'center',
-        renderCell: (params) => (
+        renderCell: ({ row }) => (
             <DeleteAction
                 onClick={(event) => {
                     event.stopPropagation()
                     event.currentTarget.blur()
-                    onDelete(params.row)
+                    onDelete(row)
                 }}
             />
         ),

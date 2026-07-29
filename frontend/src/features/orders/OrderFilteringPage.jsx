@@ -10,6 +10,7 @@ import DateRangeFields from '../../components/DateRangeFields.jsx'
 import ApplyAction from '../../components/ui/buttons/ApplyAction.jsx'
 import DownloadAction from '../../components/ui/buttons/DownloadAction.jsx'
 import AppSnackbar from '../../components/ui/feedback/AppSnackbar.jsx'
+import { useFileUpload } from '../../hooks/useUploadFile.js'
 import CustomPagination from '../../pages/components/CustomPagination.jsx'
 import { useOrdersFilters } from '../../pages/hooks/useOrdersFilters.js'
 import { exportOrdersToExcel } from '../../pages/utils/exportOrders.js'
@@ -20,7 +21,7 @@ import { useGetCustomers } from '../customers/utils/customers.queries.js'
 import { useGetWarehouses } from '../warehouses/utils/stocks.queries.js'
 
 import { getFilterGridOrderColumns } from './utils/filtering_order.columns.jsx'
-import { useExportOrders, useGetOrders } from './utils/orders.queries.js'
+import { useExportOrders, useGetOrders, useUploadUpd } from './utils/orders.queries.js'
 
 const STORAGE_KEY = 'searching_orders_cache'
 
@@ -57,6 +58,12 @@ export default function OrderFilteringPage() {
     const { data: customers = [] } = useGetCustomers()
     const { data: warehouses = [] } = useGetWarehouses()
     const { data: products = [] } = useGetProducts()
+    const uploadUpd = useUploadUpd()
+
+    const handleUploadUpd = useFileUpload(uploadUpd, {
+        successMessage: 'УПД успешно загружен.',
+        errorMessage: 'Не удалось загрузить УПД.',
+    })
 
     const { formattedFilters, draftFilters, applyFilters, handleDraftFilterChange } = useOrdersFilters(
         STORAGE_KEY,
@@ -70,7 +77,13 @@ export default function OrderFilteringPage() {
     const { data: orders, isPending: loadingOrders } = useGetOrders(formattedFilters)
     const { refetch: fetchDownload, isFetching: isDownloading } = useExportOrders(formattedFilters)
 
-    const columns = useMemo(() => getFilterGridOrderColumns(), [])
+    const columns = useMemo(
+        () =>
+            getFilterGridOrderColumns({
+                onUploadUpd: handleUploadUpd,
+            }),
+        [handleUploadUpd],
+    )
     const showSnackbar = (message, severity = 'success') => setSnackbar({ open: true, message, severity })
 
     const handleExport = async () => {

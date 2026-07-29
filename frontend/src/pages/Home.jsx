@@ -1,70 +1,32 @@
-import React, { useMemo, useState } from 'react';
-import { useLocation, useNavigate } from 'react-router-dom';
+import React, { useMemo, useState } from 'react'
+import { useLocation, useNavigate } from 'react-router-dom'
 
+import { Box, Container, Divider, Typography } from '@mui/material'
+import { DataGrid } from '@mui/x-data-grid'
 
+import AppBreadcrumbs from '../components/AppBreadcrumbs.jsx'
+import AddAction from '../components/ui/buttons/AddAction.jsx'
+import DownloadAction from '../components/ui/buttons/DownloadAction.jsx'
+import AppSnackbar from '../components/ui/feedback/AppSnackbar.jsx'
+import ConfirmDialog from '../components/ui/feedback/ConfirmDialog.jsx'
+import { useGetCustomers } from '../features/customers/utils/customers.queries.js'
+import { uploadUpd, useExportOrders, useGetOrders } from '../features/orders/utils/orders.queries.js'
+import { useGetWarehouses } from '../features/warehouses/utils/stocks.queries.js'
+import { useFileUpload } from '../hooks/useUploadFile.js'
+import { sidebarPageSx } from '../layouts/AppSidebar.jsx'
+import { localeText } from '../utils/localeDataGridText.js'
 
-import { Box, Container, Divider, Typography } from '@mui/material';
-import { DataGrid } from '@mui/x-data-grid';
-
-
-
-import AppBreadcrumbs from '../components/AppBreadcrumbs.jsx';
-import AddAction from '../components/ui/buttons/AddAction.jsx';
-import DownloadAction from '../components/ui/buttons/DownloadAction.jsx';
-import AppSnackbar from '../components/ui/feedback/AppSnackbar.jsx';
-import ConfirmDialog from '../components/ui/feedback/ConfirmDialog.jsx';
-import { useGetCustomers } from '../features/customers/utils/customers.queries.js';
-import { useExportOrders, useGetOrders } from '../features/orders/utils/orders.queries.js';
-import { useGetWarehouses } from '../features/warehouses/utils/stocks.queries.js';
-import { sidebarPageSx } from '../layouts/AppSidebar.jsx';
-import { localeText } from '../utils/localeDataGridText.js';
-
-
-
-import Can from './auth/components/Can.jsx';
-import { GROUPS } from './auth/permissions.js';
-import CustomPagination from './components/CustomPagination.jsx';
-import FilterSidebar from './components/FilterSidebar.jsx';
-import { useDeleteOrderFlow } from './hooks/useDeleteOrderFlow.js';
-import { useOrdersFilters } from './hooks/useOrdersFilters.js';
-import { exportOrdersToExcel } from './utils/exportOrders.js';
-import { formatFilteringDate } from './utils/exportOrders.js';
-import { exportPowerOfAttorney } from './utils/exportPowerOfAttorney.jsx';
-import { getHomeGridOrderColumns } from './utils/home_order.columns.jsx';
-import { formatDate } from './utils/orders.date-filters.js';
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+import Can from './auth/components/Can.jsx'
+import { GROUPS } from './auth/permissions.js'
+import CustomPagination from './components/CustomPagination.jsx'
+import FilterSidebar from './components/FilterSidebar.jsx'
+import { useDeleteOrderFlow } from './hooks/useDeleteOrderFlow.js'
+import { useOrdersFilters } from './hooks/useOrdersFilters.js'
+import { exportOrdersToExcel } from './utils/exportOrders.js'
+import { formatFilteringDate } from './utils/exportOrders.js'
+import { exportPowerOfAttorney } from './utils/exportPowerOfAttorney.jsx'
+import { getHomeGridOrderColumns } from './utils/home_order.columns.jsx'
+import { formatDate } from './utils/orders.date-filters.js'
 
 const ORDER_STATUS_OPTIONS = [
     { value: 'draft', label: 'Черновик' },
@@ -130,9 +92,18 @@ const Home = () => {
         ? ORDER_STATUS_OPTIONS.find((s) => s.value === formattedFilters.status)?.label || '-'
         : '-'
 
+    const handleUploadUpd = useFileUpload(uploadUpd, {
+        successMessage: 'УПД успешно загружен.',
+        errorMessage: 'Не удалось загрузить УПД.',
+    })
+
     const columns = useMemo(
-        () => getHomeGridOrderColumns({ onDelete: (order) => setOrderToDelete(order) }),
-        [setOrderToDelete],
+        () =>
+            getHomeGridOrderColumns({
+                onDelete: setOrderToDelete,
+                onUploadUpd: handleUploadUpd,
+            }),
+        [handleUploadUpd],
     )
 
     const handleExport = async () => {
