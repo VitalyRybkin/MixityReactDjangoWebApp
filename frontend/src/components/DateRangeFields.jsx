@@ -34,7 +34,7 @@ export default function DateRangeFields({
                 value={filters?.[fromField] ?? ''}
                 onChange={(event) => onChange(fromField, event.target.value)}
                 {...dateFieldProps}
-                sx={{ mt: 1 }}
+                sx={{ mt: 2 }}
             />
 
             <TextField
@@ -45,7 +45,7 @@ export default function DateRangeFields({
                 value={filters?.[toField] ?? ''}
                 onChange={(event) => onChange(toField, event.target.value)}
                 {...dateFieldProps}
-                sx={{ mt: 1 }}
+                sx={{ mt: 2 }}
             />
         </Box>
     )

@@ -1,6 +1,6 @@
 from typing import Any
 
-from django.db.models import QuerySet
+from django.db.models import QuerySet, Q
 from drf_spectacular.types import OpenApiTypes
 from drf_spectacular.utils import OpenApiParameter
 from rest_framework import status
@@ -46,6 +46,7 @@ class OrderResourcesAPIView(BaseGenericAPIView):
     read_serializer_class = OrderResourcesSerializer
 
     serializer_class = OrderResourcesSerializer
+    queryset = Client.objects.none()
 
     def get(self, request: Request, *args: Any, **kwargs: Any) -> Response:
         clients = Client.objects.active()
@@ -106,16 +107,29 @@ class OrderListCreateAPIView(BaseListCreateAPIView):
         OpenApiParameter("status", OpenApiTypes.STR, OpenApiParameter.QUERY),
         OpenApiParameter("customer", OpenApiTypes.INT, OpenApiParameter.QUERY),
         OpenApiParameter("warehouse", OpenApiTypes.INT, OpenApiParameter.QUERY),
+        OpenApiParameter("no_upd", OpenApiTypes.BOOL, OpenApiParameter.QUERY),
+        OpenApiParameter("product_id", OpenApiTypes.INT, OpenApiParameter.QUERY),
+        OpenApiParameter("samples", OpenApiTypes.BOOL, OpenApiParameter.QUERY),
     ]
 
     def get_queryset(self) -> QuerySet[Order]:
-        queryset = Order.objects.select_related("client", "customer")
+        queryset = (
+            Order.objects
+            .select_related(
+                "client",
+                "customer",
+                "warehouse",
+            )
+            .prefetch_related("order_products")
+        )
 
         date_from = self.request.query_params.get("date_from")
         date_to = self.request.query_params.get("date_to")
         order_status = self.request.query_params.get("status")
-        customer_id = self.request.query_params.get("customer")
-        warehouse_id = self.request.query_params.get("warehouse")
+        customer_id = self.request.query_params.get("customer_id")
+        warehouse_id = self.request.query_params.get("warehouse_id")
+        no_upd = self.request.query_params.get("no_upd")
+        product_id = self.request.query_params.get("product_id")
 
         if date_from:
             queryset = queryset.filter(delivery_date__gte=date_from)
@@ -132,7 +146,21 @@ class OrderListCreateAPIView(BaseListCreateAPIView):
         if warehouse_id:
             queryset = queryset.filter(warehouse_id=warehouse_id)
 
-        return queryset.order_by("-delivery_date", "-created_at")
+        if "samples" in self.request.query_params:
+            queryset = queryset.filter(samples=True)
+
+        if no_upd in {"true", "1"}:
+            queryset = queryset.filter(
+                Q(upd_pdf__isnull=True) | Q(upd_pdf="")
+            )
+
+        if product_id:
+            queryset = queryset.filter(order_products__id=product_id)
+
+        return queryset.distinct().order_by(
+            "-delivery_date",
+            "-created_at",
+        )
 
     def get_serializer_class(self) -> Any:
         if self.request.method == "POST":

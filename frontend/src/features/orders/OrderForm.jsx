@@ -128,7 +128,7 @@ export default function OrderFormPage() {
     })
     markCleanRef.current = markClean
 
-    const { confirmOpen, handleNavigate, handleConfirm, handleCancel } = useUnsavedGuard(isDirty && !saving)
+    const { confirmOpen, handleConfirm, handleCancel } = useUnsavedGuard(isDirty && !saving)
 
     const deliveryInitialized = useRef(false)
 

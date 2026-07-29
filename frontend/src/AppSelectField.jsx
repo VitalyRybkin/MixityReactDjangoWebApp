@@ -17,7 +17,7 @@ export default function AppSelectField({
     const safeValue = value === '' || value === null || value === undefined || values.includes(value) ? value : ''
 
     return (
-        <FormControl fullWidth size="small" variant="outlined" sx={{ mt: 1 }}>
+        <FormControl fullWidth size="small" variant="outlined" sx={{ mt: 2 }}>
             <InputLabel id={`${id}-label`}>{label}</InputLabel>
 
             <Select

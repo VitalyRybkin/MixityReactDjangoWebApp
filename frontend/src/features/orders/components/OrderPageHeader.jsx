@@ -2,7 +2,7 @@ import { Box, Stack, Typography } from '@mui/material'
 
 import FormActions from '../../../components/ui/FormActions.jsx'
 
-export default function OrderPageHeader({ isEdit, orderId, saving, onCancel }) {
+export default function OrderPageHeader({ isEdit, orderId, saving }) {
     return (
         <Box
             sx={{

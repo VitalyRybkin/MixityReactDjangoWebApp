@@ -18,15 +18,6 @@ const rangePresetButtons = [
     { value: 'thisMonth', label: 'Месяц' },
 ]
 
-const dateFieldProps = {
-    fullWidth: true,
-    size: 'small',
-    margin: 'normal',
-    slotProps: {
-        inputLabel: { shrink: true },
-    },
-}
-
 export default function FilterSidebar(props) {
     const {
         open,

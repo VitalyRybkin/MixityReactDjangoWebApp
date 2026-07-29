@@ -26,7 +26,8 @@ export const orderKeys = {
             customerId: filters.customerId || '',
             warehouseId: filters.warehouseId || '',
             productId: filters.productId || '',
-            samples: filters.samples === true,
+            samples: filters.samples ?? '',
+            noUpd: filters.no_upd ?? '',
         },
     ],
 
