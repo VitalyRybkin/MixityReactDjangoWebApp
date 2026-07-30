@@ -1,38 +1,38 @@
 [project]
 name = "backend"
 version = "0.1.0"
-description = "Add your description here"
+description = "Mixity backend"
 readme = "README.md"
 requires-python = ">=3.12"
+
 dependencies = [
-    "asgiref>=3.9.1",
-    "autopep8>=2.3.2",
-    "black>=26.1.0",
     "django>=5.2.6",
     "django-cleanup>=9.0.0",
     "django-cors-headers>=4.8.0",
     "django-phonenumber-field[phonenumbers]>=8.4.0",
-    "django-project-settings>=0.2",
     "djangorestframework>=3.16.1",
     "djangorestframework-simplejwt>=5.5.1",
-    "djangorestframework-stubs>=3.16.7",
-    "dotenv>=0.9.9",
     "drf-spectacular[sidecar]>=0.29.0",
+    "gunicorn>=26.0.0",
+    "pillow>=12.1.0",
+    "psycopg[binary]>=3.3.4",
+    "pydantic-settings>=2.10.1",
+]
+
+[dependency-groups]
+dev = [
+    "autopep8>=2.3.2",
+    "black>=26.1.0",
+    "django-stubs[compatible-mypy]>=5.2.8",
+    "djangorestframework-stubs>=3.16.7",
     "factory-boy>=3.3.3",
     "flake8>=7.3.0",
     "isort>=7.0.0",
     "mypy>=1.19.1",
-    "pillow>=12.1.0",
-    "pip>=26.0",
     "pre-commit>=4.5.1",
-    "psycopg2-binary>=2.9.10",
-    "pydantic-settings>=2.10.1",
-    "pyjwt>=2.10.1",
     "pytest>=9.0.2",
     "pytest-cov>=7.0.0",
     "pytest-django>=4.11.1",
-    "pytz>=2025.2",
-    "sqlparse>=0.5.3",
 ]
 
 [tool.black]
@@ -53,7 +53,6 @@ known_first_party = ["catalog", "carrier", "order"]
 src_paths = ["."]
 filter_files = true
 
-
 [tool.mypy]
 python_version = "3.12"
 warn_unused_configs = true
@@ -67,13 +66,3 @@ disable_error_code = ["var-annotated"]
 
 [tool.django-stubs]
 django_settings_module = "backend.settings"
-
-[dependency-groups]
-dev = [
-    "django-stubs[compatible-mypy]>=5.2.8",
-    "djangorestframework>=3.16.1",
-    "djangorestframework-stubs>=3.16.7",
-    "isort>=7.0.0",
-    "pydantic-settings>=2.10.1",
-    "pytest-django>=4.11.1",
-]

@@ -24,6 +24,7 @@ backend/htmlcov/
 backend/.cache/
 backend/local_settings.py
 
+
 # ---- uv ----
 backend/.venv/
 backend/.uv/
@@ -50,6 +51,7 @@ frontend/.env
 *.bak
 *.backup
 docker-compose.override.yml
+.env.Docker
 
 # ---- Coverage / Reports ----
 coverage.xml

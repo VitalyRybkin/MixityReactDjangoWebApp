@@ -1,0 +1,83 @@
+services:
+  db:
+    image: postgres:17-alpine
+    restart: unless-stopped
+
+    env_file:
+      - .env.docker
+
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}",
+        ]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+    networks:
+      - mixity_network
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+
+    environment:
+      DJANGO_SEED_DATA: "True"
+
+    restart: unless-stopped
+
+    env_file:
+      - .env.docker
+
+    depends_on:
+      db:
+        condition: service_healthy
+
+    volumes:
+      - django_static:/app/staticfiles
+      - django_media:/app/media
+
+    expose:
+      - "8000"
+
+    networks:
+      - mixity_network
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+      args:
+        VITE_API_URL: ""
+
+    restart: unless-stopped
+
+    depends_on:
+      - backend
+
+    ports:
+      - "8080:80"
+
+    volumes:
+      - django_static:/var/www/django-static:ro
+      - django_media:/var/www/media:ro
+
+    networks:
+      - mixity_network
+
+
+volumes:
+  postgres_data:
+  django_static:
+  django_media:
+
+
+networks:
+  mixity_network:
+    driver: bridge
