@@ -96,6 +96,12 @@ env-pull:
 	@test -f "$(ENV_FILE)" || \
 		(echo "Missing $(ENV_FILE)" && exit 1)
 
+# local .env → Bitwarden
+env-push:
+	@test -f "$(ENV_FILE)" || \
+		(echo "Missing $(ENV_FILE)" && exit 1)
+	@$(BW_SESSION_CMD) ./scripts/upload-env.sh
+
 # Bitwarden → local seed_users.json
 seeds-pull:
 	@$(BW_SESSION_CMD) ./scripts/generate-json.sh
