@@ -4,7 +4,7 @@ services:
     restart: unless-stopped
 
     env_file:
-      - .env.docker
+      - ./backend/.env.docker
 
     volumes:
       - postgres_data:/var/lib/postgresql/data
@@ -33,7 +33,7 @@ services:
     restart: unless-stopped
 
     env_file:
-      - .env.docker
+      - ./backend/.env.docker
 
     depends_on:
       db:
@@ -42,6 +42,7 @@ services:
     volumes:
       - django_static:/app/staticfiles
       - django_media:/app/media
+      - ./backend/credentials/seed_users.json:/app/credentials/seed_users.json:ro
 
     expose:
       - "8000"
