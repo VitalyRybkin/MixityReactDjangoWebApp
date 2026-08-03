@@ -38,6 +38,6 @@ bw get item "$ITEM_ID" \
   | jq -r '.fields[] | select(.name=="'"$BW_FIELD_NAME"'") | .value' \
   > "$OUT_FILE"
 
-python -m json.tool "$OUT_FILE" >/dev/null
+python3 -m json.tool "$OUT_FILE" >/dev/null
 
 echo "✔ Restored $OUT_FILE"
