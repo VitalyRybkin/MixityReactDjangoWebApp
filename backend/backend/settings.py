@@ -33,9 +33,17 @@ SECRET_KEY = project_settings.DJANGO_SECRET_KEY
 DEBUG = project_settings.DJANGO_DEBUG
 
 # ALLOWED_HOSTS = ["*"]
-ALLOWED_HOSTS = project_settings.DJANGO_ALLOWED_HOSTS
+ALLOWED_HOSTS = [
+    value.strip()
+    for value in project_settings.DJANGO_ALLOWED_HOSTS.split(",")
+    if value.strip()
+]
 
-CSRF_TRUSTED_ORIGINS = project_settings.DJANGO_CSRF_TRUSTED_ORIGINS
+CSRF_TRUSTED_ORIGINS = [
+    value.strip()
+    for value in project_settings.DJANGO_CSRF_TRUSTED_ORIGINS.split(",")
+    if value.strip()
+]
 
 REST_FRAMEWORK = {
     "DEFAULT_AUTHENTICATION_CLASSES": (

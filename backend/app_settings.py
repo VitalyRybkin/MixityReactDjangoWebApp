@@ -1,6 +1,7 @@
 import os
 from pathlib import Path
 
+from pydantic import computed_field
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 BASE_DIR = Path(__file__).resolve().parent
@@ -18,8 +19,8 @@ class Settings(BaseSettings):
     DJANGO_DEBUG:bool = True
     DJANGO_SEED_DATA: bool = False
     DJANGO_SECRET_KEY: str
-    DJANGO_ALLOWED_HOSTS: list[str] = []
-    DJANGO_CSRF_TRUSTED_ORIGINS: list[str] = []
+    DJANGO_ALLOWED_HOSTS: str = ""
+    DJANGO_CSRF_TRUSTED_ORIGINS: str = ""
 
     VITE_API_URL: str
 
@@ -31,5 +32,23 @@ class Settings(BaseSettings):
         extra="ignore",
     )
 
+@computed_field
+@property
+def allowed_hosts(self) -> list[str]:
+    return [
+        host.strip()
+        for host in self.DJANGO_ALLOWED_HOSTS.split(",")
+        if host.strip()
+    ]
+
+
+@computed_field
+@property
+def csrf_trusted_origins(self) -> list[str]:
+    return [
+        origin.strip()
+        for origin in self.DJANGO_CSRF_TRUSTED_ORIGINS.split(",")
+        if origin.strip()
+    ]
 
 project_settings = Settings()

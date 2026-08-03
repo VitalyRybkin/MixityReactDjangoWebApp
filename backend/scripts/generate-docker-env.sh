@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-ITEM="${BW_ITEM_NAME:-mixity-django-dev}"
-OUTPUT_FILE="${1:-credentials/.env}"
+ITEM="${BW_ITEM_NAME:-mixity-django-prod}"
+OUTPUT_FILE="${1:-.env.docker}"
 
 if [[ -z "${BW_SESSION:-}" ]]; then
   echo 'BW_SESSION not set. Run:'

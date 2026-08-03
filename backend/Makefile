@@ -85,6 +85,7 @@ reset:
 	bootstrap-no-bw
 
 ENV_FILE := credentials/.env
+DOCKER_ENV_FILE := .env.docker
 SEED_FILE := credentials/seed_users.json
 FIXTURE_USERS := django_groups_fixture.json
 
@@ -96,11 +97,21 @@ env-pull:
 	@test -f "$(ENV_FILE)" || \
 		(echo "Missing $(ENV_FILE)" && exit 1)
 
+docker-env-pull:
+	@$(BW_SESSION_CMD) ./scripts/generate-docker-env.sh
+	@test -f "$(DOCKER_ENV_FILE)" || \
+		(echo "Missing $(DOCKER_ENV_FILE)" && exit 1)
+
 # local .env → Bitwarden
 env-push:
 	@test -f "$(ENV_FILE)" || \
 		(echo "Missing $(ENV_FILE)" && exit 1)
 	@$(BW_SESSION_CMD) ./scripts/upload-env.sh
+
+docker-env-push:
+	@test -f "$(DOCKER_ENV_FILE)" || \
+		(echo "Missing $(DOCKER_ENV_FILE)" && exit 1)
+	@$(BW_SESSION_CMD) ./scripts/upload-docker-env.sh
 
 # Bitwarden → local seed_users.json
 seeds-pull:
