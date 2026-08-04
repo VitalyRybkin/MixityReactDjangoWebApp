@@ -2,6 +2,7 @@ import logging
 from typing import Any, Optional
 from unittest import SkipTest
 
+from django.contrib.auth import get_user_model
 from rest_framework.reverse import reverse
 from rest_framework.test import APITestCase
 
@@ -66,10 +67,24 @@ class BaseAPITestCase(
         return {"pk": self.obj.id}
 
     def setUp(self) -> None:
+        super().setUp()
+
         logging.getLogger("django.request").setLevel(logging.ERROR)
 
+        user_model = get_user_model()
+
+        self.authenticated_user = user_model.objects.create_superuser(
+            username="test_admin",
+            email="test_admin@example.com",
+            password="test_password",
+        )
+
+        self.client.force_authenticate(user=self.authenticated_user)
+
         if self.factory is None:
-            raise SkipTest(f"{self.__class__.__name__}: No resource found for testing.")
+            raise SkipTest(
+                f"{self.__class__.__name__}: No resource found for testing."
+            )
 
         self.obj = self.factory.create()
 
@@ -81,7 +96,9 @@ class BaseAPITestCase(
                 kwargs=self.get_url_kwargs(),
             )
         else:
-            raise SkipTest(f"No url configured for '{self.__class__.__name__}'.")
+            raise SkipTest(
+                f"No url configured for '{self.__class__.__name__}'."
+            )
 
 
 BaseAPIMixin = BaseAPITestCase

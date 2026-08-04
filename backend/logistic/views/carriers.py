@@ -103,6 +103,7 @@ class CarrierResourcesAPIView(BaseGenericAPIView):
     read_serializer_class = CarrierResourcesSerializer
 
     serializer_class = CarrierResourcesSerializer
+    queryset = Carrier.objects.all()
 
     def get(self, request: Request, *args: Any, **kwargs: Any) -> Response:
         carrier = get_object_or_404(Carrier, pk=kwargs["pk"], is_active=True)

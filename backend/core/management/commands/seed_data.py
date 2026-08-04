@@ -18,7 +18,7 @@ User = get_user_model()
 class Command(BaseCommand):
     help = "Seed/update users from SEED_USERS_FILE defined in credentials/.env"
 
-    def add_arguments(self, parser) -> None:
+    def add_arguments(self, parser: Any) -> None:
         parser.add_argument(
             "--allow-non-debug",
             action="store_true",
@@ -84,7 +84,7 @@ class Command(BaseCommand):
             self.style.SUCCESS(f"{action}: {username}")
         )
 
-    def _set_groups(self, user, group_names: list[str]) -> None:
+    def _set_groups(self, user: Any, group_names: list[str]) -> None:
         groups: list[Group] = []
 
         for group_name in group_names:
