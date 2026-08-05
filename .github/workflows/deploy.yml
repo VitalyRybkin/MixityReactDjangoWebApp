@@ -185,8 +185,21 @@ jobs:
 
               cd "$PROJECT_DIR"
 
-              echo "Updating master..."
+              cd "$PROJECT_DIR"
+
+              echo "Fetching latest changes..."
               git fetch origin master
+
+              echo "Current commit:"
+              git rev-parse HEAD
+
+              echo "Incoming commit:"
+              git rev-parse origin/master
+
+              echo "Incoming commit details:"
+              git log origin/master -1 --oneline
+
+              echo "Updating master..."
               git reset --hard origin/master
 
               echo "Checking Docker Compose configuration..."
