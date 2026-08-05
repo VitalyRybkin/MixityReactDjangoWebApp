@@ -5,6 +5,7 @@ from typing import Any, ClassVar
 from unittest import SkipTest
 
 import pytest
+from django.contrib.auth import get_user_model
 from django.contrib.auth.models import User
 from django.urls import reverse
 from rest_framework import status
@@ -42,16 +43,10 @@ class TestOrderAPIList(BaseAPIMixin):
 
     def test_create_order_no_data(self) -> None:
         """Test creating an order with no data."""
-        self.client.force_authenticate(
-            user=User.objects.create_user(username="testuser", password="")
-        )
         self._create_logic(self.payload_generator()[0])
 
     def test_create_order(self) -> None:
         """Test creating an order with valid data."""
-        self.client.force_authenticate(
-            user=User.objects.create_user(username="testuser", password="")
-        )
 
         payload, temp_order = self.payload_generator()
         delivery_data = OrderDeliveryDataFactory.create(order=temp_order)
@@ -78,7 +73,7 @@ class TestOrderAPIList(BaseAPIMixin):
     def test_create_order_invalid_quantity(self) -> None:
         """Test creating an order with invalid quantity data."""
         self.client.force_authenticate(
-            user=User.objects.create_user(username="testuser", password="")
+            user=User.objects.create_superuser(username="testuser", password="")
         )
 
         payload, temp_order = self.payload_generator()
@@ -104,7 +99,7 @@ class TestOrderAPIList(BaseAPIMixin):
     def test_create_piece_based_and_weight_quantity(self) -> None:
         """Test creating an order with both piece-based and weight-based quantities."""
         self.client.force_authenticate(
-            user=User.objects.create_user(username="testuser", password="")
+            user=User.objects.create_superuser(username="testuser", password="")
         )
 
         payload, temp_order = self.payload_generator()
@@ -282,7 +277,7 @@ class TestOrderFilteredAPIListCreate(BaseAPIMixin):
             FilterCase(
                 expected_count=5,
                 params={
-                    "customer": customers[1].id,
+                    "customer_id": customers[1].id,
                 },
             ),
         ]
@@ -307,6 +302,19 @@ class TestOrderResourcesAPIView(APITestCase, TestLoggingMixin):
 
     url_name = f"order_orders:{OrderRoutes.RESOURCES.name}"
     AMOUNT_OF_RESOURCES: ClassVar[int] = 3
+
+    def setUp(self) -> None:
+        super().setUp()
+
+        user_model = get_user_model()
+
+        self.user = user_model.objects.create_superuser(
+            username="test_order_resources_admin",
+            email="test_order_resources_admin@example.com",
+            password="test_password",
+        )
+
+        self.client.force_authenticate(user=self.user)
 
     def test_order_resources(self) -> None:
         """Test the order resources API endpoint."""
