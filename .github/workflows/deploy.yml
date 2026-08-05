@@ -87,6 +87,54 @@ jobs:
       - name: Run backend tests
         run: make test
 
+  test-ssh:
+    name: Test SSH connection
+    runs-on: ubuntu-latest
+    needs:
+      - backend-tests
+
+    if: >
+      github.event_name == 'push' &&
+      github.ref == 'refs/heads/release'
+
+    steps:
+      - name: Configure SSH
+        env:
+          VPS_SSH_KEY: ${{ secrets.VPS_SSH_KEY }}
+          VPS_KNOWN_HOSTS: ${{ secrets.VPS_KNOWN_HOSTS }}
+        run: |
+          set -Eeuo pipefail
+
+          install -m 700 -d ~/.ssh
+
+          printf '%s\n' "$VPS_SSH_KEY" > ~/.ssh/id_ed25519
+          chmod 600 ~/.ssh/id_ed25519
+
+          printf '%s\n' "$VPS_KNOWN_HOSTS" > ~/.ssh/known_hosts
+          chmod 600 ~/.ssh/known_hosts
+
+      - name: Verify VPS access
+        env:
+          VPS_HOST: ${{ secrets.VPS_HOST }}
+          VPS_USER: ${{ secrets.VPS_USER }}
+          VPS_PORT: ${{ secrets.VPS_PORT }}
+        run: |
+          set -Eeuo pipefail
+
+          ssh \
+            -i ~/.ssh/id_ed25519 \
+            -p "${VPS_PORT:-22}" \
+            "${VPS_USER}@${VPS_HOST}" \
+            'set -Eeuo pipefail
+             echo "SSH connection successful"
+             echo "User: $(whoami)"
+             echo "Host: $(hostname)"
+             test -d /opt/MixityReactDjangoWebApp
+             cd /opt/MixityReactDjangoWebApp
+             git status --short
+             docker compose config --quiet
+             docker compose ps'
+
   deploy:
     name: Deploy to production
     runs-on: ubuntu-latest
