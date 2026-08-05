@@ -87,54 +87,6 @@ jobs:
       - name: Run backend tests
         run: make test
 
-  test-ssh:
-    name: Test SSH connection
-    runs-on: ubuntu-latest
-    needs:
-      - backend-tests
-
-    if: >
-      github.event_name == 'push' &&
-      github.ref == 'refs/heads/release'
-
-    steps:
-      - name: Configure SSH
-        env:
-          VPS_SSH_KEY: ${{ secrets.VPS_SSH_KEY }}
-          VPS_KNOWN_HOSTS: ${{ secrets.VPS_KNOWN_HOSTS }}
-        run: |
-          set -Eeuo pipefail
-
-          install -m 700 -d ~/.ssh
-
-          printf '%s\n' "$VPS_SSH_KEY" > ~/.ssh/id_ed25519
-          chmod 600 ~/.ssh/id_ed25519
-
-          printf '%s\n' "$VPS_KNOWN_HOSTS" > ~/.ssh/known_hosts
-          chmod 600 ~/.ssh/known_hosts
-
-      - name: Verify VPS access
-        env:
-          VPS_HOST: ${{ secrets.VPS_HOST }}
-          VPS_USER: ${{ secrets.VPS_USER }}
-          VPS_PORT: ${{ secrets.VPS_PORT }}
-        run: |
-          set -Eeuo pipefail
-
-          ssh \
-            -i ~/.ssh/id_ed25519 \
-            -p "${VPS_PORT:-22}" \
-            "${VPS_USER}@${VPS_HOST}" \
-            'set -Eeuo pipefail
-             echo "SSH connection successful"
-             echo "User: $(whoami)"
-             echo "Host: $(hostname)"
-             test -d /opt/MixityReactDjangoWebApp
-             cd /opt/MixityReactDjangoWebApp
-             git status --short
-             docker compose config --quiet
-             docker compose ps'
-
   deploy:
     name: Deploy to production
     runs-on: ubuntu-latest
@@ -182,10 +134,48 @@ jobs:
               set -Eeuo pipefail
 
               PROJECT_DIR="/opt/MixityReactDjangoWebApp"
+              HEALTHCHECK_ATTEMPTS=30
+              HEALTHCHECK_INTERVAL=2
 
               cd "$PROJECT_DIR"
 
-              cd "$PROJECT_DIR"
+              PREVIOUS_COMMIT="$(git rev-parse HEAD)"
+              DEPLOY_STARTED=false
+
+              rollback() {
+                exit_code=$?
+
+                if [ "$DEPLOY_STARTED" != "true" ]; then
+                  echo "Deployment failed before repository update."
+                  exit "$exit_code"
+                fi
+
+                trap - ERR
+
+                echo "========================================"
+                echo "Deployment failed. Starting rollback..."
+                echo "Previous commit: $PREVIOUS_COMMIT"
+                echo "========================================"
+
+                git reset --hard "$PREVIOUS_COMMIT"
+
+                echo "Checking previous Docker Compose configuration..."
+                docker compose config --quiet
+
+                echo "Rebuilding previous application version..."
+                docker compose build
+
+                echo "Starting previous application version..."
+                docker compose up -d --remove-orphans
+
+                echo "Container status after rollback:"
+                docker compose ps
+
+                echo "Rollback completed."
+                exit "$exit_code"
+              }
+
+              trap rollback ERR
 
               echo "Fetching latest changes..."
               git fetch origin master
@@ -199,6 +189,8 @@ jobs:
               echo "Incoming commit details:"
               git log origin/master -1 --oneline
 
+              DEPLOY_STARTED=true
+
               echo "Updating master..."
               git reset --hard origin/master
 
@@ -211,11 +203,44 @@ jobs:
               echo "Starting application..."
               docker compose up -d --remove-orphans
 
-              echo "Waiting for backend..."
-              sleep 10
+              echo "Waiting for backend readiness..."
 
-              echo "Checking Django..."
-              docker compose exec -T backend python manage.py check
+              backend_ready=false
+
+              for attempt in $(seq 1 "$HEALTHCHECK_ATTEMPTS"); do
+                echo "Healthcheck attempt ${attempt}/${HEALTHCHECK_ATTEMPTS}..."
+
+                if docker compose ps --status running --services \
+                  | grep -qx "backend"; then
+                  if docker compose exec -T backend \
+                    python manage.py check >/dev/null 2>&1; then
+                    backend_ready=true
+                    break
+                  fi
+                fi
+
+                sleep "$HEALTHCHECK_INTERVAL"
+              done
+
+              if [ "$backend_ready" != "true" ]; then
+                echo "Backend did not become ready in time."
+                docker compose ps
+                docker compose logs --tail=100 backend
+                exit 1
+              fi
+
+              echo "Backend is ready."
+
+              echo "Checking public application..."
+              curl \
+                --fail \
+                --silent \
+                --show-error \
+                --max-time 15 \
+                https://app.mixity.ru/ \
+                >/dev/null
+
+              echo "Public application is available."
 
               echo "Container status:"
               docker compose ps
@@ -223,5 +248,11 @@ jobs:
               echo "Removing unused images..."
               docker image prune -f
 
-              echo "Deployment completed."
+              trap - ERR
+
+              echo "========================================"
+              echo "Deployment completed successfully."
+              echo "Deployed commit:"
+              git rev-parse HEAD
+              echo "========================================"
           DEPLOY_SCRIPT
