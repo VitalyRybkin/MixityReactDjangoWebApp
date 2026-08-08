@@ -37,7 +37,7 @@ class TruckFactory(factory.django.DjangoModelFactory):
 
     carrier = factory.SubFactory(CarrierFactory)
     truck_type = factory.SubFactory(TruckTypeFactory)
-    license_plate = factory.Faker("numerify", text="А###ВС77")
+    license_plate = factory.Sequence(lambda n: f"А{n:03d}ВС77")
     capacity = factory.SubFactory(TruckCapacityFactory)
     description = factory.Faker("text")
 
