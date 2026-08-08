@@ -21,6 +21,11 @@ from backend.middleware import RetryOnceOnDbEofMiddleware
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
+IS_TESTING = (
+"test" in sys.argv
+or "pytest" in sys.modules
+or "PYTEST_RUNNING" in os.environ
+)
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/5.2/howto/deployment/checklist/
@@ -32,13 +37,13 @@ SECRET_KEY = project_settings.DJANGO_SECRET_KEY
 # DEBUG = True
 DEBUG = project_settings.DJANGO_DEBUG
 
-SECURE_SSL_REDIRECT = not DEBUG
+SECURE_SSL_REDIRECT = not DEBUG and not IS_TESTING
 SESSION_COOKIE_SECURE = not DEBUG
 CSRF_COOKIE_SECURE = not DEBUG
 
 SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
 SECURE_CONTENT_TYPE_NOSNIFF = True
-SECURE_HSTS_SECONDS = 3600 if not DEBUG else 0
+SECURE_HSTS_SECONDS = 3600 if not DEBUG and not IS_TESTING else 0
 
 X_FRAME_OPTIONS = "DENY"
 
@@ -134,9 +139,9 @@ WSGI_APPLICATION = "backend.wsgi.application"
 
 DATABASES: dict[str, dict[str, Any]]
 
-if 'test' in sys.argv or 'pytest' in sys.modules or 'PYTEST_RUNNING' in os.environ:
+if IS_TESTING:
     DATABASES = {
-        'default': {
+            'default': {
             'ENGINE': 'django.db.backends.sqlite3',
             'NAME': ':memory:',
             'OPTIONS': {},

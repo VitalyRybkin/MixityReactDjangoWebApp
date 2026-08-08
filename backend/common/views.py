@@ -38,6 +38,7 @@ class UserMeView(RetrieveAPIView):
     """
     API view to retrieve the current user's information.
     """
+
     serializer_class = CurrentUserSerializer
     permission_classes = [IsAuthenticated]
 

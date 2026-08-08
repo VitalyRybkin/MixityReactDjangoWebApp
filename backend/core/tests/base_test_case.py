@@ -82,9 +82,7 @@ class BaseAPITestCase(
         self.client.force_authenticate(user=self.authenticated_user)
 
         if self.factory is None:
-            raise SkipTest(
-                f"{self.__class__.__name__}: No resource found for testing."
-            )
+            raise SkipTest(f"{self.__class__.__name__}: No resource found for testing.")
 
         self.obj = self.factory.create()
 
@@ -96,9 +94,7 @@ class BaseAPITestCase(
                 kwargs=self.get_url_kwargs(),
             )
         else:
-            raise SkipTest(
-                f"No url configured for '{self.__class__.__name__}'."
-            )
+            raise SkipTest(f"No url configured for '{self.__class__.__name__}'.")
 
 
 BaseAPIMixin = BaseAPITestCase

@@ -1,6 +1,6 @@
 from typing import Any
 
-from django.db.models import QuerySet, Q
+from django.db.models import Q, QuerySet
 from drf_spectacular.types import OpenApiTypes
 from drf_spectacular.utils import OpenApiParameter
 from rest_framework import status
@@ -113,15 +113,11 @@ class OrderListCreateAPIView(BaseListCreateAPIView):
     ]
 
     def get_queryset(self) -> QuerySet[Order]:
-        queryset = (
-            Order.objects
-            .select_related(
-                "client",
-                "customer",
-                "warehouse",
-            )
-            .prefetch_related("order_products")
-        )
+        queryset = Order.objects.select_related(
+            "client",
+            "customer",
+            "warehouse",
+        ).prefetch_related("order_products")
 
         date_from = self.request.query_params.get("date_from")
         date_to = self.request.query_params.get("date_to")
@@ -150,9 +146,7 @@ class OrderListCreateAPIView(BaseListCreateAPIView):
             queryset = queryset.filter(samples=True)
 
         if no_upd in {"true", "1"}:
-            queryset = queryset.filter(
-                Q(upd_pdf__isnull=True) | Q(upd_pdf="")
-            )
+            queryset = queryset.filter(Q(upd_pdf__isnull=True) | Q(upd_pdf=""))
 
         if product_id:
             queryset = queryset.filter(order_products__id=product_id)
