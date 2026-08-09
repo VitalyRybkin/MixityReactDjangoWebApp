@@ -5,7 +5,7 @@ from django.db.models import QuerySet
 from rest_framework.serializers import BaseSerializer
 from rest_framework.test import APIRequestFactory, APITestCase
 
-from core.tests.utils import TestLoggingMixin
+from core.tests.utils import TestLoggerMixin
 
 SerializerClass = type[BaseSerializer]
 ViewClass = TypeVar("ViewClass", bound="SupportsViewContracts")
@@ -23,7 +23,7 @@ class SupportsViewContracts(Protocol):
     def get_serializer_class(self) -> SerializerClass: ...
 
 
-class BaseViewTestCase(APITestCase, TestLoggingMixin):
+class BaseViewTestCase(APITestCase, TestLoggerMixin):
     _view_class: type[SupportsViewContracts] | None = None
 
     def setUp(self) -> None:

@@ -16,7 +16,7 @@ from contacts.factories import ContactFactory
 from core.tests.base_test_case import BaseAPIMixin
 from core.tests.base_view_test_case import BaseViewTestCase
 from core.tests.model_tests import ModelContractMixin
-from core.tests.utils import TestLoggingMixin
+from core.tests.utils import TestLoggerMixin
 from order.models import Order, OrderItem, PackType
 from order.routes import OrderRoutes
 from order.serializers.order_serializers.create_order_serializers import (
@@ -290,7 +290,7 @@ class TestOrderFilteredAPIListCreate(BaseAPIMixin):
                 )
 
 
-class TestOrderResourcesAPIView(APITestCase, TestLoggingMixin):
+class TestOrderResourcesAPIView(APITestCase, TestLoggerMixin):
     """
     Test suite for validating the behavior of the order resources API endpoint.
 
@@ -373,7 +373,7 @@ class TestOrderResourcesAPIView(APITestCase, TestLoggingMixin):
 
 
 @pytest.mark.django_db
-class TestPackType(APITestCase, ModelContractMixin, TestLoggingMixin):
+class TestPackType(APITestCase, ModelContractMixin, TestLoggerMixin):
     """Test suite for validating the behavior of the pack type model."""
 
     factory = PackTypeFactory
@@ -392,7 +392,7 @@ class TestPackType(APITestCase, ModelContractMixin, TestLoggingMixin):
 
 
 @pytest.mark.django_db
-class TestOrderItem(APITestCase, ModelContractMixin, TestLoggingMixin):
+class TestOrderItem(APITestCase, ModelContractMixin, TestLoggerMixin):
     """Test suite for validating the behavior of the order item model."""
 
     factory = OrderItemFactory

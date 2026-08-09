@@ -79,7 +79,7 @@ def coerce_fieldspec(raw: Any) -> FieldSpec:
     raise TypeError(f"Invalid fields_map entry: {raw!r}")
 
 
-class TestLoggingMixin(_Base):
+class TestLoggerMixin(_Base):
     """
     Provides a mixin for enhanced logging functionality with color-coded output.
 

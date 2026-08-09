@@ -71,6 +71,10 @@ REST_FRAMEWORK = {
     ],
     "DEFAULT_SCHEMA_CLASS": "drf_spectacular.openapi.AutoSchema",
     "EXCEPTION_HANDLER": "core.api.exceptions.custom_exception_handler",
+    "DEFAULT_THROTTLE_RATES": {
+        "login_burst": "5/min",
+        "login_sustained": "20/hour",
+    },
 }
 
 SIMPLE_JWT = {

@@ -11,12 +11,12 @@ from catalog.tests.api.factories import (
     PurchasePriceHistoryFactory,
     SalePriceHistoryFactory,
 )
-from core.tests.utils import TestLoggingMixin, ValidationFieldSpec
+from core.tests.utils import TestLoggerMixin, ValidationFieldSpec
 from order.tests.factories import CustomerFactory
 from stock.tests.factories import WarehouseFactory
 
 
-class BaseModelTestCase(APITestCase, TestLoggingMixin):
+class BaseModelTestCase(APITestCase, TestLoggerMixin):
 
     _model: Any = None
     _factory: Any = None

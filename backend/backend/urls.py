@@ -8,6 +8,7 @@ from rest_framework.permissions import AllowAny
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 
 from common.views import doc_page, UserMeView
+from core.api.auth import LoginTokenObtainPairView
 
 urlpatterns = [
     path("admin/", admin.site.urls),
@@ -15,7 +16,7 @@ urlpatterns = [
     # Authentication
     path(
         "api/auth/token/",
-        TokenObtainPairView.as_view(),
+        LoginTokenObtainPairView.as_view(),
         name="token_obtain_pair",
     ),
     path(
