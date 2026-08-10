@@ -65,7 +65,7 @@ class CustomerContactListAPIView(BaseListAPIView):
     Represents an API view for listing client contacts.
     """
 
-    resource_name = "Contact"
+    resource_name = "Customer Contact"
     schema_tags = ["Customer"]
 
     read_serializer_class = ContactSerializer

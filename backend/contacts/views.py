@@ -25,7 +25,7 @@ class WarehouseContactListAPIView(BaseListAPIView):
             during API operations like serialization and deserialization.
     """
 
-    resource_name = "Contact"
+    resource_name = " Warehouse Contact"
     schema_tags = ["Warehouse"]
 
     read_serializer_class = ContactSerializer
@@ -50,7 +50,7 @@ class CarrierContactListAPIView(BaseListAPIView):
             Retrieves the query set of contacts associated with the specified carrier.
     """
 
-    resource_name = "Contact"
+    resource_name = "Carrier Contact"
     schema_tags = ["Carrier"]
 
     read_serializer_class = ContactSerializer
