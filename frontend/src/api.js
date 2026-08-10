@@ -41,6 +41,13 @@ api.interceptors.response.use(
             })
         }
 
+        const isLoginRequest =
+            originalRequest.url?.endsWith('/api/auth/token/')
+
+        if (isLoginRequest) {
+            return Promise.reject(error)
+        }
+
         if (error.response.status !== 401) {
             return Promise.reject(error)
         }
