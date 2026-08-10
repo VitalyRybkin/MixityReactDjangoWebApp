@@ -30,6 +30,9 @@ class Settings(BaseSettings):
     DJANGO_ALLOWED_HOSTS: str = ""
     DJANGO_CSRF_TRUSTED_ORIGINS: str = ""
 
+    SECURE_HSTS_INCLUDE_SUBDOMAINS: bool = False
+    SECURE_HSTS_PRELOAD: bool = False
+
     VITE_API_URL: str = "/api"
 
     SEED_USERS_FILE: str | None = None
