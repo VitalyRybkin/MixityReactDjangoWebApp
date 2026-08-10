@@ -94,6 +94,7 @@ class WarehousePricesListAPIView(BaseListAPIView):
     ]
 
     serializer_class = WarehousePriceHistorySerializer
+    read_serializer_class = WarehousePriceHistorySerializer
 
     def get_queryset(self) -> QuerySet[PurchasePriceHistory]:
         """

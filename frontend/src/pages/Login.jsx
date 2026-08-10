@@ -22,30 +22,41 @@ const Login = () => {
     const [error, setError] = useState('')
     const [loading, setLoading] = useState(false)
 
-    const onSubmit = async (e) => {
-        e.preventDefault()
-        setError('')
-        setLoading(true)
+const onSubmit = async (e) => {
+    e.preventDefault()
+    setError('')
+    setLoading(true)
 
-        try {
-            const res = await api.post('/api/auth/token/', { username, password })
+    try {
+        const res = await api.post('/api/auth/token/', {
+            username,
+            password,
+        })
 
-            localStorage.removeItem(ACCESS_TOKEN)
-            localStorage.removeItem(REFRESH_TOKEN)
-            localStorage.setItem(ACCESS_TOKEN, res.data.access)
-            localStorage.setItem(REFRESH_TOKEN, res.data.refresh)
+        localStorage.removeItem(ACCESS_TOKEN)
+        localStorage.removeItem(REFRESH_TOKEN)
+        localStorage.setItem(ACCESS_TOKEN, res.data.access)
+        localStorage.setItem(REFRESH_TOKEN, res.data.refresh)
 
-            // const userData = await fetchUserMe()
-
-            navigate('/', { replace: true })
-        } catch (err) {
-            if (!err.response) setError('Сеть не доступна. Отсутствует соединение с сервером.')
-            else if (err.response.status === 401) setError('Неправильный логин или пароль.')
-            else setError('Войти не удалось. Попробуйте позже.')
-        } finally {
-            setLoading(false)
+        navigate('/', { replace: true })
+    } catch (err) {
+        if (!err.response) {
+            setError(
+                'Сеть недоступна. Отсутствует соединение с сервером.'
+            )
+        } else if (err.response.status === 401) {
+            setError('Неправильный логин или пароль.')
+        } else if (err.response.status === 429) {
+            setError(
+                'Слишком много попыток входа. Попробуйте позже.'
+            )
+        } else {
+            setError('Войти не удалось. Попробуйте позже.')
         }
+    } finally {
+        setLoading(false)
     }
+}
 
     return (
         <Box sx={sx.page}>
