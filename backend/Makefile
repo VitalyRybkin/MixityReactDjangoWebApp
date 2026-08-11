@@ -122,12 +122,15 @@ seeds-pull:
 
 # DB backup / restore
 
+POSTGRES_USER := rybkin
+POSTGRES_DB := orders
+
 db-backup:
 	@mkdir -p ../backups/postgres
 	@FILE="../backups/postgres/orders_$$(date +%Y-%m-%d_%H-%M-%S).dump"; \
 	echo "Creating PostgreSQL backup: $$FILE"; \
 	docker compose -f ../docker-compose.yml exec -T db sh -c \
-		'pg_dump -U "$$rybkin" -d "$$orders" -Fc' \
+		'pg_dump -U "$$POSTGRES_USER" -d "$$POSTGRES_DB" -Fc' \
 		> "$$FILE"; \
 	if [ ! -s "$$FILE" ]; then \
 		echo "Backup failed: file is empty"; \
