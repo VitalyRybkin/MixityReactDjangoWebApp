@@ -1,6 +1,23 @@
 services:
   db:
     image: postgres:17-alpine
+
+    env_file:
+      - ./backend/.env.docker
+
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}",
+        ]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
     restart: unless-stopped
 
     logging:
@@ -9,11 +26,16 @@ services:
         max-size: "10m"
         max-file: "5"
 
-    env_file:
-      - ./backend/.env.docker
+    networks:
+      - mixity_network
 
-    volumes:
-      - postgres_data:/var/lib/postgresql/data
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+
+    environment:
+      DJANGO_SEED_DATA: "True"
 
     healthcheck:
       test:
@@ -27,17 +49,6 @@ services:
       timeout: 10s
       retries: 3
       start_period: 30s
-
-    networks:
-      - mixity_network
-
-  backend:
-    build:
-      context: ./backend
-      dockerfile: Dockerfile
-
-    environment:
-      DJANGO_SEED_DATA: "True"
 
     restart: unless-stopped
 
@@ -75,7 +86,7 @@ services:
     restart: unless-stopped
 
     healthcheck:
-      test: [ "CMD", "wget", "-q", "--spider", "http://127.0.0.1/" ]
+      test: ["CMD", "wget", "-q", "--spider", "http://127.0.0.1/"]
       interval: 30s
       timeout: 10s
       retries: 3
