@@ -16,6 +16,8 @@ BACKUP_MAX_AGE_MINUTES=$((26 * 60))
 ERRORS=0
 WARNINGS=0
 
+ALERT_LINES=()
+
 
 ok() {
     echo "OK: $1"
@@ -27,7 +29,11 @@ warning() {
 }
 
 critical() {
-    echo "CRITICAL: $1"
+    local message="$1"
+
+    echo "CRITICAL: $message"
+
+    ALERT_LINES+=("CRITICAL: $message")
     ERRORS=$((ERRORS + 1))
 }
 
@@ -174,6 +180,45 @@ echo "Critical: $ERRORS"
 echo "========================================"
 
 if [ "$ERRORS" -gt 0 ]; then
+
+    ALERT_ENV="/etc/mixity/monitor.env"
+    ALERT_SCRIPT="$PROJECT_DIR/scripts/send_alert.py"
+
+    ALERT_BODY="$(
+        cat <<EOF
+Mixity production monitoring detected critical problems.
+
+Server: $(hostname)
+Date: $(date '+%Y-%m-%d %H:%M:%S %Z')
+
+$(printf '%s\n' "${ALERT_LINES[@]}")
+
+Warnings: $WARNINGS
+Critical: $ERRORS
+EOF
+    )"
+
+    if [ -r "$ALERT_ENV" ] && [ -f "$ALERT_SCRIPT" ]; then
+
+        set -a
+        # shellcheck disable=SC1090
+        source "$ALERT_ENV"
+        set +a
+
+        if printf '%s\n' "$ALERT_BODY" \
+            | python3 "$ALERT_SCRIPT" \
+                "[Mixity CRITICAL] Production monitoring"; then
+
+            echo "Alert email sent."
+
+        else
+            echo "WARNING: Failed to send alert email." >&2
+        fi
+
+    else
+        echo "WARNING: Email alert configuration is unavailable." >&2
+    fi
+
     exit 1
 fi
 
