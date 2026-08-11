@@ -120,6 +120,23 @@ seeds-pull:
 		(echo "Missing $(SEED_FILE)" && exit 1)
 	@$(UV) -m json.tool "$(SEED_FILE)" >/dev/null
 
+# DB backup / restore
+
+db-backup:
+	@mkdir -p backups/postgres
+	@FILE="backups/postgres/orders_$$(date +%Y-%m-%d_%H-%M-%S).dump"; \
+	echo "Creating PostgreSQL backup: $$FILE"; \
+	docker compose exec -T db sh -c \
+		'pg_dump -U "$$rybkin" -d "$$orders" -Fc' \
+		> "$$FILE"; \
+	if [ ! -s "$$FILE" ]; then \
+		echo "Backup failed: file is empty"; \
+		rm -f "$$FILE"; \
+		exit 1; \
+	fi; \
+	echo "Backup created successfully:"; \
+	ls -lh "$$FILE"
+
 # Local seed_users.json → Bitwarden
 seeds-push: seeds-check
 	@$(BW_SESSION_CMD) ./scripts/upload-json.sh
