@@ -47,8 +47,9 @@ pre-commit:
 
 # Merge feature branch into dev
 # Usage: make merge-dev branch=bug-fix
-merge-releases:
-	git checkout releases && git merge $(br)
+merge-release:
+	git checkout release && git merge $(br) && git push -u origin release
+	git checkout master && git merge release && git push -u origin master
 
 # Merge releases into master and push with tags
 releases:
@@ -129,8 +130,8 @@ db-backup:
 	@mkdir -p ../backups/postgres
 	@FILE="../backups/postgres/orders_$$(date +%Y-%m-%d_%H-%M-%S).dump"; \
 	echo "Creating PostgreSQL backup: $$FILE"; \
-	docker compose -f ../docker-compose.yml exec -T db sh -c \
-		'pg_dump -U "$$POSTGRES_USER" -d "$$POSTGRES_DB" -Fc' \
+	docker compose -f ../docker-compose.yml exec -T db \
+		pg_dump -U "$(POSTGRES_USER)" -d "$(POSTGRES_DB)" -Fc \
 		> "$$FILE"; \
 	if [ ! -s "$$FILE" ]; then \
 		echo "Backup failed: file is empty"; \
