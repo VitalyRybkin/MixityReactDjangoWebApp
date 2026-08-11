@@ -157,12 +157,7 @@ if [ -z "$LATEST_BACKUP" ]; then
 
 else
 
-    BACKUP_AGE_MINUTES=$(
-        (
-            $(date +%s) -
-            $(stat -c %Y "$LATEST_BACKUP")
-        ) / 60
-    )
+    BACKUP_AGE_MINUTES=$(( ($(date +%s) - $(stat -c %Y "$LATEST_BACKUP")) / 60 ))
 
     if [ "$BACKUP_AGE_MINUTES" -gt "$BACKUP_MAX_AGE_MINUTES" ]; then
         critical "Latest PostgreSQL backup is ${BACKUP_AGE_MINUTES} minutes old"
