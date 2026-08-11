@@ -112,13 +112,18 @@ for SERVICE in db backend frontend; do
             "$CONTAINER_ID" 2>/dev/null
     )"
 
-    if [ "$HEALTH" = "healthy" ]; then
-        ok "Docker service '$SERVICE' is healthy"
-    elif [ "$HEALTH" = "none" ]; then
-        warning "Docker service '$SERVICE' has no healthcheck"
-    else
-        critical "Docker service '$SERVICE' health=$HEALTH"
-    fi
+if [ "$HEALTH" = "healthy" ]; then
+    ok "Docker service '$SERVICE' is healthy"
+
+elif [ "$HEALTH" = "starting" ]; then
+    warning "Docker service '$SERVICE' health=starting"
+
+elif [ "$HEALTH" = "none" ]; then
+    warning "Docker service '$SERVICE' has no healthcheck"
+
+else
+    critical "Docker service '$SERVICE' health=$HEALTH"
+fi
 
 done
 
