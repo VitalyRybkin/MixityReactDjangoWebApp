@@ -18,12 +18,15 @@ services:
     healthcheck:
       test:
         [
-          "CMD-SHELL",
-          "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}",
+          "CMD",
+          "python",
+          "-c",
+          "import urllib.request; req=urllib.request.Request('http://' + '127.0.0.1:8000/api/health/', headers={'X-Forwarded-Proto':'https'}); urllib.request.urlopen(req, timeout=5)"
         ]
-      interval: 5s
-      timeout: 5s
-      retries: 10
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
 
     networks:
       - mixity_network
@@ -70,6 +73,13 @@ services:
         VITE_API_URL: ""
 
     restart: unless-stopped
+
+    healthcheck:
+      test: [ "CMD", "wget", "-q", "--spider", "http://127.0.0.1/" ]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
 
     logging:
       driver: json-file
