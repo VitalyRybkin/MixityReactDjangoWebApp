@@ -151,7 +151,7 @@ def custom_exception_handler(exc: Exception, context: Any) -> Response:
     """
     Custom exception handler for API responses.
     """
-    logger.error("CUSTOM EXCEPTION HANDLER CALLED")
+    # logger.error("CUSTOM EXCEPTION HANDLER CALLED")
 
     if isinstance(exc, OperationalError):
         logger.exception("Database operational error")
@@ -170,7 +170,7 @@ def custom_exception_handler(exc: Exception, context: Any) -> Response:
         )
 
     if isinstance(exc, AuthenticationFailed):
-        logger.error("Authentication failed: %r", exc)
+        logger.info("Authentication failed: %r", exc)
         return Response(
             ["Ошибка аутентификации."],
             status=status.HTTP_401_UNAUTHORIZED,

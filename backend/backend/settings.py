@@ -237,24 +237,55 @@ DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 CORS_ALLOW_ALL_ORIGINS = DEBUG
 CORS_ALLOW_CREDENTIALS = True
 
+LOGGING = {
+    "version": 1,
+    "disable_existing_loggers": False,
 
-if 'test' in sys.argv or 'pytest' in sys.argv:
-    LOGGING = {
-        'version': 1,
-        'disable_existing_loggers': False,
-        'loggers': {
-            'django.request': {
-                'level': 'ERROR',
-                'handlers': ['console'],
-                'propagate': False,
-            },
+    "formatters": {
+        "verbose": {
+            "format": "{asctime} {levelname} {name}: {message}",
+            "style": "{",
         },
-        'handlers': {
-            'console': {
-                'class': 'logging.StreamHandler',
-            },
+    },
+
+    "handlers": {
+        "console": {
+            "class": "logging.StreamHandler",
+            "formatter": "verbose",
         },
-    }
+    },
+
+    "root": {
+        "handlers": ["console"],
+        "level": "WARNING",
+    },
+
+    "loggers": {
+        "django": {
+            "handlers": ["console"],
+            "level": "WARNING",
+            "propagate": False,
+        },
+
+        "django.request": {
+            "handlers": ["console"],
+            "level": "ERROR",
+            "propagate": False,
+        },
+
+        "django.security": {
+            "handlers": ["console"],
+            "level": "WARNING",
+            "propagate": False,
+        },
+
+        "core": {
+            "handlers": ["console"],
+            "level": "INFO" if DEBUG else "WARNING",
+            "propagate": False,
+        },
+    },
+}
 
 MEDIA_URL = '/media/'
 
