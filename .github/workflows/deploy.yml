@@ -232,14 +232,31 @@ jobs:
               echo "Backend is ready."
 
               echo "Checking public application..."
-              curl \
-                --fail \
-                --silent \
-                --show-error \
-                --max-time 15 \
-                https://app.mixity.ru/ \
-                >/dev/null
-
+              
+              public_ready=false
+              
+              for attempt in $(seq 1 10); do
+                echo "Public check ${attempt}/10..."
+              
+                if curl \
+                  --fail \
+                  --silent \
+                  --show-error \
+                  --max-time 15 \
+                  https://app.mixity.ru/ \
+                  >/dev/null; then
+                  public_ready=true
+                  break
+                fi
+              
+                sleep 3
+              done
+              
+              if [ "$public_ready" != "true" ]; then
+                echo "Public application is unavailable."
+                exit 1
+              fi
+              
               echo "Public application is available."
 
               echo "Container status:"
