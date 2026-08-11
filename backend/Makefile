@@ -140,6 +140,17 @@ db-backup:
 	fi; \
 	echo "Backup created successfully:"; \
 	ls -lh "$$FILE"
+	echo "Removing backups older than 5 days..."; \
+	find ../backups/postgres \
+		-type f \
+		-name "orders_*.dump" \
+		-mtime +5 \
+		-delete; \
+	echo "Backup cleanup completed."
+
+db-backups:
+	@echo "PostgreSQL backups:"
+	@ls -lht ../backups/postgres/*.dump 2>/dev/null || echo "No backups found"
 
 db-restore:
 	@if [ -z "$(FILE)" ]; then \
