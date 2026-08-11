@@ -5,13 +5,17 @@ from django.urls import include, path
 from django.views.generic import RedirectView
 from drf_spectacular.views import SpectacularAPIView, SpectacularSwaggerView
 from rest_framework.permissions import AllowAny
-from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
+from rest_framework_simplejwt.views import TokenRefreshView
 
 from common.views import doc_page, UserMeView
 from core.api.auth import LoginTokenObtainPairView
+from core.api.health import health_check
 
 urlpatterns = [
     path("admin/", admin.site.urls),
+
+    # Health
+    path("api/health/", health_check, name="health-check"),
 
     # Authentication
     path(

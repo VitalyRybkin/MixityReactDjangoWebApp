@@ -11,14 +11,14 @@ from core.tests.utils import TestLoggerMixin
 class TestAuthThrottling(TestLoggerMixin):
     url_name = "token_obtain_pair"
 
-    def setup_method(self):
+    def setup_method(self) -> None:
         cache.clear()
         self.client = APIClient()
 
-    def teardown_method(self):
+    def teardown_method(self) -> None:
         cache.clear()
 
-    def test_login_is_throttled_after_five_attempts(self):
+    def test_login_is_throttled_after_five_attempts(self) -> None:
         url = reverse(self.url_name)
 
         self._logger_header(f"ENDPOINT POST: {url}")
