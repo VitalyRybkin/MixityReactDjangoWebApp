@@ -121,7 +121,7 @@ seeds-pull:
 		(echo "Missing $(SEED_FILE)" && exit 1)
 	@$(UV) -m json.tool "$(SEED_FILE)" >/dev/null
 
-# DB backup / restore
+# DB docker backup / restore
 
 POSTGRES_USER := rybkin
 POSTGRES_DB := orders
@@ -140,6 +140,20 @@ db-backup:
 	fi; \
 	echo "Backup created successfully:"; \
 	ls -lh "$$FILE"
+
+db-restore:
+	@if [ -z "$(FILE)" ]; then \
+		echo "Usage: make db-restore FILE=../backups/postgres/<backup>.dump"; \
+		exit 1; \
+	fi
+	docker compose -f ../docker-compose.yml exec -T db \
+		pg_restore \
+		-U "$(POSTGRES_USER)" \
+		-d "$(POSTGRES_DB)" \
+		--clean \
+		--if-exists \
+		< "$(FILE)"
+	@echo "Restore completed successfully"
 
 # Local seed_users.json → Bitwarden
 seeds-push: seeds-check
