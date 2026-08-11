@@ -3,6 +3,12 @@ services:
     image: postgres:17-alpine
     restart: unless-stopped
 
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "5"
+
     env_file:
       - ./backend/.env.docker
 
@@ -32,6 +38,12 @@ services:
 
     restart: unless-stopped
 
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "5"
+
     env_file:
       - ./backend/.env.docker
 
@@ -58,6 +70,12 @@ services:
         VITE_API_URL: ""
 
     restart: unless-stopped
+
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "5"
 
     depends_on:
       - backend
