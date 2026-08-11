@@ -123,10 +123,10 @@ seeds-pull:
 # DB backup / restore
 
 db-backup:
-	@mkdir -p backups/postgres
-	@FILE="backups/postgres/orders_$$(date +%Y-%m-%d_%H-%M-%S).dump"; \
+	@mkdir -p ../backups/postgres
+	@FILE="../backups/postgres/orders_$$(date +%Y-%m-%d_%H-%M-%S).dump"; \
 	echo "Creating PostgreSQL backup: $$FILE"; \
-	docker compose exec -T db sh -c \
+	docker compose -f ../docker-compose.yml exec -T db sh -c \
 		'pg_dump -U "$$rybkin" -d "$$orders" -Fc' \
 		> "$$FILE"; \
 	if [ ! -s "$$FILE" ]; then \
