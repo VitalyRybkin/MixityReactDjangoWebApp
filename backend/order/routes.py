@@ -44,3 +44,4 @@ class OrderRoutes:
     DETAIL = ApiRoute("<int:pk>/", "order_detail")
     RESOURCES = ApiRoute("resources/", "order_resources")
     DOWNLOAD = ApiRoute("download/", "orders_download")
+    UPLOAD_UPD = ApiRoute("<int:pk>/upload_upd/", "upload_upd")

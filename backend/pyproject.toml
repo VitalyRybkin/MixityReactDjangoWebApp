@@ -17,6 +17,7 @@ dependencies = [
     "pillow>=12.1.0",
     "psycopg[binary]>=3.3.4",
     "pydantic-settings>=2.10.1",
+    "pypdf>=6.16.1",
 ]
 
 [dependency-groups]

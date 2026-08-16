@@ -1,6 +1,8 @@
 from typing import Any
 
 from django.db import transaction
+from pypdf import PdfReader
+from pypdf.errors import PdfReadError
 from rest_framework import serializers
 
 from catalog.models import Product
@@ -29,6 +31,7 @@ from stock.warehouse_serializers import (
     WarehouseListCreateSerializer,
 )
 
+MAX_UPD_PDF_SIZE = 10 * 1024 * 1024  # 10 MB
 
 class PackageTypeSerializer(serializers.ModelSerializer):
     """
@@ -401,6 +404,52 @@ class OrderWriteSerializer(serializers.ModelSerializer):
         Deletes the order and associated order items.
         """
         instance.delete()
+
+    def validate_upd_pdf(self, file):
+        if file is None:
+            return None
+
+        if file.size > MAX_UPD_PDF_SIZE:
+            raise serializers.ValidationError(
+                "Размер PDF не должен превышать 10 МБ."
+            )
+
+        try:
+            file.seek(0)
+
+            if file.read(5) != b"%PDF-":
+                raise serializers.ValidationError(
+                    "Файл не является PDF."
+                )
+
+            file.seek(0)
+
+            try:
+                reader = PdfReader(file, strict=True)
+            except (PdfReadError, EOFError, ValueError, TypeError) as exc:
+                raise serializers.ValidationError(
+                    "Файл повреждён или имеет некорректный формат PDF."
+                ) from exc
+
+            if reader.is_encrypted:
+                raise serializers.ValidationError(
+                    "Зашифрованные PDF-файлы не поддерживаются."
+                )
+
+            try:
+                if len(reader.pages) == 0:
+                    raise serializers.ValidationError(
+                        "PDF не содержит страниц."
+                    )
+            except (PdfReadError, EOFError, ValueError) as exc:
+                raise serializers.ValidationError(
+                    "Не удалось прочитать содержимое PDF."
+                ) from exc
+
+        finally:
+            file.seek(0)
+
+        return file
 
 
 class OrderItemExportSerializer(OrderItemSerializer):

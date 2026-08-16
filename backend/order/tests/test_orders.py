@@ -34,6 +34,192 @@ from order.tests.factories import (
 from order.views.orders import OrderListCreateAPIView, OrderRetrieveUpdateDestroyAPIView
 from stock.tests.factories import WarehouseFactory
 
+from io import BytesIO
+from tempfile import TemporaryDirectory
+
+from django.core.files.uploadedfile import SimpleUploadedFile
+from django.test import override_settings
+from pypdf import PdfWriter
+
+def make_test_pdf() -> SimpleUploadedFile:
+    buffer = BytesIO()
+
+    writer = PdfWriter()
+    writer.add_blank_page(width=100, height=100)
+    writer.write(buffer)
+
+    return SimpleUploadedFile(
+        name="upd.pdf",
+        content=buffer.getvalue(),
+        content_type="application/pdf",
+    )
+
+class TestOrderUpdUploadAPIView(APITestCase):
+    def setUp(self) -> None:
+        super().setUp()
+
+        user_model = get_user_model()
+
+        self.user = user_model.objects.create_superuser(
+            username="test_upd_admin",
+            email="test_upd_admin@example.com",
+            password="test_password",
+        )
+
+        self.client.force_authenticate(user=self.user)
+
+        self.order = OrderFactory.create()
+
+        self.url = reverse(
+            f"order_orders:{OrderRoutes.UPLOAD_UPD.name}",
+            kwargs={"pk": self.order.pk},
+        )
+
+        self.temp_media = TemporaryDirectory()
+        self.override_media = override_settings(
+            MEDIA_ROOT=self.temp_media.name,
+        )
+        self.override_media.enable()
+
+    def tearDown(self) -> None:
+        self.override_media.disable()
+        self.temp_media.cleanup()
+
+        super().tearDown()
+
+    def test_upload_valid_pdf(self) -> None:
+        file = make_test_pdf()
+
+        response = self.client.patch(
+            self.url,
+            {"upd_pdf": file},
+            format="multipart",
+        )
+
+        self.assertEqual(
+            response.status_code,
+            status.HTTP_200_OK,
+            response.data,
+        )
+
+        self.order.refresh_from_db()
+
+        self.assertTrue(self.order.upd_pdf)
+        self.assertTrue(self.order.upd_pdf.name.endswith(".pdf"))
+        self.assertTrue(
+            self.order.upd_pdf.storage.exists(self.order.upd_pdf.name)
+        )
+
+    def test_upload_fake_pdf_returns_400(self) -> None:
+        file = SimpleUploadedFile(
+            name="fake.pdf",
+            content=b"This is definitely not a PDF",
+            content_type="application/pdf",
+        )
+
+        response = self.client.patch(
+            self.url,
+            {"upd_pdf": file},
+            format="multipart",
+        )
+
+        self.assertEqual(
+            response.status_code,
+            status.HTTP_400_BAD_REQUEST,
+            response.data,
+        )
+
+        self.assertIn("errors", response.data)
+        self.assertIn("upd_pdf", response.data["errors"])
+
+        self.order.refresh_from_db()
+        self.assertFalse(self.order.upd_pdf)
+
+    def test_delete_upd_pdf(self) -> None:
+        file = make_test_pdf()
+
+        response = self.client.patch(
+            self.url,
+            {"upd_pdf": file},
+            format="multipart",
+        )
+
+        self.assertEqual(
+            response.status_code,
+            status.HTTP_200_OK,
+            response.data,
+        )
+
+        self.order.refresh_from_db()
+
+        old_file_name = self.order.upd_pdf.name
+        storage = self.order.upd_pdf.storage
+
+        self.assertTrue(storage.exists(old_file_name))
+
+        with self.captureOnCommitCallbacks(execute=True):
+            response = self.client.patch(
+                self.url,
+                {"upd_pdf": None},
+                format="json",
+            )
+
+        self.assertEqual(
+            response.status_code,
+            status.HTTP_200_OK,
+            response.data,
+        )
+
+        self.order.refresh_from_db()
+
+        self.assertFalse(self.order.upd_pdf)
+        self.assertFalse(storage.exists(old_file_name))
+
+    def test_replace_upd_pdf_deletes_old_file(self) -> None:
+        old_file = make_test_pdf()
+
+        response = self.client.patch(
+            self.url,
+            {"upd_pdf": old_file},
+            format="multipart",
+        )
+
+        self.assertEqual(
+            response.status_code,
+            status.HTTP_200_OK,
+            response.data,
+        )
+
+        self.order.refresh_from_db()
+
+        old_file_name = self.order.upd_pdf.name
+        storage = self.order.upd_pdf.storage
+
+        self.assertTrue(storage.exists(old_file_name))
+
+        new_file = make_test_pdf()
+        new_file.name = "new_upd.pdf"
+
+        with self.captureOnCommitCallbacks(execute=True):
+            response = self.client.patch(
+                self.url,
+                {"upd_pdf": new_file},
+                format="multipart",
+            )
+
+        self.assertEqual(
+            response.status_code,
+            status.HTTP_200_OK,
+            response.data,
+        )
+
+        self.order.refresh_from_db()
+
+        new_file_name = self.order.upd_pdf.name
+
+        self.assertNotEqual(old_file_name, new_file_name)
+        self.assertFalse(storage.exists(old_file_name))
+        self.assertTrue(storage.exists(new_file_name))
 
 class TestOrderAPIList(BaseAPIMixin):
     __test__ = True
