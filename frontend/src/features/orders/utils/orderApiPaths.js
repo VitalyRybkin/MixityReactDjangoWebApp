@@ -3,5 +3,5 @@ export const orderApiPaths = {
     detail: (id) => `/api/orders/${id}/`,
     resources: () => `/api/orders/resources/`,
     download: () => `/api/orders/download/`,
-    uploadUpd: (id) => `/api/orders/${id}/upload-upd/`,
+    uploadUpd: (id) => `/api/orders/${id}/upload_upd/`,
 }

@@ -1,161 +1,52 @@
-import React, { useEffect, useMemo, useRef, useState } from 'react';
-import { useParams } from 'react-router-dom';
-
-
-
-import { Box, CircularProgress, Container, Divider, Stack, TextField, Typography } from '@mui/material';
-
-
-
-import AppBreadcrumbs from '../../components/AppBreadcrumbs.jsx';
-import ErrorState from '../../components/ui/ErrorState.jsx';
-import ConfirmDialog from '../../components/ui/feedback/ConfirmDialog.jsx';
-import { useFormLogic } from '../../hooks/useEntityForm.js';
-import { useFileUpload } from '../../hooks/useUploadFile.js';
-import { sidebarPageSx } from '../../layouts/AppSidebar.jsx';
-import Can from '../../pages/auth/components/Can.jsx';
-import { GROUPS } from '../../pages/auth/permissions.js';
-import { useGetCustomerPrices } from '../customers/utils/customers.queries.js';
-import { useGetWarehousePrices } from '../warehouses/utils/stocks.queries.js';
-
-
-
-import OrderCustomerFields from './components/OrderCustomerFields.jsx';
-import OrderDetailSideBar from './components/OrderDetailSideBar.jsx';
-import OrderMainFields from './components/OrderMainFields.jsx';
-import OrderPageHeader from './components/OrderPageHeader.jsx';
-import OrderProductsList from './components/OrderProductsList.jsx';
-import { useLoadingError } from './hooks/useLoadingError.js';
-import { useOrderFormData } from './hooks/useOrderFormData.js';
-import { useOrderProducts } from './hooks/useOrderProducts.js';
-import { useUnsavedGuard } from './hooks/useUnsavedGuard.js';
-import { DeliveryContext } from './utils/DeliveryContext.js';
-import { emptyDeliveryInfo, emptyOrderForm } from './utils/order.form.constants.js';
-import { toOrderPayload } from './utils/order.form.mappers.js';
-import { getProductId } from './utils/orderProducts.js';
-import { useCreateOrder, useGetOrder, useGetOrderResources, useUpdateOrder, useUploadUpd } from './utils/orders.queries.js';
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+import React, { useEffect, useMemo, useRef, useState } from 'react'
+import { useNavigate, useParams } from 'react-router-dom'
+
+import { Box, CircularProgress, Container, Divider, Stack, TextField, Typography } from '@mui/material'
+
+import AppBreadcrumbs from '../../components/AppBreadcrumbs.jsx'
+import ErrorState from '../../components/ui/ErrorState.jsx'
+import AppSnackbar from '../../components/ui/feedback/AppSnackbar.jsx'
+import ConfirmDialog from '../../components/ui/feedback/ConfirmDialog.jsx'
+import { useFormLogic } from '../../hooks/useEntityForm.js'
+import useSnackbar from '../../hooks/useSnackbar.js'
+import { useFileUpload } from '../../hooks/useUploadFile.js'
+import { sidebarPageSx } from '../../layouts/AppSidebar.jsx'
+import Can from '../../pages/auth/components/Can.jsx'
+import { GROUPS } from '../../pages/auth/permissions.js'
+import { useGetCustomerPrices } from '../customers/utils/customers.queries.js'
+import { useGetWarehousePrices } from '../warehouses/utils/stocks.queries.js'
+
+import OrderCustomerFields from './components/OrderCustomerFields.jsx'
+import OrderDetailSideBar from './components/OrderDetailSideBar.jsx'
+import OrderMainFields from './components/OrderMainFields.jsx'
+import OrderPageHeader from './components/OrderPageHeader.jsx'
+import OrderProductsList from './components/OrderProductsList.jsx'
+import { useLoadingError } from './hooks/useLoadingError.js'
+import { useOrderFormData } from './hooks/useOrderFormData.js'
+import { useOrderProducts } from './hooks/useOrderProducts.js'
+import { useUnsavedGuard } from './hooks/useUnsavedGuard.js'
+import { DeliveryContext } from './utils/DeliveryContext.js'
+import { emptyDeliveryInfo, emptyOrderForm } from './utils/order.form.constants.js'
+import { toOrderPayload } from './utils/order.form.mappers.js'
+import { getProductId } from './utils/orderProducts.js'
+import {
+    useCreateOrder,
+    useGetOrder,
+    useGetOrderResources,
+    useUpdateOrder,
+    useUploadUpd,
+} from './utils/orders.queries.js'
 
 export default function OrderFormPage() {
     const { id } = useParams()
     const isEdit = Boolean(id)
 
+    const navigate = useNavigate()
+
     const [open, setOpen] = useState(false)
     const [orderDelivery, setOrderDelivery] = useState(emptyDeliveryInfo)
+
+    const { snack, showSnackbar, closeSnackbar } = useSnackbar()
 
     const {
         data: orderResources,
@@ -173,14 +64,17 @@ export default function OrderFormPage() {
 
     const createOrder = useCreateOrder()
     const updateOrder = useUpdateOrder()
-    const uploadUpd = useUploadUpd()
-
-    const handleDownloadUpd = useFileUpload(uploadUpd, {
-        successMessage: 'УПД успешно загружен.',
-        errorMessage: 'Не удалось загрузить УПД.',
+    const uploadUpd = useUploadUpd({
+        onSuccess: () => navigate('/'),
     })
 
-    const saving = createOrder.isPending || updateOrder.isPending
+    const handleUploadUpd = useFileUpload(uploadUpd, showSnackbar, {
+        successMessage: 'УПД успешно загружен.',
+        deleteSuccessMessage: 'УПД успешно удалён.',
+        errorMessage: 'Не удалось изменить УПД.',
+    })
+
+    const saving = createOrder.isPending || updateOrder.isPending || uploadUpd.isPending
 
     const {
         orderProducts,
@@ -340,7 +234,7 @@ export default function OrderFormPage() {
                                             orderResources={orderResources}
                                             isEdit={isEdit}
                                             order={order}
-                                            onDownloadUpd={handleDownloadUpd}
+                                            onDownloadUpd={handleUploadUpd}
                                         />
 
                                         <OrderCustomerFields
@@ -395,6 +289,13 @@ export default function OrderFormPage() {
                             cancelText="Остаться"
                             onClose={handleCancel}
                             onConfirm={handleConfirm}
+                        />
+
+                        <AppSnackbar
+                            open={snack.open}
+                            message={snack.message}
+                            severity={snack.severity}
+                            onClose={closeSnackbar}
                         />
                     </Container>
                 </Box>

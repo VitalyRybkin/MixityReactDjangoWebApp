@@ -10,7 +10,7 @@ import DownloadAction from '../components/ui/buttons/DownloadAction.jsx'
 import AppSnackbar from '../components/ui/feedback/AppSnackbar.jsx'
 import ConfirmDialog from '../components/ui/feedback/ConfirmDialog.jsx'
 import { useGetCustomers } from '../features/customers/utils/customers.queries.js'
-import { uploadUpd, useExportOrders, useGetOrders } from '../features/orders/utils/orders.queries.js'
+import { useExportOrders, useGetOrders, useUploadUpd } from '../features/orders/utils/orders.queries.js'
 import { useGetWarehouses } from '../features/warehouses/utils/stocks.queries.js'
 import { useFileUpload } from '../hooks/useUploadFile.js'
 import { sidebarPageSx } from '../layouts/AppSidebar.jsx'
@@ -70,7 +70,10 @@ const Home = () => {
     const { data: orders, isPending: loadingOrders } = useGetOrders(formattedFilters)
     const { data: customers } = useGetCustomers()
     const { data: warehouses } = useGetWarehouses()
+
     const { refetch: fetchDownload, isFetching: isDownloading } = useExportOrders(formattedFilters)
+
+    const uploadUpd = useUploadUpd()
 
     const { orderToDelete, setOrderToDelete, handleConfirmDelete, isDeleting } = useDeleteOrderFlow(() =>
         showSnackbar('Заявка удалена'),
@@ -92,9 +95,10 @@ const Home = () => {
         ? ORDER_STATUS_OPTIONS.find((s) => s.value === formattedFilters.status)?.label || '-'
         : '-'
 
-    const handleUploadUpd = useFileUpload(uploadUpd, {
+    const handleUploadUpd = useFileUpload(uploadUpd, showSnackbar, {
         successMessage: 'УПД успешно загружен.',
-        errorMessage: 'Не удалось загрузить УПД.',
+        deleteSuccessMessage: 'УПД успешно удалён.',
+        errorMessage: 'Не удалось изменить УПД.',
     })
 
     const columns = useMemo(
@@ -162,13 +166,17 @@ const Home = () => {
                                 <DownloadAction
                                     title="Экспорт заявок и довернностей"
                                     onClick={handleExport}
-                                    disabled={isDownloading || loadingOrders}
+                                    disabled={isDownloading || loadingOrders || uploadUpd.isPending}
                                     loading={isDownloading || loadingOrders}
                                 />
                             </Can>
                             <AddAction
-                                onClick={() => navigate('/orders/create', { state: { from: location.pathname } })}
-                                disabled={loadingOrders}
+                                onClick={() =>
+                                    navigate('/orders/create', {
+                                        state: { from: location.pathname },
+                                    })
+                                }
+                                disabled={loadingOrders || uploadUpd.isPending}
                                 loading={loadingOrders}
                             />
                         </Box>
@@ -210,10 +218,21 @@ const Home = () => {
                         getRowId={(row) => row.id}
                         disableRowSelectionOnClick
                         pageSizeOptions={[10, 25, 50]}
-                        initialState={{ pagination: { paginationModel: { pageSize: 10, page: 0 } } }}
+                        initialState={{
+                            pagination: {
+                                paginationModel: {
+                                    pageSize: 10,
+                                    page: 0,
+                                },
+                            },
+                        }}
                         localeText={localeText}
                         slots={{ pagination: CustomPagination }}
-                        onRowClick={(params) => navigate(`/orders/${params.row.id}/edit`)}
+                        onRowClick={(params) => {
+                            if (!uploadUpd.isPending && !isDeleting) {
+                                navigate(`/orders/${params.row.id}/edit`)
+                            }
+                        }}
                         sx={{ '& .MuiDataGrid-row': { cursor: 'pointer' } }}
                     />
 

@@ -1,17 +1,17 @@
-import useSnackbar from './useSnackbar.js'
-
 export function useFileUpload(
     uploadMutation,
-    { successMessage = 'Файл успешно загружен.', errorMessage = 'Ошибка загрузки файла.' } = {},
+    showSnackbar,
+    {
+        successMessage = 'Файл успешно загружен.',
+        deleteSuccessMessage = 'Файл успешно удалён.',
+        errorMessage = 'Ошибка загрузки файла.',
+    } = {},
 ) {
-    const { showSnackbar } = useSnackbar()
-
     return async (id, file) => {
-        if (!file) return
-
         try {
             await uploadMutation.mutateAsync({ id, file })
-            showSnackbar(successMessage, 'success')
+
+            showSnackbar(file === null ? deleteSuccessMessage : successMessage, 'success')
         } catch {
             showSnackbar(errorMessage, 'error')
         }
