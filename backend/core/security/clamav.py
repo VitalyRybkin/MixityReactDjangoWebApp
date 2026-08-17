@@ -1,10 +1,21 @@
 import socket
 import struct
-from typing import BinaryIO
+from typing import Protocol
 
 from app_settings import project_settings
 
+
 CHUNK_SIZE = 64 * 1024
+
+
+class ScannableFile(Protocol):
+    def read(self, size: int = -1) -> bytes: ...
+
+    def seek(
+        self,
+        offset: int,
+        whence: int = 0,
+    ) -> int: ...
 
 
 class ClamAVError(Exception):
@@ -19,7 +30,7 @@ class MalwareDetectedError(ClamAVError):
     """Malware was detected in the uploaded file."""
 
 
-def scan_file_for_malware(file: BinaryIO) -> None:
+def scan_file_for_malware(file: ScannableFile) -> None:
     """
     Scan a file using ClamAV clamd INSTREAM protocol.
 

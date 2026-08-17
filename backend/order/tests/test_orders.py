@@ -1,18 +1,28 @@
 from dataclasses import dataclass
 from datetime import date, timedelta
 from decimal import Decimal
+from io import BytesIO
+from tempfile import TemporaryDirectory
 from typing import Any, ClassVar
 from unittest import SkipTest
+from unittest.mock import MagicMock, patch
 
 import pytest
 from django.contrib.auth import get_user_model
 from django.contrib.auth.models import User
+from django.core.files.uploadedfile import SimpleUploadedFile
+from django.test import override_settings
 from django.urls import reverse
+from pypdf import PdfWriter
 from rest_framework import status
 from rest_framework.test import APITestCase
 
 from catalog.tests.api.factories import ProductFactory
 from contacts.factories import ContactFactory
+from core.security.clamav import (
+    ClamAVUnavailableError,
+    MalwareDetectedError,
+)
 from core.tests.base_test_case import BaseAPIMixin
 from core.tests.base_view_test_case import BaseViewTestCase
 from core.tests.model_tests import ModelContractMixin
@@ -34,19 +44,6 @@ from order.tests.factories import (
 from order.views.orders import OrderListCreateAPIView, OrderRetrieveUpdateDestroyAPIView
 from stock.tests.factories import WarehouseFactory
 
-from io import BytesIO
-from tempfile import TemporaryDirectory
-
-from django.core.files.uploadedfile import SimpleUploadedFile
-from django.test import override_settings
-from pypdf import PdfWriter
-
-from unittest.mock import patch
-
-from core.security.clamav import (
-    ClamAVUnavailableError,
-    MalwareDetectedError,
-)
 
 def make_test_pdf() -> SimpleUploadedFile:
     buffer = BytesIO()
@@ -60,6 +57,7 @@ def make_test_pdf() -> SimpleUploadedFile:
         content=buffer.getvalue(),
         content_type="application/pdf",
     )
+
 
 class TestOrderUpdUploadAPIView(APITestCase):
     def setUp(self) -> None:
@@ -113,9 +111,7 @@ class TestOrderUpdUploadAPIView(APITestCase):
 
         self.assertTrue(self.order.upd_pdf)
         self.assertTrue(self.order.upd_pdf.name.endswith(".pdf"))
-        self.assertTrue(
-            self.order.upd_pdf.storage.exists(self.order.upd_pdf.name)
-        )
+        self.assertTrue(self.order.upd_pdf.storage.exists(self.order.upd_pdf.name))
 
     def test_upload_fake_pdf_returns_400(self) -> None:
         file = SimpleUploadedFile(
@@ -233,12 +229,10 @@ class TestOrderUpdUploadAPIView(APITestCase):
         "scan_file_for_malware"
     )
     def test_upload_pdf_with_malware_returns_400(
-            self,
-            mock_scan,
+        self,
+        mock_scan: MagicMock,
     ) -> None:
-        mock_scan.side_effect = MalwareDetectedError(
-            "Eicar-Test-Signature FOUND"
-        )
+        mock_scan.side_effect = MalwareDetectedError("Eicar-Test-Signature FOUND")
 
         file = make_test_pdf()
 
@@ -268,12 +262,10 @@ class TestOrderUpdUploadAPIView(APITestCase):
         "scan_file_for_malware"
     )
     def test_upload_pdf_when_clamav_unavailable_returns_503(
-            self,
-            mock_scan,
+        self,
+        mock_scan: MagicMock,
     ) -> None:
-        mock_scan.side_effect = ClamAVUnavailableError(
-            "ClamAV недоступен."
-        )
+        mock_scan.side_effect = ClamAVUnavailableError("ClamAV недоступен.")
 
         file = make_test_pdf()
 
@@ -294,7 +286,6 @@ class TestOrderUpdUploadAPIView(APITestCase):
         self.assertFalse(self.order.upd_pdf)
 
         mock_scan.assert_called_once()
-
 
 
 class TestOrderAPIList(BaseAPIMixin):

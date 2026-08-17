@@ -35,5 +35,5 @@ urlpatterns = [
         OrderRoutes.UPLOAD_UPD.path,
         OrderRetrieveUpdateDestroyAPIView.as_view(),
         name=OrderRoutes.UPLOAD_UPD.name,
-    )
+    ),
 ]

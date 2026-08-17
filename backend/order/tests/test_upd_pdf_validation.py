@@ -75,10 +75,7 @@ class TestUpdPdfValidation:
         assert "upd_pdf" in serializer.errors
 
     def test_oversized_pdf_rejected(self) -> None:
-        content = (
-            b"%PDF-1.7\n"
-            + b"x" * (MAX_UPD_PDF_SIZE + 1)
-        )
+        content = b"%PDF-1.7\n" + b"x" * (MAX_UPD_PDF_SIZE + 1)
 
         file = make_uploaded_file(content)
 

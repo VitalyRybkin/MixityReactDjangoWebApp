@@ -1,23 +1,21 @@
 from typing import Any
 
+from django.core.files.uploadedfile import UploadedFile
 from django.db import transaction
 from pypdf import PdfReader
 from pypdf.errors import PdfReadError
 from rest_framework import serializers
 
-from rest_framework import exceptions, serializers
-
+from catalog.models import Product
+from catalog.serializers.product_serializers import ProductSerializer
+from contacts.models import Contact
+from contacts.serializers import ContactSerializer
 from core.api.exceptions import AntivirusUnavailableError
 from core.security.clamav import (
     ClamAVUnavailableError,
     MalwareDetectedError,
     scan_file_for_malware,
 )
-
-from catalog.models import Product
-from catalog.serializers.product_serializers import ProductSerializer
-from contacts.models import Contact
-from contacts.serializers import ContactSerializer
 from order.models import (
     Client,
     ConstructionObject,
@@ -41,6 +39,7 @@ from stock.warehouse_serializers import (
 )
 
 MAX_UPD_PDF_SIZE = 10 * 1024 * 1024  # 10 MB
+
 
 class PackageTypeSerializer(serializers.ModelSerializer):
     """
@@ -414,22 +413,24 @@ class OrderWriteSerializer(serializers.ModelSerializer):
         """
         instance.delete()
 
-    def validate_upd_pdf(self, file):
+    def validate_upd_pdf(
+        self,
+        file: UploadedFile | None,
+    ) -> UploadedFile | None:
         if file is None:
             return None
 
+        if file.size is None:
+            raise serializers.ValidationError("Не удалось определить размер PDF.")
+
         if file.size > MAX_UPD_PDF_SIZE:
-            raise serializers.ValidationError(
-                "Размер PDF не должен превышать 10 МБ."
-            )
+            raise serializers.ValidationError("Размер PDF не должен превышать 10 МБ.")
 
         try:
             file.seek(0)
 
             if file.read(5) != b"%PDF-":
-                raise serializers.ValidationError(
-                    "Файл не является PDF."
-                )
+                raise serializers.ValidationError("Файл не является PDF.")
 
             file.seek(0)
 
@@ -446,11 +447,8 @@ class OrderWriteSerializer(serializers.ModelSerializer):
                 )
 
             if len(reader.pages) == 0:
-                raise serializers.ValidationError(
-                    "PDF не содержит страниц."
-                )
+                raise serializers.ValidationError("PDF не содержит страниц.")
 
-            # Антивирусная проверка
             try:
                 scan_file_for_malware(file)
 
