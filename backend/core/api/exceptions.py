@@ -2,7 +2,7 @@ import logging
 import re
 
 from django.db import OperationalError
-from rest_framework import status
+from rest_framework import status, exceptions
 from rest_framework.exceptions import AuthenticationFailed
 from rest_framework.response import Response
 from rest_framework.serializers import Serializer
@@ -194,3 +194,8 @@ def custom_exception_handler(exc: Exception, context: Any) -> Response:
 
     logger.error("RAW RESPONSE DATA AFTER FORMAT: %r", response.data)
     return response
+
+class AntivirusUnavailableError(exceptions.APIException):
+    status_code = 503
+    default_detail = "Антивирусная проверка временно недоступна."
+    default_code = "antivirus_unavailable"

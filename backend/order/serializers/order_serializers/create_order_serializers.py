@@ -5,6 +5,15 @@ from pypdf import PdfReader
 from pypdf.errors import PdfReadError
 from rest_framework import serializers
 
+from rest_framework import exceptions, serializers
+
+from core.api.exceptions import AntivirusUnavailableError
+from core.security.clamav import (
+    ClamAVUnavailableError,
+    MalwareDetectedError,
+    scan_file_for_malware,
+)
+
 from catalog.models import Product
 from catalog.serializers.product_serializers import ProductSerializer
 from contacts.models import Contact
@@ -428,7 +437,7 @@ class OrderWriteSerializer(serializers.ModelSerializer):
                 reader = PdfReader(file, strict=True)
             except (PdfReadError, EOFError, ValueError, TypeError) as exc:
                 raise serializers.ValidationError(
-                    "Файл повреждён или имеет некорректный формат PDF."
+                    "Некорректный или повреждённый PDF."
                 ) from exc
 
             if reader.is_encrypted:
@@ -436,15 +445,22 @@ class OrderWriteSerializer(serializers.ModelSerializer):
                     "Зашифрованные PDF-файлы не поддерживаются."
                 )
 
-            try:
-                if len(reader.pages) == 0:
-                    raise serializers.ValidationError(
-                        "PDF не содержит страниц."
-                    )
-            except (PdfReadError, EOFError, ValueError) as exc:
+            if len(reader.pages) == 0:
                 raise serializers.ValidationError(
-                    "Не удалось прочитать содержимое PDF."
+                    "PDF не содержит страниц."
+                )
+
+            # Антивирусная проверка
+            try:
+                scan_file_for_malware(file)
+
+            except MalwareDetectedError as exc:
+                raise serializers.ValidationError(
+                    "Файл не прошёл антивирусную проверку."
                 ) from exc
+
+            except ClamAVUnavailableError as exc:
+                raise AntivirusUnavailableError() from exc
 
         finally:
             file.seek(0)

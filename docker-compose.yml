@@ -1,4 +1,20 @@
 services:
+  clamav:
+    image: clamav/clamav:1.4
+    restart: unless-stopped
+
+    volumes:
+      - clamav_db:/var/lib/clamav
+
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "5"
+
+    networks:
+      - mixity_network
+
   db:
     image: postgres:17-alpine
 
@@ -64,6 +80,8 @@ services:
     depends_on:
       db:
         condition: service_healthy
+      clamav:
+        condition: service_healthy
 
     volumes:
       - django_static:/app/staticfiles
@@ -114,8 +132,9 @@ services:
 
 volumes:
   postgres_data:
-  django_static:
   django_media:
+  django_static:
+  clamav_db:
 
 
 networks:

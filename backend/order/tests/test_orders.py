@@ -41,6 +41,13 @@ from django.core.files.uploadedfile import SimpleUploadedFile
 from django.test import override_settings
 from pypdf import PdfWriter
 
+from unittest.mock import patch
+
+from core.security.clamav import (
+    ClamAVUnavailableError,
+    MalwareDetectedError,
+)
+
 def make_test_pdf() -> SimpleUploadedFile:
     buffer = BytesIO()
 
@@ -220,6 +227,75 @@ class TestOrderUpdUploadAPIView(APITestCase):
         self.assertNotEqual(old_file_name, new_file_name)
         self.assertFalse(storage.exists(old_file_name))
         self.assertTrue(storage.exists(new_file_name))
+
+    @patch(
+        "order.serializers.order_serializers.create_order_serializers."
+        "scan_file_for_malware"
+    )
+    def test_upload_pdf_with_malware_returns_400(
+            self,
+            mock_scan,
+    ) -> None:
+        mock_scan.side_effect = MalwareDetectedError(
+            "Eicar-Test-Signature FOUND"
+        )
+
+        file = make_test_pdf()
+
+        response = self.client.patch(
+            self.url,
+            {"upd_pdf": file},
+            format="multipart",
+        )
+
+        self.assertEqual(
+            response.status_code,
+            status.HTTP_400_BAD_REQUEST,
+            response.data,
+        )
+
+        self.assertIn("errors", response.data)
+        self.assertIn("upd_pdf", response.data["errors"])
+
+        self.order.refresh_from_db()
+
+        self.assertFalse(self.order.upd_pdf)
+
+        mock_scan.assert_called_once()
+
+    @patch(
+        "order.serializers.order_serializers.create_order_serializers."
+        "scan_file_for_malware"
+    )
+    def test_upload_pdf_when_clamav_unavailable_returns_503(
+            self,
+            mock_scan,
+    ) -> None:
+        mock_scan.side_effect = ClamAVUnavailableError(
+            "ClamAV недоступен."
+        )
+
+        file = make_test_pdf()
+
+        response = self.client.patch(
+            self.url,
+            {"upd_pdf": file},
+            format="multipart",
+        )
+
+        self.assertEqual(
+            response.status_code,
+            status.HTTP_503_SERVICE_UNAVAILABLE,
+            response.data,
+        )
+
+        self.order.refresh_from_db()
+
+        self.assertFalse(self.order.upd_pdf)
+
+        mock_scan.assert_called_once()
+
+
 
 class TestOrderAPIList(BaseAPIMixin):
     __test__ = True

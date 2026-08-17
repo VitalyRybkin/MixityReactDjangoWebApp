@@ -33,6 +33,11 @@ class Settings(BaseSettings):
     SECURE_HSTS_INCLUDE_SUBDOMAINS: bool = False
     SECURE_HSTS_PRELOAD: bool = False
 
+    CLAMAV_ENABLED: bool = False
+    CLAMAV_HOST: str = "clamav"
+    CLAMAV_PORT: int = 3310
+    CLAMAV_TIMEOUT: int = 10
+
     VITE_API_URL: str = "/api"
 
     SEED_USERS_FILE: str | None = None
