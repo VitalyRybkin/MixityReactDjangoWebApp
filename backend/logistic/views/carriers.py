@@ -3,6 +3,7 @@ from typing import Any
 from django.db.models import Prefetch, QuerySet
 from rest_framework import status
 from rest_framework.generics import GenericAPIView, get_object_or_404
+from rest_framework.permissions import IsAuthenticated
 from rest_framework.request import Request
 from rest_framework.response import Response
 
@@ -13,6 +14,7 @@ from core.openapi.base_views import (
     BaseListCreateAPIView,
     BaseRetrieveUpdateDestroyAPIView,
 )
+from logistic.api.permissions import CarrierResourcesPermission
 from logistic.models import Carrier, Driver, Truck
 from logistic.serializers.carrier_serializers import (
     CarrierResourcesSerializer,
@@ -104,6 +106,11 @@ class CarrierResourcesAPIView(BaseGenericAPIView):
 
     serializer_class = CarrierResourcesSerializer
     queryset = Carrier.objects.all()
+
+    permission_classes = [
+        IsAuthenticated,
+        CarrierResourcesPermission,
+    ]
 
     def get(self, request: Request, *args: Any, **kwargs: Any) -> Response:
         carrier = get_object_or_404(Carrier, pk=kwargs["pk"], is_active=True)

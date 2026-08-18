@@ -2,10 +2,12 @@ import logging
 from typing import Any, Dict
 
 import pytest
+from django.contrib.auth.models import User
+from rest_framework import status
 
 from core.tests.base_test_case import BaseAPIMixin
 from core.tests.utils import FieldSpec
-from logistic.models import Carrier
+from logistic.models import Carrier, Driver, Truck
 from logistic.routes import CarrierRoutes
 from logistic.serializers.carrier_serializers import CarrierSerializer
 from logistic.tests.factories import CarrierFactory, DriverFactory, TruckFactory
@@ -142,12 +144,83 @@ class TestCarrierResources(BaseAPIMixin):
     __test__ = True
     pk_url_name = f"logistic:{CarrierRoutes.RESOURCES.name}"
     factory = CarrierFactory
+    view_permissions = [
+        "logistic.view_carrier",
+        "logistic.view_driver",
+        "logistic.view_truck",
+    ]
 
     def test_retrieve_resources(self) -> None:
         TruckFactory.create_batch(3, carrier=self.obj)
         DriverFactory.create_batch(2, carrier=self.obj)
 
         self._get_resources_logic(expected_trucks=3, expected_drivers=2)
+
+    def test_get_with_only_carrier_permission_returns_403(self) -> None:
+        user = User.objects.create_user(
+            username="carrier_only",
+            password="test_password",
+        )
+
+        self._add_permissions(
+            user,
+            ["logistic.view_carrier"],
+        )
+
+        self.client.force_authenticate(user=user)
+
+        response = self.client.get(self.url)
+
+        self.assertEqual(
+            response.status_code,
+            status.HTTP_403_FORBIDDEN,
+        )
+
+    def test_get_without_driver_permission_returns_403(self) -> None:
+        user = User.objects.create_user(
+            username="without_driver",
+            password="test_password",
+        )
+
+        self._add_permissions(
+            user,
+            [
+                "logistic.view_carrier",
+                "logistic.view_truck",
+            ],
+        )
+
+        self.client.force_authenticate(user=user)
+
+        response = self.client.get(self.url)
+
+        self.assertEqual(
+            response.status_code,
+            status.HTTP_403_FORBIDDEN,
+        )
+
+    def test_get_without_truck_permission_returns_403(self) -> None:
+        user = User.objects.create_user(
+            username="without_truck",
+            password="test_password",
+        )
+
+        self._add_permissions(
+            user,
+            [
+                "logistic.view_carrier",
+                "logistic.view_driver",
+            ],
+        )
+
+        self.client.force_authenticate(user=user)
+
+        response = self.client.get(self.url)
+
+        self.assertEqual(
+            response.status_code,
+            status.HTTP_403_FORBIDDEN,
+        )
 
 
 class TestCarrierDriverList(BaseAPIMixin):
@@ -166,6 +239,7 @@ class TestCarrierDriverList(BaseAPIMixin):
     __test__ = True
     pk_url_name = f"logistic:{CarrierRoutes.DRIVERS.name}"
     factory = CarrierFactory
+    permission_model = Driver
 
     def test_get_list(self) -> None:
         DriverFactory.create_batch(3, carrier=self.obj)
@@ -188,6 +262,7 @@ class TestCarrierTruckList(BaseAPIMixin):
     __test__ = True
     pk_url_name = f"logistic:{CarrierRoutes.TRUCKS.name}"
     factory = CarrierFactory
+    permission_model = Truck
 
     def test_get_list(self) -> None:
         TruckFactory.create_batch(3, carrier=self.obj)

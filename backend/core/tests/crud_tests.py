@@ -133,7 +133,9 @@ class CrudContractMixin(_Base):
 
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
         print(
-            f"    {self.COLOR['ERR']}✗ Object not found successfully{self.COLOR['END']}"
+            f"    {self.COLOR['OK']}"
+            f"✓ Object not found successfully | HTTP 404"
+            f"{self.COLOR['END']}"
         )
 
     def _get_resources_logic(

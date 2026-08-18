@@ -1,16 +1,29 @@
 import logging
 import re
+from typing import Any
 
 from django.db import OperationalError
-from rest_framework import status, exceptions
+from rest_framework import exceptions, status
 from rest_framework.exceptions import AuthenticationFailed
 from rest_framework.response import Response
 from rest_framework.serializers import Serializer
 from rest_framework.views import exception_handler
 
+
 logger = logging.getLogger(__name__)
 
-from typing import Any
+
+def _get_response_log_level(status_code: int) -> int:
+    if status_code >= 500:
+        return logging.ERROR
+
+    if status_code in (
+        status.HTTP_401_UNAUTHORIZED,
+        status.HTTP_429_TOO_MANY_REQUESTS,
+    ):
+        return logging.WARNING
+
+    return logging.DEBUG
 
 
 def _normalize_error_key(value: str) -> str:
@@ -170,13 +183,19 @@ def custom_exception_handler(exc: Exception, context: Any) -> Response:
         )
 
     if isinstance(exc, AuthenticationFailed):
-        logger.info("Authentication failed: %r", exc)
+        logger.warning("Authentication failed: %r", exc)
         return Response(
             ["Ошибка аутентификации."],
             status=status.HTTP_401_UNAUTHORIZED,
         )
 
-    logger.error("RAW RESPONSE DATA BEFORE FORMAT: %r", response.data)
+    log_level = _get_response_log_level(response.status_code)
+
+    logger.log(
+        log_level,
+        "RAW RESPONSE DATA BEFORE FORMAT: %r",
+        response.data,
+    )
 
     if isinstance(response.data, dict):
         view = context.get("view")
@@ -192,7 +211,11 @@ def custom_exception_handler(exc: Exception, context: Any) -> Response:
     elif isinstance(response.data, str):
         response.data = [_clean_message(response.data)]
 
-    logger.error("RAW RESPONSE DATA AFTER FORMAT: %r", response.data)
+    logger.log(
+        log_level,
+        "RAW RESPONSE DATA AFTER FORMAT: %r",
+        response.data,
+    )
     return response
 
 class AntivirusUnavailableError(exceptions.APIException):

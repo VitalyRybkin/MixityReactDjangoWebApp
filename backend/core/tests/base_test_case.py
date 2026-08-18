@@ -9,6 +9,7 @@ from rest_framework.test import APITestCase
 from core.tests.crud_tests import CrudContractMixin
 from core.tests.field_matching_tests import FieldContractMixin
 from core.tests.model_tests import ModelContractMixin
+from core.tests.permission_tests import PermissionContractMixin
 from core.tests.queryset_tests import QuerysetContractMixin
 from core.tests.utils import TestLoggerMixin, UploadSpec
 from core.tests.validation_tests import ValidationContractMixin
@@ -44,6 +45,7 @@ class BaseAPITestCase(
     SoftDeleteContractMixin,
     ReadOnlyActiveFieldContractMixin,
     QuerysetContractMixin,
+    PermissionContractMixin,
     BaseTestCase,
 ):
     """
