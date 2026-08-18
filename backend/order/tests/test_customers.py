@@ -1,8 +1,10 @@
 from typing import Any, Dict
 
+from catalog.models import SalesPriceHistory
 from catalog.tests.api.factories import SalePriceHistoryFactory
 from catalog.tests.api.test_products import BaseTestPriceHistory
 from contacts.factories import ContactFactory
+from contacts.models import Contact
 from core.tests.base_test_case import BaseAPIMixin
 from core.tests.utils import FieldSpec
 from order.models import ConstructionObject, Customer
@@ -74,6 +76,7 @@ class TestCustomerAPIList(CustomerBaseTest, BaseAPIMixin):
 class TestCustomerContactsAPI(CustomerBaseTest, BaseAPIMixin):
     __test__ = True
     pk_url_name = f"order_customers:{CustomerRoutes.CONTACTS.name}"
+    permission_model = Contact
 
     def test_get_customer_contacts(self) -> None:
         """Test the logic for retrieving contacts associated with a customer."""
@@ -130,6 +133,8 @@ class TestCustomerConstructionObjectsAPIDetailAPI(BaseAPIMixin):
     pk_url_name = f"order_customers:{ConstructionObjectsRoutes.DETAIL.name}"
     factory = ConstructionObjectFactory
 
+    permission_model = ConstructionObject
+
     def get_url_kwargs(self) -> dict[str, Any]:
         """
         Generate a dictionary of URL keyword arguments.
@@ -171,3 +176,5 @@ class TestCustomerPriceHistory(BaseTestPriceHistory, BaseAPIMixin):
     factory = SalePriceHistoryFactory
     price_context_factory = CustomerFactory
     context_field = "customer"
+
+    permission_model = SalesPriceHistory

@@ -4,6 +4,7 @@ from django.db.models import Q, QuerySet
 from drf_spectacular.types import OpenApiTypes
 from drf_spectacular.utils import OpenApiParameter
 from rest_framework import status
+from rest_framework.permissions import IsAuthenticated
 from rest_framework.request import Request
 from rest_framework.response import Response
 
@@ -15,6 +16,7 @@ from core.openapi.base_views import (
     BaseListCreateAPIView,
     BaseRetrieveUpdateDestroyAPIView,
 )
+from order.api.permissions import OrderResourcesPermission
 from order.models import Client, Customer, Order, PackType
 from order.serializers.order_serializers.create_order_serializers import (
     OrderReadSerializer,
@@ -47,6 +49,11 @@ class OrderResourcesAPIView(BaseGenericAPIView):
 
     serializer_class = OrderResourcesSerializer
     queryset = Client.objects.none()
+
+    permission_classes = [
+        IsAuthenticated,
+        OrderResourcesPermission,
+    ]
 
     def get(self, request: Request, *args: Any, **kwargs: Any) -> Response:
         clients = Client.objects.active()

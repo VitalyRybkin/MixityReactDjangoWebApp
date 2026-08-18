@@ -26,6 +26,7 @@ from core.security.clamav import (
 from core.tests.base_test_case import BaseAPIMixin
 from core.tests.base_view_test_case import BaseViewTestCase
 from core.tests.model_tests import ModelContractMixin
+from core.tests.permission_tests import PermissionContractMixin
 from core.tests.utils import TestLoggerMixin
 from order.models import Order, OrderItem, PackType
 from order.routes import OrderRoutes
@@ -59,7 +60,7 @@ def make_test_pdf() -> SimpleUploadedFile:
     )
 
 
-class TestOrderUpdUploadAPIView(APITestCase):
+class TestOrderUpdUploadAPIView(APITestCase, TestLoggerMixin):
     def setUp(self) -> None:
         super().setUp()
 
@@ -265,15 +266,21 @@ class TestOrderUpdUploadAPIView(APITestCase):
         self,
         mock_scan: MagicMock,
     ) -> None:
+
+        self._logger_header("TEST UPLOAD PDF when ClamAV unavailable returns 503")
         mock_scan.side_effect = ClamAVUnavailableError("ClamAV недоступен.")
 
         file = make_test_pdf()
 
-        response = self.client.patch(
-            self.url,
-            {"upd_pdf": file},
-            format="multipart",
-        )
+        with (
+            self.assertLogs("core.api.exceptions", level="ERROR"),
+            self.assertLogs("django.request", level="ERROR"),
+        ):
+            response = self.client.patch(
+                self.url,
+                {"upd_pdf": file},
+                format="multipart",
+            )
 
         self.assertEqual(
             response.status_code,
@@ -286,6 +293,10 @@ class TestOrderUpdUploadAPIView(APITestCase):
         self.assertFalse(self.order.upd_pdf)
 
         mock_scan.assert_called_once()
+
+        print(
+            f"    {self.COLOR['OK']}    ✓ Antivirus unavailable handled correctly | HTTP 503{self.COLOR['END']}"
+        )
 
 
 class TestOrderAPIList(BaseAPIMixin):
@@ -481,6 +492,8 @@ class TestOrderFilteredAPIListCreate(BaseAPIMixin):
     url_name = f"order_orders:{OrderRoutes.LIST_CREATE.name}"
     factory = OrderFactory
 
+    permission_model = Order
+
     def test_filter_by_params(self) -> None:
         Order.objects.all().delete()
 
@@ -543,7 +556,7 @@ class TestOrderFilteredAPIListCreate(BaseAPIMixin):
                 )
 
 
-class TestOrderResourcesAPIView(APITestCase, TestLoggerMixin):
+class TestOrderResourcesAPIView(APITestCase, PermissionContractMixin, TestLoggerMixin):
     """
     Test suite for validating the behavior of the order resources API endpoint.
 
@@ -556,8 +569,18 @@ class TestOrderResourcesAPIView(APITestCase, TestLoggerMixin):
     url_name = f"order_orders:{OrderRoutes.RESOURCES.name}"
     AMOUNT_OF_RESOURCES: ClassVar[int] = 3
 
+    view_permissions = [
+        "order.view_client",
+        "order.view_customer",
+        "catalog.view_product",
+        "stock.view_warehouse",
+        "order.view_packtype",
+    ]
+
     def setUp(self) -> None:
         super().setUp()
+
+        self.url = reverse(self.url_name)
 
         user_model = get_user_model()
 
@@ -623,6 +646,42 @@ class TestOrderResourcesAPIView(APITestCase, TestLoggerMixin):
             f"Only active clients are returned in response."
             f"{self.COLOR['END']}"
         )
+
+    def test_each_view_permission_is_required(self) -> None:
+        required_permissions = self.view_permissions
+
+        for index, missing_permission in enumerate(required_permissions):
+            with self.subTest(missing_permission=missing_permission):
+                user = User.objects.create_user(
+                    username=f"missing_permission_{index}",
+                    password="test_password",
+                )
+
+                granted_permissions = [
+                    permission
+                    for permission in required_permissions
+                    if permission != missing_permission
+                ]
+
+                self._add_permissions(
+                    user,
+                    granted_permissions,
+                )
+
+                self.client.force_authenticate(user=user)
+
+                response = self.client.get(self.url)
+
+                self.assertEqual(
+                    response.status_code,
+                    status.HTTP_403_FORBIDDEN,
+                )
+
+                print(
+                    f"    {self.COLOR['OK']}"
+                    f"✓ Access denied without {missing_permission} | HTTP 403"
+                    f"{self.COLOR['END']}"
+                )
 
 
 @pytest.mark.django_db
