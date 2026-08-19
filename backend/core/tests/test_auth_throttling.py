@@ -1,3 +1,5 @@
+import logging
+
 import pytest
 from django.core.cache import cache
 from django.urls import reverse
@@ -18,39 +20,53 @@ class TestAuthThrottling(TestLoggerMixin):
     def teardown_method(self) -> None:
         cache.clear()
 
-    def test_login_is_throttled_after_five_attempts(self) -> None:
+    def test_login_is_throttled_after_five_attempts(
+            self,
+            caplog,
+    ) -> None:
+        self._logger_header("ENDPOINT POST: /api/auth/token/")
+
+        caplog.set_level(
+            logging.CRITICAL,
+            logger="core.api.exceptions",
+        )
+        caplog.set_level(
+            logging.CRITICAL,
+            logger="django.request",
+        )
+
         url = reverse(self.url_name)
 
-        self._logger_header(f"ENDPOINT POST: {url}")
-
-        credentials = {
-            "username": "wrong-user",
-            "password": "wrong-password",
+        payload = {
+            "username": "wrong_user",
+            "password": "wrong_password",
         }
 
         for attempt in range(1, 6):
             response = self.client.post(
                 url,
-                credentials,
+                payload,
                 format="json",
             )
 
             assert response.status_code == status.HTTP_401_UNAUTHORIZED
 
-            self._logger_success(
-                f"attempt {attempt}",
-                f"HTTP {response.status_code}",
+            print(
+                f"    {self.COLOR['OK']}"
+                f"✓ attempt {attempt} | HTTP 401"
+                f"{self.COLOR['END']}"
             )
 
         response = self.client.post(
             url,
-            credentials,
+            payload,
             format="json",
         )
 
         assert response.status_code == status.HTTP_429_TOO_MANY_REQUESTS
 
-        self._logger_success(
-            "throttle",
-            f"HTTP {response.status_code}",
+        print(
+            f"    {self.COLOR['OK']}"
+            "✓ throttle | HTTP 429"
+            f"{self.COLOR['END']}"
         )

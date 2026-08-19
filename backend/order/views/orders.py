@@ -292,6 +292,7 @@ class OrderUpdUploadAPIView(generics.UpdateAPIView):
 
 class OrderUpdViewAPIView(generics.GenericAPIView):
     queryset = Order.objects.all()
+    serializer_class = OrderReadSerializer
 
     http_method_names = ["get", "head", "options"]
 

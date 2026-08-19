@@ -145,6 +145,7 @@ class TestWarehouseUploadMap(BaseAPIMixin):
         "directions": FieldSpec("directions", str),
     }
     check_get_permissions = False
+    authentication_method = "patch"
 
     def test_upload_map(self) -> None:
         """

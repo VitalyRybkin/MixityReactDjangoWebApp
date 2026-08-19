@@ -61,6 +61,7 @@ def make_test_pdf() -> SimpleUploadedFile:
 
 
 class TestOrderUpdUploadAPIView(APITestCase, TestLoggerMixin):
+    authentication_method = "patch"
     def setUp(self) -> None:
         super().setUp()
 

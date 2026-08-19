@@ -6,6 +6,7 @@ from django.contrib.auth import get_user_model
 from rest_framework.reverse import reverse
 from rest_framework.test import APITestCase
 
+from core.tests.authentication_tests import AuthenticationContractMixin
 from core.tests.crud_tests import CrudContractMixin
 from core.tests.field_matching_tests import FieldContractMixin
 from core.tests.model_tests import ModelContractMixin
@@ -46,6 +47,7 @@ class BaseAPITestCase(
     ReadOnlyActiveFieldContractMixin,
     QuerysetContractMixin,
     PermissionContractMixin,
+    AuthenticationContractMixin,
     BaseTestCase,
 ):
     """

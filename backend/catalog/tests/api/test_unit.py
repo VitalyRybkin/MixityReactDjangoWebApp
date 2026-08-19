@@ -112,18 +112,17 @@ class TestUnitRetrieveUpdate(UnitBaseTest, BaseAPIMixin):
         self._patch_logic_success(payload)
 
     def test_update_logic_failed(self) -> None:
-        obj = self.factory.create(
-            title=TitleChoices.KILOGRAM,
-            is_weight_based=True,
-            to_kg_factor=1,
-        )
+        self.obj.title = TitleChoices.KILOGRAM
+        self.obj.is_weight_based = True
+        self.obj.to_kg_factor = 1
+        self.obj.save()
 
         payload = {
             "isWeightBased": False,
         }
 
         self._patch_logic_failed(
-            obj=obj,
+            obj=self.obj,
             payload=payload,
             expected_field="is_weight_based",
         )
