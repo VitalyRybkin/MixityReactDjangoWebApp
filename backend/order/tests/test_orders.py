@@ -9,7 +9,7 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 from django.contrib.auth import get_user_model
-from django.contrib.auth.models import User
+from django.contrib.auth.models import Permission, User
 from django.core.files.uploadedfile import SimpleUploadedFile
 from django.test import override_settings
 from django.urls import reverse
@@ -225,10 +225,7 @@ class TestOrderUpdUploadAPIView(APITestCase, TestLoggerMixin):
         self.assertFalse(storage.exists(old_file_name))
         self.assertTrue(storage.exists(new_file_name))
 
-    @patch(
-        "order.serializers.order_serializers.create_order_serializers."
-        "scan_file_for_malware"
-    )
+    @patch("order.validators.upd_pdf.scan_file_for_malware")
     def test_upload_pdf_with_malware_returns_400(
         self,
         mock_scan: MagicMock,
@@ -258,10 +255,7 @@ class TestOrderUpdUploadAPIView(APITestCase, TestLoggerMixin):
 
         mock_scan.assert_called_once()
 
-    @patch(
-        "order.serializers.order_serializers.create_order_serializers."
-        "scan_file_for_malware"
-    )
+    @patch("order.validators.upd_pdf.scan_file_for_malware")
     def test_upload_pdf_when_clamav_unavailable_returns_503(
         self,
         mock_scan: MagicMock,
@@ -298,6 +292,95 @@ class TestOrderUpdUploadAPIView(APITestCase, TestLoggerMixin):
             f"    {self.COLOR['OK']}    ✓ Antivirus unavailable handled correctly | HTTP 503{self.COLOR['END']}"
         )
 
+    def test_get_is_not_allowed(self) -> None:
+        response = self.client.get(self.url)
+
+        self.assertEqual(
+            response.status_code,
+            status.HTTP_405_METHOD_NOT_ALLOWED,
+        )
+
+    def test_delete_is_not_allowed(self) -> None:
+        response = self.client.delete(self.url)
+
+        self.assertEqual(
+            response.status_code,
+            status.HTTP_405_METHOD_NOT_ALLOWED,
+        )
+
+    def test_put_is_not_allowed(self) -> None:
+        response = self.client.put(
+            self.url,
+            {},
+            format="multipart",
+        )
+
+        self.assertEqual(
+            response.status_code,
+            status.HTTP_405_METHOD_NOT_ALLOWED,
+        )
+
+    def test_upload_without_change_order_permission_returns_403(self) -> None:
+        user_model = get_user_model()
+
+        user = user_model.objects.create_user(
+            username="test_upd_no_permission",
+            password="test_password",
+        )
+
+        self.client.force_authenticate(user=user)
+
+        file = make_test_pdf()
+
+        response = self.client.patch(
+            self.url,
+            {"upd_pdf": file},
+            format="multipart",
+        )
+
+        self.assertEqual(
+            response.status_code,
+            status.HTTP_403_FORBIDDEN,
+            response.data,
+        )
+
+        self.order.refresh_from_db()
+
+        self.assertFalse(self.order.upd_pdf)
+
+    def test_upload_with_change_order_permission_returns_200(self) -> None:
+        user_model = get_user_model()
+
+        user = user_model.objects.create_user(
+            username="test_upd_change_permission",
+            password="test_password",
+        )
+
+        permission = Permission.objects.get(
+            content_type__app_label="order",
+            codename="change_order",
+        )
+        user.user_permissions.add(permission)
+
+        self.client.force_authenticate(user=user)
+
+        file = make_test_pdf()
+
+        response = self.client.patch(
+            self.url,
+            {"upd_pdf": file},
+            format="multipart",
+        )
+
+        self.assertEqual(
+            response.status_code,
+            status.HTTP_200_OK,
+            response.data,
+        )
+
+        self.order.refresh_from_db()
+
+        self.assertTrue(self.order.upd_pdf)
 
 class TestOrderAPIList(BaseAPIMixin):
     __test__ = True

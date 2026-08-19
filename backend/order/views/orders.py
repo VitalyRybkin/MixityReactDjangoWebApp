@@ -274,3 +274,18 @@ class OrdersDownloadAPIView(BaseListAPIView):
             queryset = queryset.filter(warehouse_id=warehouse_id)
 
         return queryset.order_by("-delivery_date", "-created_at")
+
+from rest_framework import generics
+
+from order.models import Order
+from order.serializers.order_serializers.order_upd import OrderUpdSerializer
+
+
+class OrderUpdUploadAPIView(generics.UpdateAPIView):
+    queryset = Order.objects.all()
+    serializer_class = OrderUpdSerializer
+
+    http_method_names = [
+        "patch",
+        "options",
+    ]

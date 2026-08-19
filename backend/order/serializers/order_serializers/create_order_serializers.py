@@ -32,6 +32,7 @@ from order.serializers.customer_serializers import (
 )
 from order.services.delivery_data import sync_delivery_data
 from order.services.order_items import sync_order_items
+from order.validators.upd_pdf import validate_upd_pdf
 from stock.models import Warehouse
 from stock.warehouse_serializers import (
     BaseWarehouseSerializer,
@@ -414,56 +415,10 @@ class OrderWriteSerializer(serializers.ModelSerializer):
         instance.delete()
 
     def validate_upd_pdf(
-        self,
-        file: UploadedFile | None,
+            self,
+            file: UploadedFile | None,
     ) -> UploadedFile | None:
-        if file is None:
-            return None
-
-        if file.size is None:
-            raise serializers.ValidationError("Не удалось определить размер PDF.")
-
-        if file.size > MAX_UPD_PDF_SIZE:
-            raise serializers.ValidationError("Размер PDF не должен превышать 10 МБ.")
-
-        try:
-            file.seek(0)
-
-            if file.read(5) != b"%PDF-":
-                raise serializers.ValidationError("Файл не является PDF.")
-
-            file.seek(0)
-
-            try:
-                reader = PdfReader(file, strict=True)
-            except (PdfReadError, EOFError, ValueError, TypeError) as exc:
-                raise serializers.ValidationError(
-                    "Некорректный или повреждённый PDF."
-                ) from exc
-
-            if reader.is_encrypted:
-                raise serializers.ValidationError(
-                    "Зашифрованные PDF-файлы не поддерживаются."
-                )
-
-            if len(reader.pages) == 0:
-                raise serializers.ValidationError("PDF не содержит страниц.")
-
-            try:
-                scan_file_for_malware(file)
-
-            except MalwareDetectedError as exc:
-                raise serializers.ValidationError(
-                    "Файл не прошёл антивирусную проверку."
-                ) from exc
-
-            except ClamAVUnavailableError as exc:
-                raise AntivirusUnavailableError() from exc
-
-        finally:
-            file.seek(0)
-
-        return file
+        return validate_upd_pdf(file)
 
 
 class OrderItemExportSerializer(OrderItemSerializer):
