@@ -1,5 +1,9 @@
 from typing import Any, Dict
+from django.contrib.auth import get_user_model
+from django.contrib.auth.models import Permission
+from rest_framework import status
 
+from catalog.models import PurchasePriceHistory
 from catalog.tests.api.factories import PurchasePriceHistoryFactory
 from catalog.tests.api.test_products import BaseTestPriceHistory
 from core.tests.base_test_case import BaseAPIMixin
@@ -140,6 +144,7 @@ class TestWarehouseUploadMap(BaseAPIMixin):
     fields_map = {
         "directions": FieldSpec("directions", str),
     }
+    check_get_permissions = False
 
     def test_upload_map(self) -> None:
         """
@@ -155,6 +160,76 @@ class TestWarehouseUploadMap(BaseAPIMixin):
         Test that uploading a warehouse map without a file returns a 400 Bad Request.
         """
         return self._upload_map_missing_file_400(self.upload_file_spec)
+
+    def test_patch_without_change_permission_returns_403(self) -> None:
+        user = get_user_model().objects.create_user(
+            username="warehouse_map_no_permission",
+            password="test_password",
+        )
+
+        self.client.force_authenticate(user=user)
+
+        temp = self.factory.build()
+
+        response = self.client.patch(
+            self.url,
+            {"directions": temp.directions},
+            format="multipart",
+        )
+
+        self.assertEqual(
+            response.status_code,
+            status.HTTP_403_FORBIDDEN,
+            response.data,
+        )
+
+        print(
+            f"    {self.COLOR['OK']}"
+            "✓ Access denied without stock.change_warehouse | HTTP 403"
+            f"{self.COLOR['END']}"
+        )
+
+    def test_patch_with_change_permission_returns_200(self) -> None:
+        user = get_user_model().objects.create_user(
+            username="warehouse_map_change_permission",
+            password="test_password",
+        )
+
+        permission = Permission.objects.get(
+            content_type__app_label="stock",
+            codename="change_warehouse",
+        )
+        user.user_permissions.add(permission)
+
+        self.client.force_authenticate(user=user)
+
+        temp = self.factory.build()
+
+        response = self.client.patch(
+            self.url,
+            {"directions": temp.directions},
+            format="multipart",
+        )
+
+        self.assertEqual(
+            response.status_code,
+            status.HTTP_200_OK,
+            response.data,
+        )
+
+        print(
+            f"    {self.COLOR['OK']}"
+            "✓ Access granted with stock.change_warehouse | HTTP 200"
+            f"{self.COLOR['END']}"
+        )
+
+    def test_get_is_not_allowed(self) -> None:
+        response = self.client.get(self.url)
+
+        self.assertEqual(
+            response.status_code,
+            status.HTTP_405_METHOD_NOT_ALLOWED,
+        )
 
 
 class TestWarehousePriceHistory(BaseTestPriceHistory, BaseAPIMixin):
@@ -174,3 +249,5 @@ class TestWarehousePriceHistory(BaseTestPriceHistory, BaseAPIMixin):
     factory = PurchasePriceHistoryFactory
     price_context_factory = WarehouseFactory
     context_field = "warehouse"
+
+    permission_model = PurchasePriceHistory

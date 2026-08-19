@@ -17,6 +17,7 @@ else:
 class PermissionContractMixin(_Base):
     permission_model: ClassVar[type[Model] | None] = None
     view_permissions: ClassVar[list[str] | None] = None
+    check_get_permissions: ClassVar[bool] = True
 
     def _get_view_permissions(self) -> list[str]:
         if self.view_permissions is not None:
@@ -45,6 +46,10 @@ class PermissionContractMixin(_Base):
             user.user_permissions.add(permission)
 
     def test_get_without_view_permission_returns_403(self) -> None:
+
+        if not self.check_get_permissions:
+            return
+
         user = User.objects.create_user(
             username="permission_without_view",
             password="test_password",
@@ -66,6 +71,10 @@ class PermissionContractMixin(_Base):
         )
 
     def test_get_with_view_permission_returns_200(self) -> None:
+
+        if not self.check_get_permissions:
+            return
+
         user = User.objects.create_user(
             username="permission_with_view",
             password="test_password",

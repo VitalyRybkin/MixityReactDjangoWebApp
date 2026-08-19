@@ -206,6 +206,7 @@ class TestCarrierContactsAPIList(BaseAPIMixin):
     __test__ = True
     pk_url_name = f"logistic:{CarrierRoutes.CONTACTS.name}"
     factory = CarrierFactory
+    permission_model = Contact
 
     def test_get_list(self) -> None:
         ContactFactory.create_batch(3, carrier=self.obj)
@@ -216,6 +217,7 @@ class TestWarehouseContactsAPIList(BaseAPIMixin):
     __test__ = True
     pk_url_name = f"stock:{WarehouseRoutes.CONTACTS.name}"
     factory = WarehouseFactory
+    permission_model = Contact
 
     def test_get_list(self) -> None:
         ContactFactory.create_batch(
@@ -228,6 +230,7 @@ class TestClientContactsAPIList(BaseAPIMixin):
     __test__ = True
     pk_url_name = f"order_clients:{ClientRoutes.CONTACTS.name}"
     factory = ClientFactory
+    permission_model = Contact
 
     def test_get_list(self) -> None:
         ContactFactory.create_batch(
@@ -240,6 +243,7 @@ class TestCustomerContactsAPIList(BaseAPIMixin):
     __test__ = True
     pk_url_name = f"order_customers:{CustomerRoutes.CONTACTS.name}"
     factory = CustomerFactory
+    permission_model = Contact
 
     def test_get_list(self) -> None:
         ContactFactory.create_batch(
