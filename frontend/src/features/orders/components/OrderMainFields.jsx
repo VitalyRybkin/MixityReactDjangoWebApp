@@ -15,7 +15,16 @@ import { TimePicker } from '@mui/x-date-pickers'
 import FileUploadAction from '../../../components/FileUploadAction.jsx'
 import { fieldsetStyles, orderStatus } from '../utils/order.form.constants.js'
 
-export default function OrderMainFields({ form, setForm, onChange, orderResources, isEdit, order, onDownloadUpd }) {
+export default function OrderMainFields({
+    form,
+    setForm,
+    onChange,
+    orderResources,
+    isEdit,
+    order,
+    onDownloadUpd,
+    onViewUpd,
+}) {
     return (
         <Box component="fieldset" sx={fieldsetStyles}>
             <Typography
@@ -122,6 +131,7 @@ export default function OrderMainFields({ form, setForm, onChange, orderResource
                             entityId={order.id}
                             fileUrl={order.upd_pdf}
                             onUpload={onDownloadUpd}
+                            onView={onViewUpd}
                             uploadTitle="Загрузить УПД"
                             viewTitle="Просмотр УПД"
                         />

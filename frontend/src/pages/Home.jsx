@@ -10,6 +10,7 @@ import DownloadAction from '../components/ui/buttons/DownloadAction.jsx'
 import AppSnackbar from '../components/ui/feedback/AppSnackbar.jsx'
 import ConfirmDialog from '../components/ui/feedback/ConfirmDialog.jsx'
 import { useGetCustomers } from '../features/customers/utils/customers.queries.js'
+import { useViewUpd } from '../features/orders/hooks/useViewUpd.js'
 import { useExportOrders, useGetOrders, useUploadUpd } from '../features/orders/utils/orders.queries.js'
 import { useGetWarehouses } from '../features/warehouses/utils/stocks.queries.js'
 import { useFileUpload } from '../hooks/useUploadFile.js'
@@ -101,13 +102,16 @@ const Home = () => {
         errorMessage: 'Не удалось изменить УПД.',
     })
 
+    const handleViewUpd = useViewUpd(showSnackbar)
+
     const columns = useMemo(
         () =>
             getHomeGridOrderColumns({
                 onDelete: setOrderToDelete,
                 onUploadUpd: handleUploadUpd,
+                onViewUpd: handleViewUpd,
             }),
-        [handleUploadUpd],
+        [handleUploadUpd, handleViewUpd],
     )
 
     const handleExport = async () => {

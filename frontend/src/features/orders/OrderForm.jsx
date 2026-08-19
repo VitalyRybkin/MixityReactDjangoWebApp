@@ -25,6 +25,7 @@ import { useLoadingError } from './hooks/useLoadingError.js'
 import { useOrderFormData } from './hooks/useOrderFormData.js'
 import { useOrderProducts } from './hooks/useOrderProducts.js'
 import { useUnsavedGuard } from './hooks/useUnsavedGuard.js'
+import { useViewUpd } from './hooks/useViewUpd.js'
 import { DeliveryContext } from './utils/DeliveryContext.js'
 import { emptyDeliveryInfo, emptyOrderForm } from './utils/order.form.constants.js'
 import { toOrderPayload } from './utils/order.form.mappers.js'
@@ -73,6 +74,8 @@ export default function OrderFormPage() {
         deleteSuccessMessage: 'УПД успешно удалён.',
         errorMessage: 'Не удалось изменить УПД.',
     })
+
+    const handleViewUpd = useViewUpd(showSnackbar)
 
     const saving = createOrder.isPending || updateOrder.isPending || uploadUpd.isPending
 
@@ -170,11 +173,6 @@ export default function OrderFormPage() {
         loadWarehousePricesError,
     })
 
-    // TODO Write a hook for this
-    //     const handleDownloadUpd = (orderId) => {
-    //         console.log('download or generate upd', orderId)
-    //     }
-
     const deliveryContextValue = useMemo(
         () => ({
             data: orderDelivery,
@@ -235,6 +233,7 @@ export default function OrderFormPage() {
                                             isEdit={isEdit}
                                             order={order}
                                             onDownloadUpd={handleUploadUpd}
+                                            onViewUpd={handleViewUpd}
                                         />
 
                                         <OrderCustomerFields

@@ -3,7 +3,7 @@ import DeleteAction from '../../components/ui/buttons/DeleteAction.jsx'
 import { formatDateTime, formatTime } from '../../utils/DateTimeFormatting.js'
 import { ORDER_STATUS_LABELS } from '../../utils/localeDataGridText.js'
 
-export const getHomeGridOrderColumns = ({ onDelete, onUploadUpd }) => [
+export const getHomeGridOrderColumns = ({ onDelete, onUploadUpd, onViewUpd }) => [
     { field: 'id', headerName: '№', flex: 0.4 },
     {
         field: 'created_at',
@@ -60,6 +60,7 @@ export const getHomeGridOrderColumns = ({ onDelete, onUploadUpd }) => [
                 entityId={row.id}
                 fileUrl={row.upd_pdf}
                 onUpload={onUploadUpd}
+                onView={onViewUpd}
                 uploadTitle="Загрузить"
                 viewTitle="Просмотр"
             />

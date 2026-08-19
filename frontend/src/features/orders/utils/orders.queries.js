@@ -148,6 +148,14 @@ export const uploadUpd = async ({ id, file }) => {
     return res.data
 }
 
+export const viewUpd = async (id) => {
+    const res = await api.get(orderApiPaths.viewUpd(id), {
+        responseType: 'blob',
+    })
+
+    return res.data
+}
+
 // --- HOOKS ---
 
 export function useGetOrderResources(options = {}) {

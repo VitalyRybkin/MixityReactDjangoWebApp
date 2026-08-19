@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from 'react'
+import React, { useCallback, useMemo, useState } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
 
 import { Box, Checkbox, Divider, FormControlLabel, Typography } from '@mui/material'
@@ -20,6 +20,7 @@ import { useGetProducts } from '../catalog/utils/catalog.queries.js'
 import { useGetCustomers } from '../customers/utils/customers.queries.js'
 import { useGetWarehouses } from '../warehouses/utils/stocks.queries.js'
 
+import { useViewUpd } from './hooks/useViewUpd.js'
 import { getFilterGridOrderColumns } from './utils/filtering_order.columns.jsx'
 import { useExportOrders, useGetOrders, useUploadUpd } from './utils/orders.queries.js'
 
@@ -77,14 +78,24 @@ export default function OrderFilteringPage() {
     const { data: orders, isPending: loadingOrders } = useGetOrders(formattedFilters)
     const { refetch: fetchDownload, isFetching: isDownloading } = useExportOrders(formattedFilters)
 
+    const showSnackbar = useCallback((message, severity = 'success') => {
+        setSnackbar({
+            open: true,
+            message,
+            severity,
+        })
+    }, [])
+
+    const handleViewUpd = useViewUpd(showSnackbar)
+
     const columns = useMemo(
         () =>
             getFilterGridOrderColumns({
                 onUploadUpd: handleUploadUpd,
+                onViewUpd: handleViewUpd,
             }),
-        [handleUploadUpd],
+        [handleUploadUpd, handleViewUpd],
     )
-    const showSnackbar = (message, severity = 'success') => setSnackbar({ open: true, message, severity })
 
     const handleExport = async () => {
         try {

@@ -2,6 +2,8 @@ import { useRef, useState } from 'react'
 
 import { Box } from '@mui/material'
 
+import useSnackbar from '../hooks/useSnackbar.js'
+
 import DeleteFileAction from './ui/buttons/DeleteFileAction.jsx'
 import UploadAction from './ui/buttons/UploadAction.jsx'
 import ViewAction from './ui/buttons/ViewAction.jsx'
@@ -11,6 +13,7 @@ export default function FileUploadAction({
     entityId,
     fileUrl,
     onUpload,
+    onView,
     uploadTitle = 'Загрузить файл',
     viewTitle = 'Просмотр файла',
     deleteTitle = 'Удалить файл',
@@ -34,9 +37,12 @@ export default function FileUploadAction({
         }
     }
 
-    const handleViewClick = (event) => {
+    const handleViewClick = async (event) => {
         event.stopPropagation()
-        window.open(fileUrl, '_blank', 'noopener,noreferrer')
+
+        if (onView) {
+            await onView(entityId)
+        }
     }
 
     const handleDeleteClick = (event) => {
