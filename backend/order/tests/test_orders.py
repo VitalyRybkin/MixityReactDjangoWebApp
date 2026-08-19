@@ -382,6 +382,7 @@ class TestOrderUpdUploadAPIView(APITestCase, TestLoggerMixin):
 
         self.assertTrue(self.order.upd_pdf)
 
+
 class TestOrderAPIList(BaseAPIMixin):
     __test__ = True
     url_name = f"order_orders:{OrderRoutes.LIST_CREATE.name}"

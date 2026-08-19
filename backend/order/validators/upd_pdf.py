@@ -10,7 +10,6 @@ from core.security.clamav import (
     scan_file_for_malware,
 )
 
-
 MAX_UPD_PDF_SIZE = 10 * 1024 * 1024
 
 
@@ -21,22 +20,16 @@ def validate_upd_pdf(
         return None
 
     if file.size is None:
-        raise serializers.ValidationError(
-            "Не удалось определить размер PDF."
-        )
+        raise serializers.ValidationError("Не удалось определить размер PDF.")
 
     if file.size > MAX_UPD_PDF_SIZE:
-        raise serializers.ValidationError(
-            "Размер PDF не должен превышать 10 МБ."
-        )
+        raise serializers.ValidationError("Размер PDF не должен превышать 10 МБ.")
 
     try:
         file.seek(0)
 
         if file.read(5) != b"%PDF-":
-            raise serializers.ValidationError(
-                "Файл не является PDF."
-            )
+            raise serializers.ValidationError("Файл не является PDF.")
 
         file.seek(0)
 
@@ -58,9 +51,7 @@ def validate_upd_pdf(
             )
 
         if len(reader.pages) == 0:
-            raise serializers.ValidationError(
-                "PDF не содержит страниц."
-            )
+            raise serializers.ValidationError("PDF не содержит страниц.")
 
         try:
             scan_file_for_malware(file)

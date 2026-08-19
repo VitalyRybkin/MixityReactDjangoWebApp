@@ -1,9 +1,12 @@
+from pathlib import Path
 from typing import Any
 
 from django.db.models import Q, QuerySet
+from django.http import FileResponse
 from drf_spectacular.types import OpenApiTypes
 from drf_spectacular.utils import OpenApiParameter
-from rest_framework import status
+from rest_framework import generics, status
+from rest_framework.exceptions import NotFound
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.request import Request
 from rest_framework.response import Response
@@ -24,6 +27,7 @@ from order.serializers.order_serializers.create_order_serializers import (
     OrdersExportReadSerializer,
     OrderWriteSerializer,
 )
+from order.serializers.order_serializers.order_upd import OrderUpdSerializer
 from stock.models import Warehouse
 
 
@@ -275,11 +279,6 @@ class OrdersDownloadAPIView(BaseListAPIView):
 
         return queryset.order_by("-delivery_date", "-created_at")
 
-from rest_framework import generics
-
-from order.models import Order
-from order.serializers.order_serializers.order_upd import OrderUpdSerializer
-
 
 class OrderUpdUploadAPIView(generics.UpdateAPIView):
     queryset = Order.objects.all()
@@ -289,3 +288,22 @@ class OrderUpdUploadAPIView(generics.UpdateAPIView):
         "patch",
         "options",
     ]
+
+
+class OrderUpdViewAPIView(generics.GenericAPIView):
+    queryset = Order.objects.all()
+
+    http_method_names = ["get", "head", "options"]
+
+    def get(self, request: Request, *args: Any, **kwargs: Any) -> FileResponse:
+        order = self.get_object()
+
+        if not order.upd_pdf:
+            raise NotFound("УПД не найден.")
+
+        return FileResponse(
+            order.upd_pdf.open("rb"),
+            content_type="application/pdf",
+            as_attachment=False,
+            filename=Path(order.upd_pdf.name).name,
+        )

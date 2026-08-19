@@ -2,20 +2,12 @@ from typing import Any
 
 from django.core.files.uploadedfile import UploadedFile
 from django.db import transaction
-from pypdf import PdfReader
-from pypdf.errors import PdfReadError
 from rest_framework import serializers
 
 from catalog.models import Product
 from catalog.serializers.product_serializers import ProductSerializer
 from contacts.models import Contact
 from contacts.serializers import ContactSerializer
-from core.api.exceptions import AntivirusUnavailableError
-from core.security.clamav import (
-    ClamAVUnavailableError,
-    MalwareDetectedError,
-    scan_file_for_malware,
-)
 from order.models import (
     Client,
     ConstructionObject,
@@ -415,8 +407,8 @@ class OrderWriteSerializer(serializers.ModelSerializer):
         instance.delete()
 
     def validate_upd_pdf(
-            self,
-            file: UploadedFile | None,
+        self,
+        file: UploadedFile | None,
     ) -> UploadedFile | None:
         return validate_upd_pdf(file)
 
