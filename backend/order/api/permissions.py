@@ -21,3 +21,14 @@ class OrderResourcesPermission(BasePermission):
         return request.user.has_perms(
             self.required_permissions,
         )
+
+
+class OrderExportPermission(BasePermission):
+    required_permission = "order.export_order"
+
+    def has_permission(
+        self,
+        request: Request,
+        view: Any,
+    ) -> bool:
+        return request.user.has_perm(self.required_permission)

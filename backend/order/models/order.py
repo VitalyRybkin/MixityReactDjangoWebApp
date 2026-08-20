@@ -109,3 +109,7 @@ class Order(models.Model):
                 ]
             )
         ]
+
+        permissions = [
+            ("export_order", "Can export orders"),
+        ]

@@ -23,6 +23,7 @@ from core.security.clamav import (
     ClamAVUnavailableError,
     MalwareDetectedError,
 )
+from core.tests.authentication_tests import AuthenticationContractMixin
 from core.tests.base_test_case import BaseAPIMixin
 from core.tests.base_view_test_case import BaseViewTestCase
 from core.tests.model_tests import ModelContractMixin
@@ -62,6 +63,7 @@ def make_test_pdf() -> SimpleUploadedFile:
 
 class TestOrderUpdUploadAPIView(APITestCase, TestLoggerMixin):
     authentication_method = "patch"
+
     def setUp(self) -> None:
         super().setUp()
 
@@ -861,3 +863,92 @@ class TestOrderRetrieveUpdateDestroy(BaseAPIMixin):
         initial_count = Order.objects.count()
         self._delete_logic(expected_status=status.HTTP_204_NO_CONTENT)
         self.assertEqual(Order.objects.count(), initial_count)
+
+
+class TestOrdersDownloadPermissions(
+    APITestCase,
+    AuthenticationContractMixin,
+    TestLoggerMixin,
+):
+    __test__ = True
+
+    def setUp(self) -> None:
+        super().setUp()
+
+        self.url = reverse(f"order_orders:{OrderRoutes.DOWNLOAD.name}")
+
+    def test_without_export_permission_returns_403(self) -> None:
+        user = get_user_model().objects.create_user(
+            username="export_no_permission",
+            password="test_password",
+        )
+
+        self.client.force_authenticate(user=user)
+
+        response = self.client.get(self.url)
+
+        self.assertEqual(
+            response.status_code,
+            status.HTTP_403_FORBIDDEN,
+        )
+
+        print(
+            f"    {self.COLOR['OK']}"
+            "✓ Access denied without order.export_order | HTTP 403"
+            f"{self.COLOR['END']}"
+        )
+
+    def test_with_export_permission_returns_200(self) -> None:
+        user = get_user_model().objects.create_user(
+            username="export_with_permission",
+            password="test_password",
+        )
+
+        permission = Permission.objects.get(
+            content_type__app_label="order",
+            codename="export_order",
+        )
+        user.user_permissions.add(permission)
+
+        self.client.force_authenticate(user=user)
+
+        response = self.client.get(self.url)
+
+        self.assertEqual(
+            response.status_code,
+            status.HTTP_200_OK,
+            response.data,
+        )
+
+        print(
+            f"    {self.COLOR['OK']}"
+            "✓ Access granted with order.export_order | HTTP 200"
+            f"{self.COLOR['END']}"
+        )
+
+    def test_view_order_permission_is_not_enough_for_export(self) -> None:
+        user = get_user_model().objects.create_user(
+            username="export_view_only",
+            password="test_password",
+        )
+
+        permission = Permission.objects.get(
+            content_type__app_label="order",
+            codename="view_order",
+        )
+        user.user_permissions.add(permission)
+
+        self.client.force_authenticate(user=user)
+
+        response = self.client.get(self.url)
+
+        self.assertEqual(
+            response.status_code,
+            status.HTTP_403_FORBIDDEN,
+        )
+
+        print(
+            f"    {self.COLOR['OK']}"
+            "✓ order.view_order is not enough for export | HTTP 403"
+            f"{self.COLOR['END']}"
+        )

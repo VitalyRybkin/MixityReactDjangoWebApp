@@ -19,7 +19,7 @@ from core.openapi.base_views import (
     BaseListCreateAPIView,
     BaseRetrieveUpdateDestroyAPIView,
 )
-from order.api.permissions import OrderResourcesPermission
+from order.api.permissions import OrderExportPermission, OrderResourcesPermission
 from order.models import Client, Customer, Order, PackType
 from order.serializers.order_serializers.create_order_serializers import (
     OrderReadSerializer,
@@ -252,6 +252,11 @@ class OrdersDownloadAPIView(BaseListAPIView):
     ]
 
     serializer_class = OrdersExportReadSerializer
+
+    permission_classes = [
+        IsAuthenticated,
+        OrderExportPermission,
+    ]
 
     def get_queryset(self) -> QuerySet[Order]:
         queryset = Order.objects.select_related("client", "delivery__driver")

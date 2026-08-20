@@ -35,6 +35,7 @@ GROUP_PERMISSIONS: Final[dict[str, str | list[str]]] = {
         "order.change_packtype",
         "order.delete_packtype",
         "order.view_packtype",
+        "order.export_order",
     ],
     "Logistic Manager": [
         "contacts.add_contact",
@@ -93,6 +94,7 @@ GROUP_PERMISSIONS: Final[dict[str, str | list[str]]] = {
         "order.change_packtype",
         "order.delete_packtype",
         "order.view_packtype",
+        "order.export_order",
         "stock.add_warehouse",
         "stock.change_warehouse",
         "stock.delete_warehouse",

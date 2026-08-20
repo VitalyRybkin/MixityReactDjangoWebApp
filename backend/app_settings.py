@@ -25,7 +25,7 @@ class Settings(BaseSettings):
     DB_SSL_ROOT_CERT: str | None = None
 
     DJANGO_DEBUG: bool = True
-    DJANGO_SEED_DATA: bool = False
+    DJANGO_SEED_DATA: bool = True
     DJANGO_SECRET_KEY: str
     DJANGO_ALLOWED_HOSTS: str = ""
     DJANGO_CSRF_TRUSTED_ORIGINS: str = ""

@@ -21,8 +21,8 @@ class TestAuthThrottling(TestLoggerMixin):
         cache.clear()
 
     def test_login_is_throttled_after_five_attempts(
-            self,
-            caplog,
+        self,
+        caplog: pytest.LogCaptureFixture,
     ) -> None:
         self._logger_header("ENDPOINT POST: /api/auth/token/")
 
@@ -65,8 +65,4 @@ class TestAuthThrottling(TestLoggerMixin):
 
         assert response.status_code == status.HTTP_429_TOO_MANY_REQUESTS
 
-        print(
-            f"    {self.COLOR['OK']}"
-            "✓ throttle | HTTP 429"
-            f"{self.COLOR['END']}"
-        )
+        print(f"    {self.COLOR['OK']}" "✓ throttle | HTTP 429" f"{self.COLOR['END']}")

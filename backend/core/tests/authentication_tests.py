@@ -1,6 +1,34 @@
-from typing import Any
+import logging
+from contextlib import contextmanager
+from typing import Any, Iterator, cast
 
 from rest_framework import status
+from rest_framework.test import APIClient
+
+
+@contextmanager
+def _suppress_expected_auth_logs() -> Iterator[None]:
+    logger_names = (
+        "core.api.exceptions",
+        "django.request",
+    )
+
+    loggers = [logging.getLogger(name) for name in logger_names]
+
+    previous_levels = [logger.level for logger in loggers]
+
+    try:
+        for logger in loggers:
+            logger.setLevel(logging.CRITICAL)
+
+        yield
+    finally:
+        for logger, level in zip(
+            loggers,
+            previous_levels,
+            strict=True,
+        ):
+            logger.setLevel(level)
 
 
 class AuthenticationContractMixin:
@@ -15,10 +43,19 @@ class AuthenticationContractMixin:
         if not self.check_authentication:
             return
 
-        self.client.force_authenticate(user=None)
+        client = cast(
+            APIClient,
+            getattr(self, "client"),
+        )
+        url = cast(
+            str,
+            getattr(self, "url"),
+        )
+
+        client.force_authenticate(user=None)
 
         method_name = self.authentication_method.lower()
-        method = getattr(self.client, method_name)
+        method = getattr(client, method_name)
 
         kwargs: dict[str, Any] = {}
 
@@ -30,23 +67,25 @@ class AuthenticationContractMixin:
             kwargs["data"] = self._get_authentication_payload()
             kwargs["format"] = self.authentication_format
 
-        with self.assertLogs(
-            "core.api.exceptions",
-            level="WARNING",
-        ):
+        with _suppress_expected_auth_logs():
             response = method(
-                self.url,
+                url,
                 **kwargs,
             )
 
-        self.assertEqual(
-            response.status_code,
-            status.HTTP_401_UNAUTHORIZED,
-            response.data,
+        assert response.status_code == status.HTTP_401_UNAUTHORIZED, response.data
+
+        color = getattr(
+            self,
+            "COLOR",
+            {
+                "OK": "",
+                "END": "",
+            },
         )
 
         print(
-            f"    {self.COLOR['OK']}"
+            f"    {color['OK']}"
             "✓ Access denied without authentication | HTTP 401"
-            f"{self.COLOR['END']}"
+            f"{color['END']}"
         )

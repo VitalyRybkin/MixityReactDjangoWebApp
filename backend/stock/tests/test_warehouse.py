@@ -1,4 +1,5 @@
 from typing import Any, Dict
+
 from django.contrib.auth import get_user_model
 from django.contrib.auth.models import Permission
 from rest_framework import status
