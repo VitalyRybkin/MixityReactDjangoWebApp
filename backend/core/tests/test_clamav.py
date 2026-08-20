@@ -7,9 +7,10 @@ from core.security.clamav import (
     MalwareDetectedError,
     scan_file_for_malware,
 )
+from core.tests.utils import TestLoggerMixin
 
 
-class TestClamAVScanner:
+class TestClamAVScanner(TestLoggerMixin):
     @patch("core.security.clamav.project_settings")
     @patch("core.security.clamav.socket.create_connection")
     def test_clean_file(
@@ -17,6 +18,10 @@ class TestClamAVScanner:
         mock_create_connection: MagicMock,
         mock_settings: MagicMock,
     ) -> None:
+        """
+        Test that a clean file is not detected as malware.
+        """
+        self._logger_header("TEST: clean file")
         mock_settings.CLAMAV_ENABLED = True
         mock_settings.CLAMAV_HOST = "clamav"
         mock_settings.CLAMAV_PORT = 3310
@@ -42,6 +47,12 @@ class TestClamAVScanner:
 
         file.seek.assert_any_call(0)
 
+        print(
+            f"    {self.COLOR['OK']}"
+            "✓ Clean file accepted by ClamAV scanner"
+            f"{self.COLOR['END']}"
+        )
+
     @patch("core.security.clamav.project_settings")
     @patch("core.security.clamav.socket.create_connection")
     def test_malware_detected(
@@ -49,6 +60,10 @@ class TestClamAVScanner:
         mock_create_connection: MagicMock,
         mock_settings: MagicMock,
     ) -> None:
+        """
+        Test that a malware file is detected by ClamAV scanner.
+        """
+        self._logger_header("TEST: malware detected")
         mock_settings.CLAMAV_ENABLED = True
         mock_settings.CLAMAV_HOST = "clamav"
         mock_settings.CLAMAV_PORT = 3310
@@ -70,6 +85,12 @@ class TestClamAVScanner:
 
         file.seek.assert_any_call(0)
 
+        print(
+            f"    {self.COLOR['OK']}"
+            "✓ Malware detected by ClamAV scanner"
+            f"{self.COLOR['END']}"
+        )
+
     @patch("core.security.clamav.project_settings")
     @patch(
         "core.security.clamav.socket.create_connection",
@@ -77,9 +98,14 @@ class TestClamAVScanner:
     )
     def test_clamav_unavailable(
         self,
-        mock_create_connection: MagicMock,
-        mock_settings: MagicMock,
+            mock_settings: MagicMock,
+            mock_create_connection: MagicMock,
+
     ) -> None:
+        """
+        Test that ClamAV scanner is unavailable.
+        """
+        self._logger_header("TEST: ClamAV unavailable")
         mock_settings.CLAMAV_ENABLED = True
         mock_settings.CLAMAV_HOST = "clamav"
         mock_settings.CLAMAV_PORT = 3310
@@ -95,6 +121,12 @@ class TestClamAVScanner:
 
         file.seek.assert_any_call(0)
 
+        print(
+            f"    {self.COLOR['OK']}"
+            "✓ ClamAV scanner is unavailable"
+            f"{self.COLOR['END']}"
+        )
+
     @patch("core.security.clamav.project_settings")
     @patch("core.security.clamav.socket.create_connection")
     def test_scan_disabled(
@@ -102,6 +134,10 @@ class TestClamAVScanner:
         mock_create_connection: MagicMock,
         mock_settings: MagicMock,
     ) -> None:
+        """
+        Test that ClamAV scanner is disabled.
+        """
+        self._logger_header("TEST: ClamAV disabled")
         mock_settings.CLAMAV_ENABLED = False
 
         file = MagicMock()
@@ -109,3 +145,9 @@ class TestClamAVScanner:
         scan_file_for_malware(file)
 
         mock_create_connection.assert_not_called()
+
+        print(
+            f"    {self.COLOR['OK']}"
+            "✓ ClamAV scanner is disabled"
+            f"{self.COLOR['END']}"
+        )
