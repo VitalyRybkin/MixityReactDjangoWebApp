@@ -160,7 +160,9 @@ class TruckWriteSerializer(TruckBaseSerializer):
             the additional `carrier` field.
     """
 
-    carrier = serializers.PrimaryKeyRelatedField(queryset=Carrier.objects.all())
+    carrier = serializers.PrimaryKeyRelatedField(
+        queryset=Carrier.objects.active(),
+    )
 
     class Meta(TruckBaseSerializer.Meta):
         fields = TruckBaseSerializer.Meta.fields + ["carrier"]

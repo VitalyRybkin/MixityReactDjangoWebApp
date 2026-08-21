@@ -1,5 +1,7 @@
 from typing import Any, Dict, List
 
+from rest_framework import status
+
 from contacts.factories import ContactFactory, PhoneNumberFactory
 from contacts.models import Contact, PhoneNumber
 from contacts.routes import ContactRoutes
@@ -163,6 +165,41 @@ class TestContactAPICreate(BaseAPIMixin):
         self._test_update_should_fail_on_repeated_field_value(
             payload, contact2, expected_error="Такой номер телефона уже существует."
         )
+
+    def test_create_with_inactive_parent_returns_400(self) -> None:
+        cases = [
+            ("carrier", CarrierFactory),
+            ("warehouse", WarehouseFactory),
+            ("client", ClientFactory),
+            ("customer", CustomerFactory),
+        ]
+
+        for field_name, factory in cases:
+            with self.subTest(field=field_name):
+                parent = factory.create(is_active=False)
+
+                payload = {
+                    "firstName": "Test",
+                    field_name: parent.pk,
+                }
+
+                count_before = Contact.objects.count()
+
+                response = self.client.post(
+                    self.url,
+                    data=payload,
+                    format="json",
+                )
+
+                self.assertEqual(
+                    response.status_code,
+                    status.HTTP_400_BAD_REQUEST,
+                    response.data,
+                )
+                self.assertEqual(
+                    Contact.objects.count(),
+                    count_before,
+                )
 
     def payload_generator(self, temp: Any = None) -> Dict[str, Any]:
         if temp is None:

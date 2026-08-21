@@ -29,6 +29,7 @@ from core.tests.base_view_test_case import BaseViewTestCase
 from core.tests.model_tests import ModelContractMixin
 from core.tests.order_form_access_tests import OrderFormAccessContractMixin
 from core.tests.utils import TestLoggerMixin
+from logistic.tests.factories import CarrierFactory, DriverFactory, TruckFactory
 from order.models import Order, OrderItem, PackType
 from order.routes import OrderRoutes
 from order.serializers.order_serializers.create_order_serializers import (
@@ -37,6 +38,7 @@ from order.serializers.order_serializers.create_order_serializers import (
 )
 from order.tests.factories import (
     ClientFactory,
+    ConstructionObjectFactory,
     CustomerFactory,
     OrderDeliveryDataFactory,
     OrderFactory,
@@ -484,6 +486,177 @@ class TestOrderAPIList(BaseAPIMixin):
         ]
         self._create_logic(payload)
 
+    def test_create_with_inactive_customer_object_returns_400(self) -> None:
+        payload, temp = self.payload_generator()
+
+        self._assert_create_with_inactive_related_returns_400(
+            payload=payload,
+            field_name="customer_object",
+            related_factory=ConstructionObjectFactory,
+            related_factory_kwargs={
+                "customer": temp.customer,
+            },
+        )
+
+    def test_create_with_customer_object_from_another_customer_returns_400(
+        self,
+    ) -> None:
+        payload, _ = self.payload_generator()
+
+        another_customer = CustomerFactory.create()
+        customer_object = ConstructionObjectFactory.create(
+            customer=another_customer,
+            is_active=True,
+        )
+
+        payload["customer_object"] = customer_object.pk
+
+        response = self.client.post(
+            self.url,
+            data=payload,
+            format="json",
+        )
+
+        self.assertEqual(
+            response.status_code,
+            status.HTTP_400_BAD_REQUEST,
+            response.data,
+        )
+
+    def test_create_with_invalid_contact_returns_400(self) -> None:
+        """Tests that creating an order with an invalid contact returns a 400 status code."""
+        cases = [
+            ContactFactory.create(client=ClientFactory.create(), carrier=None),
+            ContactFactory.create(customer=CustomerFactory.create(), carrier=None),
+            ContactFactory.create(carrier=CarrierFactory.create()),
+            ContactFactory.create(warehouse=WarehouseFactory.create(), carrier=None),
+        ]
+
+        for contact in cases:
+            with self.subTest(contact=contact.pk):
+                payload, _ = self.payload_generator()
+                payload["contacts"] = [contact.pk]
+
+                response = self.client.post(
+                    self.url,
+                    data=payload,
+                    format="json",
+                )
+
+                self.assertEqual(
+                    response.status_code,
+                    status.HTTP_400_BAD_REQUEST,
+                    response.data,
+                )
+
+    def test_create_with_customer_contact_returns_201(self) -> None:
+        """Tests that creating an order with a customer contact returns a 201 status code."""
+        payload, temp = self.payload_generator()
+
+        contact = ContactFactory.create(
+            customer=temp.customer,
+            carrier=None,
+        )
+
+        payload["contacts"] = [contact.pk]
+
+        response = self.client.post(
+            self.url,
+            data=payload,
+            format="json",
+        )
+
+        self.assertEqual(
+            response.status_code,
+            status.HTTP_201_CREATED,
+            response.data,
+        )
+
+    def test_create_with_delivery_from_another_carrier_returns_400(self) -> None:
+        """Tests that creating an order with a delivery from another carrier returns a 400 status code."""
+        carrier = CarrierFactory.create()
+        another_carrier = CarrierFactory.create()
+
+        cases = [
+            (
+                "driver",
+                DriverFactory.create(carrier=another_carrier),
+            ),
+            (
+                "truck",
+                TruckFactory.create(carrier=another_carrier),
+            ),
+        ]
+
+        for field_name, obj in cases:
+            with self.subTest(field=field_name):
+                payload, _ = self.payload_generator()
+
+                payload["delivery"] = {
+                    "carrier": carrier.pk,
+                    field_name: obj.pk,
+                }
+
+                response = self.client.post(
+                    self.url,
+                    data=payload,
+                    format="json",
+                )
+
+                self.assertEqual(
+                    response.status_code,
+                    status.HTTP_400_BAD_REQUEST,
+                    response.data,
+                )
+
+    def test_create_with_valid_delivery_returns_201(self) -> None:
+        """Tests that creating an order with a valid delivery returns a 201 status code."""
+        payload, _ = self.payload_generator()
+
+        carrier = CarrierFactory.create()
+        driver = DriverFactory.create(carrier=carrier)
+        truck = TruckFactory.create(carrier=carrier)
+
+        payload["delivery"] = {
+            "carrier": carrier.pk,
+            "driver": driver.pk,
+            "truck": truck.pk,
+        }
+
+        response = self.client.post(
+            self.url,
+            data=payload,
+            format="json",
+        )
+
+        self.assertEqual(
+            response.status_code,
+            status.HTTP_201_CREATED,
+            response.data,
+        )
+
+    def test_create_with_inactive_delivery_carrier_returns_400(self) -> None:
+        """Tests that creating an order with an inactive delivery carrier returns a 400 status code."""
+        payload, _ = self.payload_generator()
+
+        carrier = CarrierFactory.create(is_active=False)
+
+        payload["delivery"] = {
+            "carrier": carrier.pk,
+        }
+
+        response = self.client.post(
+            self.url,
+            data=payload,
+            format="json",
+        )
+
+        self.assertEqual(
+            response.status_code,
+            status.HTTP_400_BAD_REQUEST,
+            response.data,
+        )
+
     def payload_generator(self) -> tuple[dict[str, list[Any] | Any], Any]:
         """Generates a payload for order creation tests."""
         temp = self.factory.create()
@@ -824,6 +997,80 @@ class TestOrderRetrieveUpdateDestroy(BaseAPIMixin):
         initial_count = Order.objects.count()
         self._delete_logic(expected_status=status.HTTP_204_NO_CONTENT)
         self.assertEqual(Order.objects.count(), initial_count)
+
+    def test_patch_customer_rejects_existing_object_from_old_customer(self) -> None:
+        customer_object = ConstructionObjectFactory.create(
+            customer=self.obj.customer,
+        )
+        self.obj.customer_object = customer_object
+        self.obj.save(update_fields=["customer_object"])
+
+        new_customer = CustomerFactory.create()
+
+        response = self.client.patch(
+            self.url,
+            {"customer": new_customer.pk},
+            format="json",
+        )
+
+        self.assertEqual(
+            response.status_code,
+            status.HTTP_400_BAD_REQUEST,
+            response.data,
+        )
+
+    def test_patch_client_rejects_existing_contact_from_old_client(self) -> None:
+        contact = ContactFactory.create(
+            client=self.obj.client,
+            carrier=None,
+        )
+        self.obj.contacts.set([contact])
+
+        new_client = ClientFactory.create()
+
+        response = self.client.patch(
+            self.url,
+            {"client": new_client.pk},
+            format="json",
+        )
+
+        self.assertEqual(
+            response.status_code,
+            status.HTTP_400_BAD_REQUEST,
+            response.data,
+        )
+
+    def test_patch_carrier_rejects_existing_driver_and_truck_from_old_carrier(
+        self,
+    ) -> None:
+        carrier = CarrierFactory.create()
+        driver = DriverFactory.create(carrier=carrier)
+        truck = TruckFactory.create(carrier=carrier)
+
+        OrderDeliveryDataFactory.create(
+            order=self.obj,
+            carrier=carrier,
+            driver=driver,
+            truck=truck,
+        )
+
+        new_carrier = CarrierFactory.create()
+
+        response = self.client.patch(
+            self.url,
+            {
+                "delivery": {
+                    "carrier": new_carrier.pk,
+                }
+            },
+            format="json",
+        )
+
+        self.assertEqual(
+            response.status_code,
+            status.HTTP_400_BAD_REQUEST,
+            response.data,
+        )
 
 
 class TestOrdersDownloadPermissions(

@@ -64,6 +64,13 @@ class TestDriverAPIList(DriverBaseTest, BaseAPIMixin):
         expected = f"Водитель: {driver.full_name}, {driver.carrier}, {driver.phone}"
         self._str_method_logic(expected)
 
+    def test_create_with_inactive_carrier_returns_400(self) -> None:
+        self._assert_create_with_inactive_related_returns_400(
+            payload=self.payload_generator(),
+            field_name="carrier",
+            related_factory=CarrierFactory,
+        )
+
     def payload_generator(self) -> Dict[str, Any]:
         carrier = CarrierFactory.create()
 

@@ -8,6 +8,7 @@ from catalog.models import Product
 from catalog.serializers.product_serializers import ProductSerializer
 from contacts.models import Contact
 from contacts.serializers import ContactSerializer
+from logistic.models import Carrier
 from order.models import (
     Client,
     ConstructionObject,
@@ -289,6 +290,12 @@ class OrderDeliveryInfo(serializers.ModelSerializer):
     Represents a serializer for delivery information associated with an order.
     """
 
+    carrier = serializers.PrimaryKeyRelatedField(
+        queryset=Carrier.objects.active(),
+        required=False,
+        allow_null=True,
+    )
+
     class Meta:
         model = OrderDelivery
         fields = [
@@ -322,7 +329,7 @@ class OrderWriteSerializer(serializers.ModelSerializer):
     customer = serializers.PrimaryKeyRelatedField(queryset=Customer.objects.active())
     warehouse = serializers.PrimaryKeyRelatedField(queryset=Warehouse.objects.active())
     customer_object = serializers.PrimaryKeyRelatedField(
-        queryset=ConstructionObject.objects.all(),
+        queryset=ConstructionObject.objects.active(),
         allow_null=True,
         required=False,
     )
@@ -347,6 +354,116 @@ class OrderWriteSerializer(serializers.ModelSerializer):
     class Meta:
         model = Order
         fields = "__all__"
+
+    def validate(self, attrs: dict) -> dict:
+        """
+        Validates the input attributes and ensures that the customer object belongs to the
+        specified customer. Overrides the default validation to perform a custom check on
+        the relationship between customer and customer_object.
+        """
+        attrs = super().validate(attrs)
+
+        self._validate_customer_object(attrs)
+        self._validate_contacts(attrs)
+        self._validate_delivery(attrs)
+
+        return attrs
+
+    def _validate_customer_object(self, attrs: dict) -> None:
+        customer = attrs.get(
+            "customer",
+            getattr(self.instance, "customer", None),
+        )
+
+        customer_object = attrs.get(
+            "customer_object",
+            getattr(self.instance, "customer_object", None),
+        )
+
+        if (
+            customer_object is not None
+            and customer is not None
+            and customer_object.customer_id != customer.id
+        ):
+            raise serializers.ValidationError(
+                {"customer_object": ("Объект не принадлежит выбранному заказчику.")}
+            )
+
+    def _validate_contacts(self, attrs: dict) -> None:
+        client = attrs.get(
+            "client",
+            getattr(self.instance, "client", None),
+        )
+
+        customer = attrs.get(
+            "customer",
+            getattr(self.instance, "customer", None),
+        )
+
+        if "contacts" in attrs:
+            contacts = attrs["contacts"]
+        elif self.instance is not None:
+            contacts = self.instance.contacts.all()
+        else:
+            contacts = []
+
+        invalid_contacts = [
+            contact
+            for contact in contacts
+            if (
+                contact.client_id != getattr(client, "id", None)
+                and contact.customer_id != getattr(customer, "id", None)
+            )
+        ]
+
+        if invalid_contacts:
+            raise serializers.ValidationError(
+                {
+                    "contacts": (
+                        "Можно выбрать только контакты выбранного "
+                        "клиента или заказчика."
+                    )
+                }
+            )
+
+    def _validate_delivery(self, attrs: dict) -> None:
+        if "delivery" not in attrs:
+            return
+
+        delivery_data = attrs["delivery"]
+
+        if delivery_data is None:
+            return
+
+        existing_delivery = (
+            getattr(self.instance, "delivery", None)
+            if self.instance is not None
+            else None
+        )
+
+        carrier = delivery_data.get(
+            "carrier",
+            getattr(existing_delivery, "carrier", None),
+        )
+        driver = delivery_data.get(
+            "driver",
+            getattr(existing_delivery, "driver", None),
+        )
+        truck = delivery_data.get(
+            "truck",
+            getattr(existing_delivery, "truck", None),
+        )
+
+        errors = {}
+
+        if driver is not None and (carrier is None or driver.carrier_id != carrier.id):
+            errors["driver"] = "Водитель не принадлежит выбранному перевозчику."
+
+        if truck is not None and (carrier is None or truck.carrier_id != carrier.id):
+            errors["truck"] = "Машина не принадлежит выбранному перевозчику."
+
+        if errors:
+            raise serializers.ValidationError({"delivery": errors})
 
     def create(self, validated_data: dict) -> Order:
         """

@@ -4,7 +4,7 @@ from phonenumber_field.serializerfields import PhoneNumberField
 from rest_framework import serializers
 
 from core.validators.validators import validate_ru_phone
-from logistic.models import Driver
+from logistic.models import Carrier, Driver
 
 
 class DriverSerializer(serializers.ModelSerializer):
@@ -49,6 +49,10 @@ class DriverSerializer(serializers.ModelSerializer):
         required=False,
         allow_null=True,
         allow_blank=True,
+    )
+
+    carrier = serializers.PrimaryKeyRelatedField(
+        queryset=Carrier.objects.active(),
     )
 
     class Meta:

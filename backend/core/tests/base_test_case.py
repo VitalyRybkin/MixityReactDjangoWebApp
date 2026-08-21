@@ -12,6 +12,7 @@ from core.tests.field_matching_tests import FieldContractMixin
 from core.tests.model_tests import ModelContractMixin
 from core.tests.permission_tests import PermissionContractMixin
 from core.tests.queryset_tests import QuerysetContractMixin
+from core.tests.related_object_tests import RelatedObjectContractMixin
 from core.tests.utils import TestLoggerMixin, UploadSpec
 from core.tests.validation_tests import ValidationContractMixin
 from core.tests.visibility_tests import (
@@ -47,6 +48,7 @@ class BaseAPIContractTestCase(
     ReadOnlyActiveFieldContractMixin,
     QuerysetContractMixin,
     AuthenticationContractMixin,
+    RelatedObjectContractMixin,
     BaseTestCase,
 ):
     """

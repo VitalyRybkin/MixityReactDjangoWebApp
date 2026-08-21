@@ -66,17 +66,27 @@ class ContactSerializer(serializers.ModelSerializer):
     )
 
     carrier = serializers.PrimaryKeyRelatedField(
-        queryset=Carrier.objects.all(), required=False, allow_null=True
+        queryset=Carrier.objects.active(),
+        required=False,
+        allow_null=True,
     )
+
     warehouse = serializers.PrimaryKeyRelatedField(
-        queryset=Warehouse.objects.all(), required=False, allow_null=True
+        queryset=Warehouse.objects.active(),
+        required=False,
+        allow_null=True,
     )
+
     client = serializers.PrimaryKeyRelatedField(
-        queryset=Client.objects.all(), required=False, allow_null=True
+        queryset=Client.objects.active(),
+        required=False,
+        allow_null=True,
     )
 
     customer = serializers.PrimaryKeyRelatedField(
-        queryset=Customer.objects.all(), required=False, allow_null=True
+        queryset=Customer.objects.active(),
+        required=False,
+        allow_null=True,
     )
 
     class Meta:
