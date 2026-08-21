@@ -227,7 +227,7 @@ class TestWarehouseContactsAPIList(ParentVisibilityContractMixin, BaseAPIMixin):
         self._get_pk_list_logic(expected_contacts=3)
 
 
-class TestClientContactsAPIList(ParentVisibilityContractMixin,BaseAPIMixin):
+class TestClientContactsAPIList(ParentVisibilityContractMixin, BaseAPIMixin):
     __test__ = True
     pk_url_name = f"order_clients:{ClientRoutes.CONTACTS.name}"
     factory = ClientFactory

@@ -134,7 +134,7 @@ class CustomerObjectRetrieveUpdateDestroyAPIView(BaseRetrieveUpdateDestroyAPIVie
             pk=self.kwargs["pk"],
         )
 
-        return ConstructionObject.objects.filter(
+        return ConstructionObject.objects.active().filter(
             customer=customer,
         )
 

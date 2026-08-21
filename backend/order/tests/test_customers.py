@@ -1,11 +1,15 @@
 from typing import Any, Dict
 
+from rest_framework import status
+from rest_framework.reverse import reverse
+
 from catalog.tests.api.factories import SalePriceHistoryFactory
 from catalog.tests.api.test_products import BaseTestPriceHistory
 from contacts.factories import ContactFactory
 from contacts.models import Contact
 from core.tests.base_test_case import BaseAPIContractMixin, BaseAPIMixin
 from core.tests.order_form_access_tests import OrderFormAccessContractMixin
+from core.tests.parent_visibility_tests import ParentVisibilityContractMixin
 from core.tests.utils import FieldSpec
 from order.models import ConstructionObject, Customer
 from order.routes import ConstructionObjectsRoutes, CustomerRoutes
@@ -90,11 +94,48 @@ class TestCustomerContactsAPI(CustomerBaseTest, BaseAPIMixin):
         )
 
 
-class TestCustomerConstructionObjectsAPIList(BaseAPIMixin):
+class TestCustomerConstructionObjectsAPIList(
+    ParentVisibilityContractMixin,
+    BaseAPIMixin,
+):
     __test__ = True
     model = ConstructionObject
     factory = ConstructionObjectFactory
     pk_url_name = f"order_customers:{ConstructionObjectsRoutes.LIST_CREATE.name}"
+
+    def _get_parent(self) -> Customer:
+        return self.obj.customer
+
+    def _assert_create_for_customer_returns_404(
+        self,
+        customer_id: int,
+    ) -> None:
+        url = reverse(
+            self.pk_url_name,
+            kwargs={"pk": customer_id},
+        )
+
+        payload = {
+            "name": "Test construction object",
+            "address": "Test address",
+        }
+
+        count_before = ConstructionObject.objects.count()
+
+        response = self.client.post(
+            url,
+            data=payload,
+            format="json",
+        )
+
+        self.assertEqual(
+            response.status_code,
+            status.HTTP_404_NOT_FOUND,
+        )
+        self.assertEqual(
+            ConstructionObject.objects.count(),
+            count_before,
+        )
 
     def test_get_customer_construction_objects(self) -> None:
         """Test the logic for retrieving constructions associated with a customer."""
@@ -127,13 +168,40 @@ class TestCustomerConstructionObjectsAPIList(BaseAPIMixin):
             "is_active": temp.is_active,
         }
 
+    def test_create_for_inactive_customer_returns_404(self) -> None:
+        customer = CustomerFactory.create(is_active=False)
 
-class TestCustomerConstructionObjectsAPIDetailAPI(BaseAPIMixin):
+        self._assert_create_for_customer_returns_404(
+            customer.id,
+        )
+
+    def test_create_for_nonexistent_customer_returns_404(self) -> None:
+        self._assert_create_for_customer_returns_404(
+            999999,
+        )
+
+
+class TestCustomerConstructionObjectsAPIDetailAPI(
+    ParentVisibilityContractMixin,
+    BaseAPIMixin,
+):
     __test__ = True
     pk_url_name = f"order_customers:{ConstructionObjectsRoutes.DETAIL.name}"
     factory = ConstructionObjectFactory
 
     permission_model = ConstructionObject
+
+    def _get_parent(self) -> Customer:
+        return self.obj.customer
+
+    def _get_parent_url_kwargs(
+        self,
+        parent_pk: int,
+    ) -> dict[str, Any]:
+        return {
+            "pk": parent_pk,
+            "object_pk": self.obj.id,
+        }
 
     def get_url_kwargs(self) -> dict[str, Any]:
         """
@@ -157,6 +225,35 @@ class TestCustomerConstructionObjectsAPIDetailAPI(BaseAPIMixin):
             obj=self.obj,
             pk=self.obj.customer.id,
             object_pk=self.obj.id,
+        )
+
+    def test_object_from_another_customer_returns_404(self) -> None:
+        another_customer = CustomerFactory.create()
+
+        url = reverse(
+            self.pk_url_name,
+            kwargs={
+                "pk": another_customer.id,
+                "object_pk": self.obj.id,
+            },
+        )
+
+        response = self.client.get(url)
+
+        self.assertEqual(
+            response.status_code,
+            status.HTTP_404_NOT_FOUND,
+        )
+
+    def test_inactive_construction_object_returns_404(self) -> None:
+        self.obj.is_active = False
+        self.obj.save(update_fields=["is_active"])
+
+        response = self.client.get(self.url)
+
+        self.assertEqual(
+            response.status_code,
+            status.HTTP_404_NOT_FOUND,
         )
 
 

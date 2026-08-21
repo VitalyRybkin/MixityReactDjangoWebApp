@@ -1,4 +1,4 @@
-from typing import cast
+from typing import Any, cast
 
 from django.urls import reverse
 from rest_framework import status
@@ -6,13 +6,19 @@ from rest_framework.test import APIClient
 
 
 class ParentVisibilityContractMixin:
+    def _get_parent(self) -> Any:
+        return getattr(self, "obj")
+
+    def _get_parent_url_kwargs(self, parent_pk: int) -> dict[str, Any]:
+        return {"pk": parent_pk}
+
     def test_inactive_parent_returns_404(self) -> None:
-        obj = getattr(self, "obj")
+        parent = self._get_parent()
         client = cast(APIClient, getattr(self, "client"))
         url = cast(str, getattr(self, "url"))
 
-        obj.is_active = False
-        obj.save(update_fields=["is_active"])
+        parent.is_active = False
+        parent.save(update_fields=["is_active"])
 
         response = client.get(url)
 
@@ -24,7 +30,7 @@ class ParentVisibilityContractMixin:
 
         url = reverse(
             pk_url_name,
-            kwargs={"pk": 999999},
+            kwargs=self._get_parent_url_kwargs(999999),
         )
 
         response = client.get(url)
