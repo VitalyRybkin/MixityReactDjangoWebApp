@@ -146,12 +146,21 @@ class CarrierResourcesListAPIView(BaseListAPIView):
 
     def get_queryset(self) -> QuerySet:
         pk = self.kwargs.get("pk")
-        path = self.request.path.lower()
 
-        if "trucks" in path:
-            return Truck.objects.filter(carrier_id=pk).order_by("id")
+        carrier = get_object_or_404(
+            Carrier,
+            pk=pk,
+            is_active=True,
+        )
 
-        return Driver.objects.filter(carrier_id=pk).order_by("id")
+        if "trucks" in self.request.path.lower():
+            return Truck.objects.filter(
+                carrier=carrier,
+            ).order_by("id")
+
+        return Driver.objects.filter(
+            carrier=carrier,
+        ).order_by("id")
 
     def get_serializer_class(self) -> type[TruckBaseReadSerializer | DriverSerializer]:
         if "trucks" in self.request.path.lower():

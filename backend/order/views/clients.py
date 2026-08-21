@@ -1,4 +1,5 @@
 from django.db.models import QuerySet
+from rest_framework.generics import get_object_or_404
 
 from contacts.models import Contact
 from contacts.selectors import ContactSelector
@@ -55,4 +56,9 @@ class ClientContactListAPIView(BaseListAPIView):
     serializer_class = ContactSerializer
 
     def get_queryset(self) -> QuerySet[Contact]:
-        return ContactSelector.by_client(self.kwargs["pk"])
+        client = get_object_or_404(
+            Client.objects.active(),
+            pk=self.kwargs["pk"],
+        )
+
+        return ContactSelector.by_client(client.pk)

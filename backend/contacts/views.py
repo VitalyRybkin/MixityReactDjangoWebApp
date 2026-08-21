@@ -1,4 +1,5 @@
 from django.db.models import QuerySet
+from rest_framework.generics import get_object_or_404
 
 from contacts.models import Contact
 from contacts.selectors import ContactSelector
@@ -8,6 +9,8 @@ from core.openapi.base_views import (
     BaseListCreateAPIView,
     BaseRetrieveUpdateDestroyAPIView,
 )
+from logistic.models import Carrier
+from stock.models import Warehouse
 
 
 class WarehouseContactListAPIView(BaseListAPIView):
@@ -32,7 +35,12 @@ class WarehouseContactListAPIView(BaseListAPIView):
     serializer_class = ContactSerializer
 
     def get_queryset(self) -> QuerySet[Contact]:
-        return ContactSelector.by_warehouse(self.kwargs["pk"])
+        warehouse = get_object_or_404(
+            Warehouse.objects.active(),
+            pk=self.kwargs["pk"],
+        )
+
+        return ContactSelector.by_warehouse(warehouse.pk)
 
 
 class CarrierContactListAPIView(BaseListAPIView):
@@ -57,7 +65,12 @@ class CarrierContactListAPIView(BaseListAPIView):
     serializer_class = ContactSerializer
 
     def get_queryset(self) -> QuerySet[Contact]:
-        return ContactSelector.by_carrier(self.kwargs["pk"])
+        carrier = get_object_or_404(
+            Carrier.objects.active(),
+            pk=self.kwargs["pk"],
+        )
+
+        return ContactSelector.by_carrier(carrier.pk)
 
 
 class ContactListCreateAPIView(BaseListCreateAPIView):

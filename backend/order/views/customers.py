@@ -4,6 +4,7 @@ from django.db.models import QuerySet
 from drf_spectacular.utils import OpenApiParameter
 from rest_framework import generics
 from rest_framework.exceptions import ValidationError
+from rest_framework.generics import get_object_or_404
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.serializers import BaseSerializer
 
@@ -74,7 +75,12 @@ class CustomerContactListAPIView(BaseListAPIView):
     serializer_class = ContactSerializer
 
     def get_queryset(self) -> QuerySet[Contact]:
-        return ContactSelector.by_customer(self.kwargs["pk"])
+        customer = get_object_or_404(
+            Customer.objects.active(),
+            pk=self.kwargs["pk"],
+        )
+
+        return ContactSelector.by_customer(customer.pk)
 
 
 class CustomerObjectsListCreateAPIView(BaseListCreateAPIView):
@@ -90,10 +96,22 @@ class CustomerObjectsListCreateAPIView(BaseListCreateAPIView):
     serializer_class = CustomerObjectsSerializer
 
     def get_queryset(self) -> QuerySet[ConstructionObject]:
-        return ConstructionObject.objects.active().filter(customer_id=self.kwargs["pk"])
+        customer = get_object_or_404(
+            Customer.objects.active(),
+            pk=self.kwargs["pk"],
+        )
+
+        return ConstructionObject.objects.active().filter(
+            customer=customer,
+        )
 
     def perform_create(self, serializer: BaseSerializer[Any]) -> None:
-        serializer.save(customer_id=self.kwargs["pk"])
+        customer = get_object_or_404(
+            Customer.objects.active(),
+            pk=self.kwargs["pk"],
+        )
+
+        serializer.save(customer=customer)
 
 
 class CustomerObjectRetrieveUpdateDestroyAPIView(BaseRetrieveUpdateDestroyAPIView):
@@ -111,7 +129,14 @@ class CustomerObjectRetrieveUpdateDestroyAPIView(BaseRetrieveUpdateDestroyAPIVie
     lookup_url_kwarg = "object_pk"
 
     def get_queryset(self) -> QuerySet[ConstructionObject]:
-        return ConstructionObject.objects.filter(customer_id=self.kwargs["pk"])
+        customer = get_object_or_404(
+            Customer.objects.active(),
+            pk=self.kwargs["pk"],
+        )
+
+        return ConstructionObject.objects.filter(
+            customer=customer,
+        )
 
 
 class CustomerPriceListAPIView(BaseListAPIView):

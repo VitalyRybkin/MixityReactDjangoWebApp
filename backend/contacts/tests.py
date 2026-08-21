@@ -7,6 +7,7 @@ from contacts.serializers import ContactSerializer
 from contacts.views import ContactListCreateAPIView
 from core.tests.base_test_case import BaseAPIMixin
 from core.tests.base_view_test_case import BaseQuerysetTestCase
+from core.tests.parent_visibility_tests import ParentVisibilityContractMixin
 from core.tests.utils import FieldSpec
 from logistic.routes import CarrierRoutes
 from logistic.tests.factories import CarrierFactory
@@ -202,7 +203,7 @@ class TestContactListCreateAPIView(BaseQuerysetTestCase):
         )
 
 
-class TestCarrierContactsAPIList(BaseAPIMixin):
+class TestCarrierContactsAPIList(ParentVisibilityContractMixin, BaseAPIMixin):
     __test__ = True
     pk_url_name = f"logistic:{CarrierRoutes.CONTACTS.name}"
     factory = CarrierFactory
@@ -213,7 +214,7 @@ class TestCarrierContactsAPIList(BaseAPIMixin):
         self._get_pk_list_logic(expected_contacts=3)
 
 
-class TestWarehouseContactsAPIList(BaseAPIMixin):
+class TestWarehouseContactsAPIList(ParentVisibilityContractMixin, BaseAPIMixin):
     __test__ = True
     pk_url_name = f"stock:{WarehouseRoutes.CONTACTS.name}"
     factory = WarehouseFactory
@@ -226,7 +227,7 @@ class TestWarehouseContactsAPIList(BaseAPIMixin):
         self._get_pk_list_logic(expected_contacts=3)
 
 
-class TestClientContactsAPIList(BaseAPIMixin):
+class TestClientContactsAPIList(ParentVisibilityContractMixin,BaseAPIMixin):
     __test__ = True
     pk_url_name = f"order_clients:{ClientRoutes.CONTACTS.name}"
     factory = ClientFactory
@@ -239,7 +240,7 @@ class TestClientContactsAPIList(BaseAPIMixin):
         self._get_pk_list_logic(expected_contacts=3)
 
 
-class TestCustomerContactsAPIList(BaseAPIMixin):
+class TestCustomerContactsAPIList(ParentVisibilityContractMixin, BaseAPIMixin):
     __test__ = True
     pk_url_name = f"order_customers:{CustomerRoutes.CONTACTS.name}"
     factory = CustomerFactory

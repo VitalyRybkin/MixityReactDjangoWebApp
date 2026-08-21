@@ -6,6 +6,7 @@ from django.contrib.auth.models import User
 from rest_framework import status
 
 from core.tests.base_test_case import BaseAPIMixin
+from core.tests.parent_visibility_tests import ParentVisibilityContractMixin
 from core.tests.utils import FieldSpec
 from logistic.models import Carrier, Driver, Truck
 from logistic.routes import CarrierRoutes
@@ -128,7 +129,10 @@ class TestCarrierRetrieveUpdate(CarrierBaseTest, BaseAPIMixin):
 
 
 @pytest.mark.django_db
-class TestCarrierResources(BaseAPIMixin):
+class TestCarrierResources(
+    ParentVisibilityContractMixin,
+    BaseAPIMixin,
+):
     """
     Retrieves carrier-related resources, such as trucks and drivers, and ensure that the implemented logic meets
     the expected outcomes. It is built on top of Django's database testing framework, leveraging
@@ -223,7 +227,10 @@ class TestCarrierResources(BaseAPIMixin):
         )
 
 
-class TestCarrierDriverList(BaseAPIMixin):
+class TestCarrierDriverList(
+    ParentVisibilityContractMixin,
+    BaseAPIMixin,
+):
     """
     Facilitates testing of API endpoints associated with carrier drivers. This
     class includes setup properties and test methods to evaluate the behavior
@@ -246,7 +253,10 @@ class TestCarrierDriverList(BaseAPIMixin):
         self._get_pk_list_logic(expected_contacts=3)
 
 
-class TestCarrierTruckList(BaseAPIMixin):
+class TestCarrierTruckList(
+    ParentVisibilityContractMixin,
+    BaseAPIMixin,
+):
     """
     Facilitates testing of API endpoints associated with carrier trucks. This
     class includes setup properties and test methods to evaluate the behavior
