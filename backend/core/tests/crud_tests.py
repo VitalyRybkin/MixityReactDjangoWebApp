@@ -79,7 +79,9 @@ class CrudContractMixin(_Base):
         if not is_created:
             self.assertTrue(is_created, msg="Object was not created successfully")
 
-        print(f"    {self.COLOR['OK']}✓ Object created successfully{self.COLOR['END']}")
+        print(
+            f"{self.INDENT}{self.COLOR['OK']}✓ Object created successfully{self.COLOR['END']}"
+        )
 
     def _retrieve_object_by_id(
         self,
@@ -110,7 +112,7 @@ class CrudContractMixin(_Base):
         self.assertEqual(response.data["id"], obj.id)
 
         print(
-            f"    {self.COLOR['OK']}✓ Object successfully retrieved{self.COLOR['END']}"
+            f"{self.INDENT}{self.COLOR['OK']}✓ Object successfully retrieved{self.COLOR['END']}"
         )
 
     def _retrieve_object_by_id_not_found(self) -> None:
@@ -133,7 +135,7 @@ class CrudContractMixin(_Base):
 
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
         print(
-            f"    {self.COLOR['OK']}"
+            f"{self.INDENT}{self.COLOR['OK']}"
             f"✓ Object not found successfully | HTTP 404"
             f"{self.COLOR['END']}"
         )
@@ -184,7 +186,7 @@ class CrudContractMixin(_Base):
             self.assertTrue(isinstance(response.data["drivers"][0], dict))
 
         print(
-            f"    {self.COLOR['OK']}✓ Resources verified "
+            f"{self.INDENT}{self.COLOR['OK']}✓ Resources verified "
             f"(trucks={len(response.data['trucks'])}, drivers={len(response.data['drivers'])})"
             f"{self.COLOR['END']}"
         )
@@ -222,7 +224,9 @@ class CrudContractMixin(_Base):
         self.assertTrue(self.obj.directions.name)
         self.assertIn(spec.upload_to, self.obj.directions.name)
 
-        print(f"    {self.COLOR['OK']}✓ Map uploaded successfully{self.COLOR['END']}")
+        print(
+            f"{self.INDENT}{self.COLOR['OK']}✓ Map uploaded successfully{self.COLOR['END']}"
+        )
 
     def _upload_map_missing_file_400(
         self,
@@ -251,7 +255,7 @@ class CrudContractMixin(_Base):
         )
 
         print(
-            f"    {self.COLOR['OK']}✓ Missing file validation passed{self.COLOR['END']}"
+            f"{self.INDENT}{self.COLOR['OK']}✓ Missing file validation passed{self.COLOR['END']}"
         )
 
     def _patch_logic_success(
@@ -278,7 +282,7 @@ class CrudContractMixin(_Base):
             self.fail(f"PATCH failed\nPayload: {payload}\nErrors: {response.data}")
 
         print(
-            f"    {self.COLOR['OK']}✓ PATCH logic passed for payload - {payload}{self.COLOR['END']}"
+            f"{self.INDENT}{self.COLOR['OK']}✓ PATCH logic passed for payload - {payload}{self.COLOR['END']}"
         )
 
     def _patch_logic_failed(
@@ -308,7 +312,7 @@ class CrudContractMixin(_Base):
             )
 
         print(
-            f"    {self.COLOR['OK']}✓ PATCH failed as expected for payload - {payload}{self.COLOR['END']}"
+            f"{self.INDENT}{self.COLOR['OK']}✓ PATCH failed as expected for payload - {payload}{self.COLOR['END']}"
         )
 
     def _delete_logic(self, expected_status: int = status.HTTP_204_NO_CONTENT) -> None:
@@ -326,7 +330,9 @@ class CrudContractMixin(_Base):
         if response.status_code != expected_status:
             self.fail(f"DELETE failed\nErrors: {response.data}")
 
-        print(f"    {self.COLOR['OK']}✓ DELETE logic passed{self.COLOR['END']}")
+        print(
+            f"{self.INDENT}{self.COLOR['OK']}✓ DELETE logic passed{self.COLOR['END']}"
+        )
 
     def _create_invalid_xor_both(self, payload: dict[str, Any] | None = None) -> None:
         """
@@ -353,7 +359,7 @@ class CrudContractMixin(_Base):
             error_found, msg=f"Expected XOR validation error, but got: {response.data}"
         )
         print(
-            f"      {self.COLOR['OK']}✓ Correctly rejected double parent assignment.{self.COLOR['END']}"
+            f"{self.INDENT}{self.COLOR['OK']}✓ Correctly rejected double parent assignment.{self.COLOR['END']}"
         )
 
     def _get_pk_list_logic(
@@ -382,4 +388,4 @@ class CrudContractMixin(_Base):
                 f"Expected {expected_contacts} contacts, but got {len(data)}",
             )
 
-        print(f"    {self.COLOR['OK']}✓ GET logic passed{self.COLOR['END']}")
+        print(f"{self.INDENT}{self.COLOR['OK']}✓ GET logic passed{self.COLOR['END']}")

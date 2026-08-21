@@ -52,7 +52,7 @@ class TestAuthThrottling(TestLoggerMixin):
             assert response.status_code == status.HTTP_401_UNAUTHORIZED
 
             print(
-                f"    {self.COLOR['OK']}"
+                f"{self.INDENT}{self.COLOR['OK']}"
                 f"✓ attempt {attempt} | HTTP 401"
                 f"{self.COLOR['END']}"
             )
@@ -65,4 +65,8 @@ class TestAuthThrottling(TestLoggerMixin):
 
         assert response.status_code == status.HTTP_429_TOO_MANY_REQUESTS
 
-        print(f"    {self.COLOR['OK']}" "✓ throttle | HTTP 429" f"{self.COLOR['END']}")
+        print(
+            f"{self.INDENT}{self.COLOR['OK']}"
+            "✓ throttle | HTTP 429"
+            f"{self.COLOR['END']}"
+        )

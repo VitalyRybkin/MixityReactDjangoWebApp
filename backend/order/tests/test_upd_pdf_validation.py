@@ -50,7 +50,11 @@ class TestUpdPdfValidation(TestLoggerMixin):
         assert serializer.is_valid(), serializer.errors
         assert serializer.validated_data["upd_pdf"] is not None
 
-        print(f"    {self.COLOR['OK']}" "✓ Valid PDF accepted" f"{self.COLOR['END']}")
+        print(
+            f"{self.INDENT}{self.COLOR['OK']}"
+            "✓ Valid PDF accepted"
+            f"{self.COLOR['END']}"
+        )
 
     def test_fake_pdf_rejected(self) -> None:
         self._logger_header("TEST: fake PDF")
@@ -66,7 +70,11 @@ class TestUpdPdfValidation(TestLoggerMixin):
         assert not serializer.is_valid()
         assert "upd_pdf" in serializer.errors
 
-        print(f"    {self.COLOR['OK']}" "✓ Fake PDF rejected" f"{self.COLOR['END']}")
+        print(
+            f"{self.INDENT}{self.COLOR['OK']}"
+            "✓ Fake PDF rejected"
+            f"{self.COLOR['END']}"
+        )
 
     def test_broken_pdf_rejected(self) -> None:
         self._logger_header("TEST: broken PDF")
@@ -82,7 +90,11 @@ class TestUpdPdfValidation(TestLoggerMixin):
         assert not serializer.is_valid()
         assert "upd_pdf" in serializer.errors
 
-        print(f"    {self.COLOR['OK']}" "✓ Broken PDF rejected" f"{self.COLOR['END']}")
+        print(
+            f"{self.INDENT}{self.COLOR['OK']}"
+            "✓ Broken PDF rejected"
+            f"{self.COLOR['END']}"
+        )
 
     def test_oversized_pdf_rejected(self) -> None:
         self._logger_header("TEST: oversized PDF")
@@ -99,7 +111,9 @@ class TestUpdPdfValidation(TestLoggerMixin):
         assert "upd_pdf" in serializer.errors
 
         print(
-            f"    {self.COLOR['OK']}" "✓ Oversized PDF rejected" f"{self.COLOR['END']}"
+            f"{self.INDENT}{self.COLOR['OK']}"
+            "✓ Oversized PDF rejected"
+            f"{self.COLOR['END']}"
         )
 
     def test_encrypted_pdf_rejected(self) -> None:
@@ -117,7 +131,9 @@ class TestUpdPdfValidation(TestLoggerMixin):
         assert "upd_pdf" in serializer.errors
 
         print(
-            f"    {self.COLOR['OK']}" "✓ Encrypted PDF rejected" f"{self.COLOR['END']}"
+            f"{self.INDENT}{self.COLOR['OK']}"
+            "✓ Encrypted PDF rejected"
+            f"{self.COLOR['END']}"
         )
 
     def test_null_is_allowed(self) -> None:
@@ -130,4 +146,8 @@ class TestUpdPdfValidation(TestLoggerMixin):
         assert serializer.is_valid(), serializer.errors
         assert serializer.validated_data["upd_pdf"] is None
 
-        print(f"    {self.COLOR['OK']}" "✓ Empty UPD is allowed" f"{self.COLOR['END']}")
+        print(
+            f"{self.INDENT}{self.COLOR['OK']}"
+            "✓ Empty UPD is allowed"
+            f"{self.COLOR['END']}"
+        )

@@ -4,10 +4,10 @@ from django.contrib.auth import get_user_model
 from django.contrib.auth.models import Permission
 from rest_framework import status
 
-from catalog.models import PurchasePriceHistory
 from catalog.tests.api.factories import PurchasePriceHistoryFactory
 from catalog.tests.api.test_products import BaseTestPriceHistory
-from core.tests.base_test_case import BaseAPIMixin
+from core.tests.base_test_case import BaseAPIContractMixin, BaseAPIMixin
+from core.tests.order_form_access_tests import OrderFormAccessContractMixin
 from core.tests.utils import FieldSpec, UploadSpec
 from stock.models import Warehouse
 from stock.routes import WarehouseRoutes
@@ -186,7 +186,7 @@ class TestWarehouseUploadMap(BaseAPIMixin):
         )
 
         print(
-            f"    {self.COLOR['OK']}"
+            f"{self.INDENT}{self.COLOR['OK']}"
             "✓ Access denied without stock.change_warehouse | HTTP 403"
             f"{self.COLOR['END']}"
         )
@@ -220,7 +220,7 @@ class TestWarehouseUploadMap(BaseAPIMixin):
         )
 
         print(
-            f"    {self.COLOR['OK']}"
+            f"{self.INDENT}{self.COLOR['OK']}"
             "✓ Access granted with stock.change_warehouse | HTTP 200"
             f"{self.COLOR['END']}"
         )
@@ -234,7 +234,11 @@ class TestWarehouseUploadMap(BaseAPIMixin):
         )
 
 
-class TestWarehousePriceHistory(BaseTestPriceHistory, BaseAPIMixin):
+class TestWarehousePriceHistory(
+    BaseTestPriceHistory,
+    OrderFormAccessContractMixin,
+    BaseAPIContractMixin,
+):
     """
     Implements test cases for the purchase price history functionality in the warehouse module.
 
@@ -251,5 +255,3 @@ class TestWarehousePriceHistory(BaseTestPriceHistory, BaseAPIMixin):
     factory = PurchasePriceHistoryFactory
     price_context_factory = WarehouseFactory
     context_field = "warehouse"
-
-    permission_model = PurchasePriceHistory

@@ -102,5 +102,5 @@ class FieldContractMixin(_Base):
                 self.assertEqual(api_val, True, msg=f"Mismatch for field '{api_field}'")
 
         print(
-            f"    {self.COLOR['OK']}✓ List verified ({len(self.fields_map)} fields){self.COLOR['END']}"
+            f"{self.INDENT}{self.COLOR['OK']}✓ List verified ({len(self.fields_map)} fields){self.COLOR['END']}"
         )

@@ -27,6 +27,7 @@ from core.tests.authentication_tests import AuthenticationContractMixin
 from core.tests.base_test_case import BaseAPIMixin
 from core.tests.base_view_test_case import BaseViewTestCase
 from core.tests.model_tests import ModelContractMixin
+from core.tests.order_form_access_tests import OrderFormAccessContractMixin
 from core.tests.utils import TestLoggerMixin
 from order.models import Order, OrderItem, PackType
 from order.routes import OrderRoutes
@@ -291,7 +292,7 @@ class TestOrderUpdUploadAPIView(APITestCase, TestLoggerMixin):
         mock_scan.assert_called_once()
 
         print(
-            f"    {self.COLOR['OK']}✓ Antivirus unavailable handled correctly | HTTP 503{self.COLOR['END']}"
+            f"{self.INDENT}{self.COLOR['OK']}✓ Antivirus unavailable handled correctly | HTTP 503{self.COLOR['END']}"
         )
 
     def test_get_is_not_allowed(self) -> None:
@@ -645,6 +646,7 @@ class TestOrderFilteredAPIListCreate(BaseAPIMixin):
 class TestOrderResourcesAPIView(
     APITestCase,
     AuthenticationContractMixin,
+    OrderFormAccessContractMixin,
     TestLoggerMixin,
 ):
     """
@@ -706,7 +708,7 @@ class TestOrderResourcesAPIView(
                     self.assertIn("id", item)
 
                 print(
-                    f"    {self.COLOR['OK']}✓ "
+                    f"{self.INDENT}{self.COLOR['OK']}✓ "
                     f"{resource_name} and id's are available in response, expected amount received."
                     f"{self.COLOR['END']}"
                 )
@@ -724,92 +726,8 @@ class TestOrderResourcesAPIView(
         self.assertEqual(len(response.data["clients"]), self.AMOUNT_OF_RESOURCES)
 
         print(
-            f"    {self.COLOR['OK']}✓ "
+            f"{self.INDENT}{self.COLOR['OK']}✓ "
             f"Only active clients are returned in response."
-            f"{self.COLOR['END']}"
-        )
-
-    def test_with_add_order_permission_returns_200(self) -> None:
-        user = get_user_model().objects.create_user(
-            username="resources_add_order",
-            password="test_password",
-        )
-
-        permission = Permission.objects.get(
-            content_type__app_label="order",
-            codename="add_order",
-        )
-        user.user_permissions.add(permission)
-
-        self.client.force_authenticate(user=user)
-
-        response = self.client.get(self.url)
-
-        self.assertEqual(
-            response.status_code,
-            status.HTTP_200_OK,
-            response.data,
-        )
-
-        print(
-            f"    {self.COLOR['OK']}"
-            "✓ Access granted with order.add_order | HTTP 200"
-            f"{self.COLOR['END']}"
-        )
-
-    def test_with_change_order_permission_returns_200(self) -> None:
-        user = get_user_model().objects.create_user(
-            username="resources_change_order",
-            password="test_password",
-        )
-
-        permission = Permission.objects.get(
-            content_type__app_label="order",
-            codename="change_order",
-        )
-        user.user_permissions.add(permission)
-
-        self.client.force_authenticate(user=user)
-
-        response = self.client.get(self.url)
-
-        self.assertEqual(
-            response.status_code,
-            status.HTTP_200_OK,
-            response.data,
-        )
-
-        print(
-            f"    {self.COLOR['OK']}"
-            "✓ Access granted with order.change_order | HTTP 200"
-            f"{self.COLOR['END']}"
-        )
-
-    def test_with_only_view_order_permission_returns_403(self) -> None:
-        user = get_user_model().objects.create_user(
-            username="resources_view_only",
-            password="test_password",
-        )
-
-        permission = Permission.objects.get(
-            content_type__app_label="order",
-            codename="view_order",
-        )
-        user.user_permissions.add(permission)
-
-        self.client.force_authenticate(user=user)
-
-        response = self.client.get(self.url)
-
-        self.assertEqual(
-            response.status_code,
-            status.HTTP_403_FORBIDDEN,
-            response.data,
-        )
-
-        print(
-            f"    {self.COLOR['OK']}"
-            "✓ order.view_order is not enough for resources | HTTP 403"
             f"{self.COLOR['END']}"
         )
 
@@ -936,7 +854,7 @@ class TestOrdersDownloadPermissions(
         )
 
         print(
-            f"    {self.COLOR['OK']}"
+            f"{self.INDENT}{self.COLOR['OK']}"
             "✓ Access denied without order.export_order | HTTP 403"
             f"{self.COLOR['END']}"
         )
@@ -964,7 +882,7 @@ class TestOrdersDownloadPermissions(
         )
 
         print(
-            f"    {self.COLOR['OK']}"
+            f"{self.INDENT}{self.COLOR['OK']}"
             "✓ Access granted with order.export_order | HTTP 200"
             f"{self.COLOR['END']}"
         )
@@ -991,7 +909,7 @@ class TestOrdersDownloadPermissions(
         )
 
         print(
-            f"    {self.COLOR['OK']}"
+            f"{self.INDENT}{self.COLOR['OK']}"
             "✓ order.view_order is not enough for export | HTTP 403"
             f"{self.COLOR['END']}"
         )

@@ -1,11 +1,11 @@
 from typing import Any, Dict
 
-from catalog.models import SalesPriceHistory
 from catalog.tests.api.factories import SalePriceHistoryFactory
 from catalog.tests.api.test_products import BaseTestPriceHistory
 from contacts.factories import ContactFactory
 from contacts.models import Contact
-from core.tests.base_test_case import BaseAPIMixin
+from core.tests.base_test_case import BaseAPIContractMixin, BaseAPIMixin
+from core.tests.order_form_access_tests import OrderFormAccessContractMixin
 from core.tests.utils import FieldSpec
 from order.models import ConstructionObject, Customer
 from order.routes import ConstructionObjectsRoutes, CustomerRoutes
@@ -160,7 +160,11 @@ class TestCustomerConstructionObjectsAPIDetailAPI(BaseAPIMixin):
         )
 
 
-class TestCustomerPriceHistory(BaseTestPriceHistory, BaseAPIMixin):
+class TestCustomerPriceHistory(
+    BaseTestPriceHistory,
+    OrderFormAccessContractMixin,
+    BaseAPIContractMixin,
+):
     """
     TestCustomerPriceHistory is a test class for validating customer price history functionality.
 
@@ -176,5 +180,3 @@ class TestCustomerPriceHistory(BaseTestPriceHistory, BaseAPIMixin):
     factory = SalePriceHistoryFactory
     price_context_factory = CustomerFactory
     context_field = "customer"
-
-    permission_model = SalesPriceHistory

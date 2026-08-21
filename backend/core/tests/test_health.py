@@ -19,7 +19,7 @@ class TestHealthCheck(TestLoggerMixin):
         }
 
         print(
-            f"    {self.COLOR['OK']}"
+            f"{self.INDENT}{self.COLOR['OK']}"
             "✓ Health check is OK | HTTP 200 | Database OK"
             f"{self.COLOR['END']}"
         )

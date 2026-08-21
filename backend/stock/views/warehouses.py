@@ -3,6 +3,7 @@ from drf_spectacular.utils import OpenApiParameter
 from rest_framework import generics
 from rest_framework.exceptions import ValidationError
 from rest_framework.parsers import FormParser, MultiPartParser
+from rest_framework.permissions import IsAuthenticated
 
 from catalog.models import PurchasePriceHistory
 from core.api.mixins import SoftDeleteResponseMixin
@@ -13,6 +14,7 @@ from core.openapi.base_views import (
     BaseRetrieveUpdateDestroyAPIView,
     BaseUpdateGenericAPIView,
 )
+from order.api.permissions import OrderFormAccessPermission
 from stock.models import Warehouse
 from stock.warehouse_serializers import (
     WarehouseListCreateSerializer,
@@ -91,6 +93,11 @@ class WarehousePricesListAPIView(BaseListAPIView):
             many=True,
             description="Product ids. Example: ?products=1&products=2&products=3",
         ),
+    ]
+
+    permission_classes = [
+        IsAuthenticated,
+        OrderFormAccessPermission,
     ]
 
     serializer_class = WarehousePriceHistorySerializer

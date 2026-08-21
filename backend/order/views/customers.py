@@ -4,6 +4,7 @@ from django.db.models import QuerySet
 from drf_spectacular.utils import OpenApiParameter
 from rest_framework import generics
 from rest_framework.exceptions import ValidationError
+from rest_framework.permissions import IsAuthenticated
 from rest_framework.serializers import BaseSerializer
 
 from catalog.models import SalesPriceHistory
@@ -16,6 +17,7 @@ from core.openapi.base_views import (
     BaseListCreateAPIView,
     BaseRetrieveUpdateDestroyAPIView,
 )
+from order.api.permissions import OrderFormAccessPermission
 from order.models import ConstructionObject, Customer
 from order.serializers.customer_serializers import (
     CustomerObjectsSerializer,
@@ -118,6 +120,11 @@ class CustomerPriceListAPIView(BaseListAPIView):
     read_serializer_class = CustomerPriceSerializer
 
     serializer_class = CustomerPriceSerializer
+
+    permission_classes = [
+        IsAuthenticated,
+        OrderFormAccessPermission,
+    ]
 
     schema_parameters = [
         OpenApiParameter(

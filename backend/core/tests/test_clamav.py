@@ -48,7 +48,7 @@ class TestClamAVScanner(TestLoggerMixin):
         file.seek.assert_any_call(0)
 
         print(
-            f"    {self.COLOR['OK']}"
+            f"{self.INDENT}{self.COLOR['OK']}"
             "✓ Clean file accepted by ClamAV scanner"
             f"{self.COLOR['END']}"
         )
@@ -86,7 +86,7 @@ class TestClamAVScanner(TestLoggerMixin):
         file.seek.assert_any_call(0)
 
         print(
-            f"    {self.COLOR['OK']}"
+            f"{self.INDENT}{self.COLOR['OK']}"
             "✓ Malware detected by ClamAV scanner"
             f"{self.COLOR['END']}"
         )
@@ -98,9 +98,8 @@ class TestClamAVScanner(TestLoggerMixin):
     )
     def test_clamav_unavailable(
         self,
-            mock_settings: MagicMock,
-            mock_create_connection: MagicMock,
-
+        mock_settings: MagicMock,
+        mock_create_connection: MagicMock,
     ) -> None:
         """
         Test that ClamAV scanner is unavailable.
@@ -122,7 +121,7 @@ class TestClamAVScanner(TestLoggerMixin):
         file.seek.assert_any_call(0)
 
         print(
-            f"    {self.COLOR['OK']}"
+            f"{self.INDENT}{self.COLOR['OK']}"
             "✓ ClamAV scanner is unavailable"
             f"{self.COLOR['END']}"
         )
@@ -147,7 +146,7 @@ class TestClamAVScanner(TestLoggerMixin):
         mock_create_connection.assert_not_called()
 
         print(
-            f"    {self.COLOR['OK']}"
+            f"{self.INDENT}{self.COLOR['OK']}"
             "✓ ClamAV scanner is disabled"
             f"{self.COLOR['END']}"
         )

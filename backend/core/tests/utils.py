@@ -100,6 +100,8 @@ class TestLoggerMixin(_Base):
         "END": "\033[0m",
     }
 
+    INDENT = "    "
+
     def _logger_header(self, title: str, level: int = 0) -> None:
         """Prints a formatted header message with a color-coded prefix."""
         indent = "  " * level
@@ -110,12 +112,14 @@ class TestLoggerMixin(_Base):
 
     def _logger_success(self, field_name: str, msg: str) -> None:
         """Prints a formatted success message with a color-coded field name."""
-        print(f"      {self.COLOR['OK']}✓ {field_name} | {msg}{self.COLOR['END']}")
+        print(
+            f"{self.INDENT}{self.COLOR['OK']}✓ {field_name} | {msg}{self.COLOR['END']}"
+        )
 
     def _logger_error(self, field_name: str, msg: str) -> None:
         """Prints a formatted error message with a color-coded field name."""
         print(
-            f"      {self.COLOR['ERR']}✗ {self.COLOR['OK']}{field_name} | {msg}{self.COLOR['END']}"
+            f"{self.INDENT}{self.COLOR['ERR']}✗ {self.COLOR['OK']}{field_name} | {msg}{self.COLOR['END']}"
         )
 
 

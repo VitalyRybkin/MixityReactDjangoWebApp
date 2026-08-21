@@ -36,7 +36,7 @@ class BaseTestCase(APITestCase):
     pass
 
 
-class BaseAPITestCase(
+class BaseAPIContractTestCase(
     TestLoggerMixin,
     FieldContractMixin,
     CrudContractMixin,
@@ -46,17 +46,13 @@ class BaseAPITestCase(
     SoftDeleteContractMixin,
     ReadOnlyActiveFieldContractMixin,
     QuerysetContractMixin,
-    PermissionContractMixin,
     AuthenticationContractMixin,
     BaseTestCase,
 ):
     """
-    BaseAPITestCase class that extends from BaseTestCase.
+    Base API test case without the standard Django model-permission contract.
 
-    Provides a base for API test cases, incorporating various
-    mixins for testing fields, CRUD operations, validation, models, and active field updates.
-    It ensures proper testing practices and handles requests, responses,
-    and model interactions.
+    Suitable for endpoints that use custom business permissions.
     """
 
     __test__ = False
@@ -92,13 +88,27 @@ class BaseAPITestCase(
 
         if self.url_name is not None:
             self.url = reverse(self.url_name)
+
         elif self.pk_url_name is not None:
             self.url = reverse(
                 self.pk_url_name,
                 kwargs=self.get_url_kwargs(),
             )
+
         else:
             raise SkipTest(f"No url configured for '{self.__class__.__name__}'.")
 
 
+class BaseAPITestCase(
+    PermissionContractMixin,
+    BaseAPIContractTestCase,
+):
+    """
+    Base API test case with the standard Django model-permission contract.
+    """
+
+    __test__ = False
+
+
+BaseAPIContractMixin = BaseAPIContractTestCase
 BaseAPIMixin = BaseAPITestCase

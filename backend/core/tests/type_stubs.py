@@ -16,6 +16,7 @@ class TestLoggerProto(Protocol):
     """
 
     COLOR: dict[str, str]
+    INDENT: str
 
     def _logger_header(self, title: str, level: int = 0) -> None: ...
     def _logger_success(self, field_name: str, msg: str) -> None: ...

@@ -65,7 +65,7 @@ class PermissionContractMixin(_Base):
         )
 
         print(
-            f"    {self.COLOR['OK']}"
+            f"{self.INDENT}{self.COLOR['OK']}"
             f"✓ Access denied without view permission | HTTP 403"
             f"{self.COLOR['END']}"
         )
@@ -95,7 +95,7 @@ class PermissionContractMixin(_Base):
         )
 
         print(
-            f"    {self.COLOR['OK']}"
+            f"{self.INDENT}{self.COLOR['OK']}"
             f"✓ Access granted with view permission | HTTP 200"
             f"{self.COLOR['END']}"
         )

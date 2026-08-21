@@ -19,7 +19,7 @@ from core.openapi.base_views import (
     BaseListCreateAPIView,
     BaseRetrieveUpdateDestroyAPIView,
 )
-from order.api.permissions import OrderExportPermission, OrderResourcesPermission
+from order.api.permissions import OrderExportPermission, OrderFormAccessPermission
 from order.models import Client, Customer, Order, PackType
 from order.serializers.order_serializers.create_order_serializers import (
     OrderReadSerializer,
@@ -56,7 +56,7 @@ class OrderResourcesAPIView(BaseGenericAPIView):
 
     permission_classes = [
         IsAuthenticated,
-        OrderResourcesPermission,
+        OrderFormAccessPermission,
     ]
 
     def get(self, request: Request, *args: Any, **kwargs: Any) -> Response:

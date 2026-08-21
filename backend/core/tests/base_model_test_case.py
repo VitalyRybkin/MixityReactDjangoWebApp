@@ -64,7 +64,7 @@ class BaseModelTestCase(APITestCase, TestLoggerMixin):
                 )
 
                 print(
-                    f"      {self.COLOR['OK']}"
+                    f"{self.INDENT}{self.COLOR['OK']}"
                     f"✓ {self._model.__name__}.{field} rejected value '{value}'"
                     f"{self.COLOR['END']}"
                 )
@@ -101,7 +101,7 @@ class BaseModelTestCase(APITestCase, TestLoggerMixin):
                     )
 
                 print(
-                    f"      {self.COLOR['OK']}"
+                    f"{self.INDENT}{self.COLOR['OK']}"
                     f"✓ {self._model.__name__}.{field} accepted value '{value}'"
                     f"{self.COLOR['END']}"
                 )

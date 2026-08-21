@@ -46,7 +46,7 @@ class QuerysetContractMixin(_Base):
         self.assertEqual(response.data[0]["id"], price_to_get.id)
 
         print(
-            f"    {self.COLOR['OK']}✓ Retrieval of latest price passed{self.COLOR['END']}"
+            f"{self.INDENT}{self.COLOR['OK']}✓ Retrieval of latest price passed{self.COLOR['END']}"
         )
 
         return response
@@ -70,7 +70,9 @@ class QuerysetContractMixin(_Base):
         )
 
         print(
-            f"    {self.COLOR['OK']}✓ Retrieval of latest price with invalid product ID passed{self.COLOR['END']}"
+            f"{self.INDENT}{self.COLOR['OK']}"
+            f"✓ Retrieval of latest price with invalid product ID passed"
+            f"{self.COLOR['END']}"
         )
 
         return response
@@ -97,7 +99,7 @@ class QuerysetContractMixin(_Base):
         self.assertEqual(ids, expected_ids)
 
         print(
-            f"    {self.COLOR['OK']}✓ Retrieval of {entity} list passed{self.COLOR['END']}"
+            f"{self.INDENT}{self.COLOR['OK']}✓ Retrieval of {entity} list passed{self.COLOR['END']}"
         )
 
     def _assert_filtered_count(self, expected_count: int, params: dict) -> None:
@@ -115,6 +117,6 @@ class QuerysetContractMixin(_Base):
         self.assertEqual(response.status_code, 200)
         self.assertEqual(len(response.data), expected_count)
         print(
-            f"    {self.COLOR['OK']}✓ Retrieval of filtered queryset passed: "
+            f"{self.INDENT}{self.COLOR['OK']}✓ Retrieval of filtered queryset passed: "
             f"\n \t - response count - {len(response.data)}, expected count - {expected_count}{self.COLOR['END']}"
         )

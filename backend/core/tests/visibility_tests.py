@@ -48,7 +48,7 @@ class ActiveVisibilityContractMixin(_Base):
         )
 
         print(
-            f"    {self.COLOR['OK']}✓ Active-only visibility verified{self.COLOR['END']}"
+            f"{self.INDENT}{self.COLOR['OK']}✓ Active-only visibility verified{self.COLOR['END']}"
         )
 
 
@@ -82,7 +82,9 @@ class SoftDeleteContractMixin(_Base):
         self.assertIn("isActive", resp.data)
         self.assertEqual(resp.data["isActive"], False)
 
-        print(f"    {self.COLOR['OK']}✓ Soft delete verified{self.COLOR['END']}")
+        print(
+            f"{self.INDENT}{self.COLOR['OK']}✓ Soft delete verified{self.COLOR['END']}"
+        )
 
 
 class ReadOnlyActiveFieldContractMixin(_Base):
@@ -129,5 +131,5 @@ class ReadOnlyActiveFieldContractMixin(_Base):
         self.assertEqual(resp.data["isActive"], True)
 
         print(
-            f"    {self.COLOR['OK']}✓ isActive is read-only via API{self.COLOR['END']}"
+            f"{self.INDENT}{self.COLOR['OK']}✓ isActive is read-only via API{self.COLOR['END']}"
         )
