@@ -1,6 +1,5 @@
 from typing import Any
 
-from django.core.files.uploadedfile import UploadedFile
 from django.db import transaction
 from rest_framework import serializers
 
@@ -25,7 +24,6 @@ from order.serializers.customer_serializers import (
 )
 from order.services.delivery_data import sync_delivery_data
 from order.services.order_items import sync_order_items
-from order.validators.upd_pdf import validate_upd_pdf
 from stock.models import Warehouse
 from stock.warehouse_serializers import (
     BaseWarehouseSerializer,
@@ -353,7 +351,30 @@ class OrderWriteSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Order
-        fields = "__all__"
+        fields = [
+            "id",
+            "client",
+            "customer",
+            "warehouse",
+            "customer_object",
+            "contacts",
+            "products",
+            "delivery",
+            "delivery_date",
+            "delivery_from",
+            "delivery_to",
+            "status",
+            "description",
+            "samples",
+            "created_at",
+            "updated_at",
+        ]
+
+        read_only_fields = [
+            "id",
+            "created_at",
+            "updated_at",
+        ]
 
     def validate(self, attrs: dict) -> dict:
         """
@@ -522,12 +543,6 @@ class OrderWriteSerializer(serializers.ModelSerializer):
         Deletes the order and associated order items.
         """
         instance.delete()
-
-    def validate_upd_pdf(
-        self,
-        file: UploadedFile | None,
-    ) -> UploadedFile | None:
-        return validate_upd_pdf(file)
 
 
 class OrderItemExportSerializer(OrderItemSerializer):

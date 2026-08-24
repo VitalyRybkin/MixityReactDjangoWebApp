@@ -1,7 +1,5 @@
 from typing import Any, Dict
 
-from contacts.factories import ContactFactory
-from contacts.models import Contact
 from core.tests.base_test_case import BaseAPIMixin
 from core.tests.utils import FieldSpec
 from order.models import Client
@@ -52,7 +50,7 @@ class TestClientAPIList(ClientBaseTest, BaseAPIMixin):
         c = self.obj
         self._str_method_logic(f"Клиент: {c.name}")
 
-    def test_active_stock(self) -> None:
+    def test_active_client(self) -> None:
         """Test the logic for ensuring active clients are only returned in the list."""
         self._assert_active_only_in_list()
 
@@ -68,20 +66,3 @@ class TestClientAPIList(ClientBaseTest, BaseAPIMixin):
             "email": temp.email,
             "is_active": temp.is_active,
         }
-
-
-class TestClientContacts(ClientBaseTest, BaseAPIMixin):
-    __test__ = True
-    pk_url_name = f"order_clients:{ClientRoutes.CONTACTS.name}"
-    permission_model = Contact
-
-    def test_get_client_contacts(self) -> None:
-        """Test the logic for retrieving contacts associated with a client."""
-        client_1 = self.factory.create()
-        contacts_1 = ContactFactory.create_batch(3, client=client_1, carrier=None)
-        client_2 = self.factory.create()
-        ContactFactory.create_batch(3, client=client_2, carrier=None)
-
-        self._get_object_related_entities_list(
-            client_1.id, contacts_1, entity="clients"
-        )

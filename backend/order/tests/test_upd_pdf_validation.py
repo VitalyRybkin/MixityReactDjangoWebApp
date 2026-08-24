@@ -7,8 +7,8 @@ from pypdf import PdfWriter
 from core.tests.utils import TestLoggerMixin
 from order.serializers.order_serializers.create_order_serializers import (
     MAX_UPD_PDF_SIZE,
-    OrderWriteSerializer,
 )
+from order.serializers.order_serializers.order_upd import OrderUpdSerializer
 
 
 def make_pdf(*, encrypted: bool = False) -> bytes:
@@ -42,7 +42,7 @@ class TestUpdPdfValidation(TestLoggerMixin):
         self._logger_header("TEST: valid PDF")
         file = make_uploaded_file(make_pdf())
 
-        serializer = OrderWriteSerializer(
+        serializer = OrderUpdSerializer(
             data={"upd_pdf": file},
             partial=True,
         )
@@ -62,7 +62,7 @@ class TestUpdPdfValidation(TestLoggerMixin):
             b"This is not a PDF file",
         )
 
-        serializer = OrderWriteSerializer(
+        serializer = OrderUpdSerializer(
             data={"upd_pdf": file},
             partial=True,
         )
@@ -82,7 +82,7 @@ class TestUpdPdfValidation(TestLoggerMixin):
             b"%PDF-1.7\nbroken pdf content",
         )
 
-        serializer = OrderWriteSerializer(
+        serializer = OrderUpdSerializer(
             data={"upd_pdf": file},
             partial=True,
         )
@@ -102,7 +102,7 @@ class TestUpdPdfValidation(TestLoggerMixin):
 
         file = make_uploaded_file(content)
 
-        serializer = OrderWriteSerializer(
+        serializer = OrderUpdSerializer(
             data={"upd_pdf": file},
             partial=True,
         )
@@ -122,7 +122,7 @@ class TestUpdPdfValidation(TestLoggerMixin):
             make_pdf(encrypted=True),
         )
 
-        serializer = OrderWriteSerializer(
+        serializer = OrderUpdSerializer(
             data={"upd_pdf": file},
             partial=True,
         )
@@ -138,7 +138,7 @@ class TestUpdPdfValidation(TestLoggerMixin):
 
     def test_null_is_allowed(self) -> None:
         self._logger_header("TEST: null is allowed")
-        serializer = OrderWriteSerializer(
+        serializer = OrderUpdSerializer(
             data={"upd_pdf": None},
             partial=True,
         )

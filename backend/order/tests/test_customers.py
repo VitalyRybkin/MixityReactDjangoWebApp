@@ -5,8 +5,6 @@ from rest_framework.reverse import reverse
 
 from catalog.tests.api.factories import SalePriceHistoryFactory
 from catalog.tests.api.test_products import BaseTestPriceHistory
-from contacts.factories import ContactFactory
-from contacts.models import Contact
 from core.tests.base_test_case import BaseAPIContractMixin, BaseAPIMixin
 from core.tests.order_form_access_tests import OrderFormAccessContractMixin
 from core.tests.parent_visibility_tests import ParentVisibilityContractMixin
@@ -77,23 +75,6 @@ class TestCustomerAPIList(CustomerBaseTest, BaseAPIMixin):
         }
 
 
-class TestCustomerContactsAPI(CustomerBaseTest, BaseAPIMixin):
-    __test__ = True
-    pk_url_name = f"order_customers:{CustomerRoutes.CONTACTS.name}"
-    permission_model = Contact
-
-    def test_get_customer_contacts(self) -> None:
-        """Test the logic for retrieving contacts associated with a customer."""
-        customer_1 = self.factory.create()
-        contacts_1 = ContactFactory.create_batch(3, customer=customer_1, carrier=None)
-        customer_2 = self.factory.create()
-        ContactFactory.create_batch(3, customer=customer_2, carrier=None)
-
-        self._get_object_related_entities_list(
-            customer_1.id, contacts_1, entity="contacts"
-        )
-
-
 class TestCustomerConstructionObjectsAPIList(
     ParentVisibilityContractMixin,
     BaseAPIMixin,
@@ -110,6 +91,9 @@ class TestCustomerConstructionObjectsAPIList(
         self,
         customer_id: int,
     ) -> None:
+        """Test inactive construction object returns 404."""
+        self._logger_header("TEST: Inactive construction object returns 404.")
+
         url = reverse(
             self.pk_url_name,
             kwargs={"pk": customer_id},
@@ -135,6 +119,12 @@ class TestCustomerConstructionObjectsAPIList(
         self.assertEqual(
             ConstructionObject.objects.count(),
             count_before,
+        )
+
+        print(
+            f"{self.INDENT}{self.COLOR['OK']}"
+            "✓ Inactive construction object returns 404 | HTTP 404"
+            f"{self.COLOR['END']}"
         )
 
     def test_get_customer_construction_objects(self) -> None:
@@ -228,6 +218,9 @@ class TestCustomerConstructionObjectsAPIDetailAPI(
         )
 
     def test_object_from_another_customer_returns_404(self) -> None:
+        """Test the logic for retrieving a construction object from another customer."""
+
+        self._logger_header("TEST: retrieve object from another customer")
         another_customer = CustomerFactory.create()
 
         url = reverse(
@@ -245,7 +238,15 @@ class TestCustomerConstructionObjectsAPIDetailAPI(
             status.HTTP_404_NOT_FOUND,
         )
 
+        print(
+            f"{self.INDENT}{self.COLOR['OK']}"
+            "✓ Object from another customer rejected | HTTP 404"
+            f"{self.COLOR['END']}"
+        )
+
     def test_inactive_construction_object_returns_404(self) -> None:
+        """Test inactive construction object returns 404."""
+        self._logger_header("TEST: Inactive construction object returns 404.")
         self.obj.is_active = False
         self.obj.save(update_fields=["is_active"])
 
@@ -254,6 +255,12 @@ class TestCustomerConstructionObjectsAPIDetailAPI(
         self.assertEqual(
             response.status_code,
             status.HTTP_404_NOT_FOUND,
+        )
+
+        print(
+            f"{self.INDENT}{self.COLOR['OK']}"
+            "✓ Inactive construction object returns 404 | HTTP 404"
+            f"{self.COLOR['END']}"
         )
 
 

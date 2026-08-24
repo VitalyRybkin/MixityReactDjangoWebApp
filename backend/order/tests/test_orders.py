@@ -26,8 +26,13 @@ from core.security.clamav import (
 from core.tests.authentication_tests import AuthenticationContractMixin
 from core.tests.base_test_case import BaseAPIMixin
 from core.tests.base_view_test_case import BaseViewTestCase
+from core.tests.http_method_tests import DisallowedMethodsContractMixin
 from core.tests.model_tests import ModelContractMixin
 from core.tests.order_form_access_tests import OrderFormAccessContractMixin
+from core.tests.serializer_tests import (
+    ExcludedSerializerFieldsContractMixin,
+    SerializerSelectionContractMixin,
+)
 from core.tests.utils import TestLoggerMixin
 from logistic.tests.factories import CarrierFactory, DriverFactory, TruckFactory
 from order.models import Order, OrderItem, PackType
@@ -63,7 +68,17 @@ def make_test_pdf() -> SimpleUploadedFile:
     )
 
 
-class TestOrderUpdUploadAPIView(APITestCase, TestLoggerMixin):
+class TestOrderUpdUploadAPIView(
+    DisallowedMethodsContractMixin,
+    APITestCase,
+    AuthenticationContractMixin,
+    TestLoggerMixin,
+):
+    disallowed_methods = (
+        "get",
+        "put",
+        "delete",
+    )
     authentication_method = "patch"
 
     def setUp(self) -> None:
@@ -99,6 +114,8 @@ class TestOrderUpdUploadAPIView(APITestCase, TestLoggerMixin):
         super().tearDown()
 
     def test_upload_valid_pdf(self) -> None:
+        """Upload a valid PDF file."""
+        self._logger_header("TEST: Upload a valid PDF file.")
         file = make_test_pdf()
 
         response = self.client.patch(
@@ -119,7 +136,14 @@ class TestOrderUpdUploadAPIView(APITestCase, TestLoggerMixin):
         self.assertTrue(self.order.upd_pdf.name.endswith(".pdf"))
         self.assertTrue(self.order.upd_pdf.storage.exists(self.order.upd_pdf.name))
 
+        print(
+            f"{self.INDENT}{self.COLOR['OK']}✓ PDF uploaded successfully.{self.COLOR['END']}"
+        )
+
     def test_upload_fake_pdf_returns_400(self) -> None:
+        """Upload a fake PDF file."""
+        self._logger_header("➔ TEST: Upload a fake PDF file.")
+
         file = SimpleUploadedFile(
             name="fake.pdf",
             content=b"This is definitely not a PDF",
@@ -144,7 +168,16 @@ class TestOrderUpdUploadAPIView(APITestCase, TestLoggerMixin):
         self.order.refresh_from_db()
         self.assertFalse(self.order.upd_pdf)
 
+        print(
+            f"{self.INDENT}{self.COLOR['OK']}"
+            "✓ Fake PDF rejected | HTTP 400"
+            f"{self.COLOR['END']}"
+        )
+
     def test_delete_upd_pdf(self) -> None:
+        """Delete the uploaded PDF file."""
+        self._logger_header("➔ TEST: Delete the uploaded PDF file.")
+
         file = make_test_pdf()
 
         response = self.client.patch(
@@ -183,8 +216,16 @@ class TestOrderUpdUploadAPIView(APITestCase, TestLoggerMixin):
 
         self.assertFalse(self.order.upd_pdf)
         self.assertFalse(storage.exists(old_file_name))
+        print(
+            f"{self.INDENT}{self.COLOR['OK']}✓ PDF deleted successfully.{self.COLOR['END']}"
+        )
 
     def test_replace_upd_pdf_deletes_old_file(self) -> None:
+        """Replace the uploaded PDF file and delete the old file."""
+        self._logger_header(
+            "TEST: Replace the uploaded PDF file and delete the old file."
+        )
+
         old_file = make_test_pdf()
 
         response = self.client.patch(
@@ -230,11 +271,18 @@ class TestOrderUpdUploadAPIView(APITestCase, TestLoggerMixin):
         self.assertFalse(storage.exists(old_file_name))
         self.assertTrue(storage.exists(new_file_name))
 
+        print(
+            f"{self.INDENT}{self.COLOR['OK']}✓ PDF replaced successfully.{self.COLOR['END']}"
+        )
+
     @patch("order.validators.upd_pdf.scan_file_for_malware")
     def test_upload_pdf_with_malware_returns_400(
         self,
         mock_scan: MagicMock,
     ) -> None:
+        """Upload a PDF file with malware."""
+        self._logger_header("TEST: Upload a PDF file with malware.")
+
         mock_scan.side_effect = MalwareDetectedError("Eicar-Test-Signature FOUND")
 
         file = make_test_pdf()
@@ -260,13 +308,20 @@ class TestOrderUpdUploadAPIView(APITestCase, TestLoggerMixin):
 
         mock_scan.assert_called_once()
 
+        print(
+            f"{self.INDENT}{self.COLOR['OK']}"
+            "✓ PDF with malware rejected | HTTP 400"
+            f"{self.COLOR['END']}"
+        )
+
     @patch("order.validators.upd_pdf.scan_file_for_malware")
     def test_upload_pdf_when_clamav_unavailable_returns_503(
         self,
         mock_scan: MagicMock,
     ) -> None:
+        """Upload a PDF file when ClamAV is unavailable."""
+        self._logger_header("TEST: Upload a PDF file when ClamAV is unavailable.")
 
-        self._logger_header("TEST UPLOAD PDF when ClamAV unavailable returns 503")
         mock_scan.side_effect = ClamAVUnavailableError("ClamAV недоступен.")
 
         file = make_test_pdf()
@@ -297,35 +352,10 @@ class TestOrderUpdUploadAPIView(APITestCase, TestLoggerMixin):
             f"{self.INDENT}{self.COLOR['OK']}✓ Antivirus unavailable handled correctly | HTTP 503{self.COLOR['END']}"
         )
 
-    def test_get_is_not_allowed(self) -> None:
-        response = self.client.get(self.url)
-
-        self.assertEqual(
-            response.status_code,
-            status.HTTP_405_METHOD_NOT_ALLOWED,
-        )
-
-    def test_delete_is_not_allowed(self) -> None:
-        response = self.client.delete(self.url)
-
-        self.assertEqual(
-            response.status_code,
-            status.HTTP_405_METHOD_NOT_ALLOWED,
-        )
-
-    def test_put_is_not_allowed(self) -> None:
-        response = self.client.put(
-            self.url,
-            {},
-            format="multipart",
-        )
-
-        self.assertEqual(
-            response.status_code,
-            status.HTTP_405_METHOD_NOT_ALLOWED,
-        )
-
     def test_upload_without_change_order_permission_returns_403(self) -> None:
+        """Upload a PDF file without change order permission."""
+        self._logger_header("TEST: Upload a PDF file without change order permission.")
+
         user_model = get_user_model()
 
         user = user_model.objects.create_user(
@@ -353,7 +383,17 @@ class TestOrderUpdUploadAPIView(APITestCase, TestLoggerMixin):
 
         self.assertFalse(self.order.upd_pdf)
 
+        print(
+            f"{self.INDENT}{self.COLOR['OK']}"
+            "✓ Upload denied without change_order permission | HTTP 403"
+            f"{self.COLOR['END']}"
+        )
+
     def test_upload_with_change_order_permission_returns_200(self) -> None:
+        """
+        Upload a PDF file with change order permission.
+        """
+        self._logger_header("TEST: Upload a PDF file with change order permission.")
         user_model = get_user_model()
 
         user = user_model.objects.create_user(
@@ -386,6 +426,9 @@ class TestOrderUpdUploadAPIView(APITestCase, TestLoggerMixin):
         self.order.refresh_from_db()
 
         self.assertTrue(self.order.upd_pdf)
+        print(
+            f"{self.INDENT}{self.COLOR['OK']}✓ PDF replaced successfully.{self.COLOR['END']}"
+        )
 
 
 class TestOrderAPIList(BaseAPIMixin):
@@ -394,8 +437,8 @@ class TestOrderAPIList(BaseAPIMixin):
     factory = OrderFactory
     model = Order
 
-    def test_create_order_no_data(self) -> None:
-        """Test creating an order with no data."""
+    def test_create_order_with_minimal_payload(self) -> None:
+        """Test creating an order with minimal payload."""
         self._create_logic(self.payload_generator()[0])
 
     def test_create_order(self) -> None:
@@ -675,35 +718,8 @@ class TestOrderAPIList(BaseAPIMixin):
         )
 
 
-class BaseOrderSerializersTestCase(BaseViewTestCase):
-    """
-    Test case for view serializer classes.
-
-    Attributes:
-        _view_class: The view class being tested.
-        _cases: A list of test cases, each consisting of a method and its
-            expected serializer.
-
-    Methods:
-        test_serializer_classes:
-            Tests the serializer class for each method and its corresponding
-            expected serializer.
-    """
-
-    __test__ = False
-    _cases = []
-
-    def test_serializer_classes(self) -> None:
-        for method, serializer in self._cases:
-            with self.subTest(method=method):
-                self._assert_serializer_class(
-                    method=method,
-                    expected_serializer=serializer,
-                )
-
-
 class TestOrderRetrieveUpdateDestroySerializers(
-    BaseOrderSerializersTestCase, BaseViewTestCase
+    SerializerSelectionContractMixin, BaseViewTestCase
 ):
     """
     Test case for verifying the behavior of the
@@ -720,7 +736,9 @@ class TestOrderRetrieveUpdateDestroySerializers(
     ]
 
 
-class TestOrderListCreateSerializers(BaseOrderSerializersTestCase, BaseViewTestCase):
+class TestOrderListCreateSerializers(
+    SerializerSelectionContractMixin, BaseViewTestCase
+):
     """Test class for verifying OrderListCreateAPIView behavior."""
 
     __test__ = True
@@ -1071,6 +1089,74 @@ class TestOrderRetrieveUpdateDestroy(BaseAPIMixin):
             status.HTTP_400_BAD_REQUEST,
             response.data,
         )
+
+    def test_patch_cannot_change_order_user(self) -> None:
+        original_user = get_user_model().objects.create_user(
+            username="original_order_user",
+            password="test_password",
+        )
+        another_user = get_user_model().objects.create_user(
+            username="another_order_user",
+            password="test_password",
+        )
+
+        self.obj.user = original_user
+        self.obj.save(update_fields=["user"])
+
+        response = self.client.patch(
+            self.url,
+            {"user": another_user.pk},
+            format="json",
+        )
+
+        self.assertEqual(
+            response.status_code,
+            status.HTTP_200_OK,
+            response.data,
+        )
+
+        self.obj.refresh_from_db()
+
+        self.assertEqual(
+            self.obj.user_id,
+            original_user.pk,
+        )
+
+    def test_patch_cannot_upload_upd_pdf_through_order_endpoint(self) -> None:
+        file = SimpleUploadedFile(
+            "test.pdf",
+            b"%PDF-1.4 fake content",
+            content_type="application/pdf",
+        )
+
+        response = self.client.patch(
+            self.url,
+            {"upd_pdf": file},
+            format="multipart",
+        )
+
+        self.assertEqual(
+            response.status_code,
+            status.HTTP_200_OK,
+            response.data,
+        )
+
+        self.obj.refresh_from_db()
+
+        self.assertFalse(self.obj.upd_pdf)
+
+
+class TestOrderWriteSerializerSecurity(
+    ExcludedSerializerFieldsContractMixin,
+    APITestCase,
+):
+    serializer_class = OrderWriteSerializer
+
+    excluded_fields = (
+        "user",
+        "upd_pdf",
+        "order_products",
+    )
 
 
 class TestOrdersDownloadPermissions(
