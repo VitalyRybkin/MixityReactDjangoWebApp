@@ -176,7 +176,7 @@ class TestOrderUpdUploadAPIView(
 
     def test_delete_upd_pdf(self) -> None:
         """Delete the uploaded PDF file."""
-        self._logger_header("➔ TEST: Delete the uploaded PDF file.")
+        self._logger_header("TEST: Delete the uploaded PDF file.")
 
         file = make_test_pdf()
 
@@ -272,7 +272,9 @@ class TestOrderUpdUploadAPIView(
         self.assertTrue(storage.exists(new_file_name))
 
         print(
-            f"{self.INDENT}{self.COLOR['OK']}✓ PDF replaced successfully.{self.COLOR['END']}"
+            f"{self.INDENT}{self.COLOR['OK']}"
+            "✓ Upload allowed with change_order permission | HTTP 200"
+            f"{self.COLOR['END']}"
         )
 
     @patch("order.validators.upd_pdf.scan_file_for_malware")

@@ -13,14 +13,6 @@ class DriverBaseTest:
     Provides a foundation for testing the `Driver` model and its related
     factory. It includes mappings for fields and their specifications, enabling
     structured and consistent testing across the model's features.
-
-    Attributes:
-        model: A reference to the `Driver` class representing the model being tested.
-        factory: The factory class used to create instances of the `Driver` model
-            during testing.
-        fields_map: A dictionary mapping field names to their specifications,
-            represented by `FieldSpec` objects. Each field specification may include
-            properties such as the field ID, its type, and whether it is required.
     """
 
     model = Driver
@@ -37,6 +29,10 @@ class DriverBaseTest:
 
 
 class TestDriverAPIList(DriverBaseTest, BaseAPIMixin):
+    """
+    Tests for the Driver API list endpoint.
+    """
+
     url_name = f"logistic:{DriverRoutes.LIST_CREATE.name}"
 
     __test__ = True
@@ -65,6 +61,7 @@ class TestDriverAPIList(DriverBaseTest, BaseAPIMixin):
         self._str_method_logic(expected)
 
     def test_create_with_inactive_carrier_returns_400(self) -> None:
+        self._logger_header("RELATED VALIDATION: inactive carrier on driver create")
         self._assert_create_with_inactive_related_returns_400(
             payload=self.payload_generator(),
             field_name="carrier",

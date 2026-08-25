@@ -1,4 +1,4 @@
-from django.db.models import QuerySet
+from django.db.models import Q, QuerySet
 
 from contacts.models import Contact
 
@@ -6,7 +6,16 @@ from contacts.models import Contact
 class ContactSelector:
     @staticmethod
     def get_base_qs() -> QuerySet[Contact]:
-        return Contact.objects.prefetch_related("phone_numbers").order_by("id")
+        return (
+            Contact.objects.filter(
+                Q(carrier__is_active=True)
+                | Q(warehouse__is_active=True)
+                | Q(client__is_active=True)
+                | Q(customer__is_active=True)
+            )
+            .prefetch_related("phone_numbers")
+            .order_by("id")
+        )
 
     @classmethod
     def by_warehouse(cls, warehouse_id: int) -> QuerySet[Contact]:

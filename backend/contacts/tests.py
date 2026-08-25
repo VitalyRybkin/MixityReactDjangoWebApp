@@ -1,6 +1,6 @@
 from typing import Any, Dict, List
 
-from rest_framework import status
+from rest_framework.reverse import reverse
 
 from contacts.factories import ContactFactory, PhoneNumberFactory
 from contacts.models import Contact, PhoneNumber
@@ -52,13 +52,6 @@ class TestContactAPICreate(BaseAPIMixin):
             self.factory.build(warehouse=WarehouseFactory.create(), carrier=None),
         ]
         for temp in temp_factories:
-            field_name = "CARRIER" if temp.carrier else "WAREHOUSE"
-
-            print(
-                f"\n{self.COLOR['OK']}▶ Testing: create CONTACT with {self.COLOR['OK']}{field_name}"
-                f"{self.COLOR['END']}:",
-                end=" ",
-            )
             payload = self.payload_generator(temp)
             self._create_logic(payload)
 
@@ -90,11 +83,7 @@ class TestContactAPICreate(BaseAPIMixin):
                 "customer": customer.id,
             }
         )
-        print(
-            f"\n{self.COLOR['OK']}▶ Testing: create CONTACT with {self.COLOR['OK']}both CARRIER and WAREHOUSE"
-            f"{self.COLOR['END']}:",
-            end=" ",
-        )
+
         self._create_invalid_xor_both(payload)
 
     def test_phone_numbers_validation(self) -> None:
@@ -167,6 +156,8 @@ class TestContactAPICreate(BaseAPIMixin):
         )
 
     def test_create_with_inactive_parent_returns_400(self) -> None:
+        self._logger_header("TEST: Create contact with inactive parent returns 400")
+
         cases = [
             ("carrier", CarrierFactory),
             ("warehouse", WarehouseFactory),
@@ -176,29 +167,37 @@ class TestContactAPICreate(BaseAPIMixin):
 
         for field_name, factory in cases:
             with self.subTest(field=field_name):
-                parent = factory.create(is_active=False)
-
                 payload = {
                     "firstName": "Test",
-                    field_name: parent.pk,
                 }
 
-                count_before = Contact.objects.count()
-
-                response = self.client.post(
-                    self.url,
-                    data=payload,
-                    format="json",
+                self._assert_create_with_inactive_related_returns_400(
+                    payload=payload,
+                    field_name=field_name,
+                    related_factory=factory,
                 )
 
-                self.assertEqual(
-                    response.status_code,
-                    status.HTTP_400_BAD_REQUEST,
-                    response.data,
-                )
-                self.assertEqual(
-                    Contact.objects.count(),
-                    count_before,
+    def test_contacts_with_inactive_parent_are_not_in_list(self) -> None:
+        self._logger_header("TEST: Contacts with inactive parent are hidden from list")
+        cases = [
+            ("carrier", CarrierFactory),
+            ("warehouse", WarehouseFactory),
+            ("client", ClientFactory),
+            ("customer", CustomerFactory),
+        ]
+
+        for field_name, factory in cases:
+            with self.subTest(parent=field_name):
+                self._assert_inactive_related_hidden_from_list(
+                    field_name=field_name,
+                    related_factory=factory,
+                    object_factory=ContactFactory,
+                    object_factory_kwargs={
+                        "carrier": None,
+                        "warehouse": None,
+                        "client": None,
+                        "customer": None,
+                    },
                 )
 
     def payload_generator(self, temp: Any = None) -> Dict[str, Any]:
@@ -226,6 +225,34 @@ class TestContactAPIDelete(BaseAPIMixin):
 
     def test_delete_contact(self) -> None:
         self._delete_logic(expected_status=204)
+
+    def test_contact_with_inactive_parent_returns_404(self) -> None:
+        cases = [
+            ("carrier", CarrierFactory),
+            ("warehouse", WarehouseFactory),
+            ("client", ClientFactory),
+            ("customer", CustomerFactory),
+        ]
+
+        self._logger_header("TEST: Contact with inactive parent returns 404")
+
+        for field_name, factory in cases:
+            with self.subTest(parent=field_name):
+                self._assert_inactive_related_returns_404(
+                    field_name=field_name,
+                    related_factory=factory,
+                    object_factory=ContactFactory,
+                    object_factory_kwargs={
+                        "carrier": None,
+                        "warehouse": None,
+                        "client": None,
+                        "customer": None,
+                    },
+                    url_factory=lambda obj: reverse(
+                        self.pk_url_name,
+                        kwargs={"pk": obj.pk},
+                    ),
+                )
 
 
 class TestContactListCreateAPIView(BaseQuerysetTestCase):

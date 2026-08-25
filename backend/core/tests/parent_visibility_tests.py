@@ -18,7 +18,7 @@ class ParentVisibilityContractMixin(TestLoggerMixin):
         """
         Test that an inactive parent returns a 404.
         """
-        self._logger_header("TEST: Inactive parent returns 404.")
+        self._logger_header("PARENT VISIBILITY: inactive parent")
 
         parent = self._get_parent()
         client = cast(APIClient, getattr(self, "client"))
@@ -33,12 +33,15 @@ class ParentVisibilityContractMixin(TestLoggerMixin):
 
         print(
             f"{self.INDENT}{self.COLOR['OK']}"
-            "✓ Inactive parent returns 404 | HTTP 404"
+            "✓ Inactive parent hidden | HTTP 404"
             f"{self.COLOR['END']}"
         )
 
     def test_nonexistent_parent_returns_404(self) -> None:
-        self._logger_header("TEST: Nonexistent parent returns 404.")
+        """
+        Test that a nonexistent parent returns a 404.
+        """
+        self._logger_header("PARENT VISIBILITY: nonexistent parent")
         client = cast(APIClient, getattr(self, "client"))
         pk_url_name = cast(str, getattr(self, "pk_url_name"))
 
@@ -53,6 +56,6 @@ class ParentVisibilityContractMixin(TestLoggerMixin):
 
         print(
             f"{self.INDENT}{self.COLOR['OK']}"
-            "✓ Nonexistent parent returns 404 | HTTP 404"
+            "✓ Nonexistent parent hidden | HTTP 404"
             f"{self.COLOR['END']}"
         )

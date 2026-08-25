@@ -290,6 +290,7 @@ class TestTruckAPIList(TruckBaseTest, BaseAPIMixin):
         self._str_method_logic(expected)
 
     def test_create_with_inactive_carrier_returns_400(self) -> None:
+        self._logger_header("RELATED VALIDATION: inactive carrier on driver create")
         self._assert_create_with_inactive_related_returns_400(
             payload=self.payload_generator(),
             field_name="carrier",

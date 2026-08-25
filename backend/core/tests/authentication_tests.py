@@ -5,6 +5,8 @@ from typing import Any, Iterator, cast
 from rest_framework import status
 from rest_framework.test import APIClient
 
+from core.tests.utils import TestLoggerMixin
+
 
 @contextmanager
 def _suppress_expected_auth_logs() -> Iterator[None]:
@@ -43,18 +45,18 @@ class AuthenticationContractMixin:
         if not self.check_authentication:
             return
 
-        client = cast(
-            APIClient,
-            getattr(self, "client"),
-        )
-        url = cast(
-            str,
-            getattr(self, "url"),
+        client = cast(APIClient,getattr(self, "client"),)
+        url = cast(str,getattr(self, "url"),)
+        logger = cast(TestLoggerMixin,self,)
+
+        method_name = self.authentication_method.lower()
+
+        logger._logger_header(
+            f"AUTHENTICATION {method_name.upper()}: {url}"
         )
 
         client.force_authenticate(user=None)
 
-        method_name = self.authentication_method.lower()
         method = getattr(client, method_name)
 
         kwargs: dict[str, Any] = {}
@@ -75,17 +77,8 @@ class AuthenticationContractMixin:
 
         assert response.status_code == status.HTTP_401_UNAUTHORIZED, response.data
 
-        color = getattr(
-            self,
-            "COLOR",
-            {
-                "OK": "",
-                "END": "",
-            },
-        )
-
         print(
-            f"    {color['OK']}"
+            f"{logger.INDENT}{logger.COLOR['OK']}"
             "✓ Access denied without authentication | HTTP 401"
-            f"{color['END']}"
+            f"{logger.COLOR['END']}"
         )
