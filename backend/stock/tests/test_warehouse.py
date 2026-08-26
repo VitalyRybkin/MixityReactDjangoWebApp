@@ -1,7 +1,10 @@
+from io import BytesIO
 from typing import Any, Dict
 
+from PIL import Image
 from django.contrib.auth import get_user_model
 from django.contrib.auth.models import Permission
+from django.core.files.uploadedfile import SimpleUploadedFile
 from rest_framework import status
 
 from catalog.tests.api.factories import PurchasePriceHistoryFactory
@@ -94,7 +97,6 @@ class TestWarehouseAPIList(WarehouseBaseTest, BaseAPIMixin):
             "organization": temp.organization,
             "address": temp.address,
             "phone": str(temp.phone),
-            "directions": None,
         }
 
 
@@ -118,6 +120,28 @@ class TestWarehouseRetrieveUpdate(WarehouseBaseTest, BaseAPIMixin):
     def test_not_found_error(self) -> None:
         """Test the error handling logic for retrieving a nonexistent warehouse."""
         self._retrieve_object_by_id_not_found()
+
+
+    def test_directions_is_read_only(self) -> None:
+        """
+        Test the read-only behavior of the 'directions' field in the warehouse
+        detail API endpoint.
+        """
+        image = BytesIO()
+        Image.new("RGB", (10, 10)).save(image, format="PNG")
+
+        upload = SimpleUploadedFile(
+            "directions.png",
+            image.getvalue(),
+            content_type="image/png",
+        )
+
+        self._assert_field_is_read_only(
+            api_field="directions",
+            model_field="directions",
+            value=upload,
+            request_format="multipart",
+        )
 
 
 class TestWarehouseUploadMap(DisallowedMethodsContractMixin, BaseAPIMixin):

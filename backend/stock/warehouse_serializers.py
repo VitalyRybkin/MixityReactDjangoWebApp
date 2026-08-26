@@ -29,7 +29,7 @@ class WarehouseListCreateSerializer(serializers.ModelSerializer):
             )
         ],
     )
-    directions = serializers.ImageField(required=False, allow_null=True)
+    directions = serializers.ImageField(read_only=True)
     phone = PhoneNumberField(
         region="RU",
         label="Номер телефона",

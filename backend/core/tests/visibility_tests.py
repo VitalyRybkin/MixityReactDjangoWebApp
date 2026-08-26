@@ -114,24 +114,72 @@ class ReadOnlyActiveFieldContractMixin(_Base):
             successfully modified via the PATCH request or if the response data does not match
             the expected behavior.
         """
-        assert self.pk_url_name is not None
-        self._logger_header(f"ENDPOINT PATCH: {self.pk_url_name} (isActive read-only)")
-
-        obj = self.factory.create(is_active=True)
-        url = self.get_detail_url(obj.id)
-
-        resp = self.client.patch(url, data={"isActive": False}, format="json")
-        self.assertEqual(resp.status_code, 200)
-
-        obj.refresh_from_db()
-        self.assertTrue(
-            obj.is_active, msg="is_active changed via PATCH but should be read-only"
+        self._assert_field_is_read_only(
+            api_field="isActive",
+            model_field="is_active",
+            value=False,
         )
 
-        self.assertEqual(resp.data["isActive"], True)
+    def _assert_field_is_read_only(
+            self,
+            *,
+            api_field: str,
+            model_field: str,
+            value: Any,
+            request_format: str = "json",
+    ) -> None:
+        self.obj.refresh_from_db()
+
+        original_field_value = getattr(
+            self.obj,
+            model_field,
+        )
+        original_value = getattr(
+            original_field_value,
+            "name",
+            original_field_value,
+        )
+
+        self._logger_header(
+            f"READ ONLY PATCH: {self.url} [{api_field}]"
+        )
+
+        response = self.client.patch(
+            self.url,
+            data={
+                api_field: value,
+            },
+            format=request_format,
+        )
+
+        self.assertEqual(
+            response.status_code,
+            200,
+            response.data,
+        )
+
+        self.obj.refresh_from_db()
+
+        current_field_value = getattr(
+            self.obj,
+            model_field,
+        )
+        current_value = getattr(
+            current_field_value,
+            "name",
+            current_field_value,
+        )
+
+        self.assertEqual(
+            current_value,
+            original_value,
+            msg=f"{model_field} changed via PATCH but should be read-only",
+        )
 
         print(
-            f"{self.INDENT}{self.COLOR['OK']}✓ isActive is read-only via API{self.COLOR['END']}"
+            f"{self.INDENT}{self.COLOR['OK']}"
+            f"✓ Field '{api_field}' is read-only via API"
+            f"{self.COLOR['END']}"
         )
 
 
