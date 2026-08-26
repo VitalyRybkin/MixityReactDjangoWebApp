@@ -133,3 +133,45 @@ class ReadOnlyActiveFieldContractMixin(_Base):
         print(
             f"{self.INDENT}{self.COLOR['OK']}✓ isActive is read-only via API{self.COLOR['END']}"
         )
+
+
+class InactiveObjectVisibilityContractMixin(_Base):
+    def _assert_inactive_object_returns_404(
+        self,
+        *,
+        method: str = "get",
+        payload: dict[str, Any] | None = None,
+        request_format: str = "json",
+    ) -> None:
+        self.obj.is_active = False
+        self.obj.save(update_fields=["is_active"])
+
+        self._logger_header(f"OBJECT VISIBILITY {method.upper()}: {self.url}")
+
+        request = getattr(
+            self.client,
+            method.lower(),
+        )
+
+        kwargs: dict[str, Any] = {}
+
+        if payload is not None:
+            kwargs["data"] = payload
+            kwargs["format"] = request_format
+
+        response = request(
+            self.url,
+            **kwargs,
+        )
+
+        self.assertEqual(
+            response.status_code,
+            404,
+            response.data,
+        )
+
+        print(
+            f"{self.INDENT}{self.COLOR['OK']}"
+            "✓ Inactive object hidden | HTTP 404"
+            f"{self.COLOR['END']}"
+        )

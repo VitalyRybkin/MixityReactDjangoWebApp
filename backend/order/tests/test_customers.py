@@ -246,22 +246,7 @@ class TestCustomerConstructionObjectsAPIDetailAPI(
 
     def test_inactive_construction_object_returns_404(self) -> None:
         """Test inactive construction object returns 404."""
-        self._logger_header("TEST: Inactive construction object returns 404.")
-        self.obj.is_active = False
-        self.obj.save(update_fields=["is_active"])
-
-        response = self.client.get(self.url)
-
-        self.assertEqual(
-            response.status_code,
-            status.HTTP_404_NOT_FOUND,
-        )
-
-        print(
-            f"{self.INDENT}{self.COLOR['OK']}"
-            "✓ Inactive construction object returns 404 | HTTP 404"
-            f"{self.COLOR['END']}"
-        )
+        self._assert_inactive_object_returns_404()
 
 
 class TestCustomerPriceHistory(

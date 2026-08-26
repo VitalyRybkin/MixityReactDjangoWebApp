@@ -1,5 +1,5 @@
 import logging
-from typing import Any, Optional
+from typing import Any
 from unittest import SkipTest
 
 from django.contrib.auth import get_user_model
@@ -17,6 +17,7 @@ from core.tests.utils import TestLoggerMixin, UploadSpec
 from core.tests.validation_tests import ValidationContractMixin
 from core.tests.visibility_tests import (
     ActiveVisibilityContractMixin,
+    InactiveObjectVisibilityContractMixin,
     ReadOnlyActiveFieldContractMixin,
     SoftDeleteContractMixin,
 )
@@ -49,6 +50,7 @@ class BaseAPIContractTestCase(
     QuerysetContractMixin,
     AuthenticationContractMixin,
     RelatedObjectContractMixin,
+    InactiveObjectVisibilityContractMixin,
     BaseTestCase,
 ):
     """
@@ -61,8 +63,11 @@ class BaseAPIContractTestCase(
 
     model: Any = None
     factory: Any = None
-    url_name: Optional[str | None] = None
-    pk_url_name: Optional[str | None] = None
+
+    url: str | None = None
+    url_name: str | None = None
+    pk_url_name: str | None = None
+
     upload_file_spec: UploadSpec | None = None
 
     def get_url_kwargs(self) -> dict[str, Any]:

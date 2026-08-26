@@ -45,15 +45,22 @@ class AuthenticationContractMixin:
         if not self.check_authentication:
             return
 
-        client = cast(APIClient,getattr(self, "client"),)
-        url = cast(str,getattr(self, "url"),)
-        logger = cast(TestLoggerMixin,self,)
+        client = cast(
+            APIClient,
+            getattr(self, "client"),
+        )
+        url = cast(
+            str,
+            getattr(self, "url"),
+        )
+        logger = cast(
+            TestLoggerMixin,
+            self,
+        )
 
         method_name = self.authentication_method.lower()
 
-        logger._logger_header(
-            f"AUTHENTICATION {method_name.upper()}: {url}"
-        )
+        logger._logger_header(f"AUTHENTICATION {method_name.upper()}: {url}")
 
         client.force_authenticate(user=None)
 

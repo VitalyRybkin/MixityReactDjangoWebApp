@@ -7,6 +7,7 @@ from rest_framework import status
 from catalog.tests.api.factories import PurchasePriceHistoryFactory
 from catalog.tests.api.test_products import BaseTestPriceHistory
 from core.tests.base_test_case import BaseAPIContractMixin, BaseAPIMixin
+from core.tests.http_method_tests import DisallowedMethodsContractMixin
 from core.tests.order_form_access_tests import OrderFormAccessContractMixin
 from core.tests.utils import FieldSpec, UploadSpec
 from stock.models import Warehouse
@@ -119,7 +120,7 @@ class TestWarehouseRetrieveUpdate(WarehouseBaseTest, BaseAPIMixin):
         self._retrieve_object_by_id_not_found()
 
 
-class TestWarehouseUploadMap(BaseAPIMixin):
+class TestWarehouseUploadMap(DisallowedMethodsContractMixin, BaseAPIMixin):
     """
     Implements test cases for uploading map files in the warehouse
     module.
@@ -147,6 +148,12 @@ class TestWarehouseUploadMap(BaseAPIMixin):
     }
     check_get_permissions = False
     authentication_method = "patch"
+
+    disallowed_methods = (
+        "get",
+        "put",
+        "delete",
+    )
 
     def test_upload_map(self) -> None:
         """
@@ -225,12 +232,15 @@ class TestWarehouseUploadMap(BaseAPIMixin):
             f"{self.COLOR['END']}"
         )
 
-    def test_get_is_not_allowed(self) -> None:
-        response = self.client.get(self.url)
+    def test_patch_inactive_warehouse_returns_404(self) -> None:
+        temp = self.factory.build()
 
-        self.assertEqual(
-            response.status_code,
-            status.HTTP_405_METHOD_NOT_ALLOWED,
+        self._assert_inactive_object_returns_404(
+            method="patch",
+            payload={
+                "directions": temp.directions,
+            },
+            request_format="multipart",
         )
 
 

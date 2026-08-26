@@ -71,7 +71,7 @@ class WarehouseUploadMapAPIView(BaseUpdateGenericAPIView):
     update_serializer_class = WarehouseMapSerializer
     errors_read = ERRORS_DETAIL
 
-    queryset = Warehouse.objects.all()
+    queryset = Warehouse.objects.active()
     serializer_class = WarehouseMapSerializer
 
     parser_classes = (MultiPartParser, FormParser)
