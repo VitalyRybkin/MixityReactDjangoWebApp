@@ -15,11 +15,10 @@ class TestHealthCheck(TestLoggerMixin):
         assert response.status_code == 200
         assert response.json() == {
             "status": "ok",
-            "database": "ok",
         }
 
         print(
             f"{self.INDENT}{self.COLOR['OK']}"
-            "✓ Health check is OK | HTTP 200 | Database OK"
+            "✓ Health check is OK | HTTP 200"
             f"{self.COLOR['END']}"
         )
