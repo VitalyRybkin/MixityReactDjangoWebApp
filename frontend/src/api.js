@@ -9,28 +9,57 @@ const api = axios.create({
 api.interceptors.request.use(
     (config) => {
         const token = localStorage.getItem(ACCESS_TOKEN)
+
         if (token) {
             config.headers = config.headers ?? {}
             config.headers.Authorization = `Bearer ${token}`
         }
+
         return config
     },
     (error) => Promise.reject(error),
 )
 
-let isRefreshing = false
-let refreshQueue = []
+let refreshPromise = null
 
-function processQueue(error, newAccessToken) {
-    refreshQueue.forEach(({ resolve, reject }) => {
-        if (error) reject(error)
-        else resolve(newAccessToken)
-    })
-    refreshQueue = []
+export async function refreshAccessToken() {
+    if (refreshPromise) {
+        return refreshPromise
+    }
+
+    refreshPromise = (async () => {
+        const refresh = localStorage.getItem(REFRESH_TOKEN)
+
+        if (!refresh) {
+            throw new Error('Refresh token is missing')
+        }
+
+        const response = await api.post('/api/auth/token/refresh/', {
+            refresh,
+        })
+
+        const newAccess = response.data.access
+        const newRefresh = response.data.refresh
+
+        localStorage.setItem(ACCESS_TOKEN, newAccess)
+
+        if (newRefresh) {
+            localStorage.setItem(REFRESH_TOKEN, newRefresh)
+        }
+
+        return newAccess
+    })()
+
+    try {
+        return await refreshPromise
+    } finally {
+        refreshPromise = null
+    }
 }
 
 api.interceptors.response.use(
     (response) => response,
+
     async (error) => {
         const originalRequest = error.config
 
@@ -41,8 +70,7 @@ api.interceptors.response.use(
             })
         }
 
-        const isLoginRequest =
-            originalRequest.url?.endsWith('/api/auth/token/')
+        const isLoginRequest = originalRequest.url?.endsWith('/api/auth/token/')
 
         if (isLoginRequest) {
             return Promise.reject(error)
@@ -52,56 +80,37 @@ api.interceptors.response.use(
             return Promise.reject(error)
         }
 
-        if (originalRequest.url?.includes('/api/auth/token/refresh/')) {
+        const isRefreshRequest = originalRequest.url?.includes('/api/auth/token/refresh/')
+
+        if (isRefreshRequest) {
             localStorage.removeItem(ACCESS_TOKEN)
             localStorage.removeItem(REFRESH_TOKEN)
+
             window.location.href = '/login'
+
             return Promise.reject(error)
         }
 
-        if (originalRequest._retry) return Promise.reject(error)
+        if (originalRequest._retry) {
+            return Promise.reject(error)
+        }
+
         originalRequest._retry = true
 
-        const refresh = localStorage.getItem(REFRESH_TOKEN)
-        if (!refresh) {
-            localStorage.removeItem(ACCESS_TOKEN)
-            window.location.href = '/login'
-            return Promise.reject(error)
-        }
-
-        if (isRefreshing) {
-            return new Promise((resolve, reject) => {
-                refreshQueue.push({
-                    resolve: (newToken) => {
-                        originalRequest.headers = originalRequest.headers ?? {}
-                        originalRequest.headers.Authorization = `Bearer ${newToken}`
-                        resolve(api(originalRequest))
-                    },
-                    reject,
-                })
-            })
-        }
-
-        isRefreshing = true
-
         try {
-            const res = await api.post('/api/auth/token/refresh/', { refresh })
-            const newAccess = res.data.access
-
-            localStorage.setItem(ACCESS_TOKEN, newAccess)
-            processQueue(null, newAccess)
+            const newAccess = await refreshAccessToken()
 
             originalRequest.headers = originalRequest.headers ?? {}
             originalRequest.headers.Authorization = `Bearer ${newAccess}`
+
             return api(originalRequest)
-        } catch (refreshErr) {
-            processQueue(refreshErr, null)
+        } catch (refreshError) {
             localStorage.removeItem(ACCESS_TOKEN)
             localStorage.removeItem(REFRESH_TOKEN)
+
             window.location.href = '/login'
-            return Promise.reject(refreshErr)
-        } finally {
-            isRefreshing = false
+
+            return Promise.reject(refreshError)
         }
     },
 )

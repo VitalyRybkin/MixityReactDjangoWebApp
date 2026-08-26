@@ -1,10 +1,10 @@
 from io import BytesIO
 from typing import Any, Dict
 
-from PIL import Image
 from django.contrib.auth import get_user_model
 from django.contrib.auth.models import Permission
 from django.core.files.uploadedfile import SimpleUploadedFile
+from PIL import Image
 from rest_framework import status
 
 from catalog.tests.api.factories import PurchasePriceHistoryFactory
@@ -120,7 +120,6 @@ class TestWarehouseRetrieveUpdate(WarehouseBaseTest, BaseAPIMixin):
     def test_not_found_error(self) -> None:
         """Test the error handling logic for retrieving a nonexistent warehouse."""
         self._retrieve_object_by_id_not_found()
-
 
     def test_directions_is_read_only(self) -> None:
         """

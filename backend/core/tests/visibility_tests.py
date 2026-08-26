@@ -121,12 +121,12 @@ class ReadOnlyActiveFieldContractMixin(_Base):
         )
 
     def _assert_field_is_read_only(
-            self,
-            *,
-            api_field: str,
-            model_field: str,
-            value: Any,
-            request_format: str = "json",
+        self,
+        *,
+        api_field: str,
+        model_field: str,
+        value: Any,
+        request_format: str = "json",
     ) -> None:
         self.obj.refresh_from_db()
 
@@ -140,9 +140,7 @@ class ReadOnlyActiveFieldContractMixin(_Base):
             original_field_value,
         )
 
-        self._logger_header(
-            f"READ ONLY PATCH: {self.url} [{api_field}]"
-        )
+        self._logger_header(f"READ ONLY PATCH: {self.url} [{api_field}]")
 
         response = self.client.patch(
             self.url,

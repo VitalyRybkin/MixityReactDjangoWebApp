@@ -5,7 +5,7 @@ import { Box, CircularProgress, Typography } from '@mui/material'
 
 import { jwtDecode } from 'jwt-decode'
 
-import api from '../../api.js'
+import { refreshAccessToken } from '../../api.js'
 import { ACCESS_TOKEN, REFRESH_TOKEN } from '../../constants.js'
 
 const SKEW_SECONDS = 30
@@ -17,6 +17,7 @@ function ProtectedRoute({ children }) {
     useEffect(() => {
         // Helps avoid duplicate authentication runs in development StrictMode.
         if (ranRef.current) return
+
         ranRef.current = true
         ;(async () => {
             try {
@@ -28,19 +29,12 @@ function ProtectedRoute({ children }) {
     }, [])
 
     const refreshToken = async () => {
-        const refresh = localStorage.getItem(REFRESH_TOKEN)
-
-        if (!refresh) {
+        try {
+            await refreshAccessToken()
+            setIsAuthorized(true)
+        } catch {
             setIsAuthorized(false)
-            return
         }
-
-        const response = await api.post('/api/auth/token/refresh/', {
-            refresh,
-        })
-
-        localStorage.setItem(ACCESS_TOKEN, response.data.access)
-        setIsAuthorized(true)
     }
 
     const auth = async () => {
@@ -58,6 +52,7 @@ function ProtectedRoute({ children }) {
         } catch {
             localStorage.removeItem(ACCESS_TOKEN)
             localStorage.removeItem(REFRESH_TOKEN)
+
             setIsAuthorized(false)
             return
         }

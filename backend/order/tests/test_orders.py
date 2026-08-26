@@ -115,7 +115,7 @@ class TestOrderUpdUploadAPIView(
 
     def test_upload_valid_pdf(self) -> None:
         """Upload a valid PDF file."""
-        self._logger_header("TEST: Upload a valid PDF file.")
+        self._logger_header("PDF VALIDATION:  Upload a valid PDF file.")
         file = make_test_pdf()
 
         response = self.client.patch(
@@ -142,7 +142,7 @@ class TestOrderUpdUploadAPIView(
 
     def test_upload_fake_pdf_returns_400(self) -> None:
         """Upload a fake PDF file."""
-        self._logger_header("➔ TEST: Upload a fake PDF file.")
+        self._logger_header("PDF VALIDATION:  Upload a fake PDF file.")
 
         file = SimpleUploadedFile(
             name="fake.pdf",
@@ -176,7 +176,7 @@ class TestOrderUpdUploadAPIView(
 
     def test_delete_upd_pdf(self) -> None:
         """Delete the uploaded PDF file."""
-        self._logger_header("TEST: Delete the uploaded PDF file.")
+        self._logger_header("PDF VALIDATION:  Delete the uploaded PDF file.")
 
         file = make_test_pdf()
 
@@ -223,7 +223,7 @@ class TestOrderUpdUploadAPIView(
     def test_replace_upd_pdf_deletes_old_file(self) -> None:
         """Replace the uploaded PDF file and delete the old file."""
         self._logger_header(
-            "TEST: Replace the uploaded PDF file and delete the old file."
+            "PDF VALIDATION:  Replace the uploaded PDF file and delete the old file."
         )
 
         old_file = make_test_pdf()
@@ -283,7 +283,7 @@ class TestOrderUpdUploadAPIView(
         mock_scan: MagicMock,
     ) -> None:
         """Upload a PDF file with malware."""
-        self._logger_header("TEST: Upload a PDF file with malware.")
+        self._logger_header("PDF VALIDATION:  Upload a PDF file with malware.")
 
         mock_scan.side_effect = MalwareDetectedError("Eicar-Test-Signature FOUND")
 
@@ -322,7 +322,7 @@ class TestOrderUpdUploadAPIView(
         mock_scan: MagicMock,
     ) -> None:
         """Upload a PDF file when ClamAV is unavailable."""
-        self._logger_header("TEST: Upload a PDF file when ClamAV is unavailable.")
+        self._logger_header("PDF VALIDATION:  Upload a PDF file when ClamAV is unavailable.")
 
         mock_scan.side_effect = ClamAVUnavailableError("ClamAV недоступен.")
 
@@ -356,7 +356,7 @@ class TestOrderUpdUploadAPIView(
 
     def test_upload_without_change_order_permission_returns_403(self) -> None:
         """Upload a PDF file without change order permission."""
-        self._logger_header("TEST: Upload a PDF file without change order permission.")
+        self._logger_header("PDF VALIDATION:  Upload a PDF file without change order permission.")
 
         user_model = get_user_model()
 
@@ -395,7 +395,7 @@ class TestOrderUpdUploadAPIView(
         """
         Upload a PDF file with change order permission.
         """
-        self._logger_header("TEST: Upload a PDF file with change order permission.")
+        self._logger_header("PDF VALIDATION:  Upload a PDF file with change order permission.")
         user_model = get_user_model()
 
         user = user_model.objects.create_user(
