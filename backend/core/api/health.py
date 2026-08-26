@@ -17,7 +17,6 @@ def health_check(request):
         return JsonResponse(
             {
                 "status": "ok",
-                "database": "ok",
             }
         )
 
@@ -27,7 +26,6 @@ def health_check(request):
         return JsonResponse(
             {
                 "status": "error",
-                "database": "error",
             },
             status=503,
         )
