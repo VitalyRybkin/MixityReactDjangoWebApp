@@ -152,6 +152,37 @@ db-backups:
 	@echo "PostgreSQL backups:"
 	@ls -lht ../backups/postgres/*.dump 2>/dev/null || echo "No backups found"
 
+media-backup:
+	@mkdir -p ../backups/media
+	@FILE="../backups/media/media_$$(date +%Y-%m-%d_%H-%M-%S).tar.gz"; \
+	echo "Creating media backup: $$FILE"; \
+	docker compose -f ../docker-compose.yml exec -T frontend \
+		tar -czf - -C /var/www/media . \
+		> "$$FILE"; \
+	if [ ! -s "$$FILE" ]; then \
+		echo "Media backup failed: file is empty"; \
+		rm -f "$$FILE"; \
+		exit 1; \
+	fi; \
+	if ! tar -tzf "$$FILE" >/dev/null 2>&1; then \
+		echo "Media backup failed: archive is invalid"; \
+		rm -f "$$FILE"; \
+		exit 1; \
+	fi; \
+	echo "Media backup created successfully:"; \
+	ls -lh "$$FILE"; \
+	echo "Removing media backups older than 5 days..."; \
+	find ../backups/media \
+		-type f \
+		-name "media_*.tar.gz" \
+		-mtime +5 \
+		-delete; \
+	echo "Media backup cleanup completed."
+
+media-backups:
+	@echo "Media backups:"
+	@ls -lht ../backups/media/*.tar.gz 2>/dev/null || echo "No media backups found"
+
 db-restore:
 	@if [ -z "$(FILE)" ]; then \
 		echo "Usage: make db-restore FILE=../backups/postgres/<backup>.dump"; \
