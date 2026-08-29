@@ -26,6 +26,7 @@ COPY . .
 
 RUN chmod +x /app/entrypoint.sh \
     && useradd --create-home --shell /usr/sbin/nologin django \
+    && mkdir -p /app/media /app/staticfiles \
     && chown -R django:django /app
 
 USER django
