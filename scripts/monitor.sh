@@ -4,13 +4,13 @@ set -u
 
 PROJECT_DIR="/opt/MixityReactDjangoWebApp"
 BACKUP_DIR="$PROJECT_DIR/backups/postgres"
+MEDIA_BACKUP_DIR="$PROJECT_DIR/backups/media"
 
 DISK_WARNING=80
 DISK_CRITICAL=90
 INODE_WARNING=80
 INODE_CRITICAL=90
 
-# Backup считается устаревшим после 26 часов.
 BACKUP_MAX_AGE_MINUTES=$((26 * 60))
 
 ERRORS=0
@@ -178,6 +178,31 @@ else
 
 fi
 
+# --------------------------------------------------
+# Media backup
+# --------------------------------------------------
+LATEST_MEDIA_BACKUP="$(
+    find "$MEDIA_BACKUP_DIR" \
+        -maxdepth 1 \
+        -type f \
+        -name 'media_*.tar.gz' \
+        -printf '%T@ %p\n' 2>/dev/null |
+    sort -nr |
+    head -n 1 |
+    cut -d' ' -f2-
+)"
+
+if [ -z "$LATEST_MEDIA_BACKUP" ]; then
+    critical "No media backup found"
+else
+    MEDIA_BACKUP_AGE_MINUTES=$(( ($(date +%s) - $(stat -c %Y "$LATEST_MEDIA_BACKUP")) / 60 ))
+
+    if [ "$MEDIA_BACKUP_AGE_MINUTES" -gt "$BACKUP_MAX_AGE_MINUTES" ]; then
+        critical "Latest media backup is ${MEDIA_BACKUP_AGE_MINUTES} minutes old"
+    else
+        ok "Latest media backup: $(basename "$LATEST_MEDIA_BACKUP") (${MEDIA_BACKUP_AGE_MINUTES} minutes old)"
+    fi
+fi
 
 echo "========================================"
 echo "Warnings: $WARNINGS"
