@@ -88,9 +88,9 @@ class TestCustomerConstructionObjectsAPIList(
         return self.obj.customer
 
     def _assert_create_for_customer_returns_404(
-            self,
-            customer_id: int,
-            case: str,
+        self,
+        customer_id: int,
+        case: str,
     ) -> None:
         url = reverse(
             self.pk_url_name,

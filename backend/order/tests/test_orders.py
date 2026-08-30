@@ -114,9 +114,13 @@ class TestOrderUpdUploadAPIView(
         super().tearDown()
 
     def test_upload_valid_pdf(self) -> None:
-        """Upload a valid PDF file."""
-        self._logger_header("PDF VALIDATION:  Upload a valid PDF file.")
+        """Upload a valid PDF using a randomized server-side filename."""
+        self._logger_header("PDF VALIDATION: Upload a valid PDF file.")
+
+        original_filename = "secret_customer_invoice_123.pdf"
+
         file = make_test_pdf()
+        file.name = original_filename
 
         response = self.client.patch(
             self.url,
@@ -133,11 +137,34 @@ class TestOrderUpdUploadAPIView(
         self.order.refresh_from_db()
 
         self.assertTrue(self.order.upd_pdf)
-        self.assertTrue(self.order.upd_pdf.name.endswith(".pdf"))
-        self.assertTrue(self.order.upd_pdf.storage.exists(self.order.upd_pdf.name))
+
+        stored_name = self.order.upd_pdf.name
+        parts = stored_name.split("/")
+
+        self.assertEqual(parts[0], "docs")
+        self.assertEqual(parts[1], "upd")
+        self.assertEqual(len(parts[2]), 4)
+        self.assertTrue(parts[2].isdigit())
+
+        stored_filename = parts[3]
+        stem, extension = stored_filename.rsplit(".", 1)
+
+        self.assertEqual(extension, "pdf")
+        self.assertEqual(len(stem), 32)
+
+        # UUID hex must contain only hexadecimal characters.
+        int(stem, 16)
+
+        # Original user-controlled filename must not reach storage.
+        self.assertNotIn(original_filename, stored_name)
+        self.assertNotIn("secret_customer_invoice_123", stored_name)
+
+        self.assertTrue(self.order.upd_pdf.storage.exists(stored_name))
 
         print(
-            f"{self.INDENT}{self.COLOR['OK']}✓ PDF uploaded successfully.{self.COLOR['END']}"
+            f"{self.INDENT}{self.COLOR['OK']}"
+            "✓ PDF stored with randomized UUID filename"
+            f"{self.COLOR['END']}"
         )
 
     def test_upload_fake_pdf_returns_400(self) -> None:
@@ -322,7 +349,9 @@ class TestOrderUpdUploadAPIView(
         mock_scan: MagicMock,
     ) -> None:
         """Upload a PDF file when ClamAV is unavailable."""
-        self._logger_header("PDF VALIDATION:  Upload a PDF file when ClamAV is unavailable.")
+        self._logger_header(
+            "PDF VALIDATION:  Upload a PDF file when ClamAV is unavailable."
+        )
 
         mock_scan.side_effect = ClamAVUnavailableError("ClamAV недоступен.")
 
@@ -356,7 +385,9 @@ class TestOrderUpdUploadAPIView(
 
     def test_upload_without_change_order_permission_returns_403(self) -> None:
         """Upload a PDF file without change order permission."""
-        self._logger_header("PDF VALIDATION:  Upload a PDF file without change order permission.")
+        self._logger_header(
+            "PDF VALIDATION:  Upload a PDF file without change order permission."
+        )
 
         user_model = get_user_model()
 
@@ -395,7 +426,9 @@ class TestOrderUpdUploadAPIView(
         """
         Upload a PDF file with change order permission.
         """
-        self._logger_header("PDF VALIDATION:  Upload a PDF file with change order permission.")
+        self._logger_header(
+            "PDF VALIDATION:  Upload a PDF file with change order permission."
+        )
         user_model = get_user_model()
 
         user = user_model.objects.create_user(

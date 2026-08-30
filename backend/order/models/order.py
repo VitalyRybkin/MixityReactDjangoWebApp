@@ -1,6 +1,13 @@
+from uuid import uuid4
+
 from django.conf import settings
 from django.core.validators import FileExtensionValidator
 from django.db import models
+from django.utils import timezone
+
+
+def upd_pdf_upload_to(instance: "Order", filename: str) -> str:
+    return f"docs/upd/{timezone.now():%Y}/{uuid4().hex}.pdf"
 
 
 class Order(models.Model):
@@ -82,7 +89,7 @@ class Order(models.Model):
     )
 
     upd_pdf = models.FileField(
-        upload_to="docs/upd/%Y/",
+        upload_to=upd_pdf_upload_to,
         validators=[FileExtensionValidator(allowed_extensions=["pdf"])],
         verbose_name="УПД в формате PDF",
         null=True,
