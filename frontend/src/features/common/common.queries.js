@@ -31,7 +31,10 @@ export const fetchDocumentation = async () => {
 }
 
 export const fetchDocumentationDetail = async (id) => {
-    const res = await api.get(documentationApiPaths.detail(id))
+    const res = await api.get(documentationApiPaths.detail(id), {
+        responseType: 'blob',
+    })
+
     return res.data
 }
 

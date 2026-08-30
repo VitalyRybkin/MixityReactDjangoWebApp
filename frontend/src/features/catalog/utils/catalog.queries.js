@@ -1,7 +1,9 @@
 // --- UTILS ---
-import api from "../../../api.js";
-import {catalogApiPaths as productApiPaths} from "./catalogApiPaths.js";
-import {useQuery} from "@tanstack/react-query";
+import { useQuery } from '@tanstack/react-query'
+
+import api from '../../../api.js'
+
+import { catalogApiPaths as productApiPaths } from './catalogApiPaths.js'
 
 const unwrapList = (data) => {
     if (Array.isArray(data)) return data
@@ -16,7 +18,7 @@ export const productKeys = {
 }
 
 // --- API FUNCTIONS ---
-export const fetchProducts = async() =>{
+export const fetchProducts = async () => {
     const res = await api.get(productApiPaths.listCreate())
     return unwrapList(res.data)
 }

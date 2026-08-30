@@ -76,7 +76,19 @@ api.interceptors.response.use(
             return Promise.reject(error)
         }
 
-        if (error.response.status !== 401) {
+        const status = error.response.status
+
+        if (status === 403) {
+            const from = `${window.location.pathname}${window.location.search}`
+
+            if (window.location.pathname !== '/403') {
+                window.location.replace(`/403?from=${encodeURIComponent(from)}`)
+            }
+
+            return Promise.reject(error)
+        }
+
+        if (status !== 401) {
             return Promise.reject(error)
         }
 

@@ -1,16 +1,16 @@
 import React from 'react'
+import { useNavigate } from 'react-router-dom'
 
 import { Box, Card, Divider, Typography } from '@mui/material'
 import { Table, TableBody, TableCell, TableContainer, TableHead, TableRow } from '@mui/material'
 
 import ContactsListRow from './ContactsListRow.jsx'
-import {useNavigate} from "react-router-dom";
-import AddAction from "./ui/buttons/AddAction.jsx";
+import AddAction from './ui/buttons/AddAction.jsx'
 
 const tableHeaders = ['Имя', 'Фамилия', 'Должность', 'Email', 'Телефоны', '']
 
 const ContactsListView = ({ contacts, onAdd, onEdit, onDelete, onDeletePhone, isDeletingContact, isDeletingPhone }) => {
-    useNavigate();
+    useNavigate()
     return (
         <Card variant="outlined" sx={{ width: '100%', borderRadius: 1 }}>
             <Box sx={{ p: 3, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>

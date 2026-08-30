@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { Navigate, useLocation } from 'react-router-dom'
+import { Navigate, useLocation, useSearchParams } from 'react-router-dom'
 
 import { Box, Typography } from '@mui/material'
 
@@ -8,8 +8,9 @@ export default function Forbidden() {
     const [redirect, setRedirect] = useState(false)
 
     const location = useLocation()
+    const [searchParams] = useSearchParams()
 
-    const from = location.state?.from
+    const from = location.state?.from ?? searchParams.get('from') ?? 'запрошенной странице'
 
     useEffect(() => {
         if (seconds === 0) {

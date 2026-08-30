@@ -8,7 +8,6 @@ import AddAction from '../components/ui/buttons/AddAction.jsx'
 import EditAction from '../components/ui/buttons/EditAction.jsx'
 import ViewAction from '../components/ui/buttons/ViewAction.jsx'
 
-
 export default function useLoadImage() {
     const navigate = useNavigate()
 

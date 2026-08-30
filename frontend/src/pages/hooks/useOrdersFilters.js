@@ -26,9 +26,7 @@ const loadFiltersFromStorage = (storageKey, defaults) => {
             const storedValue = parsed[field]
 
             result[field] =
-                storedValue !== undefined
-                    ? normalizeStoredValue(storedValue, defaults[field])
-                    : defaults[field]
+                storedValue !== undefined ? normalizeStoredValue(storedValue, defaults[field]) : defaults[field]
 
             return result
         }, {})
@@ -47,13 +45,9 @@ const saveFiltersToStorage = (storageKey, filters) => {
 }
 
 export function useOrdersFilters(storageKey, initialDefaults) {
-    const [filters, setFilters] = useState(() =>
-        loadFiltersFromStorage(storageKey, initialDefaults)
-    )
+    const [filters, setFilters] = useState(() => loadFiltersFromStorage(storageKey, initialDefaults))
 
-    const [draftFilters, setDraftFilters] = useState(() =>
-        loadFiltersFromStorage(storageKey, initialDefaults)
-    )
+    const [draftFilters, setDraftFilters] = useState(() => loadFiltersFromStorage(storageKey, initialDefaults))
 
     const selectedPreset = draftFilters.selectedPreset ?? null
 
@@ -82,18 +76,12 @@ export function useOrdersFilters(storageKey, initialDefaults) {
     }
 
     const handleDraftFilterChange = (field, value) => {
-        const isDateField =
-            field === 'dateFrom' || field === 'dateTo'
+        const isDateField = field === 'dateFrom' || field === 'dateTo'
 
         setDraftFilters((prev) => ({
             ...prev,
-            [field]:
-                isDateField && value
-                    ? dayjs(value).format('YYYY-MM-DD')
-                    : value,
-            ...(isDateField
-                ? { selectedPreset: null }
-                : {}),
+            [field]: isDateField && value ? dayjs(value).format('YYYY-MM-DD') : value,
+            ...(isDateField ? { selectedPreset: null } : {}),
         }))
     }
 

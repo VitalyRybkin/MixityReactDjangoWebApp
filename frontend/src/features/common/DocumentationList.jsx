@@ -20,8 +20,10 @@ import AppBreadcrumbs from '../../components/AppBreadcrumbs.jsx'
 import ErrorState from '../../components/ui/ErrorState.jsx'
 import DownloadAction from '../../components/ui/buttons/DownloadAction.jsx'
 import EmailLink from '../../components/ui/buttons/EmailLink.jsx'
+import AppSnackbar from '../../components/ui/feedback/AppSnackbar.jsx'
+import useSnackbar from '../../hooks/useSnackbar.js'
 
-import { useGetDocumentation } from './common.queries.js'
+import { fetchDocumentationDetail, useGetDocumentation } from './common.queries.js'
 import { documentationApiPaths } from './documentationApiPaths.js'
 
 export default function DocumentationListPage() {
@@ -32,8 +34,7 @@ export default function DocumentationListPage() {
         tags: Array.isArray(doc.tag) ? doc.tag : doc.tag ? [doc.tag] : [],
     }))
 
-    const uniqueTags = [...new Set(normalizedDocs.flatMap((doc) => doc.tag))]
-
+    const uniqueTags = [...new Set(normalizedDocs.flatMap((doc) => doc.tags))]
     const [selectedDocs, setSelectedDocs] = useState([])
 
     const handleSelect = (id) => {
@@ -41,12 +42,12 @@ export default function DocumentationListPage() {
     }
 
     const [downloadLoading, setDownloadLoading] = useState(false)
-    const [actionError, setActionError] = useState(null)
+
+    const { snack, showSnackbar, closeSnackbar } = useSnackbar()
 
     const handleDownloadAll = async () => {
         if (!selectedDocs.length) return
 
-        setActionError(null)
         setDownloadLoading(true)
 
         try {
@@ -67,10 +68,25 @@ export default function DocumentationListPage() {
             document.body.removeChild(link)
 
             window.URL.revokeObjectURL(url)
-        } catch (error) {
-            setActionError(error)
+        } catch {
+            showSnackbar('Не удалось скачать документы.', 'error')
         } finally {
             setDownloadLoading(false)
+        }
+    }
+
+    const handleViewDocument = async (doc) => {
+        try {
+            const blob = await fetchDocumentationDetail(doc.id)
+            const blobUrl = URL.createObjectURL(blob)
+
+            window.open(blobUrl, '_blank', 'noopener,noreferrer')
+
+            setTimeout(() => {
+                URL.revokeObjectURL(blobUrl)
+            }, 60_000)
+        } catch {
+            showSnackbar('Не удалось открыть документ.', 'error')
         }
     }
 
@@ -111,14 +127,8 @@ export default function DocumentationListPage() {
                 {downloadLoading && <CircularProgress size={20} />}
 
                 <Stack direction="row" spacing={2}>
-                    <>
-                        <EmailLink title="Отправить" onClick={handleSendEmail} />
-                        <DownloadAction onClick={handleDownloadAll} />
-
-                        {actionError && (
-                            <ErrorState error={actionError} onRetry={handleDownloadAll} loading={downloadLoading} />
-                        )}
-                    </>
+                    <EmailLink title="Отправить" onClick={handleSendEmail} />
+                    <DownloadAction onClick={handleDownloadAll} />
                 </Stack>
             </Box>
 
@@ -174,12 +184,7 @@ export default function DocumentationListPage() {
                                             <TableRow
                                                 key={doc.id}
                                                 hover
-                                                onClick={() =>
-                                                    window.open(
-                                                        doc.public_url.replace('/docs/', '/api/common/docs/'),
-                                                        '_blank',
-                                                    )
-                                                }
+                                                onClick={() => handleViewDocument(doc)}
                                                 sx={{ cursor: 'pointer' }}
                                             >
                                                 <TableCell padding="checkbox">
@@ -203,6 +208,8 @@ export default function DocumentationListPage() {
                     </Table>
                 </TableContainer>
             )}
+
+            <AppSnackbar open={snack.open} message={snack.message} severity={snack.severity} onClose={closeSnackbar} />
         </Box>
     )
 }

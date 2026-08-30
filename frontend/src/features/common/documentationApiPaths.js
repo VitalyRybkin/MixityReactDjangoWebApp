@@ -1,7 +1,7 @@
 export const documentationApiPaths = {
     list: () => '/api/common/documentation/',
-    detail: (id) => `/api/core/documentation/${id}/`,
-    download: (id) => `/api/core/documentation/${id}/download/`,
+    detail: (id) => `/api/common/documentation/${id}/`,
+    download: (id) => `/api/common/documentation/${id}/download/`,
     downloadZip: () => '/api/common/documentation/download-zip/',
 }
 

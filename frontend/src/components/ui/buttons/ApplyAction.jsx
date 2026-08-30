@@ -3,10 +3,7 @@ import { CircularProgress } from '@mui/material'
 
 import IconAction from './IconAction.jsx'
 
-export default function ApplyAction({sx,
-                                        loading = false,
-                                        ...props
-                                    }) {
+export default function ApplyAction({ sx, loading = false, ...props }) {
     return (
         <IconAction
             title="Применить"
@@ -16,11 +13,7 @@ export default function ApplyAction({sx,
                 ...sx,
             }}
         >
-            {loading ? (
-                <CircularProgress size={20} />
-            ) : (
-                <TuneIcon fontSize="small" />
-            )}
+            {loading ? <CircularProgress size={20} /> : <TuneIcon fontSize="small" />}
         </IconAction>
     )
 }
