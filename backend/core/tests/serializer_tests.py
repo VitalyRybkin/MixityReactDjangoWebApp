@@ -4,38 +4,55 @@ from unittest import TestCase
 from core.tests.base_view_test_case import BaseViewTestCase
 
 
-class SerializerSelectionContractMixin(BaseViewTestCase):
+class SerializerSelectionContractMixin:
     """
     Test case for view serializer classes.
 
     Attributes:
-        _view_class: The view class being tested.
         _cases: A list of test cases, each consisting of a method and its
             expected serializer.
 
     Methods:
-        test_serializer_classes:
+        _serializer_classes_logic:
             Tests the serializer class for each method and its corresponding
             expected serializer.
     """
 
     __test__ = False
-    _cases = []
+    _cases: ClassVar[list[tuple[str, Any]]] = []
 
-    def test_serializer_classes(self) -> None:
+    def _serializer_classes_logic(self) -> None:
+        """
+        Tests the serializer class for each method and its corresponding
+        expected serializer.
+        """
+        test_case = cast(BaseViewTestCase, self)
+
         for method, serializer in self._cases:
-            with self.subTest(method=method):
-                self._assert_serializer_class(
+            with test_case.subTest(method=method):
+                test_case._assert_serializer_class(
                     method=method,
                     expected_serializer=serializer,
                 )
 
 
 class ExcludedSerializerFieldsContractMixin:
+    """
+    Mixin class that provides functionality to validate excluded serializer fields.
+
+    Attributes:
+        serializer_class (ClassVar[Any]): The serializer class to be tested.
+        excluded_fields (ClassVar[tuple[str, ...]]): A tuple containing field names that
+            should not be present in the serializer's fields.
+    """
+
     serializer_class: ClassVar[Any]
     excluded_fields: ClassVar[tuple[str, ...]] = ()
 
-    def test_excluded_fields_are_not_exposed(self) -> None:
+    def _excluded_fields_are_not_exposed_logic(self) -> None:
+        """
+        Tests that the excluded fields are not present in the serializer's fields.
+        """
         test_case = cast(TestCase, self)
         serializer = self.serializer_class()
 

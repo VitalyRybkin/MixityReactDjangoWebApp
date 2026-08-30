@@ -74,6 +74,10 @@ class TestOrderUpdUploadAPIView(
     AuthenticationContractMixin,
     TestLoggerMixin,
 ):
+    """
+    Tests the OrderUpdUploadAPIView view.
+    """
+
     disallowed_methods = (
         "get",
         "put",
@@ -114,10 +118,16 @@ class TestOrderUpdUploadAPIView(
         super().tearDown()
 
     def test_disallowed_methods_return_405(self) -> None:
+        """
+        Tests that disallowed methods return a 405 Method Not Allowed status.
+        """
         self._disallowed_methods_logic()
 
     def test_upload_valid_pdf(self) -> None:
-        """Upload a valid PDF using a randomized server-side filename."""
+        """
+        Tests that uploading a valid PDF using a randomized server-side filename
+        returns a 200 OK status.
+        """
         self._logger_header("PDF VALIDATION: Upload a valid PDF file.")
 
         original_filename = "secret_customer_invoice_123.pdf"
@@ -765,6 +775,7 @@ class TestOrderRetrieveUpdateDestroySerializers(
     """
 
     __test__ = True
+
     _view_class = OrderRetrieveUpdateDestroyAPIView
     _cases = [
         ("GET", OrderReadSerializer),
@@ -773,6 +784,9 @@ class TestOrderRetrieveUpdateDestroySerializers(
         ("DELETE", OrderWriteSerializer),
     ]
 
+    def test_serializer_classes(self) -> None:
+        self._serializer_classes_logic()
+
 
 class TestOrderListCreateSerializers(
     SerializerSelectionContractMixin, BaseViewTestCase
@@ -780,11 +794,15 @@ class TestOrderListCreateSerializers(
     """Test class for verifying OrderListCreateAPIView behavior."""
 
     __test__ = True
+
     _view_class = OrderListCreateAPIView
     _cases = [
         ("GET", OrderReadSerializer),
         ("POST", OrderWriteSerializer),
     ]
+
+    def test_serializer_classes(self) -> None:
+        self._serializer_classes_logic()
 
 
 @dataclass(frozen=True, slots=True)
@@ -1197,6 +1215,10 @@ class TestOrderWriteSerializerSecurity(
     ExcludedSerializerFieldsContractMixin,
     APITestCase,
 ):
+    """
+    Tests that the excluded fields are not present in the serializer's fields.
+    """
+
     serializer_class = OrderWriteSerializer
 
     excluded_fields = (
@@ -1205,12 +1227,19 @@ class TestOrderWriteSerializerSecurity(
         "order_products",
     )
 
+    def test_excluded_fields_are_not_exposed(self) -> None:
+        self._excluded_fields_are_not_exposed_logic()
+
 
 class TestOrdersDownloadPermissions(
     APITestCase,
     AuthenticationContractMixin,
     TestLoggerMixin,
 ):
+    """
+    Tests the permissions for downloading orders.
+    """
+
     __test__ = True
 
     def setUp(self) -> None:
@@ -1219,6 +1248,10 @@ class TestOrdersDownloadPermissions(
         self.url = reverse(f"order_orders:{OrderRoutes.DOWNLOAD.name}")
 
     def test_without_export_permission_returns_403(self) -> None:
+        """
+        Tests that without the export permission, a GET request to the download
+        orders endpoint returns a 403 Forbidden status.
+        """
         user = get_user_model().objects.create_user(
             username="export_no_permission",
             password="test_password",
@@ -1240,6 +1273,10 @@ class TestOrdersDownloadPermissions(
         )
 
     def test_with_export_permission_returns_200(self) -> None:
+        """
+        Tests that with the export permission, a GET request to the download
+        orders endpoint returns a 200 OK status.
+        """
         user = get_user_model().objects.create_user(
             username="export_with_permission",
             password="test_password",
@@ -1268,6 +1305,9 @@ class TestOrdersDownloadPermissions(
         )
 
     def test_view_order_permission_is_not_enough_for_export(self) -> None:
+        """
+        Tests that the view_order permission is not enough for exporting orders.
+        """
         user = get_user_model().objects.create_user(
             username="export_view_only",
             password="test_password",
