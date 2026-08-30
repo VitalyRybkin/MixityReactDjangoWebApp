@@ -67,6 +67,15 @@ CSRF_TRUSTED_ORIGINS = [
     if value.strip()
 ]
 
+DEFAULT_RENDERER_CLASSES = [
+    "rest_framework.renderers.JSONRenderer",
+]
+
+if DEBUG:
+    DEFAULT_RENDERER_CLASSES.append(
+        "rest_framework.renderers.BrowsableAPIRenderer"
+    )
+
 REST_FRAMEWORK = {
     "DEFAULT_AUTHENTICATION_CLASSES": (
         "rest_framework_simplejwt.authentication.JWTAuthentication",
@@ -75,6 +84,7 @@ REST_FRAMEWORK = {
         "rest_framework.permissions.IsAuthenticated",
         "core.api.permissions.StrictDjangoModelPermissions",
     ],
+    "DEFAULT_RENDERER_CLASSES": DEFAULT_RENDERER_CLASSES,
     "DEFAULT_SCHEMA_CLASS": "drf_spectacular.openapi.AutoSchema",
     "EXCEPTION_HANDLER": "core.api.exceptions.custom_exception_handler",
     "DEFAULT_THROTTLE_RATES": {

@@ -69,6 +69,7 @@ class DocumentationDetailView(BaseGenericAPIView, APIView):
     read_serializer_class = DocumentationSerializer
 
     serializer_class = DocumentationSerializer
+    queryset = Documentation.objects.all()
 
     def get(self, request: HttpRequest, pk: int) -> FileResponse:
         doc = get_object_or_404(Documentation, pk=pk)
@@ -84,7 +85,10 @@ class DocumentationDownloadView(BaseGenericAPIView, APIView):
 
     resource_name = "Documentation load"
     schema_tags = ["Documentation"]
+    queryset = Documentation.objects.all()
+
     read_serializer_class = DocumentationSerializer
+    serializer_class = DocumentationSerializer
 
     def get(self, request: HttpRequest, pk: int) -> FileResponse:
         doc = get_object_or_404(Documentation, pk=pk)
