@@ -68,6 +68,8 @@ class DocumentationDetailView(BaseGenericAPIView, APIView):
     schema_tags = ["Documentation"]
     read_serializer_class = DocumentationSerializer
 
+    serializer_class = DocumentationSerializer
+
     def get(self, request: HttpRequest, pk: int) -> FileResponse:
         doc = get_object_or_404(Documentation, pk=pk)
         file_obj, _filename = get_documentation_file_parts(doc)
