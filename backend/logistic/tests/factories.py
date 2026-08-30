@@ -23,7 +23,7 @@ class CarrierFactory(factory.django.DjangoModelFactory):
     class Meta:
         model = Carrier
 
-    name = factory.Faker("company")
+    name = factory.Sequence(lambda n: f"Carrier Company {n}")
     organization = factory.Faker("company")
     address = factory.Faker("address")
     description = factory.Faker("text")

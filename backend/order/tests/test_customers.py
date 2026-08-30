@@ -88,16 +88,16 @@ class TestCustomerConstructionObjectsAPIList(
         return self.obj.customer
 
     def _assert_create_for_customer_returns_404(
-        self,
-        customer_id: int,
+            self,
+            customer_id: int,
+            case: str,
     ) -> None:
-        """Test inactive construction object returns 404."""
-        self._logger_header("TEST: Inactive construction object returns 404.")
-
         url = reverse(
             self.pk_url_name,
             kwargs={"pk": customer_id},
         )
+
+        self._logger_header(f"ENDPOINT POST: {url}")
 
         payload = {
             "name": "Test construction object",
@@ -121,10 +121,9 @@ class TestCustomerConstructionObjectsAPIList(
             count_before,
         )
 
-        print(
-            f"{self.INDENT}{self.COLOR['OK']}"
-            "✓ Inactive construction object returns 404 | HTTP 404"
-            f"{self.COLOR['END']}"
+        self._logger_success(
+            case,
+            f"HTTP {response.status_code}",
         )
 
     def test_get_customer_construction_objects(self) -> None:
@@ -163,11 +162,13 @@ class TestCustomerConstructionObjectsAPIList(
 
         self._assert_create_for_customer_returns_404(
             customer.id,
+            "Inactive customer rejected",
         )
 
     def test_create_for_nonexistent_customer_returns_404(self) -> None:
         self._assert_create_for_customer_returns_404(
             999999,
+            "Nonexistent customer rejected",
         )
 
 

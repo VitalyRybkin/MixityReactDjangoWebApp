@@ -39,7 +39,7 @@ def make_uploaded_file(
 @pytest.mark.django_db
 class TestUpdPdfValidation(TestLoggerMixin):
     def test_valid_pdf(self) -> None:
-        self._logger_header("TEST: valid PDF")
+        self._logger_header("VALIDATION UPD PDF: valid PDF")
         file = make_uploaded_file(make_pdf())
 
         serializer = OrderUpdSerializer(
@@ -57,7 +57,7 @@ class TestUpdPdfValidation(TestLoggerMixin):
         )
 
     def test_fake_pdf_rejected(self) -> None:
-        self._logger_header("TEST: fake PDF")
+        self._logger_header("VALIDATION UPD PDF: fake PDF")
         file = make_uploaded_file(
             b"This is not a PDF file",
         )
@@ -77,7 +77,7 @@ class TestUpdPdfValidation(TestLoggerMixin):
         )
 
     def test_broken_pdf_rejected(self) -> None:
-        self._logger_header("TEST: broken PDF")
+        self._logger_header("VALIDATION UPD PDF: broken PDF")
         file = make_uploaded_file(
             b"%PDF-1.7\nbroken pdf content",
         )
@@ -97,7 +97,7 @@ class TestUpdPdfValidation(TestLoggerMixin):
         )
 
     def test_oversized_pdf_rejected(self) -> None:
-        self._logger_header("TEST: oversized PDF")
+        self._logger_header("VALIDATION UPD PDF: oversized PDF")
         content = b"%PDF-1.7\n" + b"x" * (MAX_UPD_PDF_SIZE + 1)
 
         file = make_uploaded_file(content)
@@ -117,7 +117,7 @@ class TestUpdPdfValidation(TestLoggerMixin):
         )
 
     def test_encrypted_pdf_rejected(self) -> None:
-        self._logger_header("TEST: encrypted PDF")
+        self._logger_header("VALIDATION UPD PDF: encrypted PDF")
         file = make_uploaded_file(
             make_pdf(encrypted=True),
         )
@@ -137,7 +137,7 @@ class TestUpdPdfValidation(TestLoggerMixin):
         )
 
     def test_null_is_allowed(self) -> None:
-        self._logger_header("TEST: null is allowed")
+        self._logger_header("VALIDATION UPD PDF: null is allowed")
         serializer = OrderUpdSerializer(
             data={"upd_pdf": None},
             partial=True,
