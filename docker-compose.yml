@@ -108,6 +108,11 @@ services:
 
     restart: unless-stopped
 
+    security_opt:
+      - no-new-privileges:true
+
+    pids_limit: 64
+
     healthcheck:
       test: ["CMD", "wget", "-q", "--spider", "http://127.0.0.1/"]
       interval: 30s
