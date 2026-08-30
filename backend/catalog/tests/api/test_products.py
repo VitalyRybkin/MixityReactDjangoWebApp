@@ -27,6 +27,12 @@ class TestProductAPIList(BaseAPIMixin):
         """Test that we can get a list of products."""
         return self._get_list_logic()
 
+    def test_product_image_validation(self) -> None:
+        self._image_field_validation_logic(
+            model=self.model,
+            field_name="product_image",
+        )
+
 
 class PriceHistoryTestHost(Protocol):
     factory: Any

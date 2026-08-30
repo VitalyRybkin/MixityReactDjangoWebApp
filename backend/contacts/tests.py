@@ -9,7 +9,6 @@ from contacts.serializers import ContactSerializer
 from contacts.views import ContactListCreateAPIView
 from core.tests.base_test_case import BaseAPIMixin
 from core.tests.base_view_test_case import BaseQuerysetTestCase
-from core.tests.parent_visibility_tests import ParentVisibilityContractMixin
 from core.tests.utils import FieldSpec
 from logistic.routes import CarrierRoutes
 from logistic.tests.factories import CarrierFactory
@@ -156,7 +155,9 @@ class TestContactAPICreate(BaseAPIMixin):
         )
 
     def test_create_with_inactive_parent_returns_400(self) -> None:
-        self._logger_header("TEST: Create contact with inactive parent returns 400")
+        self._logger_header(
+            f"TEST: POST {self.url_name} rejects contact with inactive parent"
+        )
 
         cases = [
             ("carrier", CarrierFactory),
@@ -178,7 +179,9 @@ class TestContactAPICreate(BaseAPIMixin):
                 )
 
     def test_contacts_with_inactive_parent_are_not_in_list(self) -> None:
-        self._logger_header("TEST: Contacts with inactive parent are hidden from list")
+        self._logger_header(
+            f"TEST: GET {self.url_name} hides contacts with inactive parent"
+        )
         cases = [
             ("carrier", CarrierFactory),
             ("warehouse", WarehouseFactory),
@@ -234,7 +237,9 @@ class TestContactAPIDelete(BaseAPIMixin):
             ("customer", CustomerFactory),
         ]
 
-        self._logger_header("TEST: Contact with inactive parent returns 404")
+        self._logger_header(
+            f"TEST: GET {self.url_name} hides contact with inactive parent"
+        )
 
         for field_name, factory in cases:
             with self.subTest(parent=field_name):
@@ -267,7 +272,7 @@ class TestContactListCreateAPIView(BaseQuerysetTestCase):
         )
 
 
-class TestCarrierContactsAPIList(ParentVisibilityContractMixin, BaseAPIMixin):
+class TestCarrierContactsAPIList(BaseAPIMixin):
     __test__ = True
     pk_url_name = f"logistic:{CarrierRoutes.CONTACTS.name}"
     factory = CarrierFactory
@@ -277,8 +282,14 @@ class TestCarrierContactsAPIList(ParentVisibilityContractMixin, BaseAPIMixin):
         ContactFactory.create_batch(3, carrier=self.obj)
         self._get_pk_list_logic(expected_contacts=3)
 
+    def test_inactive_parent_returns_404(self) -> None:
+        self._inactive_parent_visibility_logic()
 
-class TestWarehouseContactsAPIList(ParentVisibilityContractMixin, BaseAPIMixin):
+    def test_nonexistent_parent_returns_404(self) -> None:
+        self._nonexistent_parent_visibility_logic()
+
+
+class TestWarehouseContactsAPIList(BaseAPIMixin):
     __test__ = True
     pk_url_name = f"stock:{WarehouseRoutes.CONTACTS.name}"
     factory = WarehouseFactory
@@ -290,8 +301,14 @@ class TestWarehouseContactsAPIList(ParentVisibilityContractMixin, BaseAPIMixin):
         )
         self._get_pk_list_logic(expected_contacts=3)
 
+    def test_inactive_parent_returns_404(self) -> None:
+        self._inactive_parent_visibility_logic()
 
-class TestClientContactsAPIList(ParentVisibilityContractMixin, BaseAPIMixin):
+    def test_nonexistent_parent_returns_404(self) -> None:
+        self._nonexistent_parent_visibility_logic()
+
+
+class TestClientContactsAPIList(BaseAPIMixin):
     __test__ = True
     pk_url_name = f"order_clients:{ClientRoutes.CONTACTS.name}"
     factory = ClientFactory
@@ -303,8 +320,14 @@ class TestClientContactsAPIList(ParentVisibilityContractMixin, BaseAPIMixin):
         )
         self._get_pk_list_logic(expected_contacts=3)
 
+    def test_inactive_parent_returns_404(self) -> None:
+        self._inactive_parent_visibility_logic()
 
-class TestCustomerContactsAPIList(ParentVisibilityContractMixin, BaseAPIMixin):
+    def test_nonexistent_parent_returns_404(self) -> None:
+        self._nonexistent_parent_visibility_logic()
+
+
+class TestCustomerContactsAPIList(BaseAPIMixin):
     __test__ = True
     pk_url_name = f"order_customers:{CustomerRoutes.CONTACTS.name}"
     factory = CustomerFactory
@@ -315,3 +338,9 @@ class TestCustomerContactsAPIList(ParentVisibilityContractMixin, BaseAPIMixin):
             3, client=None, carrier=None, warehouse=None, customer=self.obj
         )
         self._get_pk_list_logic(expected_contacts=3)
+
+    def test_inactive_parent_returns_404(self) -> None:
+        self._inactive_parent_visibility_logic()
+
+    def test_nonexistent_parent_returns_404(self) -> None:
+        self._nonexistent_parent_visibility_logic()

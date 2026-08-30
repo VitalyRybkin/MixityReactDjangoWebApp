@@ -9,7 +9,10 @@ from rest_framework.test import APITestCase
 from core.tests.authentication_tests import AuthenticationContractMixin
 from core.tests.crud_tests import CrudContractMixin
 from core.tests.field_matching_tests import FieldContractMixin
+from core.tests.file_validation_tests import ImageFieldValidationContractMixin
+from core.tests.http_method_tests import DisallowedMethodsContractMixin
 from core.tests.model_tests import ModelContractMixin
+from core.tests.parent_visibility_tests import ParentVisibilityContractMixin
 from core.tests.permission_tests import PermissionContractMixin
 from core.tests.queryset_tests import QuerysetContractMixin
 from core.tests.related_object_tests import RelatedObjectContractMixin
@@ -51,6 +54,9 @@ class BaseAPIContractTestCase(
     AuthenticationContractMixin,
     RelatedObjectContractMixin,
     InactiveObjectVisibilityContractMixin,
+    ImageFieldValidationContractMixin,
+    DisallowedMethodsContractMixin,
+    ParentVisibilityContractMixin,
     BaseTestCase,
 ):
     """

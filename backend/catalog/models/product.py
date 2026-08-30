@@ -4,8 +4,11 @@ from decimal import ROUND_CEILING, Decimal
 from typing import TYPE_CHECKING
 
 from django.core.exceptions import ObjectDoesNotExist, ValidationError
+from django.core.validators import FileExtensionValidator
 from django.db import models
 from django.db.models import Max, QuerySet
+
+from core.validators.files import validate_image_file_size
 
 from ..utils.unit_choices import TitleChoices
 from .unit import AppUnit
@@ -34,7 +37,17 @@ class Product(models.Model):
 
     name = models.CharField(max_length=100)
     title = models.CharField(max_length=255)
-    product_image = models.ImageField(upload_to="product_images", null=True, blank=True)
+    product_image = models.ImageField(
+        upload_to="product_images",
+        null=True,
+        blank=True,
+        validators=[
+            FileExtensionValidator(
+                allowed_extensions=["jpg", "jpeg", "png"],
+            ),
+            validate_image_file_size,
+        ],
+    )
     product_group = models.ForeignKey(
         "catalog.ProductGroup", on_delete=models.PROTECT, related_name="product_groups"
     )

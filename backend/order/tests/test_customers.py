@@ -7,7 +7,6 @@ from catalog.tests.api.factories import SalePriceHistoryFactory
 from catalog.tests.api.test_products import BaseTestPriceHistory
 from core.tests.base_test_case import BaseAPIContractMixin, BaseAPIMixin
 from core.tests.order_form_access_tests import OrderFormAccessContractMixin
-from core.tests.parent_visibility_tests import ParentVisibilityContractMixin
 from core.tests.utils import FieldSpec
 from order.models import ConstructionObject, Customer
 from order.routes import ConstructionObjectsRoutes, CustomerRoutes
@@ -76,7 +75,6 @@ class TestCustomerAPIList(CustomerBaseTest, BaseAPIMixin):
 
 
 class TestCustomerConstructionObjectsAPIList(
-    ParentVisibilityContractMixin,
     BaseAPIMixin,
 ):
     __test__ = True
@@ -126,6 +124,12 @@ class TestCustomerConstructionObjectsAPIList(
             f"HTTP {response.status_code}",
         )
 
+    def test_inactive_parent_returns_404(self) -> None:
+        self._inactive_parent_visibility_logic()
+
+    def test_nonexistent_parent_returns_404(self) -> None:
+        self._nonexistent_parent_visibility_logic()
+
     def test_get_customer_construction_objects(self) -> None:
         """Test the logic for retrieving constructions associated with a customer."""
         customer_1 = CustomerFactory.create()
@@ -173,7 +177,6 @@ class TestCustomerConstructionObjectsAPIList(
 
 
 class TestCustomerConstructionObjectsAPIDetailAPI(
-    ParentVisibilityContractMixin,
     BaseAPIMixin,
 ):
     __test__ = True
@@ -209,6 +212,12 @@ class TestCustomerConstructionObjectsAPIDetailAPI(
             "pk": self.obj.customer.id,
             "object_pk": self.obj.id,
         }
+
+    def test_inactive_parent_returns_404(self) -> None:
+        self._inactive_parent_visibility_logic()
+
+    def test_nonexistent_parent_returns_404(self) -> None:
+        self._nonexistent_parent_visibility_logic()
 
     def test_retrieve_logic(self) -> None:
         """Test the logic for retrieving a construction object."""

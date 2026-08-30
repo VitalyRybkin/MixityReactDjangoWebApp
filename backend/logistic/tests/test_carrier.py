@@ -6,7 +6,6 @@ from django.contrib.auth.models import User
 from rest_framework import status
 
 from core.tests.base_test_case import BaseAPIMixin
-from core.tests.parent_visibility_tests import ParentVisibilityContractMixin
 from core.tests.utils import FieldSpec
 from logistic.models import Carrier, Driver, Truck
 from logistic.routes import CarrierRoutes
@@ -130,7 +129,6 @@ class TestCarrierRetrieveUpdate(CarrierBaseTest, BaseAPIMixin):
 
 @pytest.mark.django_db
 class TestCarrierResources(
-    ParentVisibilityContractMixin,
     BaseAPIMixin,
 ):
     """
@@ -159,6 +157,12 @@ class TestCarrierResources(
         DriverFactory.create_batch(2, carrier=self.obj)
 
         self._get_resources_logic(expected_trucks=3, expected_drivers=2)
+
+    def test_inactive_parent_returns_404(self) -> None:
+        self._inactive_parent_visibility_logic()
+
+    def test_nonexistent_parent_returns_404(self) -> None:
+        self._nonexistent_parent_visibility_logic()
 
     def test_get_with_only_carrier_permission_returns_403(self) -> None:
         user = User.objects.create_user(
@@ -228,7 +232,6 @@ class TestCarrierResources(
 
 
 class TestCarrierDriverList(
-    ParentVisibilityContractMixin,
     BaseAPIMixin,
 ):
     """
@@ -252,9 +255,14 @@ class TestCarrierDriverList(
         DriverFactory.create_batch(3, carrier=self.obj)
         self._get_pk_list_logic(expected_contacts=3)
 
+    def test_inactive_parent_returns_404(self) -> None:
+        self._inactive_parent_visibility_logic()
+
+    def test_nonexistent_parent_returns_404(self) -> None:
+        self._nonexistent_parent_visibility_logic()
+
 
 class TestCarrierTruckList(
-    ParentVisibilityContractMixin,
     BaseAPIMixin,
 ):
     """
@@ -277,3 +285,9 @@ class TestCarrierTruckList(
     def test_get_list(self) -> None:
         TruckFactory.create_batch(3, carrier=self.obj)
         self._get_pk_list_logic(expected_contacts=3)
+
+    def test_inactive_parent_returns_404(self) -> None:
+        self._inactive_parent_visibility_logic()
+
+    def test_nonexistent_parent_returns_404(self) -> None:
+        self._nonexistent_parent_visibility_logic()

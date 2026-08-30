@@ -10,7 +10,6 @@ from rest_framework import status
 from catalog.tests.api.factories import PurchasePriceHistoryFactory
 from catalog.tests.api.test_products import BaseTestPriceHistory
 from core.tests.base_test_case import BaseAPIContractMixin, BaseAPIMixin
-from core.tests.http_method_tests import DisallowedMethodsContractMixin
 from core.tests.order_form_access_tests import OrderFormAccessContractMixin
 from core.tests.utils import FieldSpec, UploadSpec
 from stock.models import Warehouse
@@ -143,7 +142,7 @@ class TestWarehouseRetrieveUpdate(WarehouseBaseTest, BaseAPIMixin):
         )
 
 
-class TestWarehouseUploadMap(DisallowedMethodsContractMixin, BaseAPIMixin):
+class TestWarehouseUploadMap(BaseAPIMixin):
     """
     Implements test cases for uploading map files in the warehouse
     module.
@@ -192,6 +191,15 @@ class TestWarehouseUploadMap(DisallowedMethodsContractMixin, BaseAPIMixin):
         Test that uploading a warehouse map without a file returns a 400 Bad Request.
         """
         return self._upload_map_missing_file_400(self.upload_file_spec)
+
+    def test_directions_image_validation(self) -> None:
+        self._image_field_validation_logic(
+            model=self.model,
+            field_name="directions",
+        )
+
+    def test_disallowed_methods_return_405(self) -> None:
+        self._disallowed_methods_logic()
 
     def test_patch_without_change_permission_returns_403(self) -> None:
         user = get_user_model().objects.create_user(

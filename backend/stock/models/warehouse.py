@@ -1,7 +1,9 @@
+from django.core.validators import FileExtensionValidator
 from django.db import models
 
 from core.models.active_mixin import ActiveMixin
 from core.models.contact_info_mixin import ContactDetailsMixin
+from core.validators.files import validate_image_file_size
 
 
 class Warehouse(ContactDetailsMixin, ActiveMixin):
@@ -26,7 +28,17 @@ class Warehouse(ContactDetailsMixin, ActiveMixin):
     """
 
     name = models.CharField(max_length=255, unique=True)
-    directions = models.ImageField(upload_to="maps", null=True, blank=True)
+    directions = models.ImageField(
+        upload_to="maps",
+        null=True,
+        blank=True,
+        validators=[
+            FileExtensionValidator(
+                allowed_extensions=["jpg", "jpeg", "png"],
+            ),
+            validate_image_file_size,
+        ],
+    )
     description = models.TextField(null=True, blank=True)
 
     class Meta:

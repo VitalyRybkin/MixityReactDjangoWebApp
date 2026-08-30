@@ -113,6 +113,9 @@ class TestOrderUpdUploadAPIView(
 
         super().tearDown()
 
+    def test_disallowed_methods_return_405(self) -> None:
+        self._disallowed_methods_logic()
+
     def test_upload_valid_pdf(self) -> None:
         """Upload a valid PDF using a randomized server-side filename."""
         self._logger_header("PDF VALIDATION: Upload a valid PDF file.")

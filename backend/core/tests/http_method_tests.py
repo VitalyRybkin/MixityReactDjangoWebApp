@@ -8,7 +8,7 @@ from rest_framework.test import APIClient
 class DisallowedMethodsContractMixin:
     disallowed_methods: ClassVar[tuple[str, ...]] = ()
 
-    def test_disallowed_methods_return_405(self) -> None:
+    def _disallowed_methods_logic(self) -> None:
         test_case = cast(TestCase, self)
         client = cast(APIClient, getattr(self, "client"))
         url = cast(str, getattr(self, "url"))
