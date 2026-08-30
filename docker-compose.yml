@@ -8,9 +8,6 @@ services:
 
     pids_limit: 64
 
-    environment:
-      CLAMAV_NO_FRESHCLAMD: "true"
-
     volumes:
       - clamav_db:/var/lib/clamav
 
