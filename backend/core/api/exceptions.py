@@ -8,19 +8,19 @@ from rest_framework.exceptions import AuthenticationFailed
 from rest_framework.response import Response
 from rest_framework.serializers import Serializer
 from rest_framework.views import exception_handler
-
+from rest_framework_simplejwt.exceptions import InvalidToken
 
 logger = logging.getLogger(__name__)
 
 
 def _get_response_log_level(status_code: int) -> int:
+    """
+    Determine the log level for a response based on its status code.
+    """
     if status_code >= 500:
         return logging.ERROR
 
-    if status_code in (
-        status.HTTP_401_UNAUTHORIZED,
-        status.HTTP_429_TOO_MANY_REQUESTS,
-    ):
+    if status_code == status.HTTP_429_TOO_MANY_REQUESTS:
         return logging.WARNING
 
     return logging.DEBUG
@@ -159,6 +159,25 @@ def _clean_message(message: str) -> str:
     message = re.sub(r"^\d+:\s*", "", message)
     return message
 
+def _is_expired_jwt(exc: Exception) -> bool:
+    if not isinstance(exc, InvalidToken):
+        return False
+
+    detail = exc.detail
+
+    if not isinstance(detail, dict):
+        return False
+
+    messages = detail.get("messages")
+
+    if not isinstance(messages, list):
+        return False
+
+    return any(
+        isinstance(message, dict)
+        and str(message.get("message", "")).lower() == "token is expired"
+        for message in messages
+    )
 
 def custom_exception_handler(exc: Exception, context: Any) -> Response:
     """
@@ -183,7 +202,11 @@ def custom_exception_handler(exc: Exception, context: Any) -> Response:
         )
 
     if isinstance(exc, AuthenticationFailed):
-        logger.warning("Authentication failed: %r", exc)
+        if _is_expired_jwt(exc):
+            logger.debug("JWT token expired")
+        else:
+            logger.warning("Authentication failed: %r", exc)
+
         return Response(
             ["Ошибка аутентификации."],
             status=status.HTTP_401_UNAUTHORIZED,
