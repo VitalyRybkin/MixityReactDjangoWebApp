@@ -6,7 +6,6 @@ from rest_framework.reverse import reverse
 from catalog.tests.api.factories import SalePriceHistoryFactory
 from catalog.tests.api.test_products import BaseTestPriceHistory
 from core.tests.base_test_case import BaseAPIContractMixin, BaseAPIMixin
-from core.tests.order_form_access_tests import OrderFormAccessContractMixin
 from core.tests.utils import FieldSpec
 from order.models import ConstructionObject, Customer
 from order.routes import ConstructionObjectsRoutes, CustomerRoutes
@@ -261,7 +260,6 @@ class TestCustomerConstructionObjectsAPIDetailAPI(
 
 class TestCustomerPriceHistory(
     BaseTestPriceHistory,
-    OrderFormAccessContractMixin,
     BaseAPIContractMixin,
 ):
     """
@@ -279,3 +277,12 @@ class TestCustomerPriceHistory(
     factory = SalePriceHistoryFactory
     price_context_factory = CustomerFactory
     context_field = "customer"
+
+    def test_with_add_order_permission_returns_200(self) -> None:
+        self._with_add_order_permission_logic()
+
+    def test_with_change_order_permission_returns_200(self) -> None:
+        self._with_change_order_permission_logic()
+
+    def test_with_only_view_order_permission_returns_403(self) -> None:
+        self._with_only_view_order_permission_logic()

@@ -7,7 +7,6 @@ from rest_framework.test import APIClient
 
 
 class OrderFormAccessContractMixin:
-
     def _request_with_permission(
         self,
         permission: str,
@@ -26,20 +25,14 @@ class OrderFormAccessContractMixin:
         )
         user.user_permissions.add(django_permission)
 
-        client = cast(
-            APIClient,
-            getattr(self, "client"),
-        )
+        client = cast(APIClient, getattr(self, "client"))
         client.force_authenticate(user=user)
 
-        url = cast(
-            str,
-            getattr(self, "url"),
-        )
+        url = cast(str, getattr(self, "url"))
 
         return client.get(url)
 
-    def test_with_add_order_permission_returns_200(self) -> None:
+    def _with_add_order_permission_logic(self) -> None:
         response = self._request_with_permission(
             "order.add_order",
             f"{self.__class__.__name__}_add_order",
@@ -55,7 +48,7 @@ class OrderFormAccessContractMixin:
             f"{color['END']}"
         )
 
-    def test_with_change_order_permission_returns_200(self) -> None:
+    def _with_change_order_permission_logic(self) -> None:
         response = self._request_with_permission(
             "order.change_order",
             f"{self.__class__.__name__}_change_order",
@@ -71,7 +64,7 @@ class OrderFormAccessContractMixin:
             f"{color['END']}"
         )
 
-    def test_with_only_view_order_permission_returns_403(self) -> None:
+    def _with_only_view_order_permission_logic(self) -> None:
         response = self._request_with_permission(
             "order.view_order",
             f"{self.__class__.__name__}_view_order",

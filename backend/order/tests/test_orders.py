@@ -960,6 +960,15 @@ class TestOrderResourcesAPIView(
             f"{self.COLOR['END']}"
         )
 
+    def test_with_add_order_permission_returns_200(self) -> None:
+        self._with_add_order_permission_logic()
+
+    def test_with_change_order_permission_returns_200(self) -> None:
+        self._with_change_order_permission_logic()
+
+    def test_with_only_view_order_permission_returns_403(self) -> None:
+        self._with_only_view_order_permission_logic()
+
 
 @pytest.mark.django_db
 class TestPackType(APITestCase, ModelContractMixin, TestLoggerMixin):

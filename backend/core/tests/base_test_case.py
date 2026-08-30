@@ -12,6 +12,7 @@ from core.tests.field_matching_tests import FieldContractMixin
 from core.tests.file_validation_tests import ImageFieldValidationContractMixin
 from core.tests.http_method_tests import DisallowedMethodsContractMixin
 from core.tests.model_tests import ModelContractMixin
+from core.tests.order_form_access_tests import OrderFormAccessContractMixin
 from core.tests.parent_visibility_tests import ParentVisibilityContractMixin
 from core.tests.permission_tests import PermissionContractMixin
 from core.tests.queryset_tests import QuerysetContractMixin
@@ -57,6 +58,7 @@ class BaseAPIContractTestCase(
     ImageFieldValidationContractMixin,
     DisallowedMethodsContractMixin,
     ParentVisibilityContractMixin,
+    OrderFormAccessContractMixin,
     BaseTestCase,
 ):
     """

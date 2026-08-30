@@ -10,7 +10,6 @@ from rest_framework import status
 from catalog.tests.api.factories import PurchasePriceHistoryFactory
 from catalog.tests.api.test_products import BaseTestPriceHistory
 from core.tests.base_test_case import BaseAPIContractMixin, BaseAPIMixin
-from core.tests.order_form_access_tests import OrderFormAccessContractMixin
 from core.tests.utils import FieldSpec, UploadSpec
 from stock.models import Warehouse
 from stock.routes import WarehouseRoutes
@@ -277,7 +276,6 @@ class TestWarehouseUploadMap(BaseAPIMixin):
 
 class TestWarehousePriceHistory(
     BaseTestPriceHistory,
-    OrderFormAccessContractMixin,
     BaseAPIContractMixin,
 ):
     """
@@ -296,3 +294,12 @@ class TestWarehousePriceHistory(
     factory = PurchasePriceHistoryFactory
     price_context_factory = WarehouseFactory
     context_field = "warehouse"
+
+    def test_with_add_order_permission_returns_200(self) -> None:
+        self._with_add_order_permission_logic()
+
+    def test_with_change_order_permission_returns_200(self) -> None:
+        self._with_change_order_permission_logic()
+
+    def test_with_only_view_order_permission_returns_403(self) -> None:
+        self._with_only_view_order_permission_logic()
