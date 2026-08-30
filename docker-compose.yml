@@ -65,6 +65,14 @@ services:
 
     restart: unless-stopped
 
+    security_opt:
+      - no-new-privileges:true
+
+    cap_drop:
+      - ALL
+
+    pids_limit: 128
+
     logging:
       driver: json-file
       options:
