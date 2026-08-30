@@ -1,5 +1,8 @@
 from django.core.exceptions import ValidationError
+from django.core.validators import FileExtensionValidator
 from django.db import models
+
+from common.validators import validate_documentation_file_size
 
 
 class Organisation(models.Model):
@@ -30,7 +33,15 @@ class Documentation(models.Model):
     ALLOWED_TAGS = ("МИКСИТИ", "РИКС", "ОБЩИЕ")
 
     title = models.CharField(max_length=255)
-    file = models.FileField(upload_to="docs")
+    file = models.FileField(
+        upload_to="docs",
+        validators=[
+            FileExtensionValidator(
+                allowed_extensions=["pdf", "jpg", "jpeg", "png"],
+            ),
+            validate_documentation_file_size,
+        ],
+    )
     status = models.CharField(max_length=25, blank=True, null=True)
     tag = models.CharField(
         max_length=255,
