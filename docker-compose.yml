@@ -3,6 +3,11 @@ services:
     image: clamav/clamav:1.4
     restart: unless-stopped
 
+    security_opt:
+      - no-new-privileges:true
+
+    pids_limit: 64
+
     environment:
       CLAMAV_NO_FRESHCLAMD: "true"
 
