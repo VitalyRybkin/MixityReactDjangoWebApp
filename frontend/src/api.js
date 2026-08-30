@@ -6,6 +6,14 @@ const api = axios.create({
     baseURL: import.meta.env.VITE_API_URL,
 })
 
+const redirectToUnauthorized = () => {
+    const from = `${window.location.pathname}${window.location.search}`
+
+    if (window.location.pathname !== '/401') {
+        window.location.replace(`/401?from=${encodeURIComponent(from)}`)
+    }
+}
+
 api.interceptors.request.use(
     (config) => {
         const token = localStorage.getItem(ACCESS_TOKEN)
@@ -98,7 +106,7 @@ api.interceptors.response.use(
             localStorage.removeItem(ACCESS_TOKEN)
             localStorage.removeItem(REFRESH_TOKEN)
 
-            window.location.href = '/login'
+            redirectToUnauthorized()
 
             return Promise.reject(error)
         }
@@ -120,7 +128,7 @@ api.interceptors.response.use(
             localStorage.removeItem(ACCESS_TOKEN)
             localStorage.removeItem(REFRESH_TOKEN)
 
-            window.location.href = '/login'
+            redirectToUnauthorized()
 
             return Promise.reject(refreshError)
         }

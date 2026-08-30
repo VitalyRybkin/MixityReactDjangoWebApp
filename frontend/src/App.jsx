@@ -34,6 +34,7 @@ import NotFound from './pages/NotFound.jsx'
 import GroupRoute from './pages/auth/components/GroupRoute.jsx'
 import { AuthProvider } from './pages/auth/context/AuthContext.jsx'
 import { GROUPS } from './pages/auth/permissions.js'
+import Unauthorized from "./pages/Unauthorized.jsx";
 
 function Logout() {
     localStorage.removeItem(ACCESS_TOKEN)
@@ -57,6 +58,8 @@ function App() {
             {/* Public */}
             <Route path="/login" element={<Login />} />
             <Route path="/logout" element={<Logout />} />
+            <Route path="/403" element={<Forbidden />} />
+            <Route path="/401" element={<Unauthorized />} />
 
             {/* All authenticated routes share one AuthProvider */}
             <Route element={<AuthenticatedApp />}>
@@ -112,7 +115,6 @@ function App() {
             </Route>
 
             <Route path="*" element={<NotFound />} />
-            <Route path="/403" element={<Forbidden />} />
         </Routes>
     )
 }
