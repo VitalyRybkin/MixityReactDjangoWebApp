@@ -174,12 +174,14 @@ const Home = () => {
 
                         <Box sx={sx.headerActions}>
                             <Can group={GROUPS.LOGISTIC_MANAGER}>
-                                <DownloadAction
-                                    title="Экспорт заявок и доверенностей"
-                                    onClick={handleExport}
-                                    disabled={isDownloading || loadingOrders || uploadUpd.isPending}
-                                    loading={isDownloading || loadingOrders}
-                                />
+                                <Box sx={sx.exportAction}>
+                                    <DownloadAction
+                                        title="Экспорт заявок и доверенностей"
+                                        onClick={handleExport}
+                                        disabled={isDownloading || loadingOrders || uploadUpd.isPending}
+                                        loading={isDownloading || loadingOrders}
+                                    />
+                                </Box>
                             </Can>
 
                             <AddAction

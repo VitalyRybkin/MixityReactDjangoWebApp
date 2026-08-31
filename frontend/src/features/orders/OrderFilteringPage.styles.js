@@ -104,4 +104,11 @@ export const orderFilteringPageSx = {
             cursor: 'pointer',
         },
     },
+
+    exportAction: {
+        display: {
+            xs: 'none',
+            sm: 'block',
+        },
+    },
 }

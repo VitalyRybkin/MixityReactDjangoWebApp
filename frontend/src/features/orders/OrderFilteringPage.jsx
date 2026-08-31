@@ -118,12 +118,14 @@ export default function OrderFilteringPage() {
                 </Typography>
 
                 <Box sx={sx.headerActions}>
-                    <DownloadAction
-                        title="Экспорт в Excel"
-                        onClick={handleExport}
-                        disabled={isDownloading || loadingOrders}
-                        loading={isDownloading || loadingOrders}
-                    />
+                    <Box sx={sx.exportAction}>
+                        <DownloadAction
+                            title="Экспорт в Excel"
+                            onClick={handleExport}
+                            disabled={isDownloading || loadingOrders}
+                            loading={isDownloading || loadingOrders}
+                        />
+                    </Box>
                 </Box>
             </Box>
 

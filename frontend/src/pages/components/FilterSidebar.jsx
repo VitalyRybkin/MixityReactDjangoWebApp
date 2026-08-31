@@ -5,6 +5,8 @@ import DateRangeFields from '../../components/DateRangeFields.jsx'
 import ApplyAction from '../../components/ui/buttons/ApplyAction.jsx'
 import AppSidebar from '../../layouts/AppSidebar.jsx'
 
+import { filterSidebarSx as sx } from './FilterSidebar.styles.js'
+
 const quickPresetButtons = [
     { value: 'yesterday', label: 'Вчера' },
     { value: 'today', label: 'Сегодня' },
@@ -18,29 +20,27 @@ const rangePresetButtons = [
     { value: 'thisMonth', label: 'Месяц' },
 ]
 
-export default function FilterSidebar(props) {
-    const {
-        open,
-        setOpen,
-        draftFilters,
-        handleDraftFilterChange,
-        onApply,
-        onPresetClick,
-        selectedPreset,
-        customers = [],
-        warehouses = [],
-        statusOptions = [],
-    } = props
-
+export default function FilterSidebar({
+    open,
+    setOpen,
+    draftFilters,
+    handleDraftFilterChange,
+    onApply,
+    onPresetClick,
+    selectedPreset,
+    customers = [],
+    warehouses = [],
+    statusOptions = [],
+}) {
     return (
         <AppSidebar open={open} setOpen={setOpen}>
-            <Typography variant="h6" sx={{ mt: 3 }}>
+            <Typography variant="h6" sx={sx.title}>
                 ФИЛЬТРЫ
             </Typography>
 
-            <Divider sx={{ my: 2, mb: 0 }} />
+            <Divider sx={sx.sectionDivider} />
 
-            <Typography variant="caption" color="text.secondary" sx={{ mt: 1 }}>
+            <Typography variant="caption" color="text.secondary" sx={sx.dateLabel}>
                 Дата доставки:
             </Typography>
 
@@ -53,7 +53,7 @@ export default function FilterSidebar(props) {
                 toId="orders-date-to"
             />
 
-            <Divider sx={{ my: 2, mb: 0 }} />
+            <Divider sx={sx.sectionDivider} />
 
             <AppSelectField
                 id="orders-status"
@@ -81,13 +81,12 @@ export default function FilterSidebar(props) {
                 onChange={(value) => handleDraftFilterChange('warehouseId', value)}
             />
 
-            <Divider sx={{ my: 2, mb: 0 }} />
+            <Divider sx={sx.sectionDivider} />
 
-            <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap', mt: 2 }}>
+            <Box sx={sx.presetGroup}>
                 {quickPresetButtons.map((item) => (
-                    <Tooltip key={item.value} title={'День'}>
+                    <Tooltip key={item.value} title="День">
                         <Button
-                            key={item.value}
                             variant={selectedPreset === item.value ? 'contained' : 'outlined'}
                             onClick={() => onPresetClick(item.value)}
                         >
@@ -97,13 +96,12 @@ export default function FilterSidebar(props) {
                 ))}
             </Box>
 
-            <Divider sx={{ my: 2, mb: 0 }} />
+            <Divider sx={sx.sectionDivider} />
 
-            <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap', mt: 2 }}>
+            <Box sx={sx.presetGroup}>
                 {rangePresetButtons.map((item) => (
-                    <Tooltip key={item.label} title={item.label === 'Месяц' ? 'Месяц' : 'Неделя'}>
+                    <Tooltip key={item.value} title={item.label === 'Месяц' ? 'Месяц' : 'Неделя'}>
                         <Button
-                            key={item.value}
                             variant={selectedPreset === item.value ? 'contained' : 'outlined'}
                             onClick={() => onPresetClick(item.value)}
                         >
@@ -113,9 +111,11 @@ export default function FilterSidebar(props) {
                 ))}
             </Box>
 
-            <Divider sx={{ my: 2, mb: 1 }} />
+            <Divider sx={sx.footerDivider} />
 
-            <ApplyAction onClick={onApply} sx={{ width: '100%' }} />
+            <Box sx={sx.applyContainer}>
+                <ApplyAction onClick={onApply} sx={sx.applyButton} />
+            </Box>
         </AppSidebar>
     )
 }

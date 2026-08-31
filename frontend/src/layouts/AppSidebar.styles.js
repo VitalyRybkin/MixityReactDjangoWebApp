@@ -7,8 +7,12 @@ const desktopMedia = `@media (min-width: ${SIDEBAR_DESKTOP_BREAKPOINT}px)`
 
 export const sidebarPageSx = {
     page: {
-        minHeight: `calc(100vh - ${TOPBAR_HEIGHT}px)`,
+        minHeight: `calc(100dvh - ${TOPBAR_HEIGHT}px)`,
         minWidth: 0,
+
+        [desktopMedia]: {
+            minHeight: `calc(100vh - ${TOPBAR_HEIGHT}px)`,
+        },
     },
 
     content: {
@@ -39,7 +43,9 @@ export const getSidebarSx = (open) => ({
     zIndex: 1100,
 
     width: open ? 'min(300px, 88vw)' : 0,
-    height: `calc(100vh - ${TOPBAR_HEIGHT}px)`,
+
+    height: `calc(100dvh - ${TOPBAR_HEIGHT}px)`,
+    maxHeight: `calc(100dvh - ${TOPBAR_HEIGHT}px)`,
 
     p: open ? 2 : 0,
     boxSizing: 'border-box',
@@ -57,6 +63,10 @@ export const getSidebarSx = (open) => ({
 
     [desktopMedia]: {
         width: open ? SIDEBAR_WIDTH : COLLAPSED_WIDTH,
+
+        height: `calc(100vh - ${TOPBAR_HEIGHT}px)`,
+        maxHeight: 'none',
+
         bgcolor: 'background.paper',
         borderRight: '1px solid',
         borderColor: 'divider',
@@ -75,8 +85,15 @@ export const appSidebarSx = {
         minHeight: 0,
         overflowY: 'auto',
         overflowX: 'hidden',
+
+        pb: {
+            xs: 'calc(24px + env(safe-area-inset-bottom))',
+            sm: 2,
+        },
+
         overscrollBehavior: 'contain',
         WebkitOverflowScrolling: 'touch',
+        touchAction: 'pan-y',
         scrollbarWidth: 'thin',
     },
 

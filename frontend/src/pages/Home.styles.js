@@ -85,6 +85,12 @@ export const homeSx = {
             cursor: 'pointer',
         },
     },
+    exportAction: {
+        display: {
+            xs: 'none',
+            sm: 'block',
+        },
+    },
 }
 
 export const getHomeContentSx = (sidebarOpen) => [
