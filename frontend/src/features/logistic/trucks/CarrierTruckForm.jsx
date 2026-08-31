@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { useLocation, useNavigate, useParams } from 'react-router-dom'
 
 import AddIcon from '@mui/icons-material/Add'
@@ -31,6 +31,8 @@ import {
     useGetTruckTypes,
     useUpdateTruck,
 } from './utils/trucks.queries.js'
+
+import { carrierTruckFormSx as sx } from './CarrierTruckForm.styles.js'
 
 const emptyForm = {
     truckType: '',
@@ -118,30 +120,35 @@ export default function TruckFormPage() {
 
     if (loading) {
         return (
-            <Box sx={{ py: 6, display: 'flex', justifyContent: 'center' }}>
+            <Box sx={sx.loading}>
                 <CircularProgress />
             </Box>
         )
     }
 
     return (
-        <Box sx={{ p: 3, maxWidth: 700 }}>
+        <Box sx={sx.page}>
             <AppBreadcrumbs dynamicLabels={entity ? { id: entity.name } : {}} />
 
-            <Paper sx={{ p: 3, borderRadius: 3 }}>
-                <Typography variant="h5" sx={{ mb: 2 }}>
+            <Paper sx={sx.paper}>
+                <Typography variant="h5" sx={sx.title}>
                     {isEdit ? 'Редактировать автотранспорт' : 'Добавить автотранспорт'}
                 </Typography>
 
                 {error && (
-                    <Alert severity="error" sx={{ mb: 2 }}>
+                    <Alert severity="error" sx={sx.error}>
                         {error}
                     </Alert>
                 )}
 
-                <Box component="form" onSubmit={onSubmit}>
+                <Box component="form" onSubmit={onSubmit} sx={sx.form}>
                     <Stack spacing={2}>
-                        <Stack direction="row" spacing={1} alignItems="flex-start">
+                        <Stack
+                            direction="row"
+                            spacing={1}
+                            alignItems="flex-start"
+                            sx={sx.selectorRow}
+                        >
                             <FormControl fullWidth required>
                                 <InputLabel id="truck-type-label">Тип</InputLabel>
                                 <Select
@@ -160,13 +167,21 @@ export default function TruckFormPage() {
                             </FormControl>
 
                             <Tooltip title="Добавить тип">
-                                <IconButton onClick={() => setTypeDialogOpen(true)} sx={{ mt: 1 }}>
+                                <IconButton
+                                    onClick={() => setTypeDialogOpen(true)}
+                                    sx={sx.addButton}
+                                >
                                     <AddIcon />
                                 </IconButton>
                             </Tooltip>
                         </Stack>
 
-                        <Stack direction="row" spacing={1} alignItems="flex-start">
+                        <Stack
+                            direction="row"
+                            spacing={1}
+                            alignItems="flex-start"
+                            sx={sx.selectorRow}
+                        >
                             <FormControl fullWidth required>
                                 <InputLabel id="capacity-label">Грузоподъемность</InputLabel>
                                 <Select
@@ -185,7 +200,10 @@ export default function TruckFormPage() {
                             </FormControl>
 
                             <Tooltip title="Добавить грузоподъемность">
-                                <IconButton onClick={() => setCapacityDialogOpen(true)} sx={{ mt: 1 }}>
+                                <IconButton
+                                    onClick={() => setCapacityDialogOpen(true)}
+                                    sx={sx.addButton}
+                                >
                                     <AddIcon />
                                 </IconButton>
                             </Tooltip>

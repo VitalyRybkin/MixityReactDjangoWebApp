@@ -70,7 +70,7 @@ export default function ColorModeProvider({ children }) {
                           }
                         : {
                               primary: {
-                                  main: '#2563eb',
+                                  main: '#2F4256',
                                   light: '#60a5fa',
                                   dark: '#1d4ed8',
                                   contrastText: '#ffffff',
@@ -82,11 +82,11 @@ export default function ColorModeProvider({ children }) {
                                   contrastText: '#ffffff',
                               },
                               background: {
-                                  default: '#f8fafc',
+                                  default: '#f8f7f0',
                                   paper: '#ffffff',
                               },
                               text: {
-                                  primary: '#172b67',
+                                  primary: '#2F4256',
                                   secondary: '#475569',
                               },
                               divider: 'rgba(15, 23, 42, 0.08)',

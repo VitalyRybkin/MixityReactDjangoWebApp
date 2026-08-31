@@ -23,6 +23,10 @@ import EmailLink from '../../components/ui/buttons/EmailLink.jsx'
 import AppSnackbar from '../../components/ui/feedback/AppSnackbar.jsx'
 import useSnackbar from '../../hooks/useSnackbar.js'
 
+import { entityTableListSx as listSx } from '../../styles/entityTableList.styles.js'
+
+import { documentationListSx as sx } from './DocumentationList.styles.js'
+
 import { fetchDocumentationDetail, useGetDocumentation } from './common.queries.js'
 import { documentationApiPaths } from './documentationApiPaths.js'
 
@@ -119,10 +123,10 @@ export default function DocumentationListPage() {
     }
 
     return (
-        <Box sx={{ p: 3 }}>
+        <Box sx={listSx.page}>
             <AppBreadcrumbs />
 
-            <Box sx={{ p: 3, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <Box sx={listSx.header}>
                 <Typography variant="h4">Документация</Typography>
                 {downloadLoading && <CircularProgress size={20} />}
 
@@ -132,16 +136,16 @@ export default function DocumentationListPage() {
                 </Stack>
             </Box>
 
-            <Divider sx={{ mb: 3 }} />
+            <Divider sx={listSx.divider} />
             {error ? (
                 <ErrorState error={error} onRetry={refetch} loading={isPending} />
             ) : isPending ? (
-                <Box sx={{ py: 6, display: 'flex', justifyContent: 'center' }}>
+                <Box sx={listSx.loading}>
                     <CircularProgress />
                 </Box>
             ) : (
                 <TableContainer>
-                    <Table sx={{ minWidth: 800 }}>
+                    <Table sx={listSx.table}>
                         {uniqueTags.map((tag) => {
                             const filteredDocs = normalizedDocs.filter((doc) => doc.tags.includes(tag))
                             const allSelectedInTag = filteredDocs.every((d) => selectedDocs.includes(d.id))
@@ -150,7 +154,7 @@ export default function DocumentationListPage() {
 
                             return (
                                 <React.Fragment key={tag}>
-                                    <TableHead sx={{ bgcolor: 'action.hover' }}>
+                                    <TableHead sx={listSx.tableHead}>
                                         <TableRow>
                                             <TableCell padding="checkbox">
                                                 <Checkbox
@@ -174,7 +178,7 @@ export default function DocumentationListPage() {
                                                     }}
                                                 />
                                             </TableCell>
-                                            <TableCell colSpan={2} sx={{ fontWeight: 700 }}>
+                                            <TableCell colSpan={2} sx={sx.tagCell}>
                                                 {tag}
                                             </TableCell>
                                         </TableRow>
@@ -185,7 +189,7 @@ export default function DocumentationListPage() {
                                                 key={doc.id}
                                                 hover
                                                 onClick={() => handleViewDocument(doc)}
-                                                sx={{ cursor: 'pointer' }}
+                                                sx={sx.documentRow}
                                             >
                                                 <TableCell padding="checkbox">
                                                     <Checkbox

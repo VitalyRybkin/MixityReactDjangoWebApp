@@ -54,7 +54,7 @@ export const getSidebarSx = (open) => ({
     flexDirection: 'column',
     alignItems: 'stretch',
 
-    bgcolor: open ? 'background.paper' : 'transparent',
+    bgcolor: open ? 'background.default' : 'transparent',
     borderRight: 'none',
     boxShadow: open ? 4 : 0,
 
@@ -67,7 +67,7 @@ export const getSidebarSx = (open) => ({
         height: `calc(100vh - ${TOPBAR_HEIGHT}px)`,
         maxHeight: 'none',
 
-        bgcolor: 'background.paper',
+        bgcolor: 'background.default',
         borderRight: '1px solid',
         borderColor: 'divider',
         boxShadow: 0,

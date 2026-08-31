@@ -1,3 +1,5 @@
+import {clickableDataGridSx} from "../../styles/dataGrid.styles.js";
+
 export const orderFilteringPageSx = {
     page: {
         width: '100%',
@@ -96,14 +98,7 @@ export const orderFilteringPageSx = {
         mb: 3,
     },
 
-    dataGrid: {
-        width: '100%',
-        minWidth: 0,
-
-        '& .MuiDataGrid-row': {
-            cursor: 'pointer',
-        },
-    },
+    dataGrid: clickableDataGridSx,
 
     exportAction: {
         display: {

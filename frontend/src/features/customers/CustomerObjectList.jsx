@@ -27,6 +27,7 @@ import useConfirm from '../../hooks/useConfirm.js'
 import { useConfirmDelete } from '../../hooks/useConfirmDelete.js'
 import useSnackbar from '../../hooks/useSnackbar.js'
 
+import { entityTableListSx as sx } from '../../styles/entityTableList.styles.js'
 import { useDeleteCustomerObject, useGetCustomerObjects } from './utils/customers.queries.js'
 
 const tableHeaders = ['Наименование', 'Адрес', '']
@@ -46,113 +47,126 @@ export default function CustomerObjectListPage() {
 
     const deleteCustomerObjectMutation = useDeleteCustomerObject()
 
-    const handleDeleteObject = (construction_object) => {
+    const handleDeleteObject = (constructionObject) => {
         confirmDelete({
-            item: construction_object,
+            item: constructionObject,
             mutateAsync: deleteCustomerObjectMutation.mutateAsync,
             refetch,
             title: 'Удалить объект?',
-            text: (item) => `Вы действительно хотите удалить "${item.truckType?.truckType}"?`,
+            text: (item) => `Вы действительно хотите удалить "${item.name}"?`,
             successMessage: 'Объект удален!',
         })
     }
 
     return (
-        <Box sx={{ p: 3 }}>
-            <AppBreadcrumbs dynamicLabels={entity ? { id: entity.name } : {}} />
+    <Box sx={sx.page}>
+        <AppBreadcrumbs dynamicLabels={entity ? { id: entity.name } : {}} />
 
-            <Box sx={{ p: 3, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <Typography variant="h4" gutterBottom fontWeight={600}>
-                    Объекты
-                </Typography>
-                <AddAction
-                    onClick={() =>
-                        navigate(`/customers/${entity?.id}/construction_objects/create`, {
-                            state: { entity },
-                        })
-                    }
-                />
+        <Box sx={sx.header}>
+            <Typography variant="h4" gutterBottom fontWeight={600}>
+                Объекты
+            </Typography>
+
+            <AddAction
+                onClick={() =>
+                    navigate(`/customers/${entity?.id}/construction_objects/create`, {
+                        state: { entity },
+                    })
+                }
+            />
+        </Box>
+
+        <Divider sx={sx.divider} />
+
+        {error ? (
+            <ErrorState error={error} onRetry={refetch} loading={isPending} />
+        ) : isPending ? (
+            <Box sx={sx.loading}>
+                <CircularProgress />
             </Box>
-            <Divider sx={{ mb: 3 }} />
+        ) : (
+            <TableContainer>
+                <Table sx={sx.table}>
+                    <TableHead sx={sx.tableHead}>
+                        <TableRow>
+                            {tableHeaders.map((head, idx) => (
+                                <TableCell
+                                    key={`${head}-${idx}`}
+                                    sx={sx.tableHeaderCell}
+                                >
+                                    {head ? head.toUpperCase() : ''}
+                                </TableCell>
+                            ))}
+                        </TableRow>
+                    </TableHead>
 
-            {error ? (
-                <ErrorState error={error} onRetry={refetch} loading={isPending} />
-            ) : isPending ? (
-                <Box sx={{ py: 6, display: 'flex', justifyContent: 'center' }}>
-                    <CircularProgress />
-                </Box>
-            ) : (
-                <TableContainer>
-                    <Table sx={{ minWidth: 800 }}>
-                        <TableHead sx={{ bgcolor: 'action.hover' }}>
-                            <TableRow>
-                                {tableHeaders.map((head, idx) => (
-                                    <TableCell
-                                        key={`${head}-${idx}`}
-                                        sx={{
-                                            fontWeight: 700,
-                                            color: 'text.secondary',
-                                            fontSize: '0.75rem',
-                                            verticalAlign: 'middle',
-                                        }}
-                                    >
-                                        {head ? head.toUpperCase() : ''}
-                                    </TableCell>
-                                ))}
-                            </TableRow>
-                        </TableHead>
+                    <TableBody>
+                        {customer_objects.length > 0 ? (
+                            customer_objects.map((co) => (
+                                <TableRow key={co.id} hover>
+                                    <TableCell>{co.name}</TableCell>
+                                    <TableCell>{co.address}</TableCell>
 
-                        <TableBody>
-                            {customer_objects.length > 0 ? (
-                                customer_objects.map((co) => (
-                                    <TableRow key={co.id} hover>
-                                        <TableCell>{co.name}</TableCell>
-                                        <TableCell>{co.address}</TableCell>
-                                        <TableCell align="right">
-                                            <Stack direction="row" spacing={1} justifyContent="flex-end">
-                                                <EditAction
-                                                    onClick={() =>
-                                                        navigate(
-                                                            `/customers/${id}/construction_objects/${co.id}/edit`,
-                                                            {
-                                                                state: { entity },
-                                                            },
-                                                        )
-                                                    }
-                                                    icon={<EditIcon fontSize="small" />}
-                                                />
-                                                <DeleteAction onClick={() => handleDeleteObject(co)} />
-                                            </Stack>
-                                        </TableCell>
-                                    </TableRow>
-                                ))
-                            ) : (
-                                <TableRow>
-                                    <TableCell
-                                        colSpan={tableHeaders.length}
-                                        align="left"
-                                        sx={{ py: 3, color: 'text.secondary' }}
-                                    >
-                                        Список пуст
+                                    <TableCell align="right">
+                                        <Stack
+                                            direction="row"
+                                            spacing={1}
+                                            justifyContent="flex-end"
+                                        >
+                                            <EditAction
+                                                onClick={() =>
+                                                    navigate(
+                                                        `/customers/${id}/construction_objects/${co.id}/edit`,
+                                                        {
+                                                            state: { entity },
+                                                        },
+                                                    )
+                                                }
+                                                icon={<EditIcon fontSize="small" />}
+                                            />
+
+                                            <DeleteAction
+                                                onClick={() =>
+                                                    handleDeleteObject(co)
+                                                }
+                                            />
+                                        </Stack>
                                     </TableCell>
                                 </TableRow>
-                            )}
-                        </TableBody>
-                    </Table>
-                </TableContainer>
-            )}
-            <ConfirmDialog
-                open={confirm.open}
-                title={confirm.title}
-                text={confirm.text}
-                confirmText={confirm.confirmText}
-                cancelText={confirm.cancelText}
-                confirmColor={confirm.confirmColor}
-                onClose={closeConfirm}
-                onConfirm={handleConfirm}
-            />
+                            ))
+                        ) : (
+                            <TableRow>
+                                <TableCell
+                                    colSpan={tableHeaders.length}
+                                    align="left"
+                                    sx={sx.emptyCell}
+                                >
+                                    Список пуст
+                                </TableCell>
+                            </TableRow>
+                        )}
+                    </TableBody>
+                </Table>
+            </TableContainer>
+        )}
 
-            <AppSnackbar open={snack.open} message={snack.message} severity={snack.severity} onClose={closeSnackbar} />
-        </Box>
-    )
+        <ConfirmDialog
+            open={confirm.open}
+            title={confirm.title}
+            text={confirm.text}
+            confirmText={confirm.confirmText}
+            cancelText={confirm.cancelText}
+            confirmColor={confirm.confirmColor}
+            onClose={closeConfirm}
+            onConfirm={handleConfirm}
+        />
+
+        <AppSnackbar
+            open={snack.open}
+            message={snack.message}
+            severity={snack.severity}
+            onClose={closeSnackbar}
+        />
+    </Box>
+)
 }

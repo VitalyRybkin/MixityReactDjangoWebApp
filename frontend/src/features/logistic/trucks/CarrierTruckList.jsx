@@ -27,6 +27,7 @@ import useConfirm from '../../../hooks/useConfirm.js'
 import { useConfirmDelete } from '../../../hooks/useConfirmDelete.js'
 import useSnackbar from '../../../hooks/useSnackbar.js'
 
+import { entityTableListSx as sx } from '../../../styles/entityTableList.styles.js'
 import { useDeleteCarrierTruck, useGetCarrierTrucks } from './utils/trucks.queries.js'
 
 const tableHeaders = ['Тип', 'Грузоподъемность', 'Госномер', 'Примечание', '']
@@ -58,13 +59,14 @@ export default function CarrierTruckListPage() {
     }
 
     return (
-        <Box sx={{ p: 3 }}>
+        <Box sx={sx.page}>
             <AppBreadcrumbs dynamicLabels={entity ? { id: entity.name } : {}} />
 
-            <Box sx={{ p: 3, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <Box sx={sx.header}>
                 <Typography variant="h4" gutterBottom fontWeight={600}>
                     Автотранспорт
                 </Typography>
+
                 <AddAction
                     onClick={() =>
                         navigate(`/carriers/${entity?.id}/trucks/create`, {
@@ -73,28 +75,28 @@ export default function CarrierTruckListPage() {
                     }
                 />
             </Box>
-            <Divider sx={{ mb: 3 }} />
+
+            <Divider sx={sx.divider} />
 
             {error ? (
-                <ErrorState error={error} onRetry={refetch} loading={isPending} />
+                <ErrorState
+                    error={error}
+                    onRetry={refetch}
+                    loading={isPending}
+                />
             ) : isPending ? (
-                <Box sx={{ py: 6, display: 'flex', justifyContent: 'center' }}>
+                <Box sx={sx.loading}>
                     <CircularProgress />
                 </Box>
             ) : (
                 <TableContainer>
-                    <Table sx={{ minWidth: 800 }}>
-                        <TableHead sx={{ bgcolor: 'action.hover' }}>
+                    <Table sx={sx.table}>
+                        <TableHead sx={sx.tableHead}>
                             <TableRow>
                                 {tableHeaders.map((head, idx) => (
                                     <TableCell
                                         key={`${head}-${idx}`}
-                                        sx={{
-                                            fontWeight: 700,
-                                            color: 'text.secondary',
-                                            fontSize: '0.75rem',
-                                            verticalAlign: 'middle',
-                                        }}
+                                        sx={sx.tableHeaderCell}
                                     >
                                         {head ? head.toUpperCase() : ''}
                                     </TableCell>
@@ -106,21 +108,47 @@ export default function CarrierTruckListPage() {
                             {trucks.length > 0 ? (
                                 trucks.map((truck) => (
                                     <TableRow key={truck.id} hover>
-                                        <TableCell>{truck.truckType?.truckType || '—'}</TableCell>
-                                        <TableCell>{truck.capacity?.capacity || '—'}</TableCell>
-                                        <TableCell>{truck.licensePlate || '—'}</TableCell>
-                                        <TableCell>{truck.description || '—'}</TableCell>
+                                        <TableCell>
+                                            {truck.truckType?.truckType || '—'}
+                                        </TableCell>
+
+                                        <TableCell>
+                                            {truck.capacity?.capacity || '—'}
+                                        </TableCell>
+
+                                        <TableCell>
+                                            {truck.licensePlate || '—'}
+                                        </TableCell>
+
+                                        <TableCell>
+                                            {truck.description || '—'}
+                                        </TableCell>
+
                                         <TableCell align="right">
-                                            <Stack direction="row" spacing={1} justifyContent="flex-end">
+                                            <Stack
+                                                direction="row"
+                                                spacing={1}
+                                                justifyContent="flex-end"
+                                            >
                                                 <EditAction
                                                     onClick={() =>
-                                                        navigate(`/carriers/${id}/trucks/${truck.id}/edit`, {
-                                                            state: { entity },
-                                                        })
+                                                        navigate(
+                                                            `/carriers/${id}/trucks/${truck.id}/edit`,
+                                                            {
+                                                                state: { entity },
+                                                            },
+                                                        )
                                                     }
-                                                    icon={<EditIcon fontSize="small" />}
+                                                    icon={
+                                                        <EditIcon fontSize="small" />
+                                                    }
                                                 />
-                                                <DeleteAction onClick={() => handleDeleteTruck(truck)} />
+
+                                                <DeleteAction
+                                                    onClick={() =>
+                                                        handleDeleteTruck(truck)
+                                                    }
+                                                />
                                             </Stack>
                                         </TableCell>
                                     </TableRow>
@@ -130,7 +158,7 @@ export default function CarrierTruckListPage() {
                                     <TableCell
                                         colSpan={tableHeaders.length}
                                         align="left"
-                                        sx={{ py: 3, color: 'text.secondary' }}
+                                        sx={sx.emptyCell}
                                     >
                                         Список пуст
                                     </TableCell>
@@ -140,6 +168,7 @@ export default function CarrierTruckListPage() {
                     </Table>
                 </TableContainer>
             )}
+
             <ConfirmDialog
                 open={confirm.open}
                 title={confirm.title}
@@ -151,7 +180,12 @@ export default function CarrierTruckListPage() {
                 onConfirm={handleConfirm}
             />
 
-            <AppSnackbar open={snack.open} message={snack.message} severity={snack.severity} onClose={closeSnackbar} />
+            <AppSnackbar
+                open={snack.open}
+                message={snack.message}
+                severity={snack.severity}
+                onClose={closeSnackbar}
+            />
         </Box>
     )
 }

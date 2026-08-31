@@ -35,7 +35,7 @@ export const filterSidebarSx = {
             sm: 1,
         },
 
-        bgcolor: 'background.paper',
+        bgcolor: 'background.default',
     },
 
     applyButton: {

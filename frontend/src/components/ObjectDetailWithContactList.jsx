@@ -16,20 +16,21 @@ import useSnackbar from '../hooks/useSnackbar.js'
 import AppBreadcrumbs from './AppBreadcrumbs.jsx'
 import ContactCreateUpdate from './ContactCreateUpdate.jsx'
 import ContactsListView from './ContactsList.jsx'
+import { objectDetailWithContactListSx as sx } from './ObjectDetailWithContactList.styles.js'
 import EditAction from './ui/buttons/EditAction.jsx'
 import AppSnackbar from './ui/feedback/AppSnackbar.jsx'
 import ConfirmDialog from './ui/feedback/ConfirmDialog.jsx'
 
 export default function ObjectDetailWithContactList({
-    id,
-    label,
-    editTo,
-    entityUrl,
-    contactsUrl,
-    ownerType,
-    ownerId,
-    fields,
-}) {
+                                                        id,
+                                                        label,
+                                                        editTo,
+                                                        entityUrl,
+                                                        contactsUrl,
+                                                        ownerType,
+                                                        ownerId,
+                                                        fields,
+                                                    }) {
     const navigate = useNavigate()
     const location = useLocation()
 
@@ -53,10 +54,26 @@ export default function ObjectDetailWithContactList({
     const contacts = contactsQuery.data ?? []
     const loading = entityQuery.isPending || contactsQuery.isPending
 
-    const [dialog, setDialog] = useState({ open: false, mode: 'create', contact: null })
+    const [dialog, setDialog] = useState({
+        open: false,
+        mode: 'create',
+        contact: null,
+    })
+
     const closeDialog = () => setDialog((s) => ({ ...s, open: false }))
-    const openCreateContact = () => setDialog({ open: true, mode: 'create', contact: null })
-    const openEditContact = (contact) => setDialog({ open: true, mode: 'edit', contact })
+    const openCreateContact = () =>
+        setDialog({
+            open: true,
+            mode: 'create',
+            contact: null,
+        })
+
+    const openEditContact = (contact) =>
+        setDialog({
+            open: true,
+            mode: 'edit',
+            contact,
+        })
 
     const { confirm, askConfirm, closeConfirm, handleConfirm } = useConfirm()
     const { snack, showSnackbar, closeSnackbar } = useSnackbar()
@@ -69,32 +86,50 @@ export default function ObjectDetailWithContactList({
     const setDeletingContact = (contactId, isOn) => {
         setDeleting((s) => {
             const next = new Set(s.contactIds)
+
             if (isOn) next.add(contactId)
             else next.delete(contactId)
-            return { ...s, contactIds: next }
+
+            return {
+                ...s,
+                contactIds: next,
+            }
         })
     }
 
     const setDeletingPhone = (contactId, phoneNumber, isOn) => {
         const key = `${contactId}:${phoneNumber}`
+
         setDeleting((s) => {
             const next = new Set(s.phoneKeySet)
+
             if (isOn) next.add(key)
             else next.delete(key)
-            return { ...s, phoneKeySet: next }
+
+            return {
+                ...s,
+                phoneKeySet: next,
+            }
         })
     }
 
     const isContactDeleting = (contactId) => deleting.contactIds.has(contactId)
-    const isPhoneDeleting = (contactId, phoneNumber) => deleting.phoneKeySet.has(`${contactId}:${phoneNumber}`)
+
+    const isPhoneDeleting = (contactId, phoneNumber) =>
+        deleting.phoneKeySet.has(`${contactId}:${phoneNumber}`)
 
     const refetchAll = async () => {
-        await Promise.all([entityQuery.refetch(), contactsQuery.refetch()])
+        await Promise.all([
+            entityQuery.refetch(),
+            contactsQuery.refetch(),
+        ])
     }
 
     const onDeleteContact = (contactId) => {
         const contact = contacts.find((c) => c.id === contactId)
-        const fullName = [contact?.firstName, contact?.lastName].filter(Boolean).join(' ')
+        const fullName = [contact?.firstName, contact?.lastName]
+            .filter(Boolean)
+            .join(' ')
 
         askConfirm({
             title: 'Удалить контакт?',
@@ -110,7 +145,10 @@ export default function ObjectDetailWithContactList({
                     await contactsQuery.refetch()
                     showSnackbar('Контакт удалён', 'success')
                 } catch (e) {
-                    showSnackbar(e?.response?.data?.detail || 'Не удалось удалить контакт', 'error')
+                    showSnackbar(
+                        e?.response?.data?.detail || 'Не удалось удалить контакт',
+                        'error',
+                    )
                 } finally {
                     setDeletingContact(contactId, false)
                 }
@@ -120,48 +158,56 @@ export default function ObjectDetailWithContactList({
 
     const onDeletePhone = async (contactId, phoneNumberToDelete) => {
         const contact = contacts.find((c) => c.id === contactId)
+
         if (!contact) return
 
-        const nextPhones = (contact.phoneNumbers ?? []).filter((p) => p.phoneNumber !== phoneNumberToDelete)
+        const nextPhones = (contact.phoneNumbers ?? []).filter(
+            (p) => p.phoneNumber !== phoneNumberToDelete,
+        )
 
         setDeletingPhone(contactId, phoneNumberToDelete, true)
 
         try {
-            await api.patch(`/api/contacts/${contactId}/`, { phoneNumbers: nextPhones })
+            await api.patch(`/api/contacts/${contactId}/`, {
+                phoneNumbers: nextPhones,
+            })
+
             await contactsQuery.refetch()
             showSnackbar('Телефон удалён', 'success')
         } catch (e) {
-            showSnackbar(e?.response?.data?.detail || 'Не удалось удалить телефон', 'error')
+            showSnackbar(
+                e?.response?.data?.detail || 'Не удалось удалить телефон',
+                'error',
+            )
         } finally {
             setDeletingPhone(contactId, phoneNumberToDelete, false)
         }
     }
 
-    // const rows = useMemo(() => fields(entity), [entity, fields])
     const rows = fields(entity)
 
     return (
-        <Box sx={{ p: 3 }}>
-            <AppBreadcrumbs dynamicLabels={entity ? { id: entity.name } : {}} />
+        <Box sx={sx.page}>
+            <AppBreadcrumbs
+                dynamicLabels={entity ? { id: entity.name } : {}}
+            />
 
             <Stack spacing={2}>
-                <Card variant="outlined" sx={{ width: '100%', borderRadius: 1 }}>
-                    <Box sx={{ p: 3, display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-                        <Typography
-                            variant="subtitle1"
-                            sx={{
-                                color: 'text.secondary',
-                                fontWeight: 700,
-                                textTransform: 'uppercase',
-                                fontSize: '0.9rem',
-                            }}
-                        >
+                <Card variant="outlined" sx={sx.card}>
+                    <Box sx={sx.header}>
+                        <Typography variant="subtitle1" sx={sx.title}>
                             {label}
                         </Typography>
 
                         <Stack direction="row" spacing={1}>
                             <EditAction
-                                onClick={() => navigate(editTo(id), { state: { from: location.pathname } })}
+                                onClick={() =>
+                                    navigate(editTo(id), {
+                                        state: {
+                                            from: location.pathname,
+                                        },
+                                    })
+                                }
                                 icon={<EditIcon fontSize="small" />}
                             />
 
@@ -169,9 +215,12 @@ export default function ObjectDetailWithContactList({
                                 <EditAction
                                     title="Водители"
                                     onClick={() =>
-                                        navigate(editTo(id).replace('edit', 'drivers'), {
-                                            state: { entity },
-                                        })
+                                        navigate(
+                                            editTo(id).replace('edit', 'drivers'),
+                                            {
+                                                state: { entity },
+                                            },
+                                        )
                                     }
                                     icon={<PersonIcon fontSize="small" />}
                                 />
@@ -181,11 +230,16 @@ export default function ObjectDetailWithContactList({
                                 <EditAction
                                     title="Автотранспорт"
                                     onClick={() =>
-                                        navigate(editTo(id).replace('edit', 'trucks'), {
-                                            state: { entity },
-                                        })
+                                        navigate(
+                                            editTo(id).replace('edit', 'trucks'),
+                                            {
+                                                state: { entity },
+                                            },
+                                        )
                                     }
-                                    icon={<LocalShippingIcon fontSize="small" />}
+                                    icon={
+                                        <LocalShippingIcon fontSize="small" />
+                                    }
                                 />
                             )}
 
@@ -193,11 +247,19 @@ export default function ObjectDetailWithContactList({
                                 <EditAction
                                     title="Объекты"
                                     onClick={() =>
-                                        navigate(editTo(id).replace('edit', 'construction_objects'), {
-                                            state: { entity },
-                                        })
+                                        navigate(
+                                            editTo(id).replace(
+                                                'edit',
+                                                'construction_objects',
+                                            ),
+                                            {
+                                                state: { entity },
+                                            },
+                                        )
                                     }
-                                    icon={<ConstructionIcon fontSize="small" />}
+                                    icon={
+                                        <ConstructionIcon fontSize="small" />
+                                    }
                                 />
                             )}
                         </Stack>
@@ -205,30 +267,28 @@ export default function ObjectDetailWithContactList({
 
                     <Divider />
 
-                    <CardContent sx={{ p: 0 }}>
+                    <CardContent sx={sx.cardContent}>
                         {loading ? (
-                            <Box sx={{ py: 6, display: 'flex', justifyContent: 'center' }}>
+                            <Box sx={sx.loading}>
                                 <CircularProgress />
                             </Box>
                         ) : (
                             <Stack>
                                 {rows.map((item) => {
-                                    const isEmpty = item.value === null || item.value === undefined || item.value === ''
+                                    const isEmpty =
+                                        item.value === null ||
+                                        item.value === undefined ||
+                                        item.value === ''
 
-                                    const isNode = React.isValidElement(item.value)
+                                    const isNode = React.isValidElement(
+                                        item.value,
+                                    )
 
                                     return (
-                                        <Box key={item.label} sx={{ px: 3, py: 2.5 }}>
+                                        <Box key={item.label} sx={sx.row}>
                                             <Typography
                                                 variant="body2"
-                                                sx={{
-                                                    display: 'block',
-                                                    color: 'text.disabled',
-                                                    fontWeight: 700,
-                                                    textTransform: 'uppercase',
-                                                    mb: 0.5,
-                                                    fontSize: '0.85rem',
-                                                }}
+                                                sx={sx.fieldLabel}
                                             >
                                                 {item.label}
                                             </Typography>
@@ -238,9 +298,11 @@ export default function ObjectDetailWithContactList({
                                             ) : (
                                                 <Typography
                                                     variant="h6"
-                                                    sx={{ color: 'text.primary', fontSize: '1.2rem', lineHeight: 1.1 }}
+                                                    sx={sx.fieldValue}
                                                 >
-                                                    {isEmpty ? '—' : item.value}
+                                                    {isEmpty
+                                                        ? '—'
+                                                        : item.value}
                                                 </Typography>
                                             )}
                                         </Box>
@@ -286,7 +348,12 @@ export default function ObjectDetailWithContactList({
                 onConfirm={handleConfirm}
             />
 
-            <AppSnackbar open={snack.open} message={snack.message} severity={snack.severity} onClose={closeSnackbar} />
+            <AppSnackbar
+                open={snack.open}
+                message={snack.message}
+                severity={snack.severity}
+                onClose={closeSnackbar}
+            />
         </Box>
     )
 }

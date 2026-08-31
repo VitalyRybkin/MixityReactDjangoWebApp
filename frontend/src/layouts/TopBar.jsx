@@ -6,6 +6,7 @@ import ThemeToggle from '../components/ThemeToggle'
 import { ACCESS_TOKEN, REFRESH_TOKEN } from '../constants.js'
 import { useAuth } from '../pages/auth/context/AuthContext.jsx'
 
+import { topBarSx as sx } from './TopBar.styles.js'
 import TopBarNav from './TopBarNav.jsx'
 
 const TopBar = () => {
@@ -22,63 +23,37 @@ const TopBar = () => {
         <AppBar
             position="sticky"
             elevation={1}
-            sx={{
-                width: '100%',
-                maxWidth: 'none',
-            }}
+            sx={sx.appBar}
         >
-            <Toolbar
-                sx={{
-                    width: '100%',
-                    boxSizing: 'border-box',
-                }}
-            >
+            <Toolbar sx={sx.toolbar}>
                 <TopBarNav />
 
-                <Box sx={{ flexGrow: 1 }} />
+                <Box sx={sx.spacer} />
 
                 <Typography
                     variant="body2"
-                    color="text.secondary"
-                    sx={{
-                        mr: 2,
-                        flexShrink: 0,
-                        display: 'none',
-
-                        '@media (min-width: 1450px)': {
-                            display: 'block',
-                        },
-                    }}
+                    sx={sx.usernameLabel}
                 >
                     Имя пользователя:
                 </Typography>
 
                 <Typography
                     variant="body2"
-                    color="text.primary"
-                    sx={{
-                        mr: { xs: 1, md: 4 },
-                        flexShrink: 0,
-                    }}
+                    sx={sx.username}
                 >
                     {user?.first_name
                         ? `${user.first_name} ${user.last_name}`
                         : user?.username}
                 </Typography>
 
-                <Box sx={{ flexShrink: 0 }}>
+                <Box sx={sx.themeToggle}>
                     <ThemeToggle />
                 </Box>
 
                 <Button
                     color="inherit"
                     onClick={handleLogout}
-                    sx={{
-                        ml: { xs: 1, md: 2 },
-                        textTransform: 'none',
-                        fontWeight: 500,
-                        flexShrink: 0,
-                    }}
+                    sx={sx.logoutButton}
                 >
                     Выйти
                 </Button>

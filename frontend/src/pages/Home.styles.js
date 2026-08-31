@@ -1,4 +1,5 @@
 import { sidebarPageSx } from '../layouts/AppSidebar.jsx'
+import {clickableDataGridSx} from "../styles/dataGrid.styles.js";
 
 export const homeSx = {
     container: {
@@ -80,11 +81,8 @@ export const homeSx = {
         minWidth: 0,
     },
 
-    dataGrid: {
-        '& .MuiDataGrid-row': {
-            cursor: 'pointer',
-        },
-    },
+    dataGrid: clickableDataGridSx,
+
     exportAction: {
         display: {
             xs: 'none',
