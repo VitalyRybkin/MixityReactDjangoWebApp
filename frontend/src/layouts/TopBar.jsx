@@ -8,17 +8,6 @@ import { useAuth } from '../pages/auth/context/AuthContext.jsx'
 
 import TopBarNav from './TopBarNav.jsx'
 
-const sx = {
-    title: {
-        fontWeight: 600,
-    },
-    logout: {
-        ml: 2,
-        textTransform: 'none',
-        fontWeight: 500,
-    },
-}
-
 const TopBar = () => {
     const navigate = useNavigate()
     const { user } = useAuth()
@@ -30,26 +19,67 @@ const TopBar = () => {
     }
 
     return (
-        <AppBar position="sticky" elevation={1}>
-            <Toolbar>
-                {/*<Typography variant="h6" sx={sx.title}>*/}
-                {/*    Заявки на доставку*/}
-                {/*</Typography>*/}
-                <TopBarNav> </TopBarNav>
+        <AppBar
+            position="sticky"
+            elevation={1}
+            sx={{
+                width: '100%',
+                maxWidth: 'none',
+            }}
+        >
+            <Toolbar
+                sx={{
+                    width: '100%',
+                    boxSizing: 'border-box',
+                }}
+            >
+                <TopBarNav />
 
                 <Box sx={{ flexGrow: 1 }} />
 
-                <Typography variant="body2" color="text.secondary" sx={{ mr: 2 }}>
+                <Typography
+                    variant="body2"
+                    color="text.secondary"
+                    sx={{
+                        mr: 2,
+                        flexShrink: 0,
+                        display: 'none',
+
+                        '@media (min-width: 1450px)': {
+                            display: 'block',
+                        },
+                    }}
+                >
                     Имя пользователя:
                 </Typography>
 
-                <Typography variant="body2" color="text.primary" sx={{ mr: 4 }}>
-                    {user?.first_name ? `${user.first_name} ${user.last_name}` : user?.username}
+                <Typography
+                    variant="body2"
+                    color="text.primary"
+                    sx={{
+                        mr: { xs: 1, md: 4 },
+                        flexShrink: 0,
+                    }}
+                >
+                    {user?.first_name
+                        ? `${user.first_name} ${user.last_name}`
+                        : user?.username}
                 </Typography>
 
-                <ThemeToggle />
+                <Box sx={{ flexShrink: 0 }}>
+                    <ThemeToggle />
+                </Box>
 
-                <Button color="inherit" onClick={handleLogout} sx={sx.logout}>
+                <Button
+                    color="inherit"
+                    onClick={handleLogout}
+                    sx={{
+                        ml: { xs: 1, md: 2 },
+                        textTransform: 'none',
+                        fontWeight: 500,
+                        flexShrink: 0,
+                    }}
+                >
                     Выйти
                 </Button>
             </Toolbar>

@@ -33,7 +33,9 @@ export default function AppSidebar({ open, setOpen, children }) {
         borderColor: 'divider',
         p: open ? 2 : 0,
         boxSizing: 'border-box',
+
         overflow: 'hidden',
+
         transition: 'width 0.3s ease',
         display: 'flex',
         flexDirection: 'column',
@@ -45,12 +47,29 @@ export default function AppSidebar({ open, setOpen, children }) {
             {open ? (
                 <>
                     <Tooltip title="Закрыть" placement="bottom" arrow>
-                        <Button variant="outlined" onClick={() => setOpen(false)} fullWidth sx={{ mb: 2 }}>
+                        <Button
+                            variant="outlined"
+                            onClick={() => setOpen(false)}
+                            fullWidth
+                            sx={{
+                                mb: 2,
+                                flexShrink: 0,
+                            }}
+                        >
                             <ChevronLeftIcon />
                         </Button>
                     </Tooltip>
 
-                    {children}
+                    <Box
+                        sx={{
+                            flex: 1,
+                            minHeight: 0,
+                            overflowY: 'auto',
+                            overflowX: 'hidden',
+                        }}
+                    >
+                        {children}
+                    </Box>
                 </>
             ) : (
                 <Box sx={{ display: 'flex', justifyContent: 'center', pt: 2 }}>
