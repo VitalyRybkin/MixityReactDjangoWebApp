@@ -20,12 +20,10 @@ export default function WarehousesList() {
         showSnackbar,
     })
 
-    const deleteWarehouseMutation = useDeleteWarehouse()
-
     const handleDeleteWarehouse = (warehouse) => {
         confirmDelete({
             item: warehouse,
-            mutateAsync: deleteWarehouseMutation.mutateAsync,
+            mutateAsync: deleteWarehouse.mutateAsync,
             refetch,
             title: 'Удалить склад?',
             text: (item) => `Вы действительно хотите удалить "${item.name}"?`,
@@ -44,6 +42,7 @@ export default function WarehousesList() {
                 addTo="/warehouses/create"
                 renderRow={(w) => (
                     <ObjectListViewCard
+                        key={w.id}
                         title={w.name}
                         subtitle={w.organization}
                         address={w.address}

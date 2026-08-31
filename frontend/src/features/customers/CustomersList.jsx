@@ -20,12 +20,10 @@ export default function CustomersList() {
         showSnackbar,
     })
 
-    const deleteCustomerMutation = useDeleteCustomer()
-
     const handleDeleteCustomer = (customer) => {
         confirmDelete({
             item: customer,
-            mutateAsync: deleteCustomerMutation.mutateAsync,
+            mutateAsync: deleteCustomer.mutateAsync,
             refetch,
             title: 'Удалить заказчика?',
             text: (item) => `Вы действительно хотите удалить "${item.name}"?`,

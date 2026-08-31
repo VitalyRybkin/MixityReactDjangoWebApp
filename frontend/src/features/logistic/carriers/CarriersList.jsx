@@ -17,12 +17,10 @@ export default function CarriersList() {
 
     const confirmDelete = useConfirmDelete({ askConfirm, showSnackbar })
 
-    const deleteCarrierMutation = useDeleteCarrier()
-
     const handleDeleteCarrier = (carrier) => {
         confirmDelete({
             item: carrier,
-            mutateAsync: deleteCarrierMutation.mutateAsync,
+            mutateAsync: deleteCarrier.mutateAsync,
             refetch,
             title: 'Удалить перевозчика?',
             text: (item) => `Вы действительно хотите удалить "${item.name}"?`,

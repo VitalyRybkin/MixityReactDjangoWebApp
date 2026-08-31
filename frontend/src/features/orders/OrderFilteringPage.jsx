@@ -1,4 +1,4 @@
-import React, { useCallback, useMemo, useState } from 'react'
+import { useCallback, useMemo, useState } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
 
 import { Box, Checkbox, Divider, FormControlLabel, Typography } from '@mui/material'
@@ -38,16 +38,63 @@ const initialDefaults = {
     productId: '',
 }
 
-const innerBoxSx = {
-    display: 'flex',
-    flexDirection: 'column',
-    gap: 2,
-}
+const sx = {
+    page: {
+        p: 3,
+    },
 
-const checkBoxSx = {
-    typography: {
-        fontSize: '14px',
-        color: 'text.secondary',
+    header: {
+        p: 3,
+        display: 'flex',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+    },
+
+    headerActions: {
+        display: 'flex',
+        gap: 2,
+    },
+
+    filters: {
+        display: 'grid',
+        gridTemplateColumns: 'repeat(3, minmax(0, 1fr))',
+        gap: 3,
+        pt: 2,
+        alignItems: 'start',
+    },
+
+    filterColumn: {
+        display: 'flex',
+        flexDirection: 'column',
+        gap: 2,
+        minWidth: 0,
+    },
+
+    checkboxLabel: {
+        typography: {
+            fontSize: '14px',
+            color: 'text.secondary',
+        },
+    },
+
+    actions: {
+        p: 1,
+        display: 'flex',
+        justifyContent: 'flex-end',
+    },
+
+    applyButton: {
+        width: 150,
+    },
+
+    tableDivider: {
+        mb: 3,
+    },
+
+    dataGrid: {
+        '& .MuiDataGrid-row': {
+            cursor: 'pointer',
+        },
     },
 }
 
@@ -72,9 +119,16 @@ export default function OrderFilteringPage() {
         ['samples', 'no_upd'],
     )
 
-    const productValue = products.some((product) => product.id === draftFilters.productId) ? draftFilters.productId : ''
+    const productValue = products.some((product) => product.id === draftFilters.productId)
+        ? draftFilters.productId
+        : ''
 
-    const [snackbar, setSnackbar] = useState({ open: false, message: '', severity: 'success' })
+    const [snackbar, setSnackbar] = useState({
+        open: false,
+        message: '',
+        severity: 'success',
+    })
+
     const { data: orders, isPending: loadingOrders } = useGetOrders(formattedFilters)
     const { refetch: fetchDownload, isFetching: isDownloading } = useExportOrders(formattedFilters)
 
@@ -114,21 +168,15 @@ export default function OrderFilteringPage() {
     }
 
     return (
-        <Box sx={{ p: 3 }}>
+        <Box sx={sx.page}>
             <AppBreadcrumbs dynamicLabels={entity ? { id: entity.name } : {}} />
 
-            <Box
-                sx={{
-                    p: 3,
-                    display: 'flex',
-                    justifyContent: 'space-between',
-                    alignItems: 'center',
-                }}
-            >
+            <Box sx={sx.header}>
                 <Typography variant="h4" gutterBottom fontWeight={600}>
                     Поиск заявок
                 </Typography>
-                <Box sx={{ display: 'flex', gap: 2 }}>
+
+                <Box sx={sx.headerActions}>
                     <DownloadAction
                         title="Экспорт в Excel"
                         onClick={handleExport}
@@ -140,15 +188,7 @@ export default function OrderFilteringPage() {
 
             <Divider />
 
-            <Box
-                sx={{
-                    display: 'grid',
-                    gridTemplateColumns: '1fr 1fr 1fr',
-                    gap: 3,
-                    pt: 2,
-                    alignItems: 'start',
-                }}
-            >
+            <Box sx={sx.filters}>
                 <DateRangeFields
                     filters={draftFilters}
                     onChange={handleDraftFilterChange}
@@ -156,7 +196,7 @@ export default function OrderFilteringPage() {
                     toId="orders-date-to"
                 />
 
-                <Box sx={innerBoxSx}>
+                <Box sx={sx.filterColumn}>
                     <AppSelectField
                         id="orders-customer"
                         label="Контрагент"
@@ -175,7 +215,8 @@ export default function OrderFilteringPage() {
                         fullWidth
                     />
                 </Box>
-                <Box sx={innerBoxSx}>
+
+                <Box sx={sx.filterColumn}>
                     <AppSelectField
                         id="orders-product"
                         label="Продукция"
@@ -184,6 +225,7 @@ export default function OrderFilteringPage() {
                         onChange={(value) => handleDraftFilterChange('productId', value)}
                         fullWidth
                     />
+
                     <Box>
                         <FormControlLabel
                             control={
@@ -194,8 +236,9 @@ export default function OrderFilteringPage() {
                                 />
                             }
                             label="Образцы"
-                            slotProps={checkBoxSx}
+                            slotProps={sx.checkboxLabel}
                         />
+
                         <FormControlLabel
                             control={
                                 <Checkbox
@@ -205,17 +248,17 @@ export default function OrderFilteringPage() {
                                 />
                             }
                             label="Без УПД"
-                            slotProps={checkBoxSx}
+                            slotProps={sx.checkboxLabel}
                         />
                     </Box>
                 </Box>
             </Box>
 
-            <Box sx={{ p: 1, display: 'flex', justifyContent: 'flex-end' }}>
-                <ApplyAction onClick={applyFilters} loading={loadingOrders} sx={{ width: '150px' }} />
+            <Box sx={sx.actions}>
+                <ApplyAction onClick={applyFilters} loading={loadingOrders} sx={sx.applyButton} />
             </Box>
 
-            <Divider sx={{ mb: 3 }} />
+            <Divider sx={sx.tableDivider} />
 
             <DataGrid
                 rows={orders ?? []}
@@ -228,7 +271,7 @@ export default function OrderFilteringPage() {
                 localeText={localeText}
                 slots={{ pagination: CustomPagination }}
                 onRowClick={(params) => navigate(`/orders/${params.row.id}/edit`)}
-                sx={{ '& .MuiDataGrid-row': { cursor: 'pointer' } }}
+                sx={sx.dataGrid}
             />
 
             <AppSnackbar
