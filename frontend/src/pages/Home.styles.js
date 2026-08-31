@@ -1,5 +1,5 @@
 import { sidebarPageSx } from '../layouts/AppSidebar.jsx'
-import {clickableDataGridSx} from "../styles/dataGrid.styles.js";
+import { clickableDataGridSx } from '../styles/dataGrid.styles.js'
 
 export const homeSx = {
     container: {

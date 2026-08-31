@@ -10,8 +10,8 @@ import DownloadAction from '../components/ui/buttons/DownloadAction.jsx'
 import AppSnackbar from '../components/ui/feedback/AppSnackbar.jsx'
 import ConfirmDialog from '../components/ui/feedback/ConfirmDialog.jsx'
 import { useGetCustomers } from '../features/customers/utils/customers.queries.js'
-import { useViewUpd } from '../features/orders/hooks/useViewUpd.js'
 import OrderMobileList from '../features/orders/components/OrderMobileList.jsx'
+import { useViewUpd } from '../features/orders/hooks/useViewUpd.js'
 import { useExportOrders, useGetOrders, useUploadUpd } from '../features/orders/utils/orders.queries.js'
 import { useGetWarehouses } from '../features/warehouses/utils/stocks.queries.js'
 import { useFileUpload } from '../hooks/useUploadFile.js'
@@ -99,8 +99,7 @@ const Home = () => {
         ? warehouses.find((warehouse) => warehouse.id === formattedFilters.warehouseId)?.name || '-'
         : '-'
 
-    const selectedStatus =
-        ORDER_STATUS_OPTIONS.find((status) => status.value === formattedFilters.status)?.label || '-'
+    const selectedStatus = ORDER_STATUS_OPTIONS.find((status) => status.value === formattedFilters.status)?.label || '-'
 
     const handleUploadUpd = useFileUpload(uploadUpd, showSnackbar, {
         successMessage: 'УПД успешно загружен.',

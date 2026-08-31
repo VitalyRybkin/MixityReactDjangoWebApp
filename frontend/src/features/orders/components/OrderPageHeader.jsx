@@ -29,9 +29,7 @@ export default function OrderPageHeader({ isEdit, orderId, saving }) {
                     overflowWrap: 'anywhere',
                 }}
             >
-                {isEdit
-                    ? `Редактирование заявки № ${orderId}`
-                    : 'Новая заявка'}
+                {isEdit ? `Редактирование заявки № ${orderId}` : 'Новая заявка'}
             </Typography>
 
             <Stack direction="row" spacing={1}>

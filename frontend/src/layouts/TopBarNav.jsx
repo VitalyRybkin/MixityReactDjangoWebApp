@@ -107,69 +107,34 @@ const TopBarNav = () => {
                 </IconButton>
             </Tooltip>
 
-            <Menu
-                id="top-bar-menu"
-                anchorEl={anchorEl}
-                open={menuOpen}
-                onClose={handleCloseMenu}
-            >
+            <Menu id="top-bar-menu" anchorEl={anchorEl} open={menuOpen} onClose={handleCloseMenu}>
                 <MenuItem component={NavLink} to="/" onClick={handleCloseMenu} sx={sx.menuItem}>
                     Главная
                 </MenuItem>
 
                 <Can group={[GROUPS.LOGISTIC_MANAGER, GROUPS.ACCOUNTANT]}>
-                    <MenuItem
-                        component={NavLink}
-                        to="/carriers"
-                        onClick={handleCloseMenu}
-                        sx={sx.menuItem}
-                    >
+                    <MenuItem component={NavLink} to="/carriers" onClick={handleCloseMenu} sx={sx.menuItem}>
                         Перевозчики
                     </MenuItem>
 
-                    <MenuItem
-                        component={NavLink}
-                        to="/warehouses"
-                        onClick={handleCloseMenu}
-                        sx={sx.menuItem}
-                    >
+                    <MenuItem component={NavLink} to="/warehouses" onClick={handleCloseMenu} sx={sx.menuItem}>
                         Склады
                     </MenuItem>
 
-                    <MenuItem
-                        component={NavLink}
-                        to="/clients"
-                        onClick={handleCloseMenu}
-                        sx={sx.menuItem}
-                    >
+                    <MenuItem component={NavLink} to="/clients" onClick={handleCloseMenu} sx={sx.menuItem}>
                         Клиенты
                     </MenuItem>
 
-                    <MenuItem
-                        component={NavLink}
-                        to="/customers"
-                        onClick={handleCloseMenu}
-                        sx={sx.menuItem}
-                    >
+                    <MenuItem component={NavLink} to="/customers" onClick={handleCloseMenu} sx={sx.menuItem}>
                         Заказчики
                     </MenuItem>
                 </Can>
 
-                <MenuItem
-                    component={NavLink}
-                    to="/documentation"
-                    onClick={handleCloseMenu}
-                    sx={sx.menuItem}
-                >
+                <MenuItem component={NavLink} to="/documentation" onClick={handleCloseMenu} sx={sx.menuItem}>
                     Документация
                 </MenuItem>
 
-                <MenuItem
-                    component={NavLink}
-                    to="/filtering"
-                    onClick={handleCloseMenu}
-                    sx={sx.menuItem}
-                >
+                <MenuItem component={NavLink} to="/filtering" onClick={handleCloseMenu} sx={sx.menuItem}>
                     Поиск
                 </MenuItem>
             </Menu>

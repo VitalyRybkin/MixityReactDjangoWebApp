@@ -10,10 +10,7 @@ export default function Unauthorized() {
     const location = useLocation()
     const [searchParams] = useSearchParams()
 
-    const from =
-        location.state?.from ??
-        searchParams.get('from') ??
-        'запрошенной странице'
+    const from = location.state?.from ?? searchParams.get('from') ?? 'запрошенной странице'
 
     useEffect(() => {
         if (seconds === 0) {
@@ -46,9 +43,7 @@ export default function Unauthorized() {
         >
             <Typography variant="h2">401</Typography>
 
-            <Typography variant="h5">
-                ТРЕБУЕТСЯ АВТОРИЗАЦИЯ
-            </Typography>
+            <Typography variant="h5">ТРЕБУЕТСЯ АВТОРИЗАЦИЯ</Typography>
 
             <Typography color="text.secondary">
                 Для доступа к
@@ -61,15 +56,10 @@ export default function Unauthorized() {
             <Typography sx={{ mt: 2 }}>
                 Переход на страницу входа через
                 <br />
-                <strong style={{ fontWeight: 'bold', fontSize: '2rem' }}>
-                    {seconds}
-                </strong>
+                <strong style={{ fontWeight: 'bold', fontSize: '2rem' }}>{seconds}</strong>
             </Typography>
 
-            <Button
-                variant="contained"
-                onClick={() => setRedirect(true)}
-            >
+            <Button variant="contained" onClick={() => setRedirect(true)}>
                 Войти сейчас
             </Button>
         </Box>

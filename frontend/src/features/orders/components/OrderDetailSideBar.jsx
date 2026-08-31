@@ -6,19 +6,10 @@ import AppSidebar from '../../../layouts/AppSidebar.jsx'
 import { useEditablePrices } from '../hooks/useEditablePrices.js'
 import { useOrderTotals } from '../hooks/useOrderTotals.js'
 import { handlePriceChange } from '../utils/handlePriceChange.js'
-import { fieldsetStyles } from '../utils/order.form.constants.js'
 import { getProductId } from '../utils/orderProducts.js'
 
 import OrderDeliveryDetail from './OrderDeliveryDetail.jsx'
 import PriceSection from './PriceSection.jsx'
-
-const boxStyle = {
-    ...fieldsetStyles,
-    backgroundColor: 'background.default',
-    gap: 0,
-    mb: 1,
-    flex: 0,
-}
 
 export default function OrderDetailSideBar({
     isEdit,
@@ -98,7 +89,7 @@ export default function OrderDetailSideBar({
 
     return (
         <AppSidebar open={open} setOpen={setOpen}>
-            <Box component="fieldset" sx={boxStyle}>
+            <Box component="fieldset" sx={sx.section}>
                 <PriceSection
                     title="ПРОДАЖА"
                     label="Цена продажи:"
@@ -108,12 +99,13 @@ export default function OrderDetailSideBar({
                     onChange={handlePriceAtSaleChange}
                 />
             </Box>
-            <Box component="fieldset" sx={boxStyle}>
-                <Typography variant="h6" sx={{ color: 'primary.main' }}>
+
+            <Box component="fieldset" sx={sx.section}>
+                <Typography variant="h6" sx={sx.title}>
                     ЗАКУПКА
                 </Typography>
 
-                <Divider sx={{ my: 1 }} />
+                <Divider sx={sx.divider} />
 
                 <Autocomplete
                     size="small"
@@ -127,8 +119,10 @@ export default function OrderDetailSideBar({
                             warehouse: newValue,
                         }))
                     }}
-                    renderInput={(params) => <TextField {...params} label="Склад" />}
-                    sx={{ mt: 1 }}
+                    renderInput={(params) => (
+                        <TextField {...params} label="Склад" />
+                    )}
+                    sx={sx.warehouseField}
                 />
 
                 <PriceSection
@@ -139,12 +133,13 @@ export default function OrderDetailSideBar({
                     onChange={handlePriceAtPurchaseChange}
                 />
             </Box>
-            <Box component="fieldset" sx={boxStyle}>
-                <Typography variant="h6" sx={{ color: 'primary.main' }}>
+
+            <Box component="fieldset" sx={sx.section}>
+                <Typography variant="h6" sx={sx.title}>
                     ДОСТАВКА
                 </Typography>
 
-                <Divider sx={{ my: 1 }} />
+                <Divider sx={sx.divider} />
 
                 <OrderDeliveryDetail />
             </Box>

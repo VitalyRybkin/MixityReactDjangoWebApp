@@ -22,11 +22,9 @@ import DownloadAction from '../../components/ui/buttons/DownloadAction.jsx'
 import EmailLink from '../../components/ui/buttons/EmailLink.jsx'
 import AppSnackbar from '../../components/ui/feedback/AppSnackbar.jsx'
 import useSnackbar from '../../hooks/useSnackbar.js'
-
 import { entityTableListSx as listSx } from '../../styles/entityTableList.styles.js'
 
 import { documentationListSx as sx } from './DocumentationList.styles.js'
-
 import { fetchDocumentationDetail, useGetDocumentation } from './common.queries.js'
 import { documentationApiPaths } from './documentationApiPaths.js'
 

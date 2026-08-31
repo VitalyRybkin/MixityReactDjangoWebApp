@@ -39,13 +39,7 @@ const sx = {
     },
 }
 
-export default function OrderMobileList({
-    orders = [],
-    loading = false,
-    onOpen,
-    onDelete,
-    onUploadUpd,
-}) {
+export default function OrderMobileList({ orders = [], loading = false, onOpen, onDelete, onUploadUpd }) {
     const [page, setPage] = useState(1)
 
     const pageCount = Math.max(1, Math.ceil(orders.length / PAGE_SIZE))
@@ -72,9 +66,7 @@ export default function OrderMobileList({
     if (!orders.length) {
         return (
             <Box sx={sx.root}>
-                <Typography sx={sx.empty}>
-                    На выбранный период доставки заказов нет.
-                </Typography>
+                <Typography sx={sx.empty}>На выбранный период доставки заказов нет.</Typography>
             </Box>
         )
     }
@@ -95,12 +87,7 @@ export default function OrderMobileList({
 
             {pageCount > 1 && (
                 <Box sx={sx.pagination}>
-                    <Pagination
-                        count={pageCount}
-                        page={page}
-                        onChange={(_, value) => setPage(value)}
-                        size="small"
-                    />
+                    <Pagination count={pageCount} page={page} onChange={(_, value) => setPage(value)} size="small" />
                 </Box>
             )}
         </Box>

@@ -118,10 +118,7 @@ export default function OrderFormPage() {
         onSuccess: () => markCleanRef.current?.(),
     })
 
-    const productIds = useMemo(
-        () => orderProducts.map(getProductId).filter(Boolean),
-        [orderProducts],
-    )
+    const productIds = useMemo(() => orderProducts.map(getProductId).filter(Boolean), [orderProducts])
 
     const customerId = form.customer?.id ?? null
     const warehouseId = form.warehouse?.id ?? null

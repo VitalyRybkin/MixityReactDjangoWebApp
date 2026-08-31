@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useLocation, useNavigate, useParams } from 'react-router-dom'
 
 import { Alert, Box, CircularProgress, Paper, Stack, TextField, Typography } from '@mui/material'
@@ -9,6 +9,7 @@ import customParseFormat from 'dayjs/plugin/customParseFormat'
 import AppBreadcrumbs from '../../../components/AppBreadcrumbs.jsx'
 import DateField from '../../../components/ui/DateField.jsx'
 import FormActions from '../../../components/ui/FormActions.jsx'
+import { entityFormSx as sx } from '../../../styles/entityForm.styles.js'
 import { firstError } from '../../../utils/apiError.js'
 import { normalizePhoneInput, validatePhoneValue } from '../../../utils/phone.js'
 
@@ -51,7 +52,7 @@ export default function DriverFormPage() {
 
         if (driver) {
             setForm({
-                fullName: String(driver.organization ?? driver.full_name ?? ''),
+                fullName: String(driver.fullName ?? driver.full_name ?? ''),
                 passportNumber: String(driver.passportNumber ?? driver.passport_number ?? ''),
                 passportIssueDate: String(driver.passportIssueDate ?? driver.passport_issue_date ?? ''),
                 passportEmittedBy: String(driver.passportEmittedBy ?? driver.passport_emitted_by ?? ''),
@@ -104,34 +105,34 @@ export default function DriverFormPage() {
 
     if (loading) {
         return (
-            <Box sx={{ p: 3, display: 'flex', justifyContent: 'center' }}>
+            <Box sx={sx.loading}>
                 <CircularProgress />
             </Box>
         )
     }
 
     return (
-        <Box sx={{ p: 3, maxWidth: 700 }}>
+        <Box sx={sx.page}>
             <AppBreadcrumbs dynamicLabels={entity ? { id: entity.name } : {}} />
 
-            <Paper sx={{ p: 3, borderRadius: 3 }}>
-                <Typography variant="h5" sx={{ mb: 2 }}>
+            <Paper sx={sx.paper}>
+                <Typography variant="h5" sx={sx.title}>
                     {isEdit ? 'Редактировать водителя' : 'Добавить водителя'}
                 </Typography>
 
                 {loadError && (
-                    <Alert severity="error" sx={{ mb: 2 }}>
+                    <Alert severity="error" sx={sx.error}>
                         {firstError(loadError)}
                     </Alert>
                 )}
 
                 {error && (
-                    <Alert severity="error" sx={{ mb: 2 }}>
+                    <Alert severity="error" sx={sx.error}>
                         {error}
                     </Alert>
                 )}
 
-                <Box component="form" onSubmit={onSubmit}>
+                <Box component="form" sx={sx.form} onSubmit={onSubmit}>
                     <Stack spacing={2}>
                         <TextField
                             label="Полное имя"

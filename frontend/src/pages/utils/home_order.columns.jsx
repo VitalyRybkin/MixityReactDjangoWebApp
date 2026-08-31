@@ -50,16 +50,14 @@ export const getHomeGridOrderColumns = ({ onDelete, onUploadUpd }) => [
         headerName: 'Время доставки',
         flex: 0.8,
         minWidth: 170,
-        valueGetter: (_, row) =>
-            `${formatTime(row.delivery_from)} – ${formatTime(row.delivery_to)}`,
+        valueGetter: (_, row) => `${formatTime(row.delivery_from)} – ${formatTime(row.delivery_to)}`,
     },
     {
         field: 'status',
         headerName: 'Статус',
         flex: 1,
         minWidth: 140,
-        valueGetter: (_, row) =>
-            ORDER_STATUS_LABELS[row.status] ?? row.status ?? '—',
+        valueGetter: (_, row) => ORDER_STATUS_LABELS[row.status] ?? row.status ?? '—',
     },
     {
         field: 'upd_pdf',

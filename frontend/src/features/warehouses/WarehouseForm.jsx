@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react'
+import { useEffect } from 'react'
 import { useLocation, useNavigate, useParams } from 'react-router-dom'
 
 import { Alert, Box, CircularProgress, Paper, Stack, TextField, Typography } from '@mui/material'
@@ -9,6 +9,7 @@ import { useFormLogic } from '../../hooks/useEntityForm.js'
 import useLoadImage from '../../hooks/useLoadImage.jsx'
 import { EMAIL_HINT } from '../../utils/email.js'
 
+import { warehouseFormSx as sx } from './WarehouseForm.styles.js'
 import { useCreateWarehouse, useGetWarehouse, useUpdateWarehouse } from './utils/stocks.queries.js'
 
 const emptyForm = {
@@ -74,23 +75,29 @@ export default function WarehouseFormPage() {
             redirectPath: '/warehouses',
         })
 
-    if (isEdit && loadingWarehouse) return <CircularProgress />
+    if (isEdit && loadingWarehouse) {
+        return (
+            <Box sx={sx.loading}>
+                <CircularProgress />
+            </Box>
+        )
+    }
 
     return (
-        <Box sx={{ p: 3, maxWidth: 700 }}>
+        <Box sx={sx.page}>
             <AppBreadcrumbs dynamicLabels={{ id: warehouse?.name }} />
-            <Paper sx={{ p: 3, borderRadius: 3 }}>
-                <Typography variant="h5" color="text.secondary" sx={{ mb: 2 }}>
+            <Paper sx={sx.paper}>
+                <Typography variant="h5" color="text.secondary" sx={sx.title}>
                     {isEdit ? `Редактировать ${form.organization || ''}` : 'Создать склад'}
                 </Typography>
 
                 {error && (
-                    <Alert severity="error" sx={{ mb: 2 }}>
+                    <Alert severity="error" sx={sx.error}>
                         {error}
                     </Alert>
                 )}
 
-                <Box component="form" onSubmit={onSubmit}>
+                <Box component="form" sx={sx.form} onSubmit={onSubmit}>
                     <Stack spacing={2}>
                         <TextField label="Наименование" value={form.name} onChange={onChange('name')} fullWidth />
                         <TextField
@@ -126,10 +133,11 @@ export default function WarehouseFormPage() {
                             multiline
                             minRows={3}
                         />
-                        <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
+                        <Box sx={sx.mapSection}>
                             <Typography variant="caption" color="text.secondary">
                                 Схема проезда
                             </Typography>
+
                             {renderActions(
                                 form?.directions,
                                 `/warehouses/${warehouse?.id}/map`,

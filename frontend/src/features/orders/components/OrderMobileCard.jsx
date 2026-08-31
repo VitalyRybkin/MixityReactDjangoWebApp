@@ -1,8 +1,9 @@
 import { Box, Card, CardActions, CardContent, Divider, Stack, Typography } from '@mui/material'
-import {ORDER_STATUS_LABELS} from "../../../utils/localeDataGridText.js";
-import {formatDateTime, formatTime} from "../../../utils/DateTimeFormatting.js";
-import FileUploadAction from "../../../components/FileUploadAction.jsx";
-import DeleteAction from "../../../components/ui/buttons/DeleteAction.jsx";
+
+import FileUploadAction from '../../../components/FileUploadAction.jsx'
+import DeleteAction from '../../../components/ui/buttons/DeleteAction.jsx'
+import { formatDateTime, formatTime } from '../../../utils/DateTimeFormatting.js'
+import { ORDER_STATUS_LABELS } from '../../../utils/localeDataGridText.js'
 
 const sx = {
     card: {
@@ -173,12 +174,7 @@ export default function OrderMobileCard({ order, onOpen, onDelete, onUploadUpd }
                     viewTitle="Просмотр УПД"
                 />
 
-                <DeleteAction
-                    title="Удалить заявку"
-                    onClick={() => onDelete(order)}
-                    stopPropagation
-                    preventDefault
-                />
+                <DeleteAction title="Удалить заявку" onClick={() => onDelete(order)} stopPropagation preventDefault />
             </CardActions>
         </Card>
     )

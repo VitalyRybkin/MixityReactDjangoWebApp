@@ -20,41 +20,25 @@ const TopBar = () => {
     }
 
     return (
-        <AppBar
-            position="sticky"
-            elevation={1}
-            sx={sx.appBar}
-        >
+        <AppBar position="sticky" elevation={1} sx={sx.appBar}>
             <Toolbar sx={sx.toolbar}>
                 <TopBarNav />
 
                 <Box sx={sx.spacer} />
 
-                <Typography
-                    variant="body2"
-                    sx={sx.usernameLabel}
-                >
+                <Typography variant="body2" sx={sx.usernameLabel}>
                     Имя пользователя:
                 </Typography>
 
-                <Typography
-                    variant="body2"
-                    sx={sx.username}
-                >
-                    {user?.first_name
-                        ? `${user.first_name} ${user.last_name}`
-                        : user?.username}
+                <Typography variant="body2" sx={sx.username}>
+                    {user?.first_name ? `${user.first_name} ${user.last_name}` : user?.username}
                 </Typography>
 
                 <Box sx={sx.themeToggle}>
                     <ThemeToggle />
                 </Box>
 
-                <Button
-                    color="inherit"
-                    onClick={handleLogout}
-                    sx={sx.logoutButton}
-                >
+                <Button color="inherit" onClick={handleLogout} sx={sx.logoutButton}>
                     Выйти
                 </Button>
             </Toolbar>

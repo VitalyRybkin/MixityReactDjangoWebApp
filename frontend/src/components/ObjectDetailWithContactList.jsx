@@ -22,15 +22,15 @@ import AppSnackbar from './ui/feedback/AppSnackbar.jsx'
 import ConfirmDialog from './ui/feedback/ConfirmDialog.jsx'
 
 export default function ObjectDetailWithContactList({
-                                                        id,
-                                                        label,
-                                                        editTo,
-                                                        entityUrl,
-                                                        contactsUrl,
-                                                        ownerType,
-                                                        ownerId,
-                                                        fields,
-                                                    }) {
+    id,
+    label,
+    editTo,
+    entityUrl,
+    contactsUrl,
+    ownerType,
+    ownerId,
+    fields,
+}) {
     const navigate = useNavigate()
     const location = useLocation()
 
@@ -115,21 +115,15 @@ export default function ObjectDetailWithContactList({
 
     const isContactDeleting = (contactId) => deleting.contactIds.has(contactId)
 
-    const isPhoneDeleting = (contactId, phoneNumber) =>
-        deleting.phoneKeySet.has(`${contactId}:${phoneNumber}`)
+    const isPhoneDeleting = (contactId, phoneNumber) => deleting.phoneKeySet.has(`${contactId}:${phoneNumber}`)
 
     const refetchAll = async () => {
-        await Promise.all([
-            entityQuery.refetch(),
-            contactsQuery.refetch(),
-        ])
+        await Promise.all([entityQuery.refetch(), contactsQuery.refetch()])
     }
 
     const onDeleteContact = (contactId) => {
         const contact = contacts.find((c) => c.id === contactId)
-        const fullName = [contact?.firstName, contact?.lastName]
-            .filter(Boolean)
-            .join(' ')
+        const fullName = [contact?.firstName, contact?.lastName].filter(Boolean).join(' ')
 
         askConfirm({
             title: 'Удалить контакт?',
@@ -145,10 +139,7 @@ export default function ObjectDetailWithContactList({
                     await contactsQuery.refetch()
                     showSnackbar('Контакт удалён', 'success')
                 } catch (e) {
-                    showSnackbar(
-                        e?.response?.data?.detail || 'Не удалось удалить контакт',
-                        'error',
-                    )
+                    showSnackbar(e?.response?.data?.detail || 'Не удалось удалить контакт', 'error')
                 } finally {
                     setDeletingContact(contactId, false)
                 }
@@ -161,9 +152,7 @@ export default function ObjectDetailWithContactList({
 
         if (!contact) return
 
-        const nextPhones = (contact.phoneNumbers ?? []).filter(
-            (p) => p.phoneNumber !== phoneNumberToDelete,
-        )
+        const nextPhones = (contact.phoneNumbers ?? []).filter((p) => p.phoneNumber !== phoneNumberToDelete)
 
         setDeletingPhone(contactId, phoneNumberToDelete, true)
 
@@ -175,10 +164,7 @@ export default function ObjectDetailWithContactList({
             await contactsQuery.refetch()
             showSnackbar('Телефон удалён', 'success')
         } catch (e) {
-            showSnackbar(
-                e?.response?.data?.detail || 'Не удалось удалить телефон',
-                'error',
-            )
+            showSnackbar(e?.response?.data?.detail || 'Не удалось удалить телефон', 'error')
         } finally {
             setDeletingPhone(contactId, phoneNumberToDelete, false)
         }
@@ -188,9 +174,7 @@ export default function ObjectDetailWithContactList({
 
     return (
         <Box sx={sx.page}>
-            <AppBreadcrumbs
-                dynamicLabels={entity ? { id: entity.name } : {}}
-            />
+            <AppBreadcrumbs dynamicLabels={entity ? { id: entity.name } : {}} />
 
             <Stack spacing={2}>
                 <Card variant="outlined" sx={sx.card}>
@@ -215,12 +199,9 @@ export default function ObjectDetailWithContactList({
                                 <EditAction
                                     title="Водители"
                                     onClick={() =>
-                                        navigate(
-                                            editTo(id).replace('edit', 'drivers'),
-                                            {
-                                                state: { entity },
-                                            },
-                                        )
+                                        navigate(editTo(id).replace('edit', 'drivers'), {
+                                            state: { entity },
+                                        })
                                     }
                                     icon={<PersonIcon fontSize="small" />}
                                 />
@@ -230,16 +211,11 @@ export default function ObjectDetailWithContactList({
                                 <EditAction
                                     title="Автотранспорт"
                                     onClick={() =>
-                                        navigate(
-                                            editTo(id).replace('edit', 'trucks'),
-                                            {
-                                                state: { entity },
-                                            },
-                                        )
+                                        navigate(editTo(id).replace('edit', 'trucks'), {
+                                            state: { entity },
+                                        })
                                     }
-                                    icon={
-                                        <LocalShippingIcon fontSize="small" />
-                                    }
+                                    icon={<LocalShippingIcon fontSize="small" />}
                                 />
                             )}
 
@@ -247,19 +223,11 @@ export default function ObjectDetailWithContactList({
                                 <EditAction
                                     title="Объекты"
                                     onClick={() =>
-                                        navigate(
-                                            editTo(id).replace(
-                                                'edit',
-                                                'construction_objects',
-                                            ),
-                                            {
-                                                state: { entity },
-                                            },
-                                        )
+                                        navigate(editTo(id).replace('edit', 'construction_objects'), {
+                                            state: { entity },
+                                        })
                                     }
-                                    icon={
-                                        <ConstructionIcon fontSize="small" />
-                                    }
+                                    icon={<ConstructionIcon fontSize="small" />}
                                 />
                             )}
                         </Stack>
@@ -275,34 +243,21 @@ export default function ObjectDetailWithContactList({
                         ) : (
                             <Stack>
                                 {rows.map((item) => {
-                                    const isEmpty =
-                                        item.value === null ||
-                                        item.value === undefined ||
-                                        item.value === ''
+                                    const isEmpty = item.value === null || item.value === undefined || item.value === ''
 
-                                    const isNode = React.isValidElement(
-                                        item.value,
-                                    )
+                                    const isNode = React.isValidElement(item.value)
 
                                     return (
                                         <Box key={item.label} sx={sx.row}>
-                                            <Typography
-                                                variant="body2"
-                                                sx={sx.fieldLabel}
-                                            >
+                                            <Typography variant="body2" sx={sx.fieldLabel}>
                                                 {item.label}
                                             </Typography>
 
                                             {isNode ? (
                                                 item.value
                                             ) : (
-                                                <Typography
-                                                    variant="h6"
-                                                    sx={sx.fieldValue}
-                                                >
-                                                    {isEmpty
-                                                        ? '—'
-                                                        : item.value}
+                                                <Typography variant="h6" sx={sx.fieldValue}>
+                                                    {isEmpty ? '—' : item.value}
                                                 </Typography>
                                             )}
                                         </Box>
@@ -348,12 +303,7 @@ export default function ObjectDetailWithContactList({
                 onConfirm={handleConfirm}
             />
 
-            <AppSnackbar
-                open={snack.open}
-                message={snack.message}
-                severity={snack.severity}
-                onClose={closeSnackbar}
-            />
+            <AppSnackbar open={snack.open} message={snack.message} severity={snack.severity} onClose={closeSnackbar} />
         </Box>
     )
 }

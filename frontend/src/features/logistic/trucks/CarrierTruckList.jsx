@@ -26,8 +26,8 @@ import ConfirmDialog from '../../../components/ui/feedback/ConfirmDialog.jsx'
 import useConfirm from '../../../hooks/useConfirm.js'
 import { useConfirmDelete } from '../../../hooks/useConfirmDelete.js'
 import useSnackbar from '../../../hooks/useSnackbar.js'
-
 import { entityTableListSx as sx } from '../../../styles/entityTableList.styles.js'
+
 import { useDeleteCarrierTruck, useGetCarrierTrucks } from './utils/trucks.queries.js'
 
 const tableHeaders = ['Тип', 'Грузоподъемность', 'Госномер', 'Примечание', '']
@@ -79,11 +79,7 @@ export default function CarrierTruckListPage() {
             <Divider sx={sx.divider} />
 
             {error ? (
-                <ErrorState
-                    error={error}
-                    onRetry={refetch}
-                    loading={isPending}
-                />
+                <ErrorState error={error} onRetry={refetch} loading={isPending} />
             ) : isPending ? (
                 <Box sx={sx.loading}>
                     <CircularProgress />
@@ -94,10 +90,7 @@ export default function CarrierTruckListPage() {
                         <TableHead sx={sx.tableHead}>
                             <TableRow>
                                 {tableHeaders.map((head, idx) => (
-                                    <TableCell
-                                        key={`${head}-${idx}`}
-                                        sx={sx.tableHeaderCell}
-                                    >
+                                    <TableCell key={`${head}-${idx}`} sx={sx.tableHeaderCell}>
                                         {head ? head.toUpperCase() : ''}
                                     </TableCell>
                                 ))}
@@ -108,58 +101,33 @@ export default function CarrierTruckListPage() {
                             {trucks.length > 0 ? (
                                 trucks.map((truck) => (
                                     <TableRow key={truck.id} hover>
-                                        <TableCell>
-                                            {truck.truckType?.truckType || '—'}
-                                        </TableCell>
+                                        <TableCell>{truck.truckType?.truckType || '—'}</TableCell>
 
-                                        <TableCell>
-                                            {truck.capacity?.capacity || '—'}
-                                        </TableCell>
+                                        <TableCell>{truck.capacity?.capacity || '—'}</TableCell>
 
-                                        <TableCell>
-                                            {truck.licensePlate || '—'}
-                                        </TableCell>
+                                        <TableCell>{truck.licensePlate || '—'}</TableCell>
 
-                                        <TableCell>
-                                            {truck.description || '—'}
-                                        </TableCell>
+                                        <TableCell>{truck.description || '—'}</TableCell>
 
                                         <TableCell align="right">
-                                            <Stack
-                                                direction="row"
-                                                spacing={1}
-                                                justifyContent="flex-end"
-                                            >
+                                            <Stack direction="row" spacing={1} justifyContent="flex-end">
                                                 <EditAction
                                                     onClick={() =>
-                                                        navigate(
-                                                            `/carriers/${id}/trucks/${truck.id}/edit`,
-                                                            {
-                                                                state: { entity },
-                                                            },
-                                                        )
+                                                        navigate(`/carriers/${id}/trucks/${truck.id}/edit`, {
+                                                            state: { entity },
+                                                        })
                                                     }
-                                                    icon={
-                                                        <EditIcon fontSize="small" />
-                                                    }
+                                                    icon={<EditIcon fontSize="small" />}
                                                 />
 
-                                                <DeleteAction
-                                                    onClick={() =>
-                                                        handleDeleteTruck(truck)
-                                                    }
-                                                />
+                                                <DeleteAction onClick={() => handleDeleteTruck(truck)} />
                                             </Stack>
                                         </TableCell>
                                     </TableRow>
                                 ))
                             ) : (
                                 <TableRow>
-                                    <TableCell
-                                        colSpan={tableHeaders.length}
-                                        align="left"
-                                        sx={sx.emptyCell}
-                                    >
+                                    <TableCell colSpan={tableHeaders.length} align="left" sx={sx.emptyCell}>
                                         Список пуст
                                     </TableCell>
                                 </TableRow>
@@ -180,12 +148,7 @@ export default function CarrierTruckListPage() {
                 onConfirm={handleConfirm}
             />
 
-            <AppSnackbar
-                open={snack.open}
-                message={snack.message}
-                severity={snack.severity}
-                onClose={closeSnackbar}
-            />
+            <AppSnackbar open={snack.open} message={snack.message} severity={snack.severity} onClose={closeSnackbar} />
         </Box>
     )
 }

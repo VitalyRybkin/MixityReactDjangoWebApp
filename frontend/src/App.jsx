@@ -31,10 +31,10 @@ import Forbidden from './pages/Forbidden.jsx'
 import Home from './pages/Home.jsx'
 import Login from './pages/Login.jsx'
 import NotFound from './pages/NotFound.jsx'
+import Unauthorized from './pages/Unauthorized.jsx'
 import GroupRoute from './pages/auth/components/GroupRoute.jsx'
 import { AuthProvider } from './pages/auth/context/AuthContext.jsx'
 import { GROUPS } from './pages/auth/permissions.js'
-import Unauthorized from "./pages/Unauthorized.jsx";
 
 function Logout() {
     localStorage.removeItem(ACCESS_TOKEN)

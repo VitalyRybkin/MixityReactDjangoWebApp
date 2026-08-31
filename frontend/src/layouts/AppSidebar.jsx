@@ -3,22 +3,16 @@ import ChevronRightIcon from '@mui/icons-material/ChevronRight'
 import { Box, Button, Tooltip } from '@mui/material'
 
 import {
-    appSidebarSx as sx,
     COLLAPSED_WIDTH,
-    getSidebarSx,
     SIDEBAR_DESKTOP_BREAKPOINT,
     SIDEBAR_WIDTH,
-    sidebarPageSx,
     TOPBAR_HEIGHT,
+    getSidebarSx,
+    sidebarPageSx,
+    appSidebarSx as sx,
 } from './AppSidebar.styles.js'
 
-export {
-    COLLAPSED_WIDTH,
-    SIDEBAR_DESKTOP_BREAKPOINT,
-    SIDEBAR_WIDTH,
-    sidebarPageSx,
-    TOPBAR_HEIGHT,
-}
+export { COLLAPSED_WIDTH, SIDEBAR_DESKTOP_BREAKPOINT, SIDEBAR_WIDTH, sidebarPageSx, TOPBAR_HEIGHT }
 
 export default function AppSidebar({ open, setOpen, children }) {
     return (
@@ -37,9 +31,7 @@ export default function AppSidebar({ open, setOpen, children }) {
                         </Button>
                     </Tooltip>
 
-                    <Box sx={sx.scrollContent}>
-                        {children}
-                    </Box>
+                    <Box sx={sx.scrollContent}>{children}</Box>
                 </>
             ) : (
                 <Box sx={sx.collapsedButtonContainer}>

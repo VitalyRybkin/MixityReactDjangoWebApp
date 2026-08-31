@@ -26,7 +26,6 @@ import ConfirmDialog from '../../../components/ui/feedback/ConfirmDialog.jsx'
 import useConfirm from '../../../hooks/useConfirm.js'
 import { useConfirmDelete } from '../../../hooks/useConfirmDelete.js'
 import useSnackbar from '../../../hooks/useSnackbar.js'
-
 import { entityTableListSx as sx } from '../../../styles/entityTableList.styles.js'
 
 import { useDeleteDriver, useGetDrivers } from './utils/drivers.queries.js'
@@ -91,10 +90,7 @@ export default function CarrierDriverListPage() {
                         <TableHead sx={sx.tableHead}>
                             <TableRow>
                                 {tableHeaders.map((head, idx) => (
-                                    <TableCell
-                                        key={`${head}-${idx}`}
-                                        sx={sx.tableHeaderCell}
-                                    >
+                                    <TableCell key={`${head}-${idx}`} sx={sx.tableHeaderCell}>
                                         {head ? head.toUpperCase() : ''}
                                     </TableCell>
                                 ))}
@@ -105,44 +101,27 @@ export default function CarrierDriverListPage() {
                             {drivers.length > 0 ? (
                                 drivers.map((driver) => (
                                     <TableRow key={driver.id} hover>
-                                        <TableCell>
-                                            {driver.fullName || '—'}
-                                        </TableCell>
+                                        <TableCell>{driver.fullName || '—'}</TableCell>
 
                                         <TableCell align="right">
-                                            <Stack
-                                                direction="row"
-                                                spacing={1}
-                                                justifyContent="flex-end"
-                                            >
+                                            <Stack direction="row" spacing={1} justifyContent="flex-end">
                                                 <EditAction
                                                     onClick={() =>
-                                                        navigate(
-                                                            `/carriers/${id}/drivers/${driver.id}/edit`,
-                                                            {
-                                                                state: { entity },
-                                                            },
-                                                        )
+                                                        navigate(`/carriers/${id}/drivers/${driver.id}/edit`, {
+                                                            state: { entity },
+                                                        })
                                                     }
                                                     icon={<EditIcon fontSize="small" />}
                                                 />
 
-                                                <DeleteAction
-                                                    onClick={() =>
-                                                        handleDeleteDriver(driver)
-                                                    }
-                                                />
+                                                <DeleteAction onClick={() => handleDeleteDriver(driver)} />
                                             </Stack>
                                         </TableCell>
                                     </TableRow>
                                 ))
                             ) : (
                                 <TableRow>
-                                    <TableCell
-                                        colSpan={tableHeaders.length}
-                                        align="left"
-                                        sx={sx.emptyCell}
-                                    >
+                                    <TableCell colSpan={tableHeaders.length} align="left" sx={sx.emptyCell}>
                                         Список пуст
                                     </TableCell>
                                 </TableRow>
@@ -163,12 +142,7 @@ export default function CarrierDriverListPage() {
                 onConfirm={handleConfirm}
             />
 
-            <AppSnackbar
-                open={snack.open}
-                message={snack.message}
-                severity={snack.severity}
-                onClose={closeSnackbar}
-            />
+            <AppSnackbar open={snack.open} message={snack.message} severity={snack.severity} onClose={closeSnackbar} />
         </Box>
     )
 }

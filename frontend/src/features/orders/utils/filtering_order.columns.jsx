@@ -2,7 +2,7 @@ import FileUploadAction from '../../../components/FileUploadAction.jsx'
 import { formatDateTime, formatTime } from '../../../utils/DateTimeFormatting.js'
 import { ORDER_STATUS_LABELS } from '../../../utils/localeDataGridText.js'
 
-export const getFilterGridOrderColumns = ({ onUploadUpd}) => [
+export const getFilterGridOrderColumns = ({ onUploadUpd }) => [
     {
         field: 'id',
         headerName: '№',
@@ -49,16 +49,14 @@ export const getFilterGridOrderColumns = ({ onUploadUpd}) => [
         headerName: 'Время доставки',
         flex: 0.8,
         minWidth: 170,
-        valueGetter: (_, row) =>
-            `${formatTime(row.delivery_from)} – ${formatTime(row.delivery_to)}`,
+        valueGetter: (_, row) => `${formatTime(row.delivery_from)} – ${formatTime(row.delivery_to)}`,
     },
     {
         field: 'status',
         headerName: 'Статус',
         flex: 1,
         minWidth: 140,
-        valueGetter: (_, row) =>
-            ORDER_STATUS_LABELS[row.status] ?? row.status ?? '—',
+        valueGetter: (_, row) => ORDER_STATUS_LABELS[row.status] ?? row.status ?? '—',
     },
     {
         field: 'upd_pdf',

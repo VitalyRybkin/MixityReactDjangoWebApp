@@ -22,6 +22,7 @@ import AppBreadcrumbs from '../../../components/AppBreadcrumbs.jsx'
 import FormActions from '../../../components/ui/FormActions.jsx'
 import { firstError } from '../../../utils/apiError.js'
 
+import { carrierTruckFormSx as sx } from './CarrierTruckForm.styles.js'
 import TruckCapacityCreateDialog from './TruckCapacityDialogForm.jsx'
 import TruckTypeCreateDialog from './TruckTypeDialogForm.jsx'
 import {
@@ -31,8 +32,6 @@ import {
     useGetTruckTypes,
     useUpdateTruck,
 } from './utils/trucks.queries.js'
-
-import { carrierTruckFormSx as sx } from './CarrierTruckForm.styles.js'
 
 const emptyForm = {
     truckType: '',
@@ -143,12 +142,7 @@ export default function TruckFormPage() {
 
                 <Box component="form" onSubmit={onSubmit} sx={sx.form}>
                     <Stack spacing={2}>
-                        <Stack
-                            direction="row"
-                            spacing={1}
-                            alignItems="flex-start"
-                            sx={sx.selectorRow}
-                        >
+                        <Stack direction="row" spacing={1} alignItems="flex-start" sx={sx.selectorRow}>
                             <FormControl fullWidth required>
                                 <InputLabel id="truck-type-label">Тип</InputLabel>
                                 <Select
@@ -167,21 +161,13 @@ export default function TruckFormPage() {
                             </FormControl>
 
                             <Tooltip title="Добавить тип">
-                                <IconButton
-                                    onClick={() => setTypeDialogOpen(true)}
-                                    sx={sx.addButton}
-                                >
+                                <IconButton onClick={() => setTypeDialogOpen(true)} sx={sx.addButton}>
                                     <AddIcon />
                                 </IconButton>
                             </Tooltip>
                         </Stack>
 
-                        <Stack
-                            direction="row"
-                            spacing={1}
-                            alignItems="flex-start"
-                            sx={sx.selectorRow}
-                        >
+                        <Stack direction="row" spacing={1} alignItems="flex-start" sx={sx.selectorRow}>
                             <FormControl fullWidth required>
                                 <InputLabel id="capacity-label">Грузоподъемность</InputLabel>
                                 <Select
@@ -200,10 +186,7 @@ export default function TruckFormPage() {
                             </FormControl>
 
                             <Tooltip title="Добавить грузоподъемность">
-                                <IconButton
-                                    onClick={() => setCapacityDialogOpen(true)}
-                                    sx={sx.addButton}
-                                >
+                                <IconButton onClick={() => setCapacityDialogOpen(true)} sx={sx.addButton}>
                                     <AddIcon />
                                 </IconButton>
                             </Tooltip>

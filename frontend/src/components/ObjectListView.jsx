@@ -49,15 +49,15 @@ const sx = {
 }
 
 const ObjectListView = ({
-                            title,
-                            items = [],
-                            renderRow,
-                            loading = false,
-                            addTo,
-                            error = null,
-                            onRetry,
-                            emptyText = 'Список пуст',
-                        }) => {
+    title,
+    items = [],
+    renderRow,
+    loading = false,
+    addTo,
+    error = null,
+    onRetry,
+    emptyText = 'Список пуст',
+}) => {
     const navigate = useNavigate()
     const location = useLocation()
 

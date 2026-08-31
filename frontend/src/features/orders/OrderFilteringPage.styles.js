@@ -1,4 +1,4 @@
-import {clickableDataGridSx} from "../../styles/dataGrid.styles.js";
+import { clickableDataGridSx } from '../../styles/dataGrid.styles.js'
 
 export const orderFilteringPageSx = {
     page: {

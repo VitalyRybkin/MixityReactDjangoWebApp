@@ -8,18 +8,15 @@ import DeleteAction from '../../../components/ui/buttons/DeleteAction.jsx'
 import { orderProductsListSx as sx } from './OrderProductsList.styles.js'
 
 export default function OrderProductsList({
-                                              rows,
-                                              productErrors = {},
-                                              productsList,
-                                              packsList,
-                                              onChange,
-                                              onAdd,
-                                              onRemove,
-                                          }) {
-    const selectedProductIds = useMemo(
-        () => rows.map((row) => row.productId).filter(Boolean),
-        [rows],
-    )
+    rows,
+    productErrors = {},
+    productsList,
+    packsList,
+    onChange,
+    onAdd,
+    onRemove,
+}) {
+    const selectedProductIds = useMemo(() => rows.map((row) => row.productId).filter(Boolean), [rows])
 
     return (
         <>
@@ -41,18 +38,11 @@ export default function OrderProductsList({
                 )}
 
                 {rows.map((row) => {
-                    const selectedProduct =
-                        productsList.find(
-                            (product) => product.id === row.productId,
-                        ) || null
+                    const selectedProduct = productsList.find((product) => product.id === row.productId) || null
 
-                    const selectedPack =
-                        packsList.find(
-                            (pack) => pack.id === row.packId,
-                        ) || null
+                    const selectedPack = packsList.find((pack) => pack.id === row.packId) || null
 
-                    const unitTitle =
-                        selectedProduct?.product_unit?.unit?.display_name || ''
+                    const unitTitle = selectedProduct?.product_unit?.unit?.display_name || ''
 
                     const quantityError = Boolean(productErrors[row.id])
                     const isPieceBased = selectedProduct?.is_piece_based
@@ -68,8 +58,7 @@ export default function OrderProductsList({
                                     getOptionLabel={(option) => option?.name || ''}
                                     isOptionEqualToValue={(option, value) => option.id === value.id}
                                     getOptionDisabled={(option) =>
-                                        selectedProductIds.includes(option.id) &&
-                                        option.id !== row.productId
+                                        selectedProductIds.includes(option.id) && option.id !== row.productId
                                     }
                                     onChange={(_, newValue) => {
                                         onChange(row.id, {
@@ -141,11 +130,7 @@ export default function OrderProductsList({
                                         })
                                     }
                                     renderInput={(params) => (
-                                        <TextField
-                                            {...params}
-                                            label="Тип упаковки"
-                                            placeholder="Выберите упаковку"
-                                        />
+                                        <TextField {...params} label="Тип упаковки" placeholder="Выберите упаковку" />
                                     )}
                                     sx={sx.packField}
                                 />

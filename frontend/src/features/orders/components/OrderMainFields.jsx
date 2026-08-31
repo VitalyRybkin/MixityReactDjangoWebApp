@@ -15,6 +15,8 @@ import { TimePicker } from '@mui/x-date-pickers'
 import FileUploadAction from '../../../components/FileUploadAction.jsx'
 import { fieldsetStyles, orderStatus } from '../utils/order.form.constants.js'
 
+import { orderMainFieldsSx as sx } from './OrderMainFields.styles.js'
+
 export default function OrderMainFields({
     form,
     setForm,
@@ -26,17 +28,13 @@ export default function OrderMainFields({
     onViewUpd,
 }) {
     return (
-        <Box component="fieldset" sx={fieldsetStyles}>
-            <Typography
-                component="legend"
-                variant="caption"
-                sx={{ px: 1, color: 'text.secondary', fontWeight: 'medium' }}
-            >
+        <Box component="fieldset" sx={[fieldsetStyles, sx.fieldset]}>
+            <Typography component="legend" variant="caption" sx={sx.legend}>
                 Данные заказа:
             </Typography>
 
-            <Stack spacing={2} sx={{ flex: 1 }}>
-                <Stack direction="row" spacing={2} alignItems="center">
+            <Stack spacing={2} sx={sx.fields}>
+                <Box sx={sx.fieldRow}>
                     <TextField
                         label="Дата доставки"
                         type="date"
@@ -44,10 +42,10 @@ export default function OrderMainFields({
                         value={form.delivery_date || ''}
                         onChange={onChange('delivery_date')}
                         slotProps={{ inputLabel: { shrink: true } }}
-                        sx={{ flex: 1 }}
+                        sx={sx.field}
                     />
 
-                    <FormControl variant="outlined" size="small" sx={{ flex: 1 }}>
+                    <FormControl variant="outlined" size="small" sx={sx.field}>
                         <InputLabel id="status-label">Статус</InputLabel>
 
                         <Select
@@ -64,9 +62,9 @@ export default function OrderMainFields({
                             ))}
                         </Select>
                     </FormControl>
-                </Stack>
+                </Box>
 
-                <Stack direction="row" spacing={2} alignItems="center">
+                <Box sx={sx.fieldRow}>
                     <TimePicker
                         label="Время доставки c:"
                         ampm={false}
@@ -78,7 +76,13 @@ export default function OrderMainFields({
                                 delivery_from: newValue,
                             }))
                         }
-                        slotProps={{ textField: { fullWidth: true, size: 'small' } }}
+                        slotProps={{
+                            textField: {
+                                fullWidth: true,
+                                size: 'small',
+                                sx: sx.field,
+                            },
+                        }}
                     />
 
                     <TimePicker
@@ -92,9 +96,15 @@ export default function OrderMainFields({
                                 delivery_to: newValue,
                             }))
                         }
-                        slotProps={{ textField: { fullWidth: true, size: 'small' } }}
+                        slotProps={{
+                            textField: {
+                                fullWidth: true,
+                                size: 'small',
+                                sx: sx.field,
+                            },
+                        }}
                     />
-                </Stack>
+                </Box>
 
                 <FormControl fullWidth variant="outlined" size="small">
                     <InputLabel id="client-label">Клиент</InputLabel>
@@ -116,16 +126,7 @@ export default function OrderMainFields({
                     </Select>
                 </FormControl>
 
-                <Box
-                    sx={{
-                        display: 'flex',
-                        justifyContent: 'start',
-                        gap: 2,
-                        mt: 2,
-                        mb: 1,
-                        alignItems: 'center',
-                    }}
-                >
+                <Box sx={sx.actions}>
                     {isEdit && (
                         <FileUploadAction
                             entityId={order.id}
@@ -153,7 +154,7 @@ export default function OrderMainFields({
                         label="Образцы"
                         slotProps={{
                             typography: {
-                                sx: { fontSize: '0.9rem', color: 'text.secondary' },
+                                sx: sx.checkboxLabel,
                             },
                         }}
                     />

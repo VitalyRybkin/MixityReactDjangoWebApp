@@ -60,9 +60,7 @@ export default function OrderFilteringPage() {
         ['samples', 'no_upd'],
     )
 
-    const productValue = products.some((product) => product.id === draftFilters.productId)
-        ? draftFilters.productId
-        : ''
+    const productValue = products.some((product) => product.id === draftFilters.productId) ? draftFilters.productId : ''
 
     const [snackbar, setSnackbar] = useState({
         open: false,
