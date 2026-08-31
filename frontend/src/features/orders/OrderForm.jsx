@@ -1,7 +1,7 @@
-import React, { useEffect, useMemo, useRef, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 
-import { Box, CircularProgress, Container, Divider, Stack, TextField, Typography } from '@mui/material'
+import { Box, CircularProgress, Container, Divider, TextField, Typography } from '@mui/material'
 
 import AppBreadcrumbs from '../../components/AppBreadcrumbs.jsx'
 import ErrorState from '../../components/ui/ErrorState.jsx'
@@ -16,6 +16,7 @@ import { GROUPS } from '../../pages/auth/permissions.js'
 import { useGetCustomerPrices } from '../customers/utils/customers.queries.js'
 import { useGetWarehousePrices } from '../warehouses/utils/stocks.queries.js'
 
+import { getOrderFormContentSx, orderFormSx as sx } from './OrderForm.styles.js'
 import OrderCustomerFields from './components/OrderCustomerFields.jsx'
 import OrderDetailSideBar from './components/OrderDetailSideBar.jsx'
 import OrderMainFields from './components/OrderMainFields.jsx'
@@ -37,6 +38,8 @@ import {
     useUpdateOrder,
     useUploadUpd,
 } from './utils/orders.queries.js'
+
+const EMPTY_PRICES = []
 
 export default function OrderFormPage() {
     const { id } = useParams()
@@ -101,30 +104,28 @@ export default function OrderFormPage() {
         updateMutation: updateOrder,
         createMutation: createOrder,
         redirectPath: '/',
-        toPayload: (form) => {
-            return {
-                ...toOrderPayload(form),
-                products: buildProductsPayload(orderProducts),
-                delivery: {
-                    ...orderDelivery,
-                    carrier: orderDelivery.carrier?.id ?? null,
-                    driver: orderDelivery.driver?.id ?? null,
-                    truck: orderDelivery.truck?.id ?? null,
-                },
-            }
-        },
+        toPayload: (form) => ({
+            ...toOrderPayload(form),
+            products: buildProductsPayload(orderProducts),
+            delivery: {
+                ...orderDelivery,
+                carrier: orderDelivery.carrier?.id ?? null,
+                driver: orderDelivery.driver?.id ?? null,
+                truck: orderDelivery.truck?.id ?? null,
+            },
+        }),
         validate: validateProducts,
         onSuccess: () => markCleanRef.current?.(),
     })
 
-    const productIds = useMemo(() => {
-        return orderProducts.map(getProductId).filter(Boolean)
-    }, [orderProducts])
+    const productIds = useMemo(
+        () => orderProducts.map(getProductId).filter(Boolean),
+        [orderProducts],
+    )
 
     const customerId = form.customer?.id ?? null
     const warehouseId = form.warehouse?.id ?? null
 
-    const EMPTY_PRICES = []
     const {
         data: customerPrices = EMPTY_PRICES,
         isLoading: isLoadingCustomerPrices,
@@ -152,6 +153,7 @@ export default function OrderFormPage() {
         setOrderProducts,
         normalizeOrderProducts,
     })
+
     markCleanRef.current = markClean
 
     const { confirmOpen, handleConfirm, handleCancel } = useUnsavedGuard(isDirty && !saving)
@@ -161,7 +163,11 @@ export default function OrderFormPage() {
     useEffect(() => {
         if (order && !deliveryInitialized.current) {
             const delivery = order.order_delivery ?? order.delivery
-            if (delivery) setOrderDelivery(delivery)
+
+            if (delivery) {
+                setOrderDelivery(delivery)
+            }
+
             deliveryInitialized.current = true
         }
     }, [order])
@@ -180,6 +186,7 @@ export default function OrderFormPage() {
         }),
         [orderDelivery],
     )
+
     return (
         <DeliveryContext.Provider value={deliveryContextValue}>
             <Box sx={sidebarPageSx.page}>
@@ -200,31 +207,35 @@ export default function OrderFormPage() {
                     />
                 </Can>
 
-                <Box sx={{ ...sidebarPageSx.content, ...(open ? sidebarPageSx.contentWithSidebar : {}) }}>
-                    <Container maxWidth="lg" sx={{ mt: 1 }}>
+                <Box sx={getOrderFormContentSx(open)}>
+                    <Container maxWidth="lg" sx={sx.container}>
                         <AppBreadcrumbs />
 
-                        <form noValidate onSubmit={onSubmit}>
-                            <OrderPageHeader isEdit={isEdit} orderId={form.id} saving={saving} />
+                        <Box component="form" noValidate onSubmit={onSubmit} sx={sx.form}>
+                            <Box sx={sx.header}>
+                                <OrderPageHeader isEdit={isEdit} orderId={form.id} saving={saving} />
+                            </Box>
 
-                            <Divider sx={{ mb: 3 }} />
+                            <Divider sx={sx.divider} />
 
                             {pageLoadError ? (
                                 <ErrorState
                                     error={pageLoadError}
                                     onRetry={() => {
                                         refetch()
-                                        if (isEdit) refetchOrder()
+                                        if (isEdit) {
+                                            refetchOrder()
+                                        }
                                     }}
                                     loading={loadingResources || loadingOrder}
                                 />
                             ) : isLoadingPage ? (
-                                <Box sx={{ py: 6, display: 'flex', justifyContent: 'center' }}>
+                                <Box sx={sx.loading}>
                                     <CircularProgress aria-label="Загрузка..." />
                                 </Box>
                             ) : (
                                 <>
-                                    <Stack spacing={2} direction="row" sx={{ alignItems: 'stretch' }}>
+                                    <Box sx={sx.mainFields}>
                                         <OrderMainFields
                                             form={form}
                                             setForm={setForm}
@@ -241,7 +252,7 @@ export default function OrderFormPage() {
                                             setForm={setForm}
                                             orderResources={orderResources}
                                         />
-                                    </Stack>
+                                    </Box>
 
                                     <TextField
                                         size="small"
@@ -251,34 +262,37 @@ export default function OrderFormPage() {
                                         multiline
                                         rows={2}
                                         fullWidth
-                                        sx={{ mt: 2 }}
+                                        sx={sx.note}
                                     />
                                 </>
                             )}
 
                             {!pageLoadError && !isLoadingPage && (
-                                <OrderProductsList
-                                    rows={orderProducts}
-                                    productErrors={productErrors}
-                                    productsList={orderResources?.products || []}
-                                    packsList={orderResources?.pack_types || []}
-                                    onAdd={handleAddProductRow}
-                                    onChange={handleProductChange}
-                                    onRemove={handleRemoveProductRow}
-                                />
+                                <Box sx={sx.products}>
+                                    <OrderProductsList
+                                        rows={orderProducts}
+                                        productErrors={productErrors}
+                                        productsList={orderResources?.products || []}
+                                        packsList={orderResources?.pack_types || []}
+                                        onAdd={handleAddProductRow}
+                                        onChange={handleProductChange}
+                                        onRemove={handleRemoveProductRow}
+                                    />
+                                </Box>
                             )}
-                        </form>
+                        </Box>
 
-                        <Divider sx={{ mb: 1, mt: 2 }} />
+                        <Divider sx={sx.bottomDivider} />
 
-                        <Stack direction="row" justifyContent="start" alignItems="center" sx={{ mb: 2 }}>
-                            <Typography variant="body1" color="text.secondary" sx={{ m: 1 }}>
+                        <Box sx={sx.weight}>
+                            <Typography variant="body1" color="text.secondary" sx={sx.weightLabel}>
                                 Вес:
                             </Typography>
+
                             <Typography variant="body1" color="text.secondary">
                                 {totalWeight.toFixed(2)} т
                             </Typography>
-                        </Stack>
+                        </Box>
 
                         <ConfirmDialog
                             open={confirmOpen}

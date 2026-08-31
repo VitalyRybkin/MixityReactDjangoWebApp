@@ -20,6 +20,7 @@ import { useGetProducts } from '../catalog/utils/catalog.queries.js'
 import { useGetCustomers } from '../customers/utils/customers.queries.js'
 import { useGetWarehouses } from '../warehouses/utils/stocks.queries.js'
 
+import { orderFilteringPageSx as sx } from './OrderFilteringPage.styles.js'
 import { useViewUpd } from './hooks/useViewUpd.js'
 import { getFilterGridOrderColumns } from './utils/filtering_order.columns.jsx'
 import { useExportOrders, useGetOrders, useUploadUpd } from './utils/orders.queries.js'
@@ -36,66 +37,6 @@ const initialDefaults = {
     samples: false,
     no_upd: false,
     productId: '',
-}
-
-const sx = {
-    page: {
-        p: 3,
-    },
-
-    header: {
-        p: 3,
-        display: 'flex',
-        justifyContent: 'space-between',
-        alignItems: 'center',
-    },
-
-    headerActions: {
-        display: 'flex',
-        gap: 2,
-    },
-
-    filters: {
-        display: 'grid',
-        gridTemplateColumns: 'repeat(3, minmax(0, 1fr))',
-        gap: 3,
-        pt: 2,
-        alignItems: 'start',
-    },
-
-    filterColumn: {
-        display: 'flex',
-        flexDirection: 'column',
-        gap: 2,
-        minWidth: 0,
-    },
-
-    checkboxLabel: {
-        typography: {
-            fontSize: '14px',
-            color: 'text.secondary',
-        },
-    },
-
-    actions: {
-        p: 1,
-        display: 'flex',
-        justifyContent: 'flex-end',
-    },
-
-    applyButton: {
-        width: 150,
-    },
-
-    tableDivider: {
-        mb: 3,
-    },
-
-    dataGrid: {
-        '& .MuiDataGrid-row': {
-            cursor: 'pointer',
-        },
-    },
 }
 
 export default function OrderFilteringPage() {
@@ -154,15 +95,15 @@ export default function OrderFilteringPage() {
     const handleExport = async () => {
         try {
             const { data } = await fetchDownload()
-            const orders = Array.isArray(data) ? data : Array.isArray(data?.results) ? data.results : []
+            const exportOrders = Array.isArray(data) ? data : Array.isArray(data?.results) ? data.results : []
 
-            if (!orders.length) {
+            if (!exportOrders.length) {
                 showSnackbar('Нет заявок для экспорта.', 'info')
                 return
             }
 
-            await exportOrdersToExcel(orders, formattedFilters, warehouses ?? [])
-        } catch (e) {
+            await exportOrdersToExcel(exportOrders, formattedFilters, warehouses ?? [])
+        } catch {
             showSnackbar('Ошибка при экспорте.', 'error')
         }
     }
@@ -172,7 +113,7 @@ export default function OrderFilteringPage() {
             <AppBreadcrumbs dynamicLabels={entity ? { id: entity.name } : {}} />
 
             <Box sx={sx.header}>
-                <Typography variant="h4" gutterBottom fontWeight={600}>
+                <Typography variant="h4" fontWeight={600} sx={sx.title}>
                     Поиск заявок
                 </Typography>
 
@@ -226,7 +167,7 @@ export default function OrderFilteringPage() {
                         fullWidth
                     />
 
-                    <Box>
+                    <Box sx={sx.checkboxGroup}>
                         <FormControlLabel
                             control={
                                 <Checkbox
@@ -267,7 +208,14 @@ export default function OrderFilteringPage() {
                 getRowId={(row) => row.id}
                 disableRowSelectionOnClick
                 pageSizeOptions={[10, 25, 50]}
-                initialState={{ pagination: { paginationModel: { pageSize: 10, page: 0 } } }}
+                initialState={{
+                    pagination: {
+                        paginationModel: {
+                            pageSize: 10,
+                            page: 0,
+                        },
+                    },
+                }}
                 localeText={localeText}
                 slots={{ pagination: CustomPagination }}
                 onRowClick={(params) => navigate(`/orders/${params.row.id}/edit`)}

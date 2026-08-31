@@ -6,20 +6,32 @@ export default function OrderPageHeader({ isEdit, orderId, saving }) {
     return (
         <Box
             sx={{
-                p: 3,
                 display: 'flex',
+                flexDirection: {
+                    xs: 'column',
+                    sm: 'row',
+                },
+                alignItems: {
+                    xs: 'stretch',
+                    sm: 'center',
+                },
                 justifyContent: 'space-between',
-                alignItems: 'center',
+                gap: 2,
+                minWidth: 0,
+                p: 3,
             }}
         >
             <Typography
                 variant="h4"
-                color="text.secondary"
-                sx={{ flexGrow: 1, whiteSpace: 'nowrap' }}
-                gutterBottom
                 fontWeight={600}
+                sx={{
+                    minWidth: 0,
+                    overflowWrap: 'anywhere',
+                }}
             >
-                {isEdit ? `РЕДАКТИРОВАНИЕ ЗАЯВКИ № ${orderId || ''}` : 'СОЗДАНИЕ ЗАЯВКИ'}
+                {isEdit
+                    ? `Редактирование заявки № ${orderId}`
+                    : 'Новая заявка'}
             </Typography>
 
             <Stack direction="row" spacing={1}>
