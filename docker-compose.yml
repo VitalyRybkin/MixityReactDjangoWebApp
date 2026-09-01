@@ -2,15 +2,14 @@ services:
   clamav:
     image: clamav/clamav:1.4
     restart: unless-stopped
-
     security_opt:
       - no-new-privileges:true
-
     pids_limit: 64
-
+    environment:
+      FRESHCLAM_CONF_HTTPProxyServer: "http://185.200.196.172"
+      FRESHCLAM_CONF_HTTPProxyPort: "8888"
     volumes:
       - clamav_db:/var/lib/clamav
-
     networks:
       - mixity_network
 
