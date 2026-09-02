@@ -92,9 +92,11 @@ const TopBarNav = () => {
                     Поиск
                 </Button>
 
+                <Can group={[GROUPS.ADMINS]}>
                 <Button component={NavLink} to="/catalog" color="inherit" sx={sx.navButton}>
                     Каталог
                 </Button>
+                </Can>
             </Stack>
 
             <Tooltip title="Меню">
