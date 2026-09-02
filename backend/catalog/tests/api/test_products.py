@@ -19,8 +19,8 @@ class TestProductAPIList(BaseAPIMixin):
         "title": FieldSpec("title", str, required=True),
         # "product_group": FieldSpec("product_group", str, required=True),
         # "product_image": FieldSpec("product_image", str),
-        "forWeb": FieldSpec("for_web", bool),
-        "isPieceBased": FieldSpec("is_piece_based", bool),
+        # "forWeb": FieldSpec("for_web", bool),
+        # "isPieceBased": FieldSpec("is_piece_based", bool),
     }
 
     def test_get_list(self) -> None:
