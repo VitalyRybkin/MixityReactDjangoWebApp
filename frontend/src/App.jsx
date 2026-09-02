@@ -3,6 +3,7 @@ import { Outlet } from 'react-router-dom'
 
 import ProtectedRoute from './components/routing/ProtectedRoute.jsx'
 import { ACCESS_TOKEN, REFRESH_TOKEN } from './constants.js'
+import CatalogPage from './features/catalog/Catalog.jsx'
 import ClientDetailPage from './features/clients/ClientDetail.jsx'
 import ClientFormPage from './features/clients/ClientForm.jsx'
 import ClientsList from './features/clients/ClientsList.jsx'
@@ -104,6 +105,9 @@ function App() {
                     </Route>
                     <Route path="/documentation" element={<DocumentationListPage />} />
                     <Route path="/filtering" element={<OrderFilteringPage />} />
+                    <Route element={<GroupRoute groups={[GROUPS.ADMINS]} />}>
+                        <Route path="/catalog" element={<CatalogPage />} />
+                    </Route>
                 </Route>
 
                 {/* Full-width layout */}
@@ -112,9 +116,8 @@ function App() {
                     <Route path="/orders/create" element={<OrderFormPage />} />
                     <Route path="/orders/:id/edit" element={<OrderFormPage />} />
                 </Route>
+                <Route path="*" element={<NotFound />} />
             </Route>
-
-            <Route path="*" element={<NotFound />} />
         </Routes>
     )
 }

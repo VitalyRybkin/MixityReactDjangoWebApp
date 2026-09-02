@@ -91,6 +91,10 @@ const TopBarNav = () => {
                 <Button component={NavLink} to="/filtering" color="inherit" sx={sx.navButton}>
                     Поиск
                 </Button>
+
+                <Button component={NavLink} to="/catalog" color="inherit" sx={sx.navButton}>
+                    Каталог
+                </Button>
             </Stack>
 
             <Tooltip title="Меню">

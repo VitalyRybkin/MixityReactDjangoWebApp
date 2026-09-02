@@ -7,11 +7,7 @@ import FormActions from '../../components/ui/FormActions.jsx'
 import { entityFormSx as sx } from '../../styles/entityForm.styles.js'
 import { firstError } from '../../utils/apiError.js'
 
-import {
-    useCreateCustomerObject,
-    useGetCustomerObject,
-    useUpdateCustomerObject,
-} from './utils/customers.queries.js'
+import { useCreateCustomerObject, useGetCustomerObject, useUpdateCustomerObject } from './utils/customers.queries.js'
 
 const emptyForm = {
     name: '',
@@ -26,10 +22,7 @@ export default function ConstructionObjectFormPage() {
     const isEdit = Boolean(objectId)
     const entity = location.state?.entity
 
-    const {
-        data: constructionObject,
-        isLoading: loadingObject,
-    } = useGetCustomerObject(id, objectId)
+    const { data: constructionObject, isLoading: loadingObject } = useGetCustomerObject(id, objectId)
 
     const createMutation = useCreateCustomerObject()
     const updateMutation = useUpdateCustomerObject()

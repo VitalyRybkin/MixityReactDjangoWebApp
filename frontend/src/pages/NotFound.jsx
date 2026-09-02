@@ -53,14 +53,14 @@ const NotFound = () => {
                         404
                     </Typography>
 
-                    <Typography variant="h4">Page Not Found</Typography>
+                    <Typography variant="h4">Страница не найдена.</Typography>
 
                     <Typography variant="body1" color="text.secondary" sx={sx.description}>
-                        The page you’re looking for doesn’t exist or has been moved.
+                        Страница, которую вы ищете, не существует или была перемещена.
                     </Typography>
 
                     <Button variant="contained" size="large" component={RouterLink} to="/" sx={sx.button}>
-                        Go Home
+                        На главную
                     </Button>
                 </Paper>
             </Container>

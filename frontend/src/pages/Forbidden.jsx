@@ -1,16 +1,11 @@
 import { useEffect, useState } from 'react'
-import { Navigate, useLocation, useSearchParams } from 'react-router-dom'
+import { Navigate } from 'react-router-dom'
 
 import { Box, Typography } from '@mui/material'
 
 export default function Forbidden() {
     const [seconds, setSeconds] = useState(5)
     const [redirect, setRedirect] = useState(false)
-
-    const location = useLocation()
-    const [searchParams] = useSearchParams()
-
-    const from = location.state?.from ?? searchParams.get('from') ?? 'запрошенной странице'
 
     useEffect(() => {
         if (seconds === 0) {
@@ -48,11 +43,7 @@ export default function Forbidden() {
                 ДОСТУП ЗАПРЕЩЕН
             </Typography>
 
-            <Typography color="text.secondary">
-                Вы не имеете доступа к
-                <br />
-                <strong>{from}</strong>
-            </Typography>
+            <Typography color="text.secondary">Вы не имеете доступа к данной странице.</Typography>
 
             <Typography sx={{ mt: 3 }}>
                 Перенаправление на главную страницу <br />

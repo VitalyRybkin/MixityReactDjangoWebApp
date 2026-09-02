@@ -87,10 +87,8 @@ api.interceptors.response.use(
         const status = error.response.status
 
         if (status === 403) {
-            const from = `${window.location.pathname}${window.location.search}`
-
-            if (window.location.pathname !== '/403') {
-                window.location.replace(`/403?from=${encodeURIComponent(from)}`)
+            if (window.location.pathname !== '/') {
+                window.location.replace('/')
             }
 
             return Promise.reject(error)
