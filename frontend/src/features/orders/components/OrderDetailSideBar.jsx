@@ -9,6 +9,7 @@ import { handlePriceChange } from '../utils/handlePriceChange.js'
 import { getProductId } from '../utils/orderProducts.js'
 
 import OrderDeliveryDetail from './OrderDeliveryDetail.jsx'
+import { orderDetailSideBarSx as sx } from './OrderDetailSideBar.styles.js'
 import PriceSection from './PriceSection.jsx'
 
 export default function OrderDetailSideBar({
@@ -38,8 +39,8 @@ export default function OrderDetailSideBar({
         return orderProducts.map(getProductId).filter(Boolean).map(String).sort().join(',')
     }, [orderProducts])
 
-    const totalSalePrice = useOrderTotals(orderProducts, 'price_at_sale')
-    const totalPurchasePrice = useOrderTotals(orderProducts, 'price_at_purchase')
+    const totalSalePrice = useOrderTotals(orderProducts, editableSalePrices)
+    const totalPurchasePrice = useOrderTotals(orderProducts, editablePurchasePrices)
 
     useEditablePrices({
         isEdit,
@@ -119,9 +120,7 @@ export default function OrderDetailSideBar({
                             warehouse: newValue,
                         }))
                     }}
-                    renderInput={(params) => (
-                        <TextField {...params} label="Склад" />
-                    )}
+                    renderInput={(params) => <TextField {...params} label="Склад" />}
                     sx={sx.warehouseField}
                 />
 

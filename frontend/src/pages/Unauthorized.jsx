@@ -1,16 +1,11 @@
 import { useEffect, useState } from 'react'
-import { Navigate, useLocation, useSearchParams } from 'react-router-dom'
+import { Navigate } from 'react-router-dom'
 
 import { Box, Button, Typography } from '@mui/material'
 
 export default function Unauthorized() {
     const [seconds, setSeconds] = useState(5)
     const [redirect, setRedirect] = useState(false)
-
-    const location = useLocation()
-    const [searchParams] = useSearchParams()
-
-    const from = location.state?.from ?? searchParams.get('from') ?? 'запрошенной странице'
 
     useEffect(() => {
         if (seconds === 0) {
@@ -45,13 +40,7 @@ export default function Unauthorized() {
 
             <Typography variant="h5">ТРЕБУЕТСЯ АВТОРИЗАЦИЯ</Typography>
 
-            <Typography color="text.secondary">
-                Для доступа к
-                <br />
-                <strong>{from}</strong>
-                <br />
-                необходимо войти в систему.
-            </Typography>
+            <Typography color="text.secondary">Необходимо войти в систему.</Typography>
 
             <Typography sx={{ mt: 2 }}>
                 Переход на страницу входа через

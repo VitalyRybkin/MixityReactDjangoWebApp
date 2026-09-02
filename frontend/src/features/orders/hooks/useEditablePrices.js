@@ -22,18 +22,22 @@ export function useEditablePrices({
 
         const rows = orderProducts.map((productRow) => {
             const productId = getProductId(productRow)
-            const priceInfo = prices.find((p) => Number(getProductId(p)) === Number(productId))
+
+            const priceInfo = prices.find((p) => Number(p.product?.id) === Number(productId))
+
             const productObject = getProductObject(productRow, prices, products)
 
             const savedPrice = productRow[orderProductPriceField]
             const listedPrice = priceInfo?.[priceSourceField]
 
+            const hasSavedPrice =
+                savedPrice !== null && savedPrice !== undefined && savedPrice !== '' && Number(savedPrice) !== 0
+
             return {
                 id: productId,
                 product: productObject,
                 product_id: productId,
-                current_display_price: isEdit ? savedPrice : (listedPrice ?? ''),
-                // price: isEdit ? savedPrice : (listedPrice ?? null),
+                current_display_price: hasSavedPrice ? savedPrice : (listedPrice ?? ''),
             }
         })
 
@@ -43,7 +47,9 @@ export function useEditablePrices({
             setOrderProducts((prev) =>
                 prev.map((product) => {
                     const productId = getProductId(product)
-                    const priceInfo = prices.find((p) => Number(getProductId(p)) === Number(productId))
+
+                    const priceInfo = prices.find((p) => Number(p.product?.id) === Number(productId))
+
                     return {
                         ...product,
                         [orderProductPriceField]: priceInfo ? Number(priceInfo[priceSourceField]) || 0 : 0,
