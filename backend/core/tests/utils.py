@@ -119,7 +119,7 @@ class TestLoggerMixin(_Base):
     def _logger_error(self, field_name: str, msg: str) -> None:
         """Prints a formatted error message with a color-coded field name."""
         print(
-            f"{self.INDENT}{self.COLOR['ERR']}✗ {self.COLOR['OK']}{field_name} | {msg}{self.COLOR['END']}"
+            f"{self.INDENT}{self.COLOR['ERR']}✗ {self.COLOR['END']}{self.COLOR['OK']}{field_name} | {msg}{self.COLOR['END']}"
         )
 
 

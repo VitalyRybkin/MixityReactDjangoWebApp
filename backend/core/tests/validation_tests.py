@@ -185,7 +185,7 @@ class ValidationContractMixin(_Base):
                     error_found,
                     msg=f"Expected '{api_field}' or 'non_field_errors' in response, got: {response.data}",
                 )
-                self._logger_success(api_field, "Duplicated")
+                self._logger_error(api_field, "Duplicated")
 
     def _test_field_validation(
         self,

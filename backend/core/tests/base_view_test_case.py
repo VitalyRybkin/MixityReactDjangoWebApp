@@ -114,4 +114,4 @@ class BaseQuerysetTestCase(BaseViewTestCase):
                 for field in expected_selects:
                     self.assertIn(field, select, f"Missing select_related: {field}")
 
-        self._logger_success(view_class.__name__, "✓ Queryset matches expectations")
+        self._logger_success(view_class.__name__, "Queryset matches expectations")

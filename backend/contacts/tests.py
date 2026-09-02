@@ -114,7 +114,7 @@ class TestContactAPICreate(BaseAPIMixin):
             )
 
         self._test_unique_fields(
-            payload, "Номера телефонов: Такой номер телефона уже существует."
+            payload, "Такой номер телефона уже существует."
         )
 
     def test_update_should_allow_same_phone_numbers(self) -> None:
@@ -156,7 +156,7 @@ class TestContactAPICreate(BaseAPIMixin):
 
     def test_create_with_inactive_parent_returns_400(self) -> None:
         self._logger_header(
-            f"TEST: POST {self.url_name} rejects contact with inactive parent"
+            f"ENDPOINT POST: {self.url_name}"
         )
 
         cases = [
@@ -178,9 +178,14 @@ class TestContactAPICreate(BaseAPIMixin):
                     related_factory=factory,
                 )
 
+            self._logger_success(
+                f"{field_name}",
+                f"POST rejects contact with inactive {field_name}",
+            )
+
     def test_contacts_with_inactive_parent_are_not_in_list(self) -> None:
         self._logger_header(
-            f"TEST: GET {self.url_name} hides contacts with inactive parent"
+            f"ENDPOINT GET: {self.url_name}"
         )
         cases = [
             ("carrier", CarrierFactory),
@@ -202,6 +207,10 @@ class TestContactAPICreate(BaseAPIMixin):
                         "customer": None,
                     },
                 )
+            self._logger_success(
+                f"{field_name}",
+                f"GET hides contacts with inactive {field_name}",
+            )
 
     def payload_generator(self, temp: Any = None) -> Dict[str, Any]:
         if temp is None:
@@ -238,7 +247,7 @@ class TestContactAPIDelete(BaseAPIMixin):
         ]
 
         self._logger_header(
-            f"TEST: GET {self.url_name} hides contact with inactive parent"
+            f"ENDPOINT GET: {self.pk_url_name} hides contact with inactive parent"
         )
 
         for field_name, factory in cases:

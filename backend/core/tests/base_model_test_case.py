@@ -63,10 +63,9 @@ class BaseModelTestCase(APITestCase, TestLoggerMixin):
                     msg=f"Expected ValidationError on '{field}', got: {exc.exception.message_dict!r}",
                 )
 
-                print(
-                    f"{self.INDENT}{self.COLOR['OK']}"
-                    f"✓ {self._model.__name__}.{field} rejected value '{value}'"
-                    f"{self.COLOR['END']}"
+                self._logger_error(
+                    f"{self._model.__name__}.{field}",
+                    f"Rejected value '{value}'",
                 )
 
     def _validate_model_valid_fields(self) -> None:
@@ -100,10 +99,9 @@ class BaseModelTestCase(APITestCase, TestLoggerMixin):
                         f"but got errors: {exc.message_dict!r}"
                     )
 
-                print(
-                    f"{self.INDENT}{self.COLOR['OK']}"
-                    f"✓ {self._model.__name__}.{field} accepted value '{value}'"
-                    f"{self.COLOR['END']}"
+                self._logger_success(
+                    f"{self._model.__name__}.{field}",
+                    f"Accepted value '{value}'",
                 )
 
     def _test_price_history(

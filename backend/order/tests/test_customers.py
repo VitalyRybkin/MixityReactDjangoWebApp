@@ -229,7 +229,7 @@ class TestCustomerConstructionObjectsAPIDetailAPI(
     def test_object_from_another_customer_returns_404(self) -> None:
         """Test the logic for retrieving a construction object from another customer."""
 
-        self._logger_header("TEST: retrieve object from another customer")
+        self._logger_header("ENDPOINT GET: retrieve object from another customer")
         another_customer = CustomerFactory.create()
 
         url = reverse(

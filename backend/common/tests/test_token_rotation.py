@@ -91,7 +91,7 @@ class TestRefreshTokenRotation(TestLoggerMixin, APITestCase):
         )
 
         print(
-            f"{self.INDENT}{self.COLOR['OK']}"
-            "✓ Refresh token rotated and old token rejected | HTTP 401"
+            f"{self.INDENT}{self.COLOR['ERR']}"
+            f"✗ {self.COLOR['END']}{self.COLOR['OK']}Refresh token rotated and old token rejected | HTTP 401"
             f"{self.COLOR['END']}"
         )

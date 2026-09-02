@@ -21,7 +21,7 @@ class TestClamAVScanner(TestLoggerMixin):
         """
         Test that a clean file is not detected as malware.
         """
-        self._logger_header("TEST: clean file")
+        self._logger_header("SECURITY: ClamAV clean file")
         mock_settings.CLAMAV_ENABLED = True
         mock_settings.CLAMAV_HOST = "clamav"
         mock_settings.CLAMAV_PORT = 3310
@@ -63,7 +63,7 @@ class TestClamAVScanner(TestLoggerMixin):
         """
         Test that a malware file is detected by ClamAV scanner.
         """
-        self._logger_header("TEST: malware detected")
+        self._logger_header("SECURITY: ClamAV malware detected")
         mock_settings.CLAMAV_ENABLED = True
         mock_settings.CLAMAV_HOST = "clamav"
         mock_settings.CLAMAV_PORT = 3310
@@ -104,7 +104,7 @@ class TestClamAVScanner(TestLoggerMixin):
         """
         Test that ClamAV scanner is unavailable.
         """
-        self._logger_header("TEST: ClamAV unavailable")
+        self._logger_header("SECURITY: ClamAV ClamAV unavailable")
         mock_settings.CLAMAV_ENABLED = True
         mock_settings.CLAMAV_HOST = "clamav"
         mock_settings.CLAMAV_PORT = 3310
@@ -136,7 +136,7 @@ class TestClamAVScanner(TestLoggerMixin):
         """
         Test that ClamAV scanner is disabled.
         """
-        self._logger_header("TEST: ClamAV disabled")
+        self._logger_header("SECURITY: ClamAV ClamAV disabled")
         mock_settings.CLAMAV_ENABLED = False
 
         file = MagicMock()

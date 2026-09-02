@@ -24,7 +24,8 @@ class ParentVisibilityContractMixin:
         url = cast(str, getattr(self, "url"))
 
         logger._logger_header(
-            f"TEST: Inactive {parent_name} returns 404 for nested endpoint"
+            # f"ENDPOINT GET: Inactive {parent_name} returns 404 for nested endpoint"
+            f"ENDPOINT GET: {url}"
         )
 
         parent.is_active = False
@@ -36,7 +37,7 @@ class ParentVisibilityContractMixin:
 
         print(
             f"{logger.INDENT}{logger.COLOR['OK']}"
-            f"✓ GET {url} | inactive {parent_name} hidden | HTTP 404"
+            f"✓ Inactive {parent_name} hidden | HTTP 404"
             f"{logger.COLOR['END']}"
         )
 
@@ -55,7 +56,7 @@ class ParentVisibilityContractMixin:
         )
 
         logger._logger_header(
-            f"TEST: Nonexistent {parent_name} returns 404 for nested endpoint"
+            f"ENDPOINT GET: {url}"
         )
 
         response = client.get(url)
@@ -64,6 +65,6 @@ class ParentVisibilityContractMixin:
 
         print(
             f"{logger.INDENT}{logger.COLOR['OK']}"
-            f"✓ GET {url} | nonexistent {parent_name} hidden | HTTP 404"
+            f"✓ Nonexistent {parent_name} hidden | HTTP 404"
             f"{logger.COLOR['END']}"
         )

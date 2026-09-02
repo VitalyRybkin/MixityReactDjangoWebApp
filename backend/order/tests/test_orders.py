@@ -956,7 +956,7 @@ class TestOrderResourcesAPIView(
 
                 print(
                     f"{self.INDENT}{self.COLOR['OK']}✓ "
-                    f"{resource_name} and id's are available in response, expected amount received."
+                    f"{resource_name} and id's are available in response | Expected amount received."
                     f"{self.COLOR['END']}"
                 )
 

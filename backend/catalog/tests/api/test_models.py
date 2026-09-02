@@ -1,4 +1,5 @@
 import pytest
+from django.core.exceptions import ValidationError
 
 from catalog.models import (
     DescriptionItem,
@@ -152,11 +153,21 @@ class TestProductUnitModel(BaseModelTestCase):
             field_name="unit",
             invalid_value=lambda: UnitFactory.create(title=TitleChoices.KILOGRAM),
         ),
-        ValidationFieldSpec(field_name="value", invalid_value=10),
+        ValidationFieldSpec(field_name="value", invalid_value=11),
+        ValidationFieldSpec(field_name="value", invalid_value=13),
+        ValidationFieldSpec(field_name="value", invalid_value=14),
+        ValidationFieldSpec(field_name="value", invalid_value=16),
+        ValidationFieldSpec(field_name="value", invalid_value=24),
+        ValidationFieldSpec(field_name="value", invalid_value=31),
     ]
 
     valid_fields_map = [
+        ValidationFieldSpec(field_name="value", invalid_value=10),
+        ValidationFieldSpec(field_name="value", invalid_value=12),
+        ValidationFieldSpec(field_name="value", invalid_value=15),
+        ValidationFieldSpec(field_name="value", invalid_value=20),
         ValidationFieldSpec(field_name="value", invalid_value=25),
+        ValidationFieldSpec(field_name="value", invalid_value=30),
     ]
 
     def test_invalid_field_validation(self) -> None:

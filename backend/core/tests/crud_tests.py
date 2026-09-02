@@ -72,7 +72,9 @@ class CrudContractMixin(_Base):
             self.assertIn("errors", response_data)
             self.assertIn("messages", response_data)
             self.assertEqual(response_data["messages"], [expected_error])
-            print(f"    {self.COLOR['ERR']}✗ Object creation failed{self.COLOR['END']}")
+            print(f"{self.INDENT}{self.COLOR['ERR']}"
+                  f"✗ {self.COLOR['END']}{self.COLOR['OK']}Object \n{payload} \ncreation failed"
+                  f"{self.COLOR['END']}")
             return
 
         is_created = self.model.objects.filter(pk=response.data["id"]).exists()
@@ -135,8 +137,8 @@ class CrudContractMixin(_Base):
 
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
         print(
-            f"{self.INDENT}{self.COLOR['OK']}"
-            f"✓ Object not found successfully | HTTP 404"
+            f"{self.INDENT}{self.COLOR['ERR']}"
+            f"✗ {self.COLOR['END']}{self.COLOR['OK']}Object not found | HTTP 404"
             f"{self.COLOR['END']}"
         )
 
