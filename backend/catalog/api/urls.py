@@ -2,7 +2,7 @@ from django.urls import path
 
 from .routes import ProductRoutes, UnitRoutes
 from .views.products import (
-    ProductListCreateAPIView,
+    ProductListAPIView,
     ProductRetrieveUpdateDestroyAPIView,
 )
 from .views.units import UnitListCreateAPIView, UnitRetrieveUpdateDestroyAPIView
@@ -21,9 +21,9 @@ urlpatterns = [
         name=UnitRoutes.DETAIL.name,
     ),
     path(
-        ProductRoutes.LIST_CREATE.path,
-        ProductListCreateAPIView.as_view(),
-        name=ProductRoutes.LIST_CREATE.name,
+        ProductRoutes.LIST.path,
+        ProductListAPIView.as_view(),
+        name=ProductRoutes.LIST.name,
     ),
     path(
         ProductRoutes.DETAIL.path,

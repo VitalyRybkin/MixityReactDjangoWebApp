@@ -7,5 +7,5 @@ class UnitRoutes:
 
 
 class ProductRoutes:
-    LIST_CREATE = ApiRoute("products/", "product_list_create")
+    LIST = ApiRoute("products/", "product_list")
     DETAIL = ApiRoute("products/<int:pk>/", "product_detail")

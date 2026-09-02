@@ -10,7 +10,7 @@ from core.tests.utils import FieldSpec
 
 class TestProductAPIList(BaseAPIMixin):
     __test__ = True
-    url_name = f"catalog:{ProductRoutes.LIST_CREATE.name}"
+    url_name = f"catalog:{ProductRoutes.LIST.name}"
     model = Product
     factory = ProductFactory
     fields_map = {
