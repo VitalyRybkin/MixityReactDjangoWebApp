@@ -7,7 +7,7 @@ from catalog.utils.unit_choices import TitleChoices
 
 
 class ProductUnit(models.Model):
-    ALLOWED_BAG_WEIGHTS = {15, 20, 25, 30}
+    ALLOWED_PACK_WEIGHTS = {10, 12, 15, 20, 25, 30}
 
     product = models.OneToOneField(
         "catalog.Product",
@@ -19,7 +19,7 @@ class ProductUnit(models.Model):
         on_delete=models.PROTECT,
         limit_choices_to={"title__in": ["piece", "ton"]},
     )
-    value = models.PositiveSmallIntegerField(help_text="Вес мешка (кг) или 1 для тонны")
+    value = models.PositiveSmallIntegerField(help_text="Вес упаковки (кг) или 1 для тонны")
 
     class Meta:
         verbose_name = "Единица измерения товара"
@@ -27,9 +27,9 @@ class ProductUnit(models.Model):
 
     def clean(self) -> None:
         if self.unit.title == TitleChoices.PIECE:
-            if self.value not in self.ALLOWED_BAG_WEIGHTS:
+            if self.value not in self.ALLOWED_PACK_WEIGHTS:
                 raise ValidationError(
-                    {"value": f"Вес мешка: {sorted(self.ALLOWED_BAG_WEIGHTS)} кг"}
+                    {"value": f"Вес упаковки: {sorted(self.ALLOWED_PACK_WEIGHTS)} кг"}
                 )
 
     def save(self, *args: Any, **kwargs: Any) -> None:
