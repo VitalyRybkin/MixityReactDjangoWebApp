@@ -19,7 +19,9 @@ class ProductUnit(models.Model):
         on_delete=models.PROTECT,
         limit_choices_to={"title__in": ["piece", "ton"]},
     )
-    value = models.PositiveSmallIntegerField(help_text="Вес упаковки (кг) или 1 для тонны")
+    value = models.PositiveSmallIntegerField(
+        help_text="Вес упаковки (кг) или 1 для тонны"
+    )
 
     class Meta:
         verbose_name = "Единица измерения товара"

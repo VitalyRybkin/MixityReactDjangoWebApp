@@ -72,9 +72,11 @@ class CrudContractMixin(_Base):
             self.assertIn("errors", response_data)
             self.assertIn("messages", response_data)
             self.assertEqual(response_data["messages"], [expected_error])
-            print(f"{self.INDENT}{self.COLOR['ERR']}"
-                  f"✗ {self.COLOR['END']}{self.COLOR['OK']}Object \n{payload} \ncreation failed"
-                  f"{self.COLOR['END']}")
+            print(
+                f"{self.INDENT}{self.COLOR['ERR']}"
+                f"✗ {self.COLOR['END']}{self.COLOR['OK']}Object \n{payload} \ncreation failed"
+                f"{self.COLOR['END']}"
+            )
             return
 
         is_created = self.model.objects.filter(pk=response.data["id"]).exists()

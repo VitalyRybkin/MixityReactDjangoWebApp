@@ -55,9 +55,7 @@ class ParentVisibilityContractMixin:
             kwargs=self._get_parent_url_kwargs(999999),
         )
 
-        logger._logger_header(
-            f"ENDPOINT GET: {url}"
-        )
+        logger._logger_header(f"ENDPOINT GET: {url}")
 
         response = client.get(url)
 

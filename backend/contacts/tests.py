@@ -113,9 +113,7 @@ class TestContactAPICreate(BaseAPIMixin):
                 phone_number=item["phoneNumber"],
             )
 
-        self._test_unique_fields(
-            payload, "Такой номер телефона уже существует."
-        )
+        self._test_unique_fields(payload, "Такой номер телефона уже существует.")
 
     def test_update_should_allow_same_phone_numbers(self) -> None:
         payload = self.payload_generator()
@@ -155,9 +153,7 @@ class TestContactAPICreate(BaseAPIMixin):
         )
 
     def test_create_with_inactive_parent_returns_400(self) -> None:
-        self._logger_header(
-            f"ENDPOINT POST: {self.url_name}"
-        )
+        self._logger_header(f"ENDPOINT POST: {self.url_name}")
 
         cases = [
             ("carrier", CarrierFactory),
@@ -184,9 +180,7 @@ class TestContactAPICreate(BaseAPIMixin):
             )
 
     def test_contacts_with_inactive_parent_are_not_in_list(self) -> None:
-        self._logger_header(
-            f"ENDPOINT GET: {self.url_name}"
-        )
+        self._logger_header(f"ENDPOINT GET: {self.url_name}")
         cases = [
             ("carrier", CarrierFactory),
             ("warehouse", WarehouseFactory),

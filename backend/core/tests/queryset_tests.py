@@ -118,5 +118,7 @@ class QuerysetContractMixin(_Base):
         self.assertEqual(len(response.data), expected_count)
         print(
             f"{self.INDENT}{self.COLOR['OK']}✓ Retrieval of filtered queryset passed: "
-            f"\n {self.INDENT}  - response count - {len(response.data)}, expected count - {expected_count}{self.COLOR['END']}"
+            f"\n {self.INDENT}  "
+            f"- response count - {len(response.data)}, expected count - {expected_count}"
+            f"{self.COLOR['END']}"
         )
