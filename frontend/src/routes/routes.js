@@ -107,4 +107,8 @@ export const routes = [
         path: '/catalog',
         breadcrumb: 'Каталог',
     },
+    {
+        path: '/catalog/products/:id',
+        breadcrumb: 'Карточка',
+    },
 ]

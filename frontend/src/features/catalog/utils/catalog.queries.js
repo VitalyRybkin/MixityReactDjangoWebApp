@@ -23,11 +23,24 @@ export const fetchProducts = async () => {
     return unwrapList(res.data)
 }
 
+export const fetchProduct = async (id) => {
+    const res = await api.get(productApiPaths.detail(id))
+    return res.data
+}
+
 // --- HOOKS ---
 
 export function useGetProducts() {
     return useQuery({
         queryKey: productKeys.list(),
         queryFn: fetchProducts,
+    })
+}
+
+export function useGetProduct(id) {
+    return useQuery({
+        queryKey: productKeys.detail(id),
+        queryFn: () => fetchProduct(id),
+        enabled: Boolean(id),
     })
 }

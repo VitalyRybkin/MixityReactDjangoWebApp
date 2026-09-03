@@ -7,7 +7,7 @@ import { Button, IconButton, Menu, MenuItem, Stack, Tooltip } from '@mui/materia
 import Can from '../pages/auth/components/Can.jsx'
 import { GROUPS } from '../pages/auth/permissions.js'
 
-const NAV_BREAKPOINT = 1100
+const NAV_BREAKPOINT = 1200
 
 const sx = {
     nav: {
@@ -93,9 +93,9 @@ const TopBarNav = () => {
                 </Button>
 
                 <Can group={[GROUPS.ADMINS]}>
-                <Button component={NavLink} to="/catalog" color="inherit" sx={sx.navButton}>
-                    Каталог
-                </Button>
+                    <Button component={NavLink} to="/catalog" color="inherit" sx={sx.navButton}>
+                        Каталог
+                    </Button>
                 </Can>
             </Stack>
 

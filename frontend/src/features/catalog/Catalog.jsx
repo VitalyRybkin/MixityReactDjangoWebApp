@@ -1,10 +1,21 @@
 import React, { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 
-import { Box, CircularProgress, Table, TableBody, TableCell, TableContainer, TableRow } from '@mui/material'
+import {
+    Box,
+    CircularProgress,
+    Divider,
+    Table,
+    TableBody,
+    TableCell,
+    TableContainer,
+    TableRow,
+    Typography,
+} from '@mui/material'
 
 import AppBreadcrumbs from '../../components/AppBreadcrumbs.jsx'
 import AppSnackbar from '../../components/ui/feedback/AppSnackbar.jsx'
+import { entityTableListSx as listSx } from '../../styles/entityTableList.styles.js'
 
 import { useGetProducts } from './utils/catalog.queries.js'
 
@@ -33,6 +44,12 @@ export default function CatalogPage() {
         <Box sx={{ p: 3 }}>
             <AppBreadcrumbs />
 
+            <Box sx={{ p: 3 }}>
+                <Typography variant="h4">Каталог продукции</Typography>
+            </Box>
+
+            <Divider sx={listSx.divider} />
+
             {isLoading ? (
                 <Box
                     sx={{
@@ -51,7 +68,7 @@ export default function CatalogPage() {
                                 <TableRow
                                     key={product.id}
                                     hover
-                                    onClick={() => navigate(`/catalog/${product.id}`)}
+                                    onClick={() => navigate(`/catalog/products/${product.id}`)}
                                     sx={{
                                         cursor: 'pointer',
                                         '& td': {
