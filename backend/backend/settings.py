@@ -280,6 +280,12 @@ LOGGING = {
             "propagate": False,
         },
 
+        "django.server": {
+            "handlers": ["console"],
+            "level": "INFO" if DEBUG else "WARNING",
+            "propagate": False,
+        },
+
         "django.request": {
             "handlers": ["console"],
             "level": "ERROR",
