@@ -16,6 +16,8 @@ class AppUnit(models.Model):
         TitleChoices.MEGAPASCAL,
         TitleChoices.LITRE,
         TitleChoices.KG_PER_M3,
+        TitleChoices.KG_PER_M2,
+        TitleChoices.BK_KG,
     }
 
     title = models.CharField(max_length=20, choices=TitleChoices, unique=True)

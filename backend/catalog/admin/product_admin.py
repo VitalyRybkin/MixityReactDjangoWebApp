@@ -94,11 +94,11 @@ class ProductAdmin(BaseAdmin):
         "for_web",
     )
     inlines = [
-        ProductDescriptionInline,
-        ProductSpecificationInline,
+        SalePriceHistoryInline,
+        PurchasePriceHistoryInline,
         ProductUnitInline,
         ProductPalletInline,
-        PurchasePriceHistoryInline,
-        SalePriceHistoryInline,
+        ProductDescriptionInline,
+        ProductSpecificationInline,
     ]
     list_editable = ("for_web",)
