@@ -34,7 +34,7 @@ export default function ClientsList() {
     return (
         <>
             <ObjectListView
-                title="Клиенты"
+                title="Поставщики"
                 items={clients}
                 loading={isPending || deleteClient.isPending}
                 error={error}

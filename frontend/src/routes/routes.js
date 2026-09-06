@@ -65,7 +65,7 @@ export const routes = [
     },
     {
         path: '/clients',
-        breadcrumb: 'Клиенты',
+        breadcrumb: 'Поставщики',
     },
     {
         path: '/clients/create',

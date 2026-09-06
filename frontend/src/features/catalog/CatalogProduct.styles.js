@@ -172,6 +172,7 @@ export const catalogProductSx = {
 
         alignItems: 'center',
 
+        width: '100%',
         minHeight: 54,
 
         px: {
@@ -179,11 +180,15 @@ export const catalogProductSx = {
             sm: 1.25,
         },
 
-        color: 'inherit',
-        textDecoration: 'none',
-
+        border: 0,
         borderBottom: 1,
         borderColor: 'divider',
+
+        background: 'transparent',
+        color: 'inherit',
+        font: 'inherit',
+        textAlign: 'left',
+        cursor: 'pointer',
 
         '&:hover': {
             bgcolor: 'action.hover',

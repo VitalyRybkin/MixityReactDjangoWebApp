@@ -1,5 +1,4 @@
 import React from 'react'
-import { Link } from 'react-router-dom'
 
 import { Box, CircularProgress, Pagination, Typography } from '@mui/material'
 
@@ -26,7 +25,7 @@ const formatPrice = (value) => {
     })
 }
 
-export default function PriceHistory({ selection, data, loading, error, page, onPageChange, onAdd, from }) {
+export default function PriceHistory({ selection, data, loading, error, page, onPageChange, onAdd, onEdit }) {
     if (!selection) {
         return (
             <Box sx={sx.history}>
@@ -36,14 +35,9 @@ export default function PriceHistory({ selection, data, loading, error, page, on
     }
 
     const isSale = selection.type === 'sale'
-
     const prices = data?.results ?? []
     const count = data?.count ?? 0
-
     const pageCount = Math.ceil(count / PAGE_SIZE)
-
-    const editBasePath = isSale ? '/catalog/sales-prices' : '/catalog/purchase-prices'
-
     const priceField = isSale ? 'sale_price' : 'purchase_price'
 
     return (
@@ -71,13 +65,7 @@ export default function PriceHistory({ selection, data, loading, error, page, on
             {!loading &&
                 !error &&
                 prices.map((price) => (
-                    <Box
-                        key={price.id}
-                        component={Link}
-                        to={`${editBasePath}/${price.id}/edit`}
-                        state={{ from }}
-                        sx={sx.priceRow}
-                    >
+                    <Box key={price.id} component="button" type="button" onClick={() => onEdit(price)} sx={sx.priceRow}>
                         <Typography sx={sx.date}>{formatDate(price.date)}</Typography>
 
                         <Typography sx={sx.price}>{formatPrice(price[priceField])} ₽</Typography>

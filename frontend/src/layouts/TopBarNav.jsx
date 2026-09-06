@@ -76,7 +76,7 @@ const TopBarNav = () => {
                     </Button>
 
                     <Button component={NavLink} to="/clients" color="inherit" sx={sx.navButton}>
-                        Клиенты
+                        Поставщики
                     </Button>
 
                     <Button component={NavLink} to="/customers" color="inherit" sx={sx.navButton}>
@@ -128,7 +128,7 @@ const TopBarNav = () => {
                     </MenuItem>
 
                     <MenuItem component={NavLink} to="/clients" onClick={handleCloseMenu} sx={sx.menuItem}>
-                        Клиенты
+                        Поставщики
                     </MenuItem>
 
                     <MenuItem component={NavLink} to="/customers" onClick={handleCloseMenu} sx={sx.menuItem}>

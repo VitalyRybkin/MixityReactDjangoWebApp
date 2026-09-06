@@ -68,7 +68,7 @@ export default function PriceSidebar({ customers, warehouses, selection, onSelec
 
                 {filteredCustomers.length === 0 && (
                     <Typography variant="body2" color="text.secondary" sx={sx.noResults}>
-                        Покупатели не найдены
+                        Поставщики не найдены
                     </Typography>
                 )}
             </Box>
