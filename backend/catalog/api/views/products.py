@@ -16,7 +16,7 @@ from catalog.models import (
     PurchasePriceHistory,
     SalesPriceHistory,
 )
-from core.openapi.base_views import BaseListAPIView
+from core.openapi.base_views import BaseListAPIView, BaseRetrieveUpdateDestroyAPIView
 
 
 class BaseProductGenericAPIView(generics.GenericAPIView):
@@ -139,3 +139,14 @@ class ProductSalesPriceListAPIView(BaseListAPIView):
             .select_related("customer")
             .order_by("-date")
         )
+
+
+class ProductRetrieveUpdateDestroyAPIView(
+    BaseRetrieveUpdateDestroyAPIView,
+    BaseProductGenericAPIView,
+):
+    resource_name = "product_detail"
+    schema_tags = ["Product"]
+
+    read_serializer_class = ProductListAPISerializer
+    write_serializer_class = ProductListAPISerializer
