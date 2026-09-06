@@ -1,5 +1,5 @@
 import ObjectListView from '../../components/ObjectListView.jsx'
-import ObjectListViewCard from '../../components/ObjectListViewCard.jsx'
+import ObjectListViewRow from '../../components/ObjectListViewRow.jsx'
 import AppSnackbar from '../../components/ui/feedback/AppSnackbar.jsx'
 import ConfirmDialog from '../../components/ui/feedback/ConfirmDialog.jsx'
 import useConfirm from '../../hooks/useConfirm.js'
@@ -34,22 +34,21 @@ export default function ClientsList() {
     return (
         <>
             <ObjectListView
-                title="Поставщики"
+                title="Клиенты"
                 items={clients}
                 loading={isPending || deleteClient.isPending}
                 error={error}
                 onRetry={refetch}
                 addTo="/clients/create"
-                renderRow={(c) => (
-                    <ObjectListViewCard
-                        key={c.id}
-                        title={c.name}
-                        subtitle={c.organization}
-                        address={c.address}
-                        email={c.email}
-                        phone={c.phone}
-                        to={`/clients/${c.id}`}
-                        onDelete={() => handleDeleteClient(c)}
+                renderRow={(client) => (
+                    <ObjectListViewRow
+                        title={client.name}
+                        subtitle={client.organization}
+                        address={client.address}
+                        email={client.email}
+                        phone={client.phone}
+                        to={`/clients/${client.id}`}
+                        onDelete={() => handleDeleteClient(client)}
                     />
                 )}
             />

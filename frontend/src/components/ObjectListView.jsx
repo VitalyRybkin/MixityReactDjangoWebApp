@@ -1,52 +1,26 @@
+import React, { useMemo, useState } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
 
-import { Box, CircularProgress, Divider, Grid, Typography } from '@mui/material'
+import ClearIcon from '@mui/icons-material/Clear'
+import {
+    Box,
+    CircularProgress,
+    Divider,
+    IconButton,
+    InputAdornment,
+    Table,
+    TableBody,
+    TableContainer,
+    TextField,
+    Typography,
+} from '@mui/material'
+
+import { entityTableListSx as listSx } from '../styles/entityTableList.styles.js'
 
 import AppBreadcrumbs from './AppBreadcrumbs.jsx'
+import { objectListViewSx as sx } from './ObjectListView.styles.js'
 import ErrorState from './ui/ErrorState.jsx'
 import AddAction from './ui/buttons/AddAction.jsx'
-
-const sx = {
-    page: {
-        width: '100%',
-        minWidth: 0,
-        p: { xs: 1.5, sm: 2, md: 3 },
-    },
-
-    header: {
-        p: { xs: 1.5, sm: 2, md: 3 },
-        display: 'flex',
-        flexDirection: { xs: 'column', sm: 'row' },
-        justifyContent: 'space-between',
-        alignItems: { xs: 'flex-start', sm: 'center' },
-        gap: 2,
-    },
-
-    title: {
-        m: 0,
-        minWidth: 0,
-        overflowWrap: 'anywhere',
-    },
-
-    divider: {
-        mb: 3,
-    },
-
-    loading: {
-        py: 6,
-        display: 'flex',
-        justifyContent: 'center',
-    },
-
-    list: {
-        width: '100%',
-        m: 0,
-    },
-
-    empty: {
-        p: 2,
-    },
-}
 
 const ObjectListView = ({
     title,
@@ -57,41 +31,101 @@ const ObjectListView = ({
     error = null,
     onRetry,
     emptyText = 'Список пуст',
+
+    searchable = false,
+    searchPlaceholder = 'Поиск',
+    getSearchText = (item) => item?.name ?? '',
 }) => {
     const navigate = useNavigate()
     const location = useLocation()
 
+    const [search, setSearch] = useState('')
+
+    const filteredItems = useMemo(() => {
+        const value = search.trim().toLowerCase()
+
+        if (!searchable || !value) {
+            return items
+        }
+
+        return items.filter((item) =>
+            String(getSearchText(item) ?? '')
+                .toLowerCase()
+                .includes(value),
+        )
+    }, [items, search, searchable, getSearchText])
+
     return (
-        <Box sx={sx.page}>
+        <Box sx={listSx.page}>
             <AppBreadcrumbs />
 
-            <Box sx={sx.header}>
-                <Typography variant="h4" fontWeight={600} sx={sx.title}>
+            <Box sx={listSx.header}>
+                <Typography variant="h4" fontWeight={600}>
                     {title}
                 </Typography>
 
-                <AddAction onClick={() => navigate(addTo, { state: { from: location.pathname } })} />
+                {addTo && (
+                    <AddAction
+                        onClick={() =>
+                            navigate(addTo, {
+                                state: {
+                                    from: location.pathname,
+                                },
+                            })
+                        }
+                    />
+                )}
             </Box>
 
-            <Divider sx={sx.divider} />
+            <Divider sx={listSx.divider} />
+
+            {searchable && (
+                <Box sx={sx.searchWrapper}>
+                    <TextField
+                        value={search}
+                        onChange={(event) => setSearch(event.target.value)}
+                        placeholder={searchPlaceholder}
+                        size="small"
+                        fullWidth
+                        slotProps={{
+                            input: {
+                                endAdornment: search ? (
+                                    <InputAdornment position="end">
+                                        <IconButton
+                                            size="small"
+                                            edge="end"
+                                            aria-label="Очистить поиск"
+                                            onClick={() => setSearch('')}
+                                        >
+                                            <ClearIcon fontSize="small" />
+                                        </IconButton>
+                                    </InputAdornment>
+                                ) : null,
+                            },
+                        }}
+                    />
+                </Box>
+            )}
 
             {error ? (
                 <ErrorState error={error} onRetry={onRetry} loading={loading} />
             ) : loading ? (
-                <Box sx={sx.loading}>
+                <Box sx={listSx.loading}>
                     <CircularProgress />
                 </Box>
-            ) : items.length > 0 ? (
-                <Grid container spacing={2} direction="column" sx={sx.list}>
-                    {items.map((item, index) => (
-                        <Grid size={12} key={item?.id ?? index}>
-                            {renderRow(item)}
-                        </Grid>
-                    ))}
-                </Grid>
+            ) : filteredItems.length > 0 ? (
+                <TableContainer>
+                    <Table size="small" sx={listSx.table}>
+                        <TableBody>
+                            {filteredItems.map((item, index) => (
+                                <React.Fragment key={item?.id ?? index}>{renderRow(item)}</React.Fragment>
+                            ))}
+                        </TableBody>
+                    </Table>
+                </TableContainer>
             ) : (
                 <Typography color="text.secondary" sx={sx.empty}>
-                    {emptyText}
+                    {search ? 'Ничего не найдено' : emptyText}
                 </Typography>
             )}
         </Box>

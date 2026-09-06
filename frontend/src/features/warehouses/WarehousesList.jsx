@@ -1,5 +1,5 @@
 import ObjectListView from '../../components/ObjectListView.jsx'
-import ObjectListViewCard from '../../components/ObjectListViewCard.jsx'
+import ObjectListViewRow from '../../components/ObjectListViewRow.jsx'
 import AppSnackbar from '../../components/ui/feedback/AppSnackbar.jsx'
 import ConfirmDialog from '../../components/ui/feedback/ConfirmDialog.jsx'
 import useConfirm from '../../hooks/useConfirm.js'
@@ -40,17 +40,16 @@ export default function WarehousesList() {
                 error={error}
                 onRetry={refetch}
                 addTo="/warehouses/create"
-                renderRow={(w) => (
-                    <ObjectListViewCard
-                        key={w.id}
-                        title={w.name}
-                        subtitle={w.organization}
-                        address={w.address}
-                        email={w.email}
-                        phone={w.phone}
-                        fileUrl={w.directions}
-                        to={`/warehouses/${w.id}`}
-                        onDelete={() => handleDeleteWarehouse(w)}
+                renderRow={(warehouse) => (
+                    <ObjectListViewRow
+                        title={warehouse.name}
+                        subtitle={warehouse.organization}
+                        address={warehouse.address}
+                        email={warehouse.email}
+                        phone={warehouse.phone}
+                        fileUrl={warehouse.directions}
+                        to={`/warehouses/${warehouse.id}`}
+                        onDelete={() => handleDeleteWarehouse(warehouse)}
                     />
                 )}
             />

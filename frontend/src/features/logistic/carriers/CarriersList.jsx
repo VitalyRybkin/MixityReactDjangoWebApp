@@ -1,5 +1,5 @@
 import ObjectListView from '../../../components/ObjectListView.jsx'
-import ObjectListViewCard from '../../../components/ObjectListViewCard.jsx'
+import ObjectListViewRow from '../../../components/ObjectListViewRow.jsx'
 import AppSnackbar from '../../../components/ui/feedback/AppSnackbar.jsx'
 import ConfirmDialog from '../../../components/ui/feedback/ConfirmDialog.jsx'
 import useConfirm from '../../../hooks/useConfirm.js'
@@ -37,16 +37,15 @@ export default function CarriersList() {
                 error={error}
                 onRetry={refetch}
                 addTo="/carriers/create"
-                renderRow={(c) => (
-                    <ObjectListViewCard
-                        key={c.id}
-                        title={c.name}
-                        subtitle={c.organization}
-                        address={c.address}
-                        email={c.email}
-                        phone={c.phone}
-                        to={`/carriers/${c.id}`}
-                        onDelete={() => handleDeleteCarrier(c)}
+                renderRow={(carrier) => (
+                    <ObjectListViewRow
+                        title={carrier.name}
+                        subtitle={carrier.organization}
+                        address={carrier.address}
+                        email={carrier.email}
+                        phone={carrier.phone}
+                        to={`/carriers/${carrier.id}`}
+                        onDelete={() => handleDeleteCarrier(carrier)}
                     />
                 )}
             />

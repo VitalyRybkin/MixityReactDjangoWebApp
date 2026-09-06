@@ -1,5 +1,5 @@
 import ObjectListView from '../../components/ObjectListView.jsx'
-import ObjectListViewCard from '../../components/ObjectListViewCard.jsx'
+import ObjectListViewRow from '../../components/ObjectListViewRow.jsx'
 import AppSnackbar from '../../components/ui/feedback/AppSnackbar.jsx'
 import ConfirmDialog from '../../components/ui/feedback/ConfirmDialog.jsx'
 import useConfirm from '../../hooks/useConfirm.js'
@@ -40,16 +40,22 @@ export default function CustomersList() {
                 error={error}
                 onRetry={refetch}
                 addTo="/customers/create"
-                renderRow={(c) => (
-                    <ObjectListViewCard
-                        key={c.id}
-                        title={c.name}
-                        subtitle={c.organization}
-                        address={c.address}
-                        email={c.email}
-                        phone={c.phone}
-                        to={`/customers/${c.id}`}
-                        onDelete={() => handleDeleteCustomer(c)}
+                searchable
+                searchPlaceholder="Поиск заказчика"
+                getSearchText={(customer) =>
+                    [customer.name, customer.organization, customer.address, customer.email, customer.phone]
+                        .filter(Boolean)
+                        .join(' ')
+                }
+                renderRow={(customer) => (
+                    <ObjectListViewRow
+                        title={customer.name}
+                        subtitle={customer.organization}
+                        address={customer.address}
+                        email={customer.email}
+                        phone={customer.phone}
+                        to={`/customers/${customer.id}`}
+                        onDelete={() => handleDeleteCustomer(customer)}
                     />
                 )}
             />

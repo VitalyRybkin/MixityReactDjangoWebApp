@@ -17,6 +17,7 @@ import AppBreadcrumbs from '../../components/AppBreadcrumbs.jsx'
 import AppSnackbar from '../../components/ui/feedback/AppSnackbar.jsx'
 import { entityTableListSx as listSx } from '../../styles/entityTableList.styles.js'
 
+import { catalogSx as sx } from './Catalog.styles.js'
 import { useGetProducts } from './utils/catalog.queries.js'
 
 export default function CatalogPage() {
@@ -41,53 +42,33 @@ export default function CatalogPage() {
     }, [isError])
 
     return (
-        <Box sx={{ p: 3 }}>
+        <Box sx={listSx.page}>
             <AppBreadcrumbs />
 
-            <Box sx={{ p: 3 }}>
+            <Box sx={listSx.header}>
                 <Typography variant="h4">Каталог продукции</Typography>
             </Box>
 
             <Divider sx={listSx.divider} />
 
             {isLoading ? (
-                <Box
-                    sx={{
-                        display: 'flex',
-                        justifyContent: 'center',
-                        mt: 6,
-                    }}
-                >
+                <Box sx={listSx.loading}>
                     <CircularProgress />
                 </Box>
             ) : (
-                <TableContainer sx={{ mt: 4 }}>
-                    <Table size="small">
+                <TableContainer>
+                    <Table size="small" sx={listSx.table}>
                         <TableBody>
                             {products.map((product) => (
                                 <TableRow
                                     key={product.id}
                                     hover
                                     onClick={() => navigate(`/catalog/products/${product.id}`)}
-                                    sx={{
-                                        cursor: 'pointer',
-                                        '& td': {
-                                            py: 0.7,
-                                            borderBottom: '1px solid',
-                                            borderColor: 'divider',
-                                        },
-                                    }}
+                                    sx={sx.row}
                                 >
-                                    <TableCell
-                                        sx={{
-                                            width: '36%',
-                                            fontWeight: 600,
-                                        }}
-                                    >
-                                        {product.name}
-                                    </TableCell>
+                                    <TableCell sx={sx.nameCell}>{product.name}</TableCell>
 
-                                    <TableCell sx={{ color: 'text.secondary' }}>{product.title}</TableCell>
+                                    <TableCell sx={sx.titleCell}>{product.title}</TableCell>
                                 </TableRow>
                             ))}
                         </TableBody>
