@@ -2,7 +2,7 @@ from django.urls import path
 
 from .routes import ProductRoutes, UnitRoutes
 from .views.products import (
-    ProductListAPIView,
+    ProductListAPIView, ProductPurchasePriceListAPIView, ProductSalesPriceListAPIView,
     ProductRetrieveUpdateDestroyAPIView,
 )
 from .views.units import UnitListCreateAPIView, UnitRetrieveUpdateDestroyAPIView
@@ -29,5 +29,15 @@ urlpatterns = [
         ProductRoutes.DETAIL.path,
         ProductRetrieveUpdateDestroyAPIView.as_view(),
         name=ProductRoutes.DETAIL.name,
+    ),
+    path(
+        ProductRoutes.PRODUCT_PURCHASE_PRICES.path,
+        ProductPurchasePriceListAPIView.as_view(),
+        name=ProductRoutes.PRODUCT_PURCHASE_PRICES.name,
+    ),
+    path(
+        ProductRoutes.PRODUCT_SALES_PRICES.path,
+        ProductSalesPriceListAPIView.as_view(),
+        name=ProductRoutes.PRODUCT_SALES_PRICES.name,
     ),
 ]

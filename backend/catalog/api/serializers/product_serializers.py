@@ -1,9 +1,7 @@
 from rest_framework import serializers
 
 from catalog.models import (
-    AppUnit,
     Product,
-    ProductUnit,
     PurchasePriceHistory,
     SalesPriceHistory,
 )
@@ -31,6 +29,7 @@ class PurchasePriceHistorySerializer(serializers.ModelSerializer):
             "id",
             "date",
             "warehouse",
+            "purchase_price",
         ]
 
 
@@ -52,47 +51,6 @@ class SalesPriceHistorySerializer(serializers.ModelSerializer):
             "id",
             "date",
             "customer",
+            "sale_price",
         ]
 
-
-class AppUnitSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = AppUnit
-        fields = [
-            "id",
-            "title",
-        ]
-
-
-class ProductUnitSerializer(serializers.ModelSerializer):
-    unit = AppUnitSerializer(read_only=True)
-
-    class Meta:
-        model = ProductUnit
-        fields = [
-            "id",
-            "unit",
-        ]
-
-
-class ProductRetrieveUpdateAPISerializer(serializers.ModelSerializer):
-    unit_config = ProductUnitSerializer(read_only=True)
-    purchase_price_history = PurchasePriceHistorySerializer(
-        many=True,
-        read_only=True,
-    )
-    sales_price_history = SalesPriceHistorySerializer(
-        many=True,
-        read_only=True,
-    )
-
-    class Meta:
-        model = Product
-        fields = [
-            "id",
-            "name",
-            "title",
-            "unit_config",
-            "purchase_price_history",
-            "sales_price_history",
-        ]
