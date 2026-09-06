@@ -1,14 +1,10 @@
 import { sidebarPageSx } from '../../layouts/AppSidebar.jsx'
+import { commonLayoutSx } from '../../styles/layout.styles.js'
 
 export const orderFormSx = {
     container: {
+        ...commonLayoutSx.pageHorizontal,
         mt: 1,
-        width: '100%',
-        minWidth: 0,
-        px: {
-            xs: 2,
-            sm: 3,
-        },
     },
 
     form: {
@@ -45,9 +41,7 @@ export const orderFormSx = {
         mt: 2,
     },
 
-    divider: {
-        mb: 3,
-    },
+    divider: commonLayoutSx.divider,
 
     bottomDivider: {
         mb: 1,

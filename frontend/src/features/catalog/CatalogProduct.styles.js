@@ -1,15 +1,7 @@
+import { commonLayoutSx } from '../../styles/layout.styles.js'
+
 export const catalogProductSx = {
-    page: {
-        px: {
-            xs: 2,
-            sm: 3,
-            md: 4,
-        },
-        py: {
-            xs: 2,
-            sm: 3,
-        },
-    },
+    page: commonLayoutSx.page,
 
     loading: {
         display: 'flex',
@@ -18,23 +10,13 @@ export const catalogProductSx = {
     },
 
     title: {
-        py: {
-            xs: 3,
-            sm: 4,
+        p: {
+            xs: 2,
+            sm: 3,
         },
-        fontSize: {
-            xs: '1.2rem',
-            sm: '1.8rem',
-        },
-        fontWeight: 600,
     },
 
-    divider: {
-        mb: {
-            xs: 3,
-            md: 4,
-        },
-    },
+    divider: commonLayoutSx.divider,
 
     layout: {
         display: 'grid',

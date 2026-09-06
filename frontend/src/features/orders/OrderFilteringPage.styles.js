@@ -1,31 +1,17 @@
 import { clickableDataGridSx } from '../../styles/dataGrid.styles.js'
+import { commonLayoutSx } from '../../styles/layout.styles.js'
 
 export const orderFilteringPageSx = {
-    page: {
-        width: '100%',
-        minWidth: 0,
-        p: {
-            xs: 2,
-            sm: 3,
-        },
-    },
+    page: commonLayoutSx.page,
 
     header: {
-        p: {
-            xs: 2,
-            sm: 3,
-        },
+        ...commonLayoutSx.header,
+
         display: 'flex',
         flexDirection: {
             xs: 'column',
             sm: 'row',
         },
-        justifyContent: 'space-between',
-        alignItems: {
-            xs: 'stretch',
-            sm: 'center',
-        },
-        gap: 2,
     },
 
     title: {
@@ -94,9 +80,7 @@ export const orderFilteringPageSx = {
         },
     },
 
-    tableDivider: {
-        mb: 3,
-    },
+    tableDivider: commonLayoutSx.divider,
 
     dataGrid: clickableDataGridSx,
 

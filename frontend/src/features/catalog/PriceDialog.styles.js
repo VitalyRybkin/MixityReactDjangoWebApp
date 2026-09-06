@@ -1,17 +1,10 @@
+import { layoutSpacing } from '../../styles/layout.styles.js'
+
 export const priceDialogSx = {
     title: {
-        px: {
-            xs: 2.5,
-            sm: 4,
-        },
-        pt: {
-            xs: 2.5,
-            sm: 3.5,
-        },
-        pb: {
-            xs: 2,
-            sm: 2.5,
-        },
+        px: layoutSpacing.page,
+        pt: 3,
+        pb: 2,
         fontSize: {
             xs: '1.3rem',
             sm: '1.55rem',
@@ -24,22 +17,13 @@ export const priceDialogSx = {
     },
 
     content: {
-        px: {
-            xs: 2.5,
-            sm: 4,
-        },
-        pt: 1,
-        pb: {
-            xs: 2,
-            sm: 3,
-        },
+        px: layoutSpacing.page,
+        pt: 2,
+        pb: 3,
     },
 
     stack: {
-        gap: {
-            xs: 2.5,
-            sm: 3.5,
-        },
+        gap: 3,
     },
 
     entityName: {
@@ -58,15 +42,9 @@ export const priceDialogSx = {
     },
 
     actions: {
-        px: {
-            xs: 2.5,
-            sm: 4,
-        },
-        pb: {
-            xs: 2.5,
-            sm: 3.5,
-        },
+        px: layoutSpacing.page,
         pt: 1,
+        pb: 3,
         gap: 1,
     },
 }
