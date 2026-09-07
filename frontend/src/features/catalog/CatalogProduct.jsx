@@ -1,9 +1,10 @@
 import React, { useState } from 'react'
 import { useParams } from 'react-router-dom'
 
-import { Box, CircularProgress, Divider, Typography } from '@mui/material'
+import { Box, CircularProgress, Divider } from '@mui/material'
 
 import AppBreadcrumbs from '../../components/AppBreadcrumbs.jsx'
+import PageHeader from '../../components/PageHeader.jsx'
 import AppSnackbar from '../../components/ui/feedback/AppSnackbar.jsx'
 import { useGetCustomers } from '../customers/utils/customers.queries.js'
 import { useGetWarehouses } from '../warehouses/utils/stocks.queries.js'
@@ -91,9 +92,7 @@ export default function CatalogProduct() {
         <Box sx={sx.page}>
             <AppBreadcrumbs />
 
-            <Typography variant="h4" sx={sx.title}>
-                История цен — {product.name}
-            </Typography>
+            <PageHeader title={`История цен — ${product.name}`} />
 
             <Divider sx={sx.divider} />
 

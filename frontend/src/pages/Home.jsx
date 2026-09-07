@@ -1,10 +1,11 @@
-import { useMemo, useState } from 'react'
+import React, { useMemo, useState } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
 
 import { Box, Container, Divider, Typography } from '@mui/material'
 import { DataGrid } from '@mui/x-data-grid'
 
 import AppBreadcrumbs from '../components/AppBreadcrumbs.jsx'
+import PageHeader from '../components/PageHeader.jsx'
 import AddAction from '../components/ui/buttons/AddAction.jsx'
 import DownloadAction from '../components/ui/buttons/DownloadAction.jsx'
 import AppSnackbar from '../components/ui/feedback/AppSnackbar.jsx'
@@ -16,6 +17,7 @@ import { useExportOrders, useGetOrders, useUploadUpd } from '../features/orders/
 import { useGetWarehouses } from '../features/warehouses/utils/stocks.queries.js'
 import { useFileUpload } from '../hooks/useUploadFile.js'
 import { sidebarPageSx } from '../layouts/AppSidebar.jsx'
+import { entityTableListSx as listSx } from '../styles/entityTableList.styles.js'
 import { localeText } from '../utils/localeDataGridText.js'
 
 import { getHomeContentSx, homeSx as sx } from './Home.styles.js'
@@ -55,6 +57,7 @@ const Home = () => {
     const location = useLocation()
 
     const [sidebarOpen, setSidebarOpen] = useState(false)
+
     const [snackbar, setSnackbar] = useState({
         open: false,
         message: '',
@@ -62,7 +65,11 @@ const Home = () => {
     })
 
     const showSnackbar = (message, severity = 'success') => {
-        setSnackbar({ open: true, message, severity })
+        setSnackbar({
+            open: true,
+            message,
+            severity,
+        })
     }
 
     const {
@@ -89,6 +96,7 @@ const Home = () => {
 
     const startPeriod = formatFilteringDate(formattedFilters.dateFrom, false)
     const endPeriod = formatFilteringDate(formattedFilters.dateTo, true)
+
     const dateStr = formattedFilters.dateFrom === formattedFilters.dateTo ? endPeriod : `${startPeriod}-${endPeriod}`
 
     const customerInputValue = Array.isArray(customers)
@@ -120,7 +128,9 @@ const Home = () => {
     )
 
     const handleExport = async () => {
-        if (!warehouses.some((warehouse) => warehouse.id === formattedFilters.warehouseId)) {
+        const warehouseList = warehouses ?? []
+
+        if (!warehouseList.some((warehouse) => warehouse.id === formattedFilters.warehouseId)) {
             showSnackbar('Склад не выбран!', 'error')
             return
         }
@@ -132,6 +142,7 @@ const Home = () => {
 
         try {
             const { data } = await fetchDownload()
+
             const exportOrders = Array.isArray(data) ? data : Array.isArray(data?.results) ? data.results : []
 
             if (!exportOrders.length) {
@@ -139,7 +150,7 @@ const Home = () => {
                 return
             }
 
-            await exportOrdersToExcel(exportOrders, formattedFilters, warehouses ?? [])
+            await exportOrdersToExcel(exportOrders, formattedFilters, warehouseList)
             await exportPowerOfAttorney(exportOrders)
         } catch {
             showSnackbar('Ошибка при экспорте.', 'error')
@@ -164,42 +175,48 @@ const Home = () => {
 
             <Box sx={getHomeContentSx(sidebarOpen)}>
                 <Container maxWidth="xl" sx={sx.container}>
-                    <AppBreadcrumbs />
-
-                    <Box sx={sx.header}>
-                        <Typography variant="h4" gutterBottom fontWeight={600}>
-                            Заявки
-                        </Typography>
-
-                        <Box sx={sx.headerActions}>
-                            <Can group={GROUPS.LOGISTIC_MANAGER}>
-                                <Box sx={sx.exportAction}>
-                                    <DownloadAction
-                                        title="Экспорт заявок и доверенностей"
-                                        onClick={handleExport}
-                                        disabled={isDownloading || loadingOrders || uploadUpd.isPending}
-                                        loading={isDownloading || loadingOrders}
-                                    />
-                                </Box>
-                            </Can>
-
-                            <AddAction
-                                onClick={() =>
-                                    navigate('/orders/create', {
-                                        state: { from: location.pathname },
-                                    })
-                                }
-                                disabled={loadingOrders || uploadUpd.isPending}
-                                loading={loadingOrders}
-                            />
-                        </Box>
+                    <Box sx={sx.breadcrumbs}>
+                        <AppBreadcrumbs />
                     </Box>
+
+                    <PageHeader
+                        title="Заявки"
+                        actions={
+                            <>
+                                <Can group={GROUPS.LOGISTIC_MANAGER}>
+                                    <Box sx={sx.exportAction}>
+                                        <DownloadAction
+                                            title="Экспорт заявок и доверенностей"
+                                            onClick={handleExport}
+                                            disabled={isDownloading || loadingOrders || uploadUpd.isPending}
+                                            loading={isDownloading || loadingOrders}
+                                        />
+                                    </Box>
+                                </Can>
+
+                                <AddAction
+                                    onClick={() =>
+                                        navigate('/orders/create', {
+                                            state: {
+                                                from: location.pathname,
+                                            },
+                                        })
+                                    }
+                                    disabled={loadingOrders || uploadUpd.isPending}
+                                    loading={loadingOrders}
+                                />
+                            </>
+                        }
+                    />
+
+                    <Divider sx={listSx.divider} />
 
                     <Box sx={sx.filtersSummary}>
                         <Box sx={sx.filterItem}>
                             <Typography variant="body1" sx={sx.filterLabel}>
                                 Период:
                             </Typography>
+
                             <Typography variant="body1" sx={sx.filterValue}>
                                 {dateStr}
                             </Typography>
@@ -209,6 +226,7 @@ const Home = () => {
                             <Typography variant="body1" sx={sx.filterLabel}>
                                 Статус:
                             </Typography>
+
                             <Typography variant="body1" sx={sx.filterValue}>
                                 {selectedStatus}
                             </Typography>
@@ -218,6 +236,7 @@ const Home = () => {
                             <Typography variant="body1" sx={sx.filterLabel}>
                                 Контрагент:
                             </Typography>
+
                             <Typography variant="body1" sx={sx.filterValue}>
                                 {customerInputValue}
                             </Typography>
@@ -227,6 +246,7 @@ const Home = () => {
                             <Typography variant="body1" sx={sx.filterLabel}>
                                 Склад:
                             </Typography>
+
                             <Typography variant="body1" sx={sx.filterValue}>
                                 {warehouseInputValue}
                             </Typography>
@@ -260,7 +280,9 @@ const Home = () => {
                                 },
                             }}
                             localeText={localeText}
-                            slots={{ pagination: CustomPagination }}
+                            slots={{
+                                pagination: CustomPagination,
+                            }}
                             onRowClick={(params) => navigate(`/orders/${params.row.id}/edit`)}
                             sx={sx.dataGrid}
                         />
@@ -281,7 +303,12 @@ const Home = () => {
                         open={snackbar.open}
                         message={snackbar.message}
                         severity={snackbar.severity}
-                        onClose={() => setSnackbar((prev) => ({ ...prev, open: false }))}
+                        onClose={() =>
+                            setSnackbar((prev) => ({
+                                ...prev,
+                                open: false,
+                            }))
+                        }
                     />
                 </Container>
             </Box>

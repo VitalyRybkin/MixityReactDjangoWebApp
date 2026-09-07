@@ -12,11 +12,11 @@ import {
     TableContainer,
     TableHead,
     TableRow,
-    Typography,
 } from '@mui/material'
 
 import api from '../../api.js'
 import AppBreadcrumbs from '../../components/AppBreadcrumbs.jsx'
+import PageHeader from '../../components/PageHeader.jsx'
 import ErrorState from '../../components/ui/ErrorState.jsx'
 import DownloadAction from '../../components/ui/buttons/DownloadAction.jsx'
 import EmailLink from '../../components/ui/buttons/EmailLink.jsx'
@@ -124,15 +124,19 @@ export default function DocumentationListPage() {
         <Box sx={listSx.page}>
             <AppBreadcrumbs />
 
-            <Box sx={listSx.header}>
-                <Typography variant="h4">Документация</Typography>
-                {downloadLoading && <CircularProgress size={20} />}
+            <PageHeader
+                title="Документация"
+                actions={
+                    <>
+                        {downloadLoading && <CircularProgress size={20} />}
 
-                <Stack direction="row" spacing={2}>
-                    <EmailLink title="Отправить" onClick={handleSendEmail} />
-                    <DownloadAction onClick={handleDownloadAll} />
-                </Stack>
-            </Box>
+                        <Stack direction="row" spacing={2}>
+                            <EmailLink title="Отправить" onClick={handleSendEmail} />
+                            <DownloadAction onClick={handleDownloadAll} />
+                        </Stack>
+                    </>
+                }
+            />
 
             <Divider sx={listSx.divider} />
             {error ? (

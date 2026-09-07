@@ -3,13 +3,6 @@ export const entityTableListSx = {
         p: 3,
     },
 
-    header: {
-        p: 3,
-        display: 'flex',
-        justifyContent: 'space-between',
-        alignItems: 'center',
-    },
-
     divider: {
         mb: 3,
     },

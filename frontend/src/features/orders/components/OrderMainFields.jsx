@@ -107,11 +107,11 @@ export default function OrderMainFields({
                 </Box>
 
                 <FormControl fullWidth variant="outlined" size="small">
-                    <InputLabel id="client-label">Клиент</InputLabel>
+                    <InputLabel id="client-label">Поставщик</InputLabel>
 
                     <Select
                         labelId="client-label"
-                        label="Клиент"
+                        label="Постащик"
                         value={form.client || ''}
                         onChange={onChange('client')}
                         variant="outlined"

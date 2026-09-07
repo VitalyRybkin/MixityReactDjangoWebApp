@@ -1,12 +1,13 @@
 import { useCallback, useMemo, useState } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
 
-import { Box, Checkbox, Divider, FormControlLabel, Typography } from '@mui/material'
+import { Box, Checkbox, Divider, FormControlLabel } from '@mui/material'
 import { DataGrid } from '@mui/x-data-grid'
 
 import AppSelectField from '../../AppSelectField.jsx'
 import AppBreadcrumbs from '../../components/AppBreadcrumbs.jsx'
 import DateRangeFields from '../../components/DateRangeFields.jsx'
+import PageHeader from '../../components/PageHeader.jsx'
 import ApplyAction from '../../components/ui/buttons/ApplyAction.jsx'
 import DownloadAction from '../../components/ui/buttons/DownloadAction.jsx'
 import AppSnackbar from '../../components/ui/feedback/AppSnackbar.jsx'
@@ -110,22 +111,17 @@ export default function OrderFilteringPage() {
         <Box sx={sx.page}>
             <AppBreadcrumbs dynamicLabels={entity ? { id: entity.name } : {}} />
 
-            <Box sx={sx.header}>
-                <Typography variant="h4" fontWeight={600} sx={sx.title}>
-                    Поиск заявок
-                </Typography>
-
-                <Box sx={sx.headerActions}>
-                    <Box sx={sx.exportAction}>
-                        <DownloadAction
-                            title="Экспорт в Excel"
-                            onClick={handleExport}
-                            disabled={isDownloading || loadingOrders}
-                            loading={isDownloading || loadingOrders}
-                        />
-                    </Box>
-                </Box>
-            </Box>
+            <PageHeader
+                title="Поиск заявок"
+                actions={
+                    <DownloadAction
+                        title="Экспорт в Excel"
+                        onClick={handleExport}
+                        disabled={isDownloading || loadingOrders}
+                        loading={isDownloading || loadingOrders}
+                    />
+                }
+            />
 
             <Divider />
 

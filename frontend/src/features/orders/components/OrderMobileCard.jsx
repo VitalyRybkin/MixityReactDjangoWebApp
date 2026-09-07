@@ -119,7 +119,7 @@ export default function OrderMobileCard({ order, onOpen, onDelete, onUploadUpd }
 
                         <Box sx={sx.row}>
                             <Typography variant="body2" sx={sx.label}>
-                                Клиент
+                                Поставщик
                             </Typography>
                             <Typography variant="body2" sx={sx.value}>
                                 {order.client?.name ?? '—'}

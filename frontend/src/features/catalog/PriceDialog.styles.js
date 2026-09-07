@@ -1,8 +1,8 @@
-import { layoutSpacing } from '../../styles/layout.styles.js'
+import { commonLayoutSx } from '../../styles/layout.styles.js'
 
 export const priceDialogSx = {
     title: {
-        px: layoutSpacing.page,
+        px: commonLayoutSx.page,
         pt: 3,
         pb: 2,
         fontSize: {
@@ -17,7 +17,7 @@ export const priceDialogSx = {
     },
 
     content: {
-        px: layoutSpacing.page,
+        px: commonLayoutSx.page,
         pt: 2,
         pb: 3,
     },
@@ -42,7 +42,7 @@ export const priceDialogSx = {
     },
 
     actions: {
-        px: layoutSpacing.page,
+        px: commonLayoutSx.page,
         pt: 1,
         pb: 3,
         gap: 1,

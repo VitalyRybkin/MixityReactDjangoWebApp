@@ -10,10 +10,11 @@ import {
     TableCell,
     TableContainer,
     TableRow,
-    Typography,
+
 } from '@mui/material'
 
 import AppBreadcrumbs from '../../components/AppBreadcrumbs.jsx'
+import PageHeader from '../../components/PageHeader.jsx'
 import AppSnackbar from '../../components/ui/feedback/AppSnackbar.jsx'
 import { entityTableListSx as listSx } from '../../styles/entityTableList.styles.js'
 
@@ -45,9 +46,7 @@ export default function CatalogPage() {
         <Box sx={listSx.page}>
             <AppBreadcrumbs />
 
-            <Box sx={listSx.header}>
-                <Typography variant="h4">Каталог продукции</Typography>
-            </Box>
+            <PageHeader title="Каталог продукции" />
 
             <Divider sx={listSx.divider} />
 

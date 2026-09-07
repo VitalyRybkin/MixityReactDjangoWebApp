@@ -19,6 +19,7 @@ import { entityTableListSx as listSx } from '../styles/entityTableList.styles.js
 
 import AppBreadcrumbs from './AppBreadcrumbs.jsx'
 import { objectListViewSx as sx } from './ObjectListView.styles.js'
+import PageHeader from './PageHeader.jsx'
 import ErrorState from './ui/ErrorState.jsx'
 import AddAction from './ui/buttons/AddAction.jsx'
 
@@ -59,23 +60,20 @@ const ObjectListView = ({
         <Box sx={listSx.page}>
             <AppBreadcrumbs />
 
-            <Box sx={listSx.header}>
-                <Typography variant="h4" fontWeight={600}>
-                    {title}
-                </Typography>
-
-                {addTo && (
-                    <AddAction
-                        onClick={() =>
-                            navigate(addTo, {
-                                state: {
-                                    from: location.pathname,
-                                },
-                            })
-                        }
-                    />
-                )}
-            </Box>
+            <PageHeader
+                title={title}
+                actions={
+                    addTo ? (
+                        <AddAction
+                            onClick={() =>
+                                navigate(addTo, {
+                                    state: { from: location.pathname },
+                                })
+                            }
+                        />
+                    ) : null
+                }
+            />
 
             <Divider sx={listSx.divider} />
 

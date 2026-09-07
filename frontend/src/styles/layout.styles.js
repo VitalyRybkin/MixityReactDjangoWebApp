@@ -1,35 +1,46 @@
-export const layoutSpacing = {
-    page: {
-        xs: 2,
-        sm: 3,
-    },
-
-    gap: 2,
-    largeGap: 3,
-}
-
 export const commonLayoutSx = {
     page: {
         width: '100%',
         minWidth: 0,
-        p: layoutSpacing.page,
-    },
-
-    pageHorizontal: {
-        width: '100%',
-        minWidth: 0,
-        px: layoutSpacing.page,
+        p: {
+            xs: 2,
+            sm: 3,
+        },
     },
 
     header: {
-        p: layoutSpacing.page,
+        display: 'flex',
+        flexDirection: {
+            xs: 'column',
+            sm: 'row',
+        },
+        alignItems: {
+            xs: 'stretch',
+            sm: 'center',
+        },
+        justifyContent: 'space-between',
+        gap: 2,
+        py: {
+            xs: 2,
+            sm: 3,
+        },
+    },
+
+    headerActions: {
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: {
+            xs: 'flex-start',
+            sm: 'flex-end',
+        },
+        gap: 1,
+        ml: {
+            xs: 0,
+            sm: 'auto',
+        },
     },
 
     divider: {
         mb: 3,
-    },
-
-    sectionTitle: {
-        fontWeight: 600,
     },
 }
