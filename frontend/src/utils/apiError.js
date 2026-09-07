@@ -1,51 +1,74 @@
-export const firstError = (e) => {
-    const data = e?.response?.data
-
-    if (!data) {
-        return e?.message || 'Ошибка сохранения!'
+const isHtmlResponse = (value) => {
+    if (typeof value !== 'string') {
+        return false
     }
 
-    // Preferred flat messages from backend
-    if (Array.isArray(data.messages) && data.messages.length > 0) {
-        return data.messages[0].replace(/^detail:\s*/i, '')
+    const text = value.trim().toLowerCase()
+
+    return text.startsWith('<!doctype html') || text.startsWith('<html')
+}
+
+const firstValue = (value) => {
+    if (Array.isArray(value)) {
+        return firstValue(value[0])
     }
 
-    // DRF detail error
-    if (typeof data.detail === 'string') {
-        return data.detail
+    if (value && typeof value === 'object') {
+        const first = Object.values(value)[0]
+
+        return firstValue(first)
     }
 
-    // Validation errors
-    if (data.errors && typeof data.errors === 'object') {
-        const [firstKey] = Object.keys(data.errors)
+    if (typeof value === 'string') {
+        return value
+    }
 
-        if (firstKey) {
-            const value = data.errors[firstKey]
-            const text = Array.isArray(value) ? value[0] : value
+    return null
+}
 
-            return firstKey === 'detail' ? text : `${firstKey}: ${text}`
+export const firstError = (error) => {
+    const status = error?.response?.status
+    const data = error?.response?.data
+
+    if (isHtmlResponse(data)) {
+        if (status === 404) {
+            return 'Запрашиваемый объект не найден.'
         }
-    }
 
-    // Fallback for plain DRF validation responses
-    if (typeof data === 'object') {
-        const [firstKey] = Object.keys(data)
-
-        if (firstKey) {
-            const value = data[firstKey]
-            const text = Array.isArray(value) ? value[0] : value
-
-            return firstKey === 'detail' ? text : `${firstKey}: ${text}`
+        if (status === 403) {
+            return 'Недостаточно прав для выполнения операции.'
         }
+
+        if (status >= 500) {
+            return 'Ошибка сервера. Попробуйте позже.'
+        }
+
+        return 'Не удалось выполнить запрос.'
     }
 
-    if (Array.isArray(data)) {
-        return data[0]
-    }
-
-    if (typeof data === 'string') {
+    if (typeof data === 'string' && data.trim()) {
         return data
     }
 
-    return e?.message || 'Ошибка сохранения!'
+    if (data?.detail) {
+        return firstValue(data.detail) ?? 'Не удалось выполнить запрос.'
+    }
+
+    if (data?.non_field_errors) {
+        return firstValue(data.non_field_errors)
+    }
+
+    if (data && typeof data === 'object') {
+        const message = firstValue(data)
+
+        if (message) {
+            return message
+        }
+    }
+
+    if (!error?.response) {
+        return 'Не удалось связаться с сервером.'
+    }
+
+    return 'Не удалось выполнить запрос.'
 }
