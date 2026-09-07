@@ -20,6 +20,9 @@ class PermissionContractMixin(_Base):
     view_permissions: ClassVar[list[str] | None] = None
     check_get_permissions: ClassVar[bool] = True
 
+    def get_permission_test_params(self) -> dict:
+        return {}
+
     def _get_view_permissions(self) -> list[str]:
         if self.view_permissions is not None:
             return self.view_permissions
@@ -58,7 +61,10 @@ class PermissionContractMixin(_Base):
 
         self.client.force_authenticate(user=user)
 
-        response = self.client.get(self.url)
+        response = self.client.get(
+            self.url,
+            data=self.get_permission_test_params(),
+        )
 
         self.assertEqual(
             response.status_code,
@@ -88,7 +94,10 @@ class PermissionContractMixin(_Base):
 
         self.client.force_authenticate(user=user)
 
-        response = self.client.get(self.url)
+        response = self.client.get(
+            self.url,
+            data=self.get_permission_test_params(),
+        )
 
         self.assertEqual(
             response.status_code,

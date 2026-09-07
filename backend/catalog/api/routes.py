@@ -10,10 +10,10 @@ class ProductRoutes:
     LIST = ApiRoute("products/", "product_list")
     DETAIL = ApiRoute("products/<int:pk>/", "product_detail")
 
-    PRODUCT_PURCHASE_PRICES = ApiRoute(
+    LIST_CREATE_PURCHASE_PRICES = ApiRoute(
         "products/<int:pk>/purchase-prices/", "product_purchase_prices"
     )
-    PRODUCT_SALES_PRICES = ApiRoute(
+    LIST_CREATE_SALES_PRICES = ApiRoute(
         "products/<int:pk>/sales-prices/", "product_sales_prices"
     )
 

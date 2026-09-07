@@ -2,7 +2,6 @@ from decimal import Decimal
 from typing import TYPE_CHECKING, Any, Dict, Iterator, Tuple
 
 from django.db import models
-from rest_framework.reverse import reverse
 
 from core.tests.utils import FieldSpec, coerce_fieldspec
 
@@ -26,6 +25,9 @@ class FieldContractMixin(_Base):
     """
 
     fields_map: Dict[str, Any] = {}
+
+    def get_query_params(self) -> dict:
+        return {}
 
     def _iter_specs(self) -> Iterator[tuple[str, Any]]:
         for api_field, raw in self.fields_map.items():
@@ -72,17 +74,31 @@ class FieldContractMixin(_Base):
             not match between the API response and model, or if normalization results differ.
 
         """
-        assert self.url_name is not None
-        self._logger_header(f"ENDPOINT GET: {reverse(self.url_name)}")
+        assert self.url is not None
 
-        response = self.client.get(self.url)
+        self._logger_header(
+            f"ENDPOINT GET: {self.url}",
+        )
+
+        response = self.client.get(
+            self.url,
+            data=self.get_query_params(),
+        )
         self.assertEqual(response.status_code, 200)
 
+        data = response.data
+
+        if isinstance(data, dict):
+            items = data.get("results", [])
+        else:
+            items = data
+
         self.assertTrue(
-            isinstance(response.data, list) and len(response.data) > 0,
+            isinstance(items, list) and len(items) > 0,
             msg="GET list returned empty result; cannot validate fields_map",
         )
-        item = response.data[0]
+
+        item = items[0]
 
         for api_field, spec in self._iter_specs():
             api_val = item.get(api_field)

@@ -57,9 +57,12 @@ class SalesPriceHistoryReadSerializer(serializers.ModelSerializer):
 
 
 class PurchasePriceHistoryWriteSerializer(serializers.ModelSerializer):
+    date = serializers.DateField(required=True)
+
     class Meta:
         model = PurchasePriceHistory
         fields = [
+            "id",
             "date",
             "warehouse",
             "purchase_price",
@@ -68,17 +71,24 @@ class PurchasePriceHistoryWriteSerializer(serializers.ModelSerializer):
     def validate(self, attrs: dict) -> dict:
         product_id = self.context["view"].kwargs["pk"]
 
-        if PurchasePriceHistory.objects.filter(
-            product_id=product_id,
-            warehouse=attrs["warehouse"],
-            date=attrs["date"],
-        ).exists():
+        date = attrs.get("date")
+        warehouse = attrs.get("warehouse")
+
+        if (
+            date is not None
+            and warehouse is not None
+            and PurchasePriceHistory.objects.filter(
+                product_id=product_id,
+                warehouse=warehouse,
+                date=date,
+            ).exists()
+        ):
             raise serializers.ValidationError(
                 {
                     "date": (
                         "Закупочная цена для этого склада "
                         "на указанную дату уже существует."
-                    ),
+                    )
                 }
             )
 
@@ -125,9 +135,12 @@ class PurchasePriceHistoryUpdateSerializer(serializers.ModelSerializer):
 
 
 class SalesPriceHistoryWriteSerializer(serializers.ModelSerializer):
+    date = serializers.DateField(required=True)
+
     class Meta:
         model = SalesPriceHistory
         fields = [
+            "id",
             "date",
             "customer",
             "sale_price",
@@ -136,17 +149,24 @@ class SalesPriceHistoryWriteSerializer(serializers.ModelSerializer):
     def validate(self, attrs: dict) -> dict:
         product_id = self.context["view"].kwargs["pk"]
 
-        if SalesPriceHistory.objects.filter(
-            product_id=product_id,
-            customer=attrs["customer"],
-            date=attrs["date"],
-        ).exists():
+        date = attrs.get("date")
+        customer = attrs.get("customer")
+
+        if (
+            date is not None
+            and customer is not None
+            and SalesPriceHistory.objects.filter(
+                product_id=product_id,
+                customer=customer,
+                date=date,
+            ).exists()
+        ):
             raise serializers.ValidationError(
                 {
                     "date": (
                         "Цена продажи для этого покупателя "
                         "на указанную дату уже существует."
-                    ),
+                    )
                 }
             )
 
@@ -157,6 +177,7 @@ class SalesPriceHistoryUpdateSerializer(serializers.ModelSerializer):
     class Meta:
         model = SalesPriceHistory
         fields = [
+            "id",
             "date",
             "sale_price",
         ]

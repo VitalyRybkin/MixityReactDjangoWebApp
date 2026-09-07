@@ -35,14 +35,14 @@ urlpatterns = [
         name=ProductRoutes.DETAIL.name,
     ),
     path(
-        ProductRoutes.PRODUCT_PURCHASE_PRICES.path,
+        ProductRoutes.LIST_CREATE_PURCHASE_PRICES.path,
         ProductPurchasePriceListCreateAPIView.as_view(),
-        name=ProductRoutes.PRODUCT_PURCHASE_PRICES.name,
+        name=ProductRoutes.LIST_CREATE_PURCHASE_PRICES.name,
     ),
     path(
-        ProductRoutes.PRODUCT_SALES_PRICES.path,
+        ProductRoutes.LIST_CREATE_SALES_PRICES.path,
         ProductSalesPriceListCreateAPIView.as_view(),
-        name=ProductRoutes.PRODUCT_SALES_PRICES.name,
+        name=ProductRoutes.LIST_CREATE_SALES_PRICES.name,
     ),
     path(
         ProductRoutes.PURCHASE_PRICE_DETAIL.path,
