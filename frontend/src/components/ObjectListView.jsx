@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from 'react'
+import React, { useState } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
 
 import ClearIcon from '@mui/icons-material/Clear'
@@ -42,19 +42,16 @@ const ObjectListView = ({
 
     const [search, setSearch] = useState('')
 
-    const filteredItems = useMemo(() => {
-        const value = search.trim().toLowerCase()
+    const searchValue = search.trim().toLowerCase()
 
-        if (!searchable || !value) {
-            return items
-        }
-
-        return items.filter((item) =>
-            String(getSearchText(item) ?? '')
-                .toLowerCase()
-                .includes(value),
-        )
-    }, [items, search, searchable, getSearchText])
+    const filteredItems =
+        !searchable || !searchValue
+            ? items
+            : items.filter((item) =>
+                  String(getSearchText(item) ?? '')
+                      .toLowerCase()
+                      .includes(searchValue),
+              )
 
     return (
         <Box sx={listSx.page}>

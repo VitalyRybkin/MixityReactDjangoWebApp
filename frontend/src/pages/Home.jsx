@@ -124,7 +124,7 @@ const Home = () => {
                 onUploadUpd: handleUploadUpd,
                 onViewUpd: handleViewUpd,
             }),
-        [handleUploadUpd, handleViewUpd],
+        [setOrderToDelete, handleUploadUpd, handleViewUpd],
     )
 
     const handleExport = async () => {
