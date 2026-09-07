@@ -53,4 +53,3 @@ class SalesPriceHistorySerializer(serializers.ModelSerializer):
             "customer",
             "sale_price",
         ]
-

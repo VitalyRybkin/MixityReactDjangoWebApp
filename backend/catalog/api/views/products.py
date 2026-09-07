@@ -4,6 +4,7 @@ from drf_spectacular.types import OpenApiTypes
 from drf_spectacular.utils import OpenApiParameter
 from rest_framework import generics
 from rest_framework.exceptions import ValidationError
+from rest_framework.request import Request
 
 from catalog.api.pagination import PriceHistoryPagination
 from catalog.api.serializers.product_serializers import (
@@ -30,7 +31,7 @@ class ProductListAPIView(BaseListAPIView, BaseProductGenericAPIView):
     read_serializer_class = ProductListAPISerializer
 
 
-def get_required_int_query_param(request, name: str) -> int:
+def get_required_int_query_param(request: Request, name: str) -> int:
     value = request.query_params.get(name)
 
     if not value:
@@ -90,8 +91,7 @@ class ProductPurchasePriceListAPIView(BaseListAPIView):
         )
 
         return (
-            PurchasePriceHistory.objects
-            .filter(
+            PurchasePriceHistory.objects.filter(
                 product_id=product_id,
                 warehouse_id=warehouse_id,
             )
@@ -131,8 +131,7 @@ class ProductSalesPriceListAPIView(BaseListAPIView):
         )
 
         return (
-            SalesPriceHistory.objects
-            .filter(
+            SalesPriceHistory.objects.filter(
                 product_id=product_id,
                 customer_id=customer_id,
             )

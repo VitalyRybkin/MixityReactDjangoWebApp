@@ -2,8 +2,10 @@ from django.urls import path
 
 from .routes import ProductRoutes, UnitRoutes
 from .views.products import (
-    ProductListAPIView, ProductPurchasePriceListAPIView, ProductSalesPriceListAPIView,
+    ProductListAPIView,
+    ProductPurchasePriceListAPIView,
     ProductRetrieveUpdateDestroyAPIView,
+    ProductSalesPriceListAPIView,
 )
 from .views.units import UnitListCreateAPIView, UnitRetrieveUpdateDestroyAPIView
 
