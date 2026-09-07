@@ -3,9 +3,11 @@ from django.urls import path
 from .routes import ProductRoutes, UnitRoutes
 from .views.products import (
     ProductListAPIView,
-    ProductPurchasePriceListAPIView,
+    ProductPurchasePriceListCreateAPIView,
+    ProductPurchasePriceRetrieveUpdateDestroyAPIView,
     ProductRetrieveUpdateDestroyAPIView,
-    ProductSalesPriceListAPIView,
+    ProductSalesPriceListCreateAPIView,
+    ProductSalesPriceRetrieveUpdateDestroyAPIView,
 )
 from .views.units import UnitListCreateAPIView, UnitRetrieveUpdateDestroyAPIView
 
@@ -34,12 +36,22 @@ urlpatterns = [
     ),
     path(
         ProductRoutes.PRODUCT_PURCHASE_PRICES.path,
-        ProductPurchasePriceListAPIView.as_view(),
+        ProductPurchasePriceListCreateAPIView.as_view(),
         name=ProductRoutes.PRODUCT_PURCHASE_PRICES.name,
     ),
     path(
         ProductRoutes.PRODUCT_SALES_PRICES.path,
-        ProductSalesPriceListAPIView.as_view(),
+        ProductSalesPriceListCreateAPIView.as_view(),
         name=ProductRoutes.PRODUCT_SALES_PRICES.name,
+    ),
+    path(
+        ProductRoutes.PURCHASE_PRICE_DETAIL.path,
+        ProductPurchasePriceRetrieveUpdateDestroyAPIView.as_view(),
+        name=ProductRoutes.PURCHASE_PRICE_DETAIL.name,
+    ),
+    path(
+        ProductRoutes.SALES_PRICE_DETAIL.path,
+        ProductSalesPriceRetrieveUpdateDestroyAPIView.as_view(),
+        name=ProductRoutes.SALES_PRICE_DETAIL.name,
     ),
 ]
