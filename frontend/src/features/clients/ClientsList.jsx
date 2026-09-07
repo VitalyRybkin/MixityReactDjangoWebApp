@@ -27,14 +27,14 @@ export default function ClientsList() {
             refetch,
             title: 'Удалить клиента?',
             text: (item) => `Вы действительно хотите удалить "${item.name}"?`,
-            successMessage: 'Клиент удален!',
+            successMessage: 'Поставщик удален!',
         })
     }
 
     return (
         <>
             <ObjectListView
-                title="Клиенты"
+                title="Поставщики"
                 items={clients}
                 loading={isPending || deleteClient.isPending}
                 error={error}

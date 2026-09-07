@@ -12,7 +12,7 @@ export default function ClientDetailPage() {
     return (
         <ObjectDetailWithContactList
             id={id}
-            label="Клиент"
+            label="Поставщик"
             editTo={(id) => `/clients/${id}/edit`}
             entityUrl={(id) => clientApiPaths.detail(id)}
             contactsUrl={(id) => clientApiPaths.contacts(id)}
