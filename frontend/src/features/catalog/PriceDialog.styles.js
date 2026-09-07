@@ -42,9 +42,21 @@ export const priceDialogSx = {
     },
 
     actions: {
-        px: commonLayoutSx.page,
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        gap: 2,
+
+        px: {
+            xs: 2,
+            sm: 3,
+        },
+
         pt: 1,
         pb: 3,
-        gap: 1,
+    },
+
+    formActions: {
+        ml: 'auto',
     },
 }

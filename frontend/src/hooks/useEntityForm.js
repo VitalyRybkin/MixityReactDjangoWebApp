@@ -11,10 +11,11 @@ export const useFormLogic = ({
     emptyForm,
     updateMutation,
     createMutation,
-    redirectPath,
+    redirectPath = null,
     toPayload = (form) => form,
     validate = () => true,
     onSuccess = () => {},
+    onError = () => {},
 }) => {
     const navigate = useNavigate()
 
@@ -36,43 +37,64 @@ export const useFormLogic = ({
             setEmailError(validateEmailValue(value))
         }
 
-        setForm((prev) => ({ ...prev, [field]: value }))
+        setForm((prev) => ({
+            ...prev,
+            [field]: value,
+        }))
     }
 
     const validateBeforeSubmit = () => {
         const hasPhoneField = Object.prototype.hasOwnProperty.call(form, 'phone')
+
         const hasEmailField = Object.prototype.hasOwnProperty.call(form, 'email')
 
         const phoneErr = hasPhoneField ? validatePhoneValue(form.phone) : ''
+
         const emailErr = hasEmailField ? validateEmailValue(form.email) : ''
 
         setPhoneError(phoneErr)
         setEmailError(emailErr)
 
-        if (phoneErr || emailErr) return false
+        if (phoneErr || emailErr) {
+            return false
+        }
 
         return validate(form)
     }
 
     const onSubmit = async (e) => {
-        if (e) e.preventDefault()
+        if (e) {
+            e.preventDefault()
+        }
+
         setError('')
 
-        if (!validateBeforeSubmit()) return
+        if (!validateBeforeSubmit()) {
+            return
+        }
 
         const payload = toPayload(form)
 
         try {
             if (isEdit) {
-                await updateMutation.mutateAsync({ id, payload })
+                await updateMutation.mutateAsync({
+                    id,
+                    payload,
+                })
             } else {
                 await createMutation.mutateAsync(payload)
             }
 
-            onSuccess()
-            navigate(redirectPath)
+            await onSuccess()
+
+            if (redirectPath) {
+                navigate(redirectPath)
+            }
         } catch (e2) {
-            setError(firstError(e2))
+            const message = firstError(e2)
+
+            setError(message)
+            onError(message)
         }
     }
 
