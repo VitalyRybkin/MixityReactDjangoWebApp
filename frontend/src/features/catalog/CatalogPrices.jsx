@@ -8,7 +8,7 @@ import AppSnackbar from '../../components/ui/feedback/AppSnackbar.jsx'
 import { useGetCustomers } from '../customers/utils/customers.queries.js'
 import { useGetWarehouses } from '../warehouses/utils/stocks.queries.js'
 
-import { catalogProductSx as sx } from './CatalogProduct.styles.js'
+import { catalogProductSx as sx } from './CatalogPrices.styles.js'
 import PriceDialog from './PriceDialog.jsx'
 import PriceHistory from './PriceHistory.jsx'
 import PriceSidebar from './PriceSidebar.jsx'
@@ -18,13 +18,14 @@ import {
     useDeletePurchasePrice,
     useDeleteSalesPrice,
     useGetProduct,
+    useGetProducts,
     useGetPurchasePrices,
     useGetSalesPrices,
     useUpdatePurchasePrice,
     useUpdateSalesPrice,
 } from './utils/catalog.queries.js'
 
-export default function CatalogProduct() {
+export default function CatalogPrices() {
     const { id } = useParams()
 
     const [selection, setSelection] = useState(null)
@@ -33,28 +34,29 @@ export default function CatalogProduct() {
     const [dialogOpen, setDialogOpen] = useState(false)
     const [editingPrice, setEditingPrice] = useState(null)
 
-    const { data: product, isPending: loadingProduct, error: productError } = useGetProduct(id)
+    const { data: product, error: productError } = useGetProduct(id)
     const { data: customers = [], isPending: loadingCustomers } = useGetCustomers()
     const { data: warehouses = [], isPending: loadingWarehouses } = useGetWarehouses()
+    const { data: products = [], isPending: loadingProducts } = useGetProducts()
 
     const customerId = selection?.type === 'sale' ? selection.entity.id : null
     const warehouseId = selection?.type === 'purchase' ? selection.entity.id : null
 
-    const salesQuery = useGetSalesPrices(id, customerId, page)
-    const purchaseQuery = useGetPurchasePrices(id, warehouseId, page)
+    const salesQuery = useGetSalesPrices(customerId, page)
+    const purchaseQuery = useGetPurchasePrices(warehouseId, page)
 
-    const createSalesPrice = useCreateSalesPrice(id)
-    const updateSalesPrice = useUpdateSalesPrice(id)
+    const createSalesPrice = useCreateSalesPrice()
+    const updateSalesPrice = useUpdateSalesPrice()
 
-    const createPurchasePrice = useCreatePurchasePrice(id)
-    const updatePurchasePrice = useUpdatePurchasePrice(id)
+    const createPurchasePrice = useCreatePurchasePrice()
+    const updatePurchasePrice = useUpdatePurchasePrice()
 
     const activeQuery = selection?.type === 'sale' ? salesQuery : purchaseQuery
 
     const createMutation = selection?.type === 'sale' ? createSalesPrice : createPurchasePrice
     const updateMutation = selection?.type === 'sale' ? updateSalesPrice : updatePurchasePrice
-    const deleteSalesPrice = useDeleteSalesPrice(id)
-    const deletePurchasePrice = useDeletePurchasePrice(id)
+    const deleteSalesPrice = useDeleteSalesPrice()
+    const deletePurchasePrice = useDeletePurchasePrice()
 
     const deleteMutation = selection?.type === 'sale' ? deleteSalesPrice : deletePurchasePrice
 
@@ -117,7 +119,7 @@ export default function CatalogProduct() {
         showSnackbar(message || 'Не удалось выполнить операцию', 'error')
     }
 
-    if (loadingProduct || loadingCustomers || loadingWarehouses) {
+    if (loadingCustomers || loadingWarehouses || loadingProducts) {
         return (
             <Box sx={sx.loading}>
                 <CircularProgress />
@@ -171,6 +173,7 @@ export default function CatalogProduct() {
                 open={dialogOpen}
                 selection={selection}
                 price={editingPrice}
+                products={products}
                 createMutation={createMutation}
                 updateMutation={updateMutation}
                 deleteMutation={deleteMutation}

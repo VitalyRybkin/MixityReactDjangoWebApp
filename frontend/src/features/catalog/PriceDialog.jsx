@@ -1,6 +1,16 @@
 import React, { useEffect } from 'react'
 
-import { Dialog, DialogContent, DialogTitle, Divider, Stack, TextField, Typography, useMediaQuery } from '@mui/material'
+import {
+    Dialog,
+    DialogContent,
+    DialogTitle,
+    Divider,
+    MenuItem,
+    Stack,
+    TextField,
+    Typography,
+    useMediaQuery,
+} from '@mui/material'
 import { useTheme } from '@mui/material/styles'
 
 import FormActions from '../../components/ui/FormActions.jsx'
@@ -25,6 +35,7 @@ export default function PriceDialog({
     open,
     selection,
     price = null,
+    products = [],
     createMutation,
     updateMutation,
     deleteMutation,
@@ -46,6 +57,7 @@ export default function PriceDialog({
         id: price?.id,
 
         emptyForm: {
+            productId: '',
             date: getToday(),
             value: '',
         },
@@ -56,25 +68,13 @@ export default function PriceDialog({
         toPayload: (form) => ({
             date: form.date,
 
-            ...(isSale
-                ? {
-                      sale_price: form.value,
-                  }
-                : {
-                      purchase_price: form.value,
-                  }),
+            ...(isSale ? { sale_price: form.value } : { purchase_price: form.value }),
 
-            ...(!isEdit && isSale
-                ? {
-                      customer: selection.entity.id,
-                  }
-                : {}),
+            ...(!isEdit ? { product: Number(form.productId) } : {}),
 
-            ...(!isEdit && !isSale
-                ? {
-                      warehouse: selection.entity.id,
-                  }
-                : {}),
+            ...(!isEdit && isSale ? { customer: selection.entity.id } : {}),
+
+            ...(!isEdit && !isSale ? { warehouse: selection.entity.id } : {}),
         }),
 
         onSuccess,
@@ -87,6 +87,7 @@ export default function PriceDialog({
         }
 
         setForm({
+            productId: price?.product?.id ?? '',
             date: price?.date ?? getToday(),
 
             value: price ? (isSale ? price.sale_price : price.purchase_price) : '',
@@ -98,9 +99,7 @@ export default function PriceDialog({
     }
 
     const saving = createMutation.isPending || updateMutation.isPending
-
     const deleting = deleteMutation.isPending
-
     const busy = saving || deleting
 
     const handleDelete = () => {
@@ -120,7 +119,7 @@ export default function PriceDialog({
                     await deleteMutation.mutateAsync(price.id)
 
                     onDeleted()
-                } catch (error) {
+                } catch {
                     onError?.('Не удалось удалить цену')
                 }
             },
@@ -137,7 +136,29 @@ export default function PriceDialog({
 
                     <DialogContent sx={sx.content}>
                         <Stack sx={sx.stack}>
-                            <Typography sx={sx.entityName}>{selection.entity.name}</Typography>
+                            {!isEdit && (
+                                <TextField
+                                    select
+                                    label="Продукт"
+                                    value={form.productId}
+                                    onChange={onChange('productId')}
+                                    fullWidth
+                                    required
+                                    sx={sx.field}
+                                >
+                                    {products.map((product) => (
+                                        <MenuItem key={product.id} value={product.id}>
+                                            {product.name}
+                                        </MenuItem>
+                                    ))}
+                                </TextField>
+                            )}
+
+                            {isEdit && (
+                                <Stack spacing={0.5}>
+                                    <Typography sx={sx.entityName}>{price.product?.name ?? '—'}</Typography>
+                                </Stack>
+                            )}
 
                             <TextField
                                 label="Дата"

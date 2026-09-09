@@ -4,7 +4,7 @@ import { Outlet } from 'react-router-dom'
 import ProtectedRoute from './components/routing/ProtectedRoute.jsx'
 import { ACCESS_TOKEN, REFRESH_TOKEN } from './constants.js'
 import CatalogPage from './features/catalog/Catalog.jsx'
-import CatalogProduct from './features/catalog/CatalogProduct.jsx'
+import CatalogPrices from './features/catalog/CatalogPrices.jsx'
 import ClientDetailPage from './features/clients/ClientDetail.jsx'
 import ClientFormPage from './features/clients/ClientForm.jsx'
 import ClientsList from './features/clients/ClientsList.jsx'
@@ -108,7 +108,7 @@ function App() {
                     <Route path="/filtering" element={<OrderFilteringPage />} />
                     <Route element={<GroupRoute groups={[GROUPS.ADMINS]} />}>
                         <Route path="/catalog" element={<CatalogPage />} />
-                        <Route path="/catalog/products/:id" element={<CatalogProduct />} />
+                        <Route path="/catalog/products/:id" element={<CatalogPrices />} />
                     </Route>
                 </Route>
 

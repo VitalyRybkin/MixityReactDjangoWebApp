@@ -2,11 +2,9 @@ export const catalogApiPaths = {
     listCreate: () => '/api/catalog/products/',
     detail: (id) => `/api/catalog/products/${id}/`,
 
-    salesPrices: (productId) => `/api/catalog/products/${productId}/sales-prices/`,
-
+    salesPrices: () => '/api/catalog/sales-prices/',
     salesPriceDetail: (id) => `/api/catalog/sales-prices/${id}/`,
 
-    purchasePrices: (productId) => `/api/catalog/products/${productId}/purchase-prices/`,
-
+    purchasePrices: () => '/api/catalog/purchase-prices/',
     purchasePriceDetail: (id) => `/api/catalog/purchase-prices/${id}/`,
 }

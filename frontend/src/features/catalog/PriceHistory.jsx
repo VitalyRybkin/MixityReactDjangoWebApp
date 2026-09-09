@@ -4,7 +4,7 @@ import { Box, CircularProgress, Pagination, Typography } from '@mui/material'
 
 import AddAction from '../../components/ui/buttons/AddAction.jsx'
 
-import { catalogProductSx as sx } from './CatalogProduct.styles.js'
+import { catalogProductSx as sx } from './CatalogPrices.styles.js'
 
 const PAGE_SIZE = 10
 
@@ -50,6 +50,14 @@ export default function PriceHistory({ selection, data, loading, error, page, on
                 <AddAction onClick={onAdd} disabled={loading} />
             </Box>
 
+            <Box sx={sx.priceHeader}>
+                <Typography>Дата</Typography>
+
+                <Typography>Продукт</Typography>
+
+                <Typography sx={sx.priceHeaderPrice}>Цена</Typography>
+            </Box>
+
             {loading && (
                 <Box sx={sx.loading}>
                     <CircularProgress />
@@ -67,6 +75,8 @@ export default function PriceHistory({ selection, data, loading, error, page, on
                 prices.map((price) => (
                     <Box key={price.id} component="button" type="button" onClick={() => onEdit(price)} sx={sx.priceRow}>
                         <Typography sx={sx.date}>{formatDate(price.date)}</Typography>
+
+                        <Typography sx={sx.productName}>{price.product?.name ?? '—'}</Typography>
 
                         <Typography sx={sx.price}>{formatPrice(price[priceField])} ₽</Typography>
                     </Box>

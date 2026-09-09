@@ -3,7 +3,7 @@ import React, { useMemo, useState } from 'react'
 import ClearIcon from '@mui/icons-material/Clear'
 import { Box, Button, IconButton, InputAdornment, TextField, Typography } from '@mui/material'
 
-import { catalogProductSx as sx } from './CatalogProduct.styles.js'
+import { catalogProductSx as sx } from './CatalogPrices.styles.js'
 
 export default function PriceSidebar({ customers, warehouses, selection, onSelect }) {
     const [search, setSearch] = useState('')

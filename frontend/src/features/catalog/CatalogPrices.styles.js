@@ -23,7 +23,7 @@ export const catalogProductSx = {
 
         gridTemplateColumns: {
             xs: '1fr',
-            md: '360px minmax(0, 800px)',
+            md: '360px minmax(0, 720px)',
         },
 
         columnGap: {
@@ -144,12 +144,41 @@ export const catalogProductSx = {
         },
     },
 
+    priceHeader: {
+        display: {
+            xs: 'none',
+            sm: 'grid',
+        },
+
+        gridTemplateColumns: '130px minmax(0, 1fr) 150px',
+        columnGap: 2,
+
+        px: 1.25,
+        pb: 1,
+
+        color: 'text.secondary',
+
+        '& > *': {
+            fontSize: '0.8rem',
+            fontWeight: 500,
+        },
+    },
+
+    priceHeaderPrice: {
+        textAlign: 'right',
+    },
+
     priceRow: {
         display: 'grid',
 
         gridTemplateColumns: {
-            xs: '110px minmax(0, 1fr)',
-            sm: '150px minmax(0, 1fr)',
+            xs: '90px minmax(0, 1fr) 110px',
+            sm: '130px minmax(0, 1fr) 150px',
+        },
+
+        columnGap: {
+            xs: 1,
+            sm: 2,
         },
 
         alignItems: 'center',
@@ -210,6 +239,18 @@ export const catalogProductSx = {
 
         fontSize: {
             xs: '0.95rem',
+            sm: '1rem',
+        },
+    },
+
+    productName: {
+        minWidth: 0,
+        overflow: 'hidden',
+        textOverflow: 'ellipsis',
+        whiteSpace: 'nowrap',
+
+        fontSize: {
+            xs: '0.9rem',
             sm: '1rem',
         },
     },

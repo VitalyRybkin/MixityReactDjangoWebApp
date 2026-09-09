@@ -2,8 +2,6 @@ import { useRef, useState } from 'react'
 
 import { Box } from '@mui/material'
 
-import useSnackbar from '../hooks/useSnackbar.js'
-
 import DeleteFileAction from './ui/buttons/DeleteFileAction.jsx'
 import UploadAction from './ui/buttons/UploadAction.jsx'
 import ViewAction from './ui/buttons/ViewAction.jsx'
