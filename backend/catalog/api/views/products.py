@@ -1,5 +1,4 @@
 from django.db.models import QuerySet
-from django.shortcuts import get_object_or_404
 from drf_spectacular.types import OpenApiTypes
 from drf_spectacular.utils import OpenApiParameter
 from rest_framework import generics
@@ -70,14 +69,19 @@ def get_required_int_query_param(request: Request, name: str) -> int:
     return value_int
 
 
-class ProductPurchasePriceListCreateAPIView(BaseListCreateAPIView):
-    resource_name = "product_purchase_prices"
-    schema_tags = ["Product"]
+class PurchasePriceListCreateAPIView(BaseListCreateAPIView):
+    resource_name = "purchase_prices"
+    schema_tags = ["ProductPurchasePrice"]
 
     read_serializer_class = PurchasePriceHistoryReadSerializer
     write_serializer_class = PurchasePriceHistoryWriteSerializer
 
     pagination_class = PriceHistoryPagination
+
+    queryset = PurchasePriceHistory.objects.select_related(
+        "product",
+        "warehouse",
+    ).order_by("-date", "-id")
 
     schema_parameters = [
         OpenApiParameter(
@@ -91,21 +95,11 @@ class ProductPurchasePriceListCreateAPIView(BaseListCreateAPIView):
     def get_serializer_class(self) -> type[BaseSerializer]:
         if self.request.method == "GET":
             return self.read_serializer_class
+
         return self.write_serializer_class
 
     def get_queryset(self) -> QuerySet[PurchasePriceHistory]:
-        product_id = self.kwargs["pk"]
-
-        get_object_or_404(
-            Product.objects.only("id"),
-            pk=product_id,
-        )
-
-        queryset = (
-            PurchasePriceHistory.objects.filter(product_id=product_id)
-            .select_related("warehouse")
-            .order_by("-date")
-        )
+        queryset = super().get_queryset()
 
         if self.request.method == "GET":
             warehouse_id = get_required_int_query_param(
@@ -119,26 +113,20 @@ class ProductPurchasePriceListCreateAPIView(BaseListCreateAPIView):
 
         return queryset
 
-    def perform_create(
-        self,
-        serializer: BaseSerializer,
-    ) -> None:
-        product = get_object_or_404(
-            Product.objects.only("id"),
-            pk=self.kwargs["pk"],
-        )
 
-        serializer.save(product=product)
-
-
-class ProductSalesPriceListCreateAPIView(BaseListCreateAPIView):
-    resource_name = "product_sales_prices"
-    schema_tags = ["Product"]
+class SalesPriceListCreateAPIView(BaseListCreateAPIView):
+    resource_name = "sales_prices"
+    schema_tags = ["ProductSalesPrice"]
 
     read_serializer_class = SalesPriceHistoryReadSerializer
     write_serializer_class = SalesPriceHistoryWriteSerializer
 
     pagination_class = PriceHistoryPagination
+
+    queryset = SalesPriceHistory.objects.select_related(
+        "product",
+        "customer",
+    ).order_by("-date", "-id")
 
     schema_parameters = [
         OpenApiParameter(
@@ -152,21 +140,11 @@ class ProductSalesPriceListCreateAPIView(BaseListCreateAPIView):
     def get_serializer_class(self) -> type[BaseSerializer]:
         if self.request.method == "GET":
             return self.read_serializer_class
+
         return self.write_serializer_class
 
     def get_queryset(self) -> QuerySet[SalesPriceHistory]:
-        product_id = self.kwargs["pk"]
-
-        get_object_or_404(
-            Product.objects.only("id"),
-            pk=product_id,
-        )
-
-        queryset = (
-            SalesPriceHistory.objects.filter(product_id=product_id)
-            .select_related("customer")
-            .order_by("-date")
-        )
+        queryset = super().get_queryset()
 
         if self.request.method == "GET":
             customer_id = get_required_int_query_param(
@@ -179,17 +157,6 @@ class ProductSalesPriceListCreateAPIView(BaseListCreateAPIView):
             )
 
         return queryset
-
-    def perform_create(
-        self,
-        serializer: BaseSerializer,
-    ) -> None:
-        product = get_object_or_404(
-            Product.objects.only("id"),
-            pk=self.kwargs["pk"],
-        )
-
-        serializer.save(product=product)
 
 
 class ProductRetrieveUpdateDestroyAPIView(
@@ -211,12 +178,12 @@ class ProductPurchasePriceRetrieveUpdateDestroyAPIView(
     errors_read = ERRORS_DETAIL
 
     queryset = PurchasePriceHistory.objects.select_related(
+        "product",
         "warehouse",
     )
 
     read_serializer_class = PurchasePriceHistoryReadSerializer
     write_serializer_class = PurchasePriceHistoryUpdateSerializer
-
     serializer_class = PurchasePriceHistoryReadSerializer
 
 
@@ -228,10 +195,10 @@ class ProductSalesPriceRetrieveUpdateDestroyAPIView(
     errors_read = ERRORS_DETAIL
 
     queryset = SalesPriceHistory.objects.select_related(
+        "product",
         "customer",
     )
 
     read_serializer_class = SalesPriceHistoryReadSerializer
     write_serializer_class = SalesPriceHistoryUpdateSerializer
-
     serializer_class = SalesPriceHistoryReadSerializer
