@@ -1,5 +1,4 @@
 from rest_framework import serializers
-from rest_framework.validators import UniqueTogetherValidator
 
 from catalog.models import (
     Product,
@@ -20,15 +19,6 @@ class ProductListAPISerializer(serializers.ModelSerializer):
         ]
 
 
-class ProductPriceSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Product
-        fields = [
-            "id",
-            "name",
-        ]
-
-
 class CustomerSerializer(serializers.ModelSerializer):
     class Meta:
         model = Customer
@@ -39,7 +29,6 @@ class CustomerSerializer(serializers.ModelSerializer):
 
 
 class PurchasePriceHistoryReadSerializer(serializers.ModelSerializer):
-    product = ProductPriceSerializer(read_only=True)
     warehouse = BaseWarehouseSerializer(read_only=True)
 
     class Meta:
@@ -47,14 +36,12 @@ class PurchasePriceHistoryReadSerializer(serializers.ModelSerializer):
         fields = [
             "id",
             "date",
-            "product",
             "warehouse",
             "purchase_price",
         ]
 
 
 class SalesPriceHistoryReadSerializer(serializers.ModelSerializer):
-    product = ProductPriceSerializer(read_only=True)
     customer = CustomerSerializer(read_only=True)
 
     class Meta:
@@ -62,64 +49,87 @@ class SalesPriceHistoryReadSerializer(serializers.ModelSerializer):
         fields = [
             "id",
             "date",
-            "product",
             "customer",
             "sale_price",
         ]
 
 
 class SalesPriceHistoryWriteSerializer(serializers.ModelSerializer):
+    date = serializers.DateField(required=True)
+
     class Meta:
         model = SalesPriceHistory
         fields = [
             "id",
             "date",
-            "product",
             "customer",
             "sale_price",
         ]
 
-        validators = [
-            UniqueTogetherValidator(
-                queryset=SalesPriceHistory.objects.all(),
-                fields=[
-                    "date",
-                    "product",
-                    "customer",
-                ],
-                message=(
-                    "Цена продажи для этого покупателя "
-                    "и продукта на указанную дату уже существует."
-                ),
-            ),
-        ]
+    def validate(self, attrs: dict) -> dict:
+        product_id = self.context["view"].kwargs["pk"]
+
+        date = attrs.get("date")
+        customer = attrs.get("customer")
+
+        if (
+            date is not None
+            and customer is not None
+            and SalesPriceHistory.objects.filter(
+                product_id=product_id,
+                customer=customer,
+                date=date,
+            ).exists()
+        ):
+            raise serializers.ValidationError(
+                {
+                    "date": (
+                        "Цена продажи для этого покупателя "
+                        "на указанную дату уже существует."
+                    ),
+                }
+            )
+
+        return attrs
 
 
 class PurchasePriceHistoryWriteSerializer(serializers.ModelSerializer):
+    date = serializers.DateField(required=True)
+
     class Meta:
         model = PurchasePriceHistory
         fields = [
             "id",
             "date",
-            "product",
             "warehouse",
             "purchase_price",
         ]
 
-        validators = [
-            UniqueTogetherValidator(
-                queryset=PurchasePriceHistory.objects.all(),
-                fields=[
-                    "date",
-                    "product",
-                    "warehouse",
-                ],
-                message=(
-                    "Закупочная цена для этого склада "
-                    "и продукта на указанную дату уже существует."
-                ),
-            ),
-        ]
+    def validate(self, attrs: dict) -> dict:
+        product_id = self.context["view"].kwargs["pk"]
+
+        date = attrs.get("date")
+        warehouse = attrs.get("warehouse")
+
+        if (
+            date is not None
+            and warehouse is not None
+            and PurchasePriceHistory.objects.filter(
+                product_id=product_id,
+                warehouse=warehouse,
+                date=date,
+            ).exists()
+        ):
+            raise serializers.ValidationError(
+                {
+                    "date": (
+                        "Закупочная цена для этого склада "
+                        "на указанную дату уже существует."
+                    ),
+                }
+            )
+
+        return attrs
 
 
 class SalesPriceHistoryUpdateSerializer(serializers.ModelSerializer):
@@ -136,27 +146,22 @@ class SalesPriceHistoryUpdateSerializer(serializers.ModelSerializer):
         if instance is None:
             return attrs
 
-        date = attrs.get(
-            "date",
-            instance.date,
-        )
+        date = attrs.get("date", instance.date)
 
-        exists = (
+        if (
             SalesPriceHistory.objects.filter(
-                date=date,
                 product_id=instance.product_id,
                 customer_id=instance.customer_id,
+                date=date,
             )
             .exclude(pk=instance.pk)
             .exists()
-        )
-
-        if exists:
+        ):
             raise serializers.ValidationError(
                 {
                     "date": (
                         "Цена продажи для этого покупателя "
-                        "и продукта на указанную дату уже существует."
+                        "на указанную дату уже существует."
                     ),
                 }
             )
@@ -166,7 +171,7 @@ class SalesPriceHistoryUpdateSerializer(serializers.ModelSerializer):
 
 class PurchasePriceHistoryUpdateSerializer(serializers.ModelSerializer):
     class Meta:
-        model = PurchasePriceHistory
+        model = SalesPriceHistory
         fields = [
             "date",
             "purchase_price",
@@ -178,27 +183,22 @@ class PurchasePriceHistoryUpdateSerializer(serializers.ModelSerializer):
         if instance is None:
             return attrs
 
-        date = attrs.get(
-            "date",
-            instance.date,
-        )
+        date = attrs.get("date", instance.date)
 
-        exists = (
+        if (
             PurchasePriceHistory.objects.filter(
-                date=date,
                 product_id=instance.product_id,
                 warehouse_id=instance.warehouse_id,
+                date=date,
             )
             .exclude(pk=instance.pk)
             .exists()
-        )
-
-        if exists:
+        ):
             raise serializers.ValidationError(
                 {
                     "date": (
-                        "Закупочная цена для этого склада "
-                        "и продукта на указанную дату уже существует."
+                        "Цена закупки для этого склада "
+                        "на указанную дату уже существует."
                     ),
                 }
             )
