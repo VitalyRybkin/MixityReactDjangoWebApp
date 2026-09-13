@@ -53,9 +53,9 @@ export default function PriceHistory({ selection, data, loading, error, page, on
             <Box sx={sx.priceHeader}>
                 <Typography>Дата</Typography>
 
-                <Typography>Продукт</Typography>
-
-                <Typography sx={sx.priceHeaderPrice}>Цена</Typography>
+                <Typography sx={sx.priceHeaderPrice}>
+                    Цена
+                </Typography>
             </Box>
 
             {loading && (
@@ -73,12 +73,20 @@ export default function PriceHistory({ selection, data, loading, error, page, on
             {!loading &&
                 !error &&
                 prices.map((price) => (
-                    <Box key={price.id} component="button" type="button" onClick={() => onEdit(price)} sx={sx.priceRow}>
-                        <Typography sx={sx.date}>{formatDate(price.date)}</Typography>
+                    <Box
+                        key={price.id}
+                        component="button"
+                        type="button"
+                        onClick={() => onEdit(price)}
+                        sx={sx.priceRow}
+                    >
+                        <Typography sx={sx.date}>
+                            {formatDate(price.date)}
+                        </Typography>
 
-                        <Typography sx={sx.productName}>{price.product?.name ?? '—'}</Typography>
-
-                        <Typography sx={sx.price}>{formatPrice(price[priceField])} ₽</Typography>
+                        <Typography sx={sx.price}>
+                            {formatPrice(price[priceField])} ₽
+                        </Typography>
                     </Box>
                 ))}
 

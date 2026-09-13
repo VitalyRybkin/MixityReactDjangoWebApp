@@ -5,7 +5,6 @@ import {
     DialogContent,
     DialogTitle,
     Divider,
-    MenuItem,
     Stack,
     TextField,
     Typography,
@@ -32,18 +31,18 @@ const getToday = () => {
 }
 
 export default function PriceDialog({
-    open,
-    selection,
-    price = null,
-    products = [],
-    createMutation,
-    updateMutation,
-    deleteMutation,
-    onClose,
-    onSuccess,
-    onDeleted,
-    onError,
-}) {
+                                        open,
+                                        selection,
+                                        product,
+                                        price = null,
+                                        createMutation,
+                                        updateMutation,
+                                        deleteMutation,
+                                        onClose,
+                                        onSuccess,
+                                        onDeleted,
+                                        onError,
+                                    }) {
     const theme = useTheme()
     const fullScreen = useMediaQuery(theme.breakpoints.down('sm'))
 
@@ -57,7 +56,6 @@ export default function PriceDialog({
         id: price?.id,
 
         emptyForm: {
-            productId: '',
             date: getToday(),
             value: '',
         },
@@ -67,16 +65,16 @@ export default function PriceDialog({
 
         toPayload: (form) => ({
             date: form.date,
-
-            ...(isSale ? { sale_price: form.value } : { purchase_price: form.value }),
-
-            ...(!isEdit ? { product: Number(form.productId) } : {}),
-
-            ...(!isEdit && isSale ? { customer: selection.entity.id } : {}),
-
-            ...(!isEdit && !isSale ? { warehouse: selection.entity.id } : {}),
+            ...(isSale
+                ? { sale_price: form.value }
+                : { purchase_price: form.value }),
+            ...(!isEdit && isSale
+                ? { customer: selection.entity.id }
+                : {}),
+            ...(!isEdit && !isSale
+                ? { warehouse: selection.entity.id }
+                : {}),
         }),
-
         onSuccess,
         onError,
     })
@@ -87,10 +85,12 @@ export default function PriceDialog({
         }
 
         setForm({
-            productId: price?.product?.id ?? '',
             date: price?.date ?? getToday(),
-
-            value: price ? (isSale ? price.sale_price : price.purchase_price) : '',
+            value: price
+                ? isSale
+                    ? price.sale_price
+                    : price.purchase_price
+                : '',
         })
     }, [open, price, isSale, setForm])
 
@@ -136,29 +136,27 @@ export default function PriceDialog({
 
                     <DialogContent sx={sx.content}>
                         <Stack sx={sx.stack}>
-                            {!isEdit && (
-                                <TextField
-                                    select
-                                    label="Продукт"
-                                    value={form.productId}
-                                    onChange={onChange('productId')}
-                                    fullWidth
-                                    required
-                                    sx={sx.field}
-                                >
-                                    {products.map((product) => (
-                                        <MenuItem key={product.id} value={product.id}>
-                                            {product.name}
-                                        </MenuItem>
-                                    ))}
-                                </TextField>
-                            )}
-
-                            {isEdit && (
+                            <Stack spacing={1.5}>
                                 <Stack spacing={0.5}>
-                                    <Typography sx={sx.entityName}>{price.product?.name ?? '—'}</Typography>
+                                    <Typography variant="caption" color="text.secondary">
+                                        Материал
+                                    </Typography>
+
+                                    <Typography sx={sx.entityName}>
+                                        {product?.name ?? '—'}
+                                    </Typography>
                                 </Stack>
-                            )}
+
+                                <Stack spacing={0.5}>
+                                    <Typography variant="caption" color="text.secondary">
+                                        {isSale ? 'Покупатель' : 'Склад'}
+                                    </Typography>
+
+                                    <Typography sx={sx.entityName}>
+                                        {selection.entity.name}
+                                    </Typography>
+                                </Stack>
+                            </Stack>
 
                             <TextField
                                 label="Дата"

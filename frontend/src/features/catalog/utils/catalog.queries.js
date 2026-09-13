@@ -14,10 +14,25 @@ export const productKeys = {
     all: ['products'],
     list: () => [...productKeys.all, 'list'],
     detail: (id) => [...productKeys.all, 'detail', id],
-    salesPricesAll: () => ['sales-prices'],
-    salesPrices: (customerId, page) => [...productKeys.salesPricesAll(), customerId, page],
-    purchasePricesAll: () => ['purchase-prices'],
-    purchasePrices: (warehouseId, page) => [...productKeys.purchasePricesAll(), warehouseId, page],
+
+    salesPricesAll: (productId) => [
+        'sales-prices',
+        productId,
+    ],
+    salesPrices: (productId, customerId, page) => [
+        ...productKeys.salesPricesAll(productId),
+        customerId,
+        page,
+    ],
+    purchasePricesAll: (productId) => [
+        'purchase-prices',
+        productId,
+    ],
+    purchasePrices: (productId, warehouseId, page) => [
+        ...productKeys.purchasePricesAll(productId),
+        warehouseId,
+        page,
+    ],
 }
 
 // --- API FUNCTIONS ---
@@ -34,28 +49,51 @@ export const fetchProduct = async (id) => {
     return res.data
 }
 
-export const getSalesPrices = async ({ customerId, page }) => {
-    const res = await api.get(catalogApiPaths.salesPrices(), {
-        params: {
-            customer: customerId,
-            page,
+export const getSalesPrices = async ({
+                                         productId,
+                                         customerId,
+                                         page,
+                                     }) => {
+    const res = await api.get(
+        catalogApiPaths.salesPrices(productId),
+        {
+            params: {
+                customer: customerId,
+                page,
+            },
         },
-    })
+    )
+
     return res.data
 }
 
-export const getPurchasePrices = async ({ warehouseId, page }) => {
-    const res = await api.get(catalogApiPaths.purchasePrices(), {
-        params: {
-            warehouse: warehouseId,
-            page,
+export const getPurchasePrices = async ({
+                                            productId,
+                                            warehouseId,
+                                            page,
+                                        }) => {
+    const res = await api.get(
+        catalogApiPaths.purchasePrices(productId),
+        {
+            params: {
+                warehouse: warehouseId,
+                page,
+            },
         },
-    })
+    )
+
     return res.data
 }
 
-export const createSalesPrice = async (payload) => {
-    const res = await api.post(catalogApiPaths.salesPrices(), payload)
+export const createSalesPrice = async ({
+                                           productId,
+                                           payload,
+                                       }) => {
+    const res = await api.post(
+        catalogApiPaths.salesPrices(productId),
+        payload,
+    )
+
     return res.data
 }
 
@@ -64,8 +102,15 @@ export const updateSalesPrice = async ({ id, payload }) => {
     return res.data
 }
 
-export const createPurchasePrice = async (payload) => {
-    const res = await api.post(catalogApiPaths.purchasePrices(), payload)
+export const createPurchasePrice = async ({
+                                              productId,
+                                              payload,
+                                          }) => {
+    const res = await api.post(
+        catalogApiPaths.purchasePrices(productId),
+        payload,
+    )
+
     return res.data
 }
 
@@ -99,103 +144,142 @@ export function useGetProduct(id) {
     })
 }
 
-export function useGetSalesPrices(customerId, page = 1) {
+export function useGetSalesPrices(
+    productId,
+    customerId,
+    page = 1,
+) {
     return useQuery({
-        queryKey: productKeys.salesPrices(customerId, page),
+        queryKey: productKeys.salesPrices(
+            productId,
+            customerId,
+            page,
+        ),
 
         queryFn: () =>
             getSalesPrices({
+                productId,
                 customerId,
                 page,
             }),
 
-        enabled: Boolean(customerId),
+        enabled: Boolean(productId && customerId),
     })
 }
 
-export function useGetPurchasePrices(warehouseId, page = 1) {
+export function useGetPurchasePrices(
+    productId,
+    warehouseId,
+    page = 1,
+) {
     return useQuery({
-        queryKey: productKeys.purchasePrices(warehouseId, page),
+        queryKey: productKeys.purchasePrices(
+            productId,
+            warehouseId,
+            page,
+        ),
+
         queryFn: () =>
             getPurchasePrices({
+                productId,
                 warehouseId,
                 page,
             }),
-        enabled: Boolean(warehouseId),
+
+        enabled: Boolean(productId && warehouseId),
     })
 }
 
-export function useDeleteSalesPrice() {
+export function useDeleteSalesPrice(productId) {
     const queryClient = useQueryClient()
+
     return useMutation({
         mutationFn: deleteSalesPrice,
 
         onSuccess: () =>
             queryClient.invalidateQueries({
-                queryKey: productKeys.salesPricesAll(),
+                queryKey:
+                    productKeys.salesPricesAll(productId),
             }),
     })
 }
 
-export function useDeletePurchasePrice() {
+export function useDeletePurchasePrice(productId) {
     const queryClient = useQueryClient()
+
     return useMutation({
         mutationFn: deletePurchasePrice,
 
         onSuccess: () =>
             queryClient.invalidateQueries({
-                queryKey: productKeys.purchasePricesAll(),
+                queryKey:
+                    productKeys.purchasePricesAll(productId),
             }),
     })
 }
 
 // --- MUTATIONS ---
 
-export function useCreateSalesPrice() {
+export function useCreateSalesPrice(productId) {
     const queryClient = useQueryClient()
 
     return useMutation({
-        mutationFn: createSalesPrice,
+        mutationFn: (payload) =>
+            createSalesPrice({
+                productId,
+                payload,
+            }),
 
         onSuccess: () =>
             queryClient.invalidateQueries({
-                queryKey: productKeys.salesPricesAll(),
+                queryKey:
+                    productKeys.salesPricesAll(productId),
             }),
     })
 }
 
-export function useUpdateSalesPrice() {
+export function useUpdateSalesPrice(productId) {
     const queryClient = useQueryClient()
+
     return useMutation({
         mutationFn: updateSalesPrice,
 
         onSuccess: () =>
             queryClient.invalidateQueries({
-                queryKey: productKeys.salesPricesAll(),
+                queryKey:
+                    productKeys.salesPricesAll(productId),
             }),
     })
 }
 
-export function useCreatePurchasePrice() {
+export function useCreatePurchasePrice(productId) {
     const queryClient = useQueryClient()
+
     return useMutation({
-        mutationFn: createPurchasePrice,
+        mutationFn: (payload) =>
+            createPurchasePrice({
+                productId,
+                payload,
+            }),
 
         onSuccess: () =>
             queryClient.invalidateQueries({
-                queryKey: productKeys.purchasePricesAll(),
+                queryKey:
+                    productKeys.purchasePricesAll(productId),
             }),
     })
 }
 
-export function useUpdatePurchasePrice() {
+export function useUpdatePurchasePrice(productId) {
     const queryClient = useQueryClient()
+
     return useMutation({
         mutationFn: updatePurchasePrice,
 
         onSuccess: () =>
             queryClient.invalidateQueries({
-                queryKey: productKeys.purchasePricesAll(),
+                queryKey:
+                    productKeys.purchasePricesAll(productId),
             }),
     })
 }

@@ -150,7 +150,7 @@ export const catalogProductSx = {
             sm: 'grid',
         },
 
-        gridTemplateColumns: '130px minmax(0, 1fr) 150px',
+        gridTemplateColumns: '1fr 150px',
         columnGap: 2,
 
         px: 1.25,
@@ -172,8 +172,8 @@ export const catalogProductSx = {
         display: 'grid',
 
         gridTemplateColumns: {
-            xs: '90px minmax(0, 1fr) 110px',
-            sm: '130px minmax(0, 1fr) 150px',
+            xs: '1fr 120px',
+            sm: '1fr 150px',
         },
 
         columnGap: {
@@ -243,15 +243,4 @@ export const catalogProductSx = {
         },
     },
 
-    productName: {
-        minWidth: 0,
-        overflow: 'hidden',
-        textOverflow: 'ellipsis',
-        whiteSpace: 'nowrap',
-
-        fontSize: {
-            xs: '0.9rem',
-            sm: '1rem',
-        },
-    },
 }

@@ -18,7 +18,6 @@ import {
     useDeletePurchasePrice,
     useDeleteSalesPrice,
     useGetProduct,
-    useGetProducts,
     useGetPurchasePrices,
     useGetSalesPrices,
     useUpdatePurchasePrice,
@@ -37,28 +36,40 @@ export default function CatalogPrices() {
     const { data: product, error: productError } = useGetProduct(id)
     const { data: customers = [], isPending: loadingCustomers } = useGetCustomers()
     const { data: warehouses = [], isPending: loadingWarehouses } = useGetWarehouses()
-    const { data: products = [], isPending: loadingProducts } = useGetProducts()
 
     const customerId = selection?.type === 'sale' ? selection.entity.id : null
     const warehouseId = selection?.type === 'purchase' ? selection.entity.id : null
 
-    const salesQuery = useGetSalesPrices(customerId, page)
-    const purchaseQuery = useGetPurchasePrices(warehouseId, page)
+    const salesQuery = useGetSalesPrices(id, customerId, page)
+    const purchaseQuery = useGetPurchasePrices(id, warehouseId, page)
 
-    const createSalesPrice = useCreateSalesPrice()
-    const updateSalesPrice = useUpdateSalesPrice()
+    const createSalesPrice = useCreateSalesPrice(id)
+    const updateSalesPrice = useUpdateSalesPrice(id)
+    const deleteSalesPrice = useDeleteSalesPrice(id)
 
-    const createPurchasePrice = useCreatePurchasePrice()
-    const updatePurchasePrice = useUpdatePurchasePrice()
+    const createPurchasePrice = useCreatePurchasePrice(id)
+    const updatePurchasePrice = useUpdatePurchasePrice(id)
+    const deletePurchasePrice = useDeletePurchasePrice(id)
 
-    const activeQuery = selection?.type === 'sale' ? salesQuery : purchaseQuery
+    const activeQuery =
+        selection?.type === 'sale'
+            ? salesQuery
+            : purchaseQuery
 
-    const createMutation = selection?.type === 'sale' ? createSalesPrice : createPurchasePrice
-    const updateMutation = selection?.type === 'sale' ? updateSalesPrice : updatePurchasePrice
-    const deleteSalesPrice = useDeleteSalesPrice()
-    const deletePurchasePrice = useDeletePurchasePrice()
+    const createMutation =
+        selection?.type === 'sale'
+            ? createSalesPrice
+            : createPurchasePrice
 
-    const deleteMutation = selection?.type === 'sale' ? deleteSalesPrice : deletePurchasePrice
+    const updateMutation =
+        selection?.type === 'sale'
+            ? updateSalesPrice
+            : updatePurchasePrice
+
+    const deleteMutation =
+        selection?.type === 'sale'
+            ? deleteSalesPrice
+            : deletePurchasePrice
 
     const [snackbar, setSnackbar] = useState({
         open: false,
@@ -91,9 +102,6 @@ export default function CatalogPrices() {
     }
 
     const handleEdit = (price) => {
-        console.log('handleEdit price:', price)
-        console.log('price id:', price?.id)
-
         setEditingPrice(price)
         setDialogOpen(true)
     }
@@ -119,7 +127,7 @@ export default function CatalogPrices() {
         showSnackbar(message || 'Не удалось выполнить операцию', 'error')
     }
 
-    if (loadingCustomers || loadingWarehouses || loadingProducts) {
+    if (loadingCustomers || loadingWarehouses) {
         return (
             <Box sx={sx.loading}>
                 <CircularProgress />
@@ -172,8 +180,8 @@ export default function CatalogPrices() {
             <PriceDialog
                 open={dialogOpen}
                 selection={selection}
+                product={product}
                 price={editingPrice}
-                products={products}
                 createMutation={createMutation}
                 updateMutation={updateMutation}
                 deleteMutation={deleteMutation}
