@@ -21,6 +21,11 @@ logger = logging.getLogger(__name__)
 class BasePriceContractMixin(BaseAPIMixin):
     entity_name: str
 
+    def get_url_kwargs(self) -> dict[str, int]:
+        return {
+            "pk": self.obj.product_id,
+        }
+
     def get_query_params(self) -> dict:
         return {
             self.entity_name: getattr(
@@ -32,55 +37,13 @@ class BasePriceContractMixin(BaseAPIMixin):
     def get_permission_test_params(self) -> dict:
         return self.get_query_params()
 
-    def _get_list_contains_product(self) -> None:
-        """Test that the list view contains the product."""
-        assert self.url_name is not None
-        self._logger_header(f"ENDPOINT GET: {reverse(self.url_name)}")
-
-        response = self.client.get(
-            self.url,
-            data=self.get_query_params(),
-        )
-
-        self.assertEqual(
-            response.status_code,
-            status.HTTP_200_OK,
-        )
-
-        item = response.data["results"][0]
-
-        self.assertEqual(
-            item["product"]["id"],
-            self.obj.product_id,
-        )
-
-        self.assertEqual(
-            item["product"]["name"],
-            self.obj.product.name,
-        )
-
-        self.assertEqual(
-            item[self.entity_name]["id"],
-            getattr(
-                self.obj,
-                f"{self.entity_name}_id",
-            ),
-        )
-
-        print(
-            f"{self.INDENT}{self.COLOR['OK']}✓ "
-            f"History contains product | "
-            f"{self.obj.product.name}"
-            f"{self.COLOR['END']}"
-        )
-
     def _get_prices_filtered_by(self, price_id: int) -> None:
-        assert self.url_name is not None
-        self._logger_header(f"ENDPOINT GET: {reverse(self.url_name)}")
+        assert self.url is not None
+        self._logger_header(f"ENDPOINT GET: {self.url}")
 
         response = self.client.get(
             self.url,
-            data=self.get_query_params(),
+            self.get_query_params(),
         )
 
         self.assertEqual(
@@ -88,26 +51,26 @@ class BasePriceContractMixin(BaseAPIMixin):
             status.HTTP_200_OK,
         )
 
-        ids = {item["id"] for item in response.data["results"]}
+        data = response.data
 
-        self.assertIn(self.obj.id, ids)
-        self.assertIn(price_id, ids)
+        if isinstance(data, dict):
+            items = data.get("results", [])
+        else:
+            items = data
 
         self.assertEqual(
-            len(ids),
-            2,
+            len(items),
+            1,
         )
 
-        entity_id = getattr(
-            self.obj,
-            f"{self.entity_name}_id",
+        self.assertEqual(
+            items[0]["id"],
+            price_id,
         )
 
         print(
             f"{self.INDENT}{self.COLOR['OK']}✓ "
-            f"Filtered by {self.entity_name} | "
-            f"{self.entity_name}={entity_id}, "
-            f"prices={len(ids)}"
+            f"Prices filtered by {self.entity_name}"
             f"{self.COLOR['END']}"
         )
 
@@ -115,8 +78,8 @@ class BasePriceContractMixin(BaseAPIMixin):
         self,
         payload: dict,
     ) -> None:
-        assert self.url_name is not None
-        self._logger_header(f"ENDPOINT POST: {reverse(self.url_name)}")
+        assert self.url is not None
+        self._logger_header(f"ENDPOINT POST: {self.url}")
 
         response = self.client.post(
             self.url,
@@ -147,19 +110,22 @@ class BasePriceContractMixin(BaseAPIMixin):
         self, payload: dict, product_id: int
     ) -> None:
         """Test different product allowed"""
-        assert self.url_name is not None
-        self._logger_header(f"ENDPOINT POST: {reverse(self.url_name)}")
+        assert self.pk_url_name is not None
+
+        url = reverse(
+            self.pk_url_name,
+            kwargs={"pk": product_id},
+        )
+
+        self._logger_header(f"ENDPOINT POST: {url}")
 
         response = self.client.post(
-            self.url,
-            data=payload,
+            url,
+            payload,
             format="json",
         )
 
-        self.assertEqual(
-            response.status_code,
-            status.HTTP_201_CREATED,
-        )
+        assert response.status_code == status.HTTP_201_CREATED
 
         print(
             f"{self.INDENT}{self.COLOR['OK']}✓ "
@@ -174,7 +140,6 @@ class SalePricesBaseTest:
     factory = SalePriceHistoryFactory
     fields_map = {
         "date": FieldSpec("date", str, required=True),
-        "product": FieldSpec("product", int, required=True),
         "customer": FieldSpec("customer", int, required=True),
         "sale_price": FieldSpec("sale_price", float, required=True),
     }
@@ -188,7 +153,6 @@ class PurchasePricesBaseTest:
     factory = PurchasePriceHistoryFactory
     fields_map = {
         "date": FieldSpec("date", str, required=True),
-        "product": FieldSpec("product", int, required=True),
         "warehouse": FieldSpec("warehouse", int, required=True),
         "purchase_price": FieldSpec("purchase_price", float, required=True),
     }

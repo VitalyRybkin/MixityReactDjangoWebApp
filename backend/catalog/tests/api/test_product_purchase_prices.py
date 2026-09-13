@@ -5,10 +5,13 @@ from core.tests.price_test_base import BasePriceContractMixin, PurchasePricesBas
 from stock.tests.factories import WarehouseFactory
 
 
-class TestPurchasePriceAPIListCreate(PurchasePricesBaseTest, BasePriceContractMixin):
+class TestPurchasePriceAPIListCreate(
+    PurchasePricesBaseTest,
+    BasePriceContractMixin,
+):
     __test__ = True
 
-    url_name = f"catalog:{ProductRoutes.PURCHASE_PRICES.name}"
+    pk_url_name = f"catalog:{ProductRoutes.PRODUCT_PURCHASE_PRICES.name}"
 
     entity_name = "warehouse"
 
@@ -33,33 +36,23 @@ class TestPurchasePriceAPIListCreate(PurchasePricesBaseTest, BasePriceContractMi
         )
         self._str_method_logic(str_method_output)
 
-    def test_get_purchase_list_contains_product(self) -> None:
-        """Test that the list view contains the product."""
-        self._get_list_contains_product()
-
     def test_get_list_filters_by_warehouse(self) -> None:
         """
-        Tests the functionality of filtering price histories by warehouse.
+        Filters and retrieves prices based on a specific warehouse and product combination.
         """
-        product = ProductFactory.create()
         warehouse = WarehouseFactory.create()
 
-        price = PurchasePriceHistoryFactory.create(
-            warehouse=self.obj.warehouse,
-            product=product,
-        )
-
         PurchasePriceHistoryFactory.create(
+            product=self.obj.product,
             warehouse=warehouse,
         )
 
-        self._get_prices_filtered_by(price.id)
+        self._get_prices_filtered_by(self.obj.id)
 
     def test_duplicate_date_product_warehouse_returns_400(self) -> None:
         """Test that duplicate date, product, and warehouse returns 400."""
         payload = {
             "date": self.obj.date,
-            "product": self.obj.product_id,
             "warehouse": self.obj.warehouse_id,
             "purchase_price": "9999.99",
         }
@@ -67,29 +60,30 @@ class TestPurchasePriceAPIListCreate(PurchasePricesBaseTest, BasePriceContractMi
         self._duplicated_date_product_entity_name_returns_400(payload)
 
     def test_same_date_warehouse_different_product_allowed(self) -> None:
-        """Test different product allowed"""
+        """Test same date/warehouse is allowed for another product."""
         product = ProductFactory.create()
 
         payload = {
             "date": self.obj.date,
-            "product": product.pk,
             "warehouse": self.obj.warehouse_id,
             "purchase_price": "9999.99",
         }
-        self._same_date_entity_name_different_product_allowed(payload, product.pk)
+
+        self._same_date_entity_name_different_product_allowed(
+            payload,
+            product.pk,
+        )
 
     def payload_generator(self) -> dict:
-        product = ProductFactory.create()
         warehouse = WarehouseFactory.create()
 
         temp = self.factory.build(
-            product=product,
+            product=self.obj.product,
             warehouse=warehouse,
         )
 
         return {
             "date": temp.date,
-            "product": product.pk,
             "warehouse": warehouse.pk,
             "purchase_price": str(temp.purchase_price),
         }

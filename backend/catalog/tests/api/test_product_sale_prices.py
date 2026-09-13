@@ -5,10 +5,13 @@ from core.tests.price_test_base import BasePriceContractMixin, SalePricesBaseTes
 from order.tests.factories import CustomerFactory
 
 
-class TestSalePriceAPIListCreate(SalePricesBaseTest, BasePriceContractMixin):
+class TestSalePriceAPIListCreate(
+    SalePricesBaseTest,
+    BasePriceContractMixin,
+):
     __test__ = True
 
-    url_name = f"catalog:{ProductRoutes.SALES_PRICES.name}"
+    pk_url_name = f"catalog:{ProductRoutes.PRODUCT_SALES_PRICES.name}"
 
     entity_name = "customer"
 
@@ -33,31 +36,23 @@ class TestSalePriceAPIListCreate(SalePricesBaseTest, BasePriceContractMixin):
         )
         self._str_method_logic(str_method_output)
 
-    def test_get_sale_list_contains_product(self) -> None:
-        """Test that the list view contains the product."""
-        self._get_list_contains_product()
-
     def test_get_list_filters_by_customer(self) -> None:
-        """FILTER: Sales prices by customer"""
-        product = ProductFactory.create()
+        """
+        Tests retrieval and filtering of price lists for a specific customer.
+        """
         customer = CustomerFactory.create()
 
-        price = SalePriceHistoryFactory.create(
-            customer=self.obj.customer,
-            product=product,
-        )
-
         SalePriceHistoryFactory.create(
+            product=self.obj.product,
             customer=customer,
         )
 
-        self._get_prices_filtered_by(price.id)
+        self._get_prices_filtered_by(self.obj.id)
 
     def test_duplicate_date_product_customer_returns_400(self) -> None:
         """Test that duplicate date, product, and customer returns 400."""
         payload = {
             "date": self.obj.date,
-            "product": self.obj.product_id,
             "customer": self.obj.customer_id,
             "sale_price": "9999.99",
         }
@@ -65,29 +60,30 @@ class TestSalePriceAPIListCreate(SalePricesBaseTest, BasePriceContractMixin):
         self._duplicated_date_product_entity_name_returns_400(payload)
 
     def test_same_date_customer_different_product_allowed(self) -> None:
-        """Test different product allowed"""
+        """Test same date/customer is allowed for another product."""
         product = ProductFactory.create()
 
         payload = {
             "date": self.obj.date,
-            "product": product.pk,
             "customer": self.obj.customer_id,
             "sale_price": "9999.99",
         }
-        self._same_date_entity_name_different_product_allowed(payload, product.pk)
+
+        self._same_date_entity_name_different_product_allowed(
+            payload,
+            product.pk,
+        )
 
     def payload_generator(self) -> dict:
-        product = ProductFactory.create()
         customer = CustomerFactory.create()
 
         temp = self.factory.build(
-            product=product,
+            product=self.obj.product,
             customer=customer,
         )
 
         return {
             "date": temp.date,
-            "product": product.pk,
             "customer": customer.pk,
             "sale_price": str(temp.sale_price),
         }
