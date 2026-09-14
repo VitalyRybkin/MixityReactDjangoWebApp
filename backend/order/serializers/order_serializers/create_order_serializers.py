@@ -288,6 +288,25 @@ class OrderDeliveryInfo(serializers.ModelSerializer):
     Represents a serializer for delivery information associated with an order.
     """
 
+    delivery_cost = serializers.DecimalField(
+        max_digits=10,
+        decimal_places=2,
+        required=False,
+        allow_null=True,
+    )
+    delivery_compensation = serializers.DecimalField(
+        max_digits=10,
+        decimal_places=2,
+        required=False,
+        allow_null=True,
+    )
+    demurrage = serializers.DecimalField(
+        max_digits=10,
+        decimal_places=2,
+        required=False,
+        allow_null=True,
+    )
+
     carrier = serializers.PrimaryKeyRelatedField(
         queryset=Carrier.objects.active(),
         required=False,
@@ -325,7 +344,11 @@ class OrderWriteSerializer(serializers.ModelSerializer):
 
     client = serializers.PrimaryKeyRelatedField(queryset=Client.objects.active())
     customer = serializers.PrimaryKeyRelatedField(queryset=Customer.objects.active())
-    warehouse = serializers.PrimaryKeyRelatedField(queryset=Warehouse.objects.active())
+    warehouse = serializers.PrimaryKeyRelatedField(
+        queryset=Warehouse.objects.active(),
+        allow_null=True,
+        required=False,
+    )
     customer_object = serializers.PrimaryKeyRelatedField(
         queryset=ConstructionObject.objects.active(),
         allow_null=True,
