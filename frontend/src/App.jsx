@@ -1,10 +1,14 @@
-import { Navigate, Route, Routes } from 'react-router-dom'
-import { Outlet } from 'react-router-dom'
+import {
+    Navigate,
+    Outlet,
+    Route,
+    RouterProvider,
+    createBrowserRouter,
+    createRoutesFromElements,
+} from 'react-router-dom'
 
 import ProtectedRoute from './components/routing/ProtectedRoute.jsx'
 import { ACCESS_TOKEN, REFRESH_TOKEN } from './constants.js'
-import CatalogPage from './features/catalog/Catalog.jsx'
-import CatalogPrices from './features/catalog/CatalogPrices.jsx'
 import ClientDetailPage from './features/clients/ClientDetail.jsx'
 import ClientFormPage from './features/clients/ClientForm.jsx'
 import ClientsList from './features/clients/ClientsList.jsx'
@@ -54,9 +58,9 @@ function AuthenticatedApp() {
     )
 }
 
-function App() {
-    return (
-        <Routes>
+const router = createBrowserRouter(
+    createRoutesFromElements(
+        <Route>
             {/* Public */}
             <Route path="/login" element={<Login />} />
             <Route path="/logout" element={<Logout />} />
@@ -75,6 +79,7 @@ function App() {
                         <Route path="/carriers/:id/trucks" element={<CarrierTruckListPage />} />
                         <Route path="/carriers/:carrierId/trucks/create" element={<TruckFormPage />} />
                         <Route path="/carriers/:carrierId/trucks/:truckId/edit" element={<TruckFormPage />} />
+
                         <Route path="/carriers/:id/drivers" element={<CarrierDriverListPage />} />
                         <Route path="/carriers/:carrierId/drivers/create" element={<DriverFormPage />} />
                         <Route path="/carriers/:carrierId/drivers/:driverId/edit" element={<DriverFormPage />} />
@@ -104,12 +109,9 @@ function App() {
                             element={<ConstructionObjectFormPage />}
                         />
                     </Route>
+
                     <Route path="/documentation" element={<DocumentationListPage />} />
                     <Route path="/filtering" element={<OrderFilteringPage />} />
-                    <Route element={<GroupRoute groups={[GROUPS.ADMINS]} />}>
-                        <Route path="/catalog" element={<CatalogPage />} />
-                        <Route path="/catalog/products/:id" element={<CatalogPrices />} />
-                    </Route>
                 </Route>
 
                 {/* Full-width layout */}
@@ -118,10 +120,15 @@ function App() {
                     <Route path="/orders/create" element={<OrderFormPage />} />
                     <Route path="/orders/:id/edit" element={<OrderFormPage />} />
                 </Route>
-                <Route path="*" element={<NotFound />} />
             </Route>
-        </Routes>
-    )
+
+            <Route path="*" element={<NotFound />} />
+        </Route>,
+    ),
+)
+
+function App() {
+    return <RouterProvider router={router} />
 }
 
 export default App

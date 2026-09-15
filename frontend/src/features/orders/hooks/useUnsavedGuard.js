@@ -1,41 +1,43 @@
-import { useEffect, useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useEffect } from 'react'
+import { useBlocker } from 'react-router-dom'
 
 export function useUnsavedGuard(isDirty) {
-    const navigate = useNavigate()
-    const [confirmOpen, setConfirmOpen] = useState(false)
-    const [nextPath, setNextPath] = useState(null)
+    const blocker = useBlocker(isDirty)
 
     useEffect(() => {
-        const handler = (e) => {
-            if (!isDirty) return
-            e.preventDefault()
-            e.returnValue = ''
+        const handleBeforeUnload = (event) => {
+            if (!isDirty) {
+                return
+            }
+
+            event.preventDefault()
+            event.returnValue = ''
         }
-        window.addEventListener('beforeunload', handler)
-        return () => window.removeEventListener('beforeunload', handler)
+
+        window.addEventListener('beforeunload', handleBeforeUnload)
+
+        return () => {
+            window.removeEventListener('beforeunload', handleBeforeUnload)
+        }
     }, [isDirty])
 
-    const handleNavigate = (path) => {
-        if (isDirty) {
-            setNextPath(path)
-            setConfirmOpen(true)
-            return
-        }
-        navigate(path)
-    }
+    const confirmOpen = blocker.state === 'blocked'
 
     const handleConfirm = () => {
-        const path = nextPath || '/'
-        setConfirmOpen(false)
-        setNextPath(null)
-        navigate(path)
+        if (blocker.state === 'blocked') {
+            blocker.proceed()
+        }
     }
 
     const handleCancel = () => {
-        setConfirmOpen(false)
-        setNextPath(null)
+        if (blocker.state === 'blocked') {
+            blocker.reset()
+        }
     }
 
-    return { confirmOpen, handleNavigate, handleConfirm, handleCancel }
+    return {
+        confirmOpen,
+        handleConfirm,
+        handleCancel,
+    }
 }

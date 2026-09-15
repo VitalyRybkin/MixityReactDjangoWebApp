@@ -2,6 +2,13 @@ import { useEffect, useState } from 'react'
 
 import { mapOrderToForm } from '../utils/order.form.mappers.js'
 
+const makeSnapshot = ({ form, products, delivery }) =>
+    JSON.stringify({
+        form,
+        products,
+        delivery,
+    })
+
 export function useOrderFormData({
     isEdit,
     order,
@@ -10,8 +17,10 @@ export function useOrderFormData({
     pageLoadError,
     form,
     orderProducts,
+    orderDelivery,
     setForm,
     setOrderProducts,
+    setOrderDelivery,
     normalizeOrderProducts,
 }) {
     const [initialSnapshot, setInitialSnapshot] = useState(null)
@@ -19,45 +28,79 @@ export function useOrderFormData({
     const [isDirty, setIsDirty] = useState(false)
 
     useEffect(() => {
-        if (!isInitialized || initialSnapshot === null) return
-        const currentSnapshot = JSON.stringify({ form, products: orderProducts })
+        if (!isInitialized || initialSnapshot === null) {
+            return
+        }
+
+        const currentSnapshot = makeSnapshot({
+            form,
+            products: orderProducts,
+            delivery: orderDelivery,
+        })
+
         setIsDirty(currentSnapshot !== initialSnapshot)
-    }, [form, orderProducts, initialSnapshot, isInitialized])
+    }, [form, orderProducts, orderDelivery, initialSnapshot, isInitialized])
 
     useEffect(() => {
-        if (!isEdit) return
-        if (!order || !orderResources) return
+        if (!isEdit) {
+            return
+        }
+
+        if (!order || !orderResources) {
+            return
+        }
 
         const mappedForm = mapOrderToForm(order, orderResources)
         const mappedProducts = normalizeOrderProducts(order.order_products)
+        const mappedDelivery = order.order_delivery ?? order.delivery ?? orderDelivery
 
         setForm(mappedForm)
         setOrderProducts(mappedProducts)
-        setInitialSnapshot(JSON.stringify({ form: mappedForm, products: mappedProducts }))
+        setOrderDelivery(mappedDelivery)
+
+        setInitialSnapshot(
+            makeSnapshot({
+                form: mappedForm,
+                products: mappedProducts,
+                delivery: mappedDelivery,
+            }),
+        )
+
+        setIsDirty(false)
         setIsInitialized(true)
     }, [isEdit, order, orderResources]) // eslint-disable-line react-hooks/exhaustive-deps
 
     useEffect(() => {
-        if (!isInitialized || initialSnapshot === null) return
-        const current = JSON.stringify({ form, products: orderProducts })
-    }, [form, orderProducts, initialSnapshot, isInitialized])
-
-    useEffect(() => {
-        if (isEdit || isLoadingPage || pageLoadError || initialSnapshot !== null) return
+        if (isEdit || isLoadingPage || pageLoadError || initialSnapshot !== null) {
+            return
+        }
 
         setInitialSnapshot(
-            JSON.stringify({
+            makeSnapshot({
                 form,
                 products: orderProducts,
+                delivery: orderDelivery,
             }),
         )
 
+        setIsDirty(false)
         setIsInitialized(true)
     }, [isEdit, isLoadingPage, pageLoadError]) // eslint-disable-line react-hooks/exhaustive-deps
 
     const markClean = () => {
-        setInitialSnapshot(JSON.stringify({ form, products: orderProducts }))
+        setInitialSnapshot(
+            makeSnapshot({
+                form,
+                products: orderProducts,
+                delivery: orderDelivery,
+            }),
+        )
+
+        setIsDirty(false)
     }
 
-    return { isDirty, markClean }
+    return {
+        isDirty,
+        markClean,
+    }
 }

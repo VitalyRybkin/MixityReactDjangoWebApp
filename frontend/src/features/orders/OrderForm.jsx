@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { useMemo, useRef, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 
 import { Box, CircularProgress, Container, Divider, TextField, Typography } from '@mui/material'
@@ -146,28 +146,16 @@ export default function OrderFormPage() {
         pageLoadError,
         form,
         orderProducts,
+        orderDelivery,
         setForm,
         setOrderProducts,
+        setOrderDelivery,
         normalizeOrderProducts,
     })
 
     markCleanRef.current = markClean
 
     const { confirmOpen, handleConfirm, handleCancel } = useUnsavedGuard(isDirty && !saving)
-
-    const deliveryInitialized = useRef(false)
-
-    useEffect(() => {
-        if (order && !deliveryInitialized.current) {
-            const delivery = order.order_delivery ?? order.delivery
-
-            if (delivery) {
-                setOrderDelivery(delivery)
-            }
-
-            deliveryInitialized.current = true
-        }
-    }, [order])
 
     useLoadingError(setError, {
         loadResourceError,

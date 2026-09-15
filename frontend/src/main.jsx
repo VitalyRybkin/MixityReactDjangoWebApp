@@ -1,6 +1,5 @@
 import React from 'react'
 import ReactDOM from 'react-dom/client'
-import { BrowserRouter } from 'react-router-dom'
 
 import { LocalizationProvider } from '@mui/x-date-pickers'
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs'
@@ -14,18 +13,23 @@ import ColorModeProvider from './theme/ColorModeProvider'
 
 dayjs.locale('ru')
 
-const queryClient = new QueryClient({ defaultOptions: { queries: { retry: 1, refetchOnWindowFocus: false } } })
+const queryClient = new QueryClient({
+    defaultOptions: {
+        queries: {
+            retry: 1,
+            refetchOnWindowFocus: false,
+        },
+    },
+})
 
 ReactDOM.createRoot(document.getElementById('root')).render(
     <React.StrictMode>
         <ColorModeProvider>
-            <BrowserRouter>
-                <QueryClientProvider client={queryClient}>
-                    <LocalizationProvider dateAdapter={AdapterDayjs} adapterLocale="ru">
-                        <App />
-                    </LocalizationProvider>
-                </QueryClientProvider>
-            </BrowserRouter>
+            <QueryClientProvider client={queryClient}>
+                <LocalizationProvider dateAdapter={AdapterDayjs} adapterLocale="ru">
+                    <App />
+                </LocalizationProvider>
+            </QueryClientProvider>
         </ColorModeProvider>
     </React.StrictMode>,
 )
