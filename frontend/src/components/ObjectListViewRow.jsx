@@ -23,7 +23,6 @@ const ObjectListViewRow = ({ title, subtitle, address, email, phone, fileUrl, to
 
             <TableCell sx={sx.detailsCell}>
                 <Box sx={sx.details}>
-                    {/* Первая строка: организация + адрес */}
                     <Box sx={sx.detailsRow}>
                         {subtitle && (
                             <Typography variant="body2" sx={sx.detail}>
@@ -40,7 +39,6 @@ const ObjectListViewRow = ({ title, subtitle, address, email, phone, fileUrl, to
                         )}
                     </Box>
 
-                    {/* Вторая строка: email + телефон */}
                     {(email || phone || fileUrl) && (
                         <Box sx={sx.detailsRow}>
                             {email && (

@@ -1,7 +1,7 @@
 export const priceSectionSx = {
     title: {
         mt: 0,
-        color: 'primary.main',
+        color: '#fc9e34',
     },
 
     divider: {

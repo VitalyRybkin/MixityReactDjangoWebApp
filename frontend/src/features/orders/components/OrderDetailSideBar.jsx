@@ -1,10 +1,11 @@
-import { useMemo, useState } from 'react'
+import { useContext, useMemo, useState } from 'react'
 
-import { Autocomplete, Box, Divider, TextField, Typography } from '@mui/material'
+import { Autocomplete, Box, Divider, Stack, TextField, Typography } from '@mui/material'
 
 import AppSidebar from '../../../layouts/AppSidebar.jsx'
 import { useEditablePrices } from '../hooks/useEditablePrices.js'
 import { useOrderTotals } from '../hooks/useOrderTotals.js'
+import { DeliveryContext } from '../utils/DeliveryContext.js'
 import { handlePriceChange } from '../utils/handlePriceChange.js'
 import { getProductId } from '../utils/orderProducts.js'
 
@@ -29,6 +30,8 @@ export default function OrderDetailSideBar({
     const [editableSalePrices, setEditableSalePrices] = useState([])
     const [editablePurchasePrices, setEditablePurchasePrices] = useState([])
 
+    const { data: delivery } = useContext(DeliveryContext)
+
     const warehouses = orderResources?.warehouses ?? []
     const products = orderResources?.products ?? []
 
@@ -41,6 +44,12 @@ export default function OrderDetailSideBar({
 
     const totalSalePrice = useOrderTotals(orderProducts, editableSalePrices)
     const totalPurchasePrice = useOrderTotals(orderProducts, editablePurchasePrices)
+    const totalDelivery =
+        (Number(delivery?.delivery_cost) || 0) -
+        (Number(delivery?.delivery_compensation) || 0) -
+        (Number(delivery?.demurrage) || 0)
+
+    const totalMargin = totalSalePrice - totalPurchasePrice - totalDelivery
 
     useEditablePrices({
         isEdit,
@@ -141,6 +150,38 @@ export default function OrderDetailSideBar({
                 <Divider sx={sx.divider} />
 
                 <OrderDeliveryDetail />
+
+                <Divider sx={sx.divider} />
+
+                <Stack direction="row" alignItems="center" spacing={2}>
+                    <Typography variant="body2" sx={sx.total}>
+                        ИТОГО:
+                    </Typography>
+
+                    <Typography variant="body2" sx={sx.total}>
+                        {totalDelivery.toLocaleString('ru-RU', {
+                            minimumFractionDigits: 2,
+                            maximumFractionDigits: 2,
+                        })}{' '}
+                        руб.
+                    </Typography>
+                </Stack>
+            </Box>
+
+            <Box component="fieldset" sx={sx.section}>
+                <Stack direction="row" alignItems="center" spacing={2}>
+                    <Typography variant="body2" sx={sx.title} fontWeight={700}>
+                        ИТОГ по заявке:
+                    </Typography>
+
+                    <Typography variant="body2" sx={totalMargin < 0 ? sx.negative : sx.title} fontWeight={700}>
+                        {totalMargin.toLocaleString('ru-RU', {
+                            minimumFractionDigits: 2,
+                            maximumFractionDigits: 2,
+                        })}{' '}
+                        руб.
+                    </Typography>
+                </Stack>
             </Box>
         </AppSidebar>
     )

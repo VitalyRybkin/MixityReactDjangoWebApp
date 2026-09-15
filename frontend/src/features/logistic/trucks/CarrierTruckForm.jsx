@@ -7,6 +7,7 @@ import {
     Box,
     CircularProgress,
     FormControl,
+    FormHelperText,
     IconButton,
     InputLabel,
     MenuItem,
@@ -20,7 +21,6 @@ import {
 
 import AppBreadcrumbs from '../../../components/AppBreadcrumbs.jsx'
 import FormActions from '../../../components/ui/FormActions.jsx'
-import { firstError } from '../../../utils/apiError.js'
 
 import { carrierTruckFormSx as sx } from './CarrierTruckForm.styles.js'
 import TruckCapacityCreateDialog from './TruckCapacityDialogForm.jsx'
@@ -59,6 +59,7 @@ export default function TruckFormPage() {
 
     const [form, setForm] = useState(emptyForm)
     const [error, setError] = useState('')
+    const [fieldErrors, setFieldErrors] = useState({})
 
     const [typeDialogOpen, setTypeDialogOpen] = useState(false)
     const [capacityDialogOpen, setCapacityDialogOpen] = useState(false)
@@ -84,7 +85,16 @@ export default function TruckFormPage() {
 
     const onChange = (field) => (e) => {
         const value = field === 'licensePlate' ? normalizePlate(e.target.value) : e.target.value
-        setForm((prev) => ({ ...prev, [field]: value }))
+
+        setForm((prev) => ({
+            ...prev,
+            [field]: value,
+        }))
+
+        setFieldErrors((prev) => ({
+            ...prev,
+            [field]: '',
+        }))
     }
 
     const payload = useMemo(
@@ -106,14 +116,22 @@ export default function TruckFormPage() {
             if (isEdit) {
                 await updateTruck.mutateAsync({ id: truckId, payload })
             } else {
-                await createTruck.mutateAsync({ carrierId, payload })
+                await createTruck.mutateAsync(payload)
             }
 
             navigate(`/carriers/${carrierId}/trucks`, {
                 state: entity ? { entity } : undefined,
             })
         } catch (err) {
-            setError(firstError(err))
+            const errors = err.response?.data?.errors ?? {}
+
+            setFieldErrors({
+                truckType: errors.truckType?.[0] ?? errors.truck_type?.[0] ?? '',
+                capacity: errors.capacity?.[0] ?? '',
+                licensePlate: errors.licensePlate?.[0] ?? errors.license_plate?.[0] ?? '',
+            })
+
+            setError(errors.carrier?.[0] ?? err.response?.data?.messages?.[0] ?? '')
         }
     }
 
@@ -143,8 +161,9 @@ export default function TruckFormPage() {
                 <Box component="form" onSubmit={onSubmit} sx={sx.form}>
                     <Stack spacing={2}>
                         <Stack direction="row" spacing={1} alignItems="flex-start" sx={sx.selectorRow}>
-                            <FormControl fullWidth required>
+                            <FormControl fullWidth required error={Boolean(fieldErrors.truckType)}>
                                 <InputLabel id="truck-type-label">Тип</InputLabel>
+
                                 <Select
                                     labelId="truck-type-label"
                                     label="Тип"
@@ -158,6 +177,8 @@ export default function TruckFormPage() {
                                         </MenuItem>
                                     ))}
                                 </Select>
+
+                                {fieldErrors.truckType && <FormHelperText>{fieldErrors.truckType}</FormHelperText>}
                             </FormControl>
 
                             <Tooltip title="Добавить тип">
@@ -168,8 +189,9 @@ export default function TruckFormPage() {
                         </Stack>
 
                         <Stack direction="row" spacing={1} alignItems="flex-start" sx={sx.selectorRow}>
-                            <FormControl fullWidth required>
+                            <FormControl fullWidth required error={Boolean(fieldErrors.capacity)}>
                                 <InputLabel id="capacity-label">Грузоподъемность</InputLabel>
+
                                 <Select
                                     labelId="capacity-label"
                                     label="Грузоподъемность"
@@ -183,6 +205,8 @@ export default function TruckFormPage() {
                                         </MenuItem>
                                     ))}
                                 </Select>
+
+                                {fieldErrors.capacity && <FormHelperText>{fieldErrors.capacity}</FormHelperText>}
                             </FormControl>
 
                             <Tooltip title="Добавить грузоподъемность">
@@ -198,6 +222,8 @@ export default function TruckFormPage() {
                             onChange={onChange('licensePlate')}
                             fullWidth
                             required
+                            error={Boolean(fieldErrors.licensePlate)}
+                            helperText={fieldErrors.licensePlate}
                         />
 
                         <TextField

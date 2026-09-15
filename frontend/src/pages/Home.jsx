@@ -234,7 +234,7 @@ const Home = () => {
 
                         <Box sx={sx.filterItem}>
                             <Typography variant="body1" sx={sx.filterLabel}>
-                                Контрагент:
+                                Поставщик:
                             </Typography>
 
                             <Typography variant="body1" sx={sx.filterValue}>

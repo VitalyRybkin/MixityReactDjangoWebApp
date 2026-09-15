@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useMemo, useState } from 'react'
 import { useParams } from 'react-router-dom'
 
 import { Box, CircularProgress, Divider, Typography } from '@mui/material'
@@ -51,31 +51,29 @@ export default function CatalogPrices() {
     const updatePurchasePrice = useUpdatePurchasePrice(id)
     const deletePurchasePrice = useDeletePurchasePrice(id)
 
-    const activeQuery =
-        selection?.type === 'sale'
-            ? salesQuery
-            : purchaseQuery
+    const activeQuery = selection?.type === 'sale' ? salesQuery : purchaseQuery
 
-    const createMutation =
-        selection?.type === 'sale'
-            ? createSalesPrice
-            : createPurchasePrice
+    const createMutation = selection?.type === 'sale' ? createSalesPrice : createPurchasePrice
 
-    const updateMutation =
-        selection?.type === 'sale'
-            ? updateSalesPrice
-            : updatePurchasePrice
+    const updateMutation = selection?.type === 'sale' ? updateSalesPrice : updatePurchasePrice
 
-    const deleteMutation =
-        selection?.type === 'sale'
-            ? deleteSalesPrice
-            : deletePurchasePrice
+    const deleteMutation = selection?.type === 'sale' ? deleteSalesPrice : deletePurchasePrice
 
     const [snackbar, setSnackbar] = useState({
         open: false,
         message: '',
         severity: 'success',
     })
+
+    const sortedCustomers = useMemo(
+        () =>
+            [...customers].sort((a, b) =>
+                a.name.localeCompare(b.name, 'ru', {
+                    sensitivity: 'base',
+                }),
+            ),
+        [customers],
+    )
 
     const showSnackbar = (message, severity = 'success') => {
         setSnackbar({
@@ -159,7 +157,7 @@ export default function CatalogPrices() {
 
             <Box sx={sx.layout}>
                 <PriceSidebar
-                    customers={customers}
+                    customers={sortedCustomers}
                     warehouses={warehouses}
                     selection={selection}
                     onSelect={handleSelect}

@@ -19,7 +19,7 @@ export const getHomeGridOrderColumns = ({ onDelete, onUploadUpd }) => [
     },
     {
         field: 'client_name',
-        headerName: 'Клиент',
+        headerName: 'Поставщик',
         flex: 0.8,
         minWidth: 150,
         valueGetter: (_, row) => row.client?.name ?? '—',

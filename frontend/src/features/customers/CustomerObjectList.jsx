@@ -13,10 +13,10 @@ import {
     TableContainer,
     TableHead,
     TableRow,
-    Typography,
 } from '@mui/material'
 
 import AppBreadcrumbs from '../../components/AppBreadcrumbs.jsx'
+import PageHeader from '../../components/PageHeader.jsx'
 import ErrorState from '../../components/ui/ErrorState.jsx'
 import AddAction from '../../components/ui/buttons/AddAction.jsx'
 import DeleteAction from '../../components/ui/buttons/DeleteAction.jsx'
@@ -50,7 +50,11 @@ export default function CustomerObjectListPage() {
     const handleDeleteObject = (constructionObject) => {
         confirmDelete({
             item: constructionObject,
-            mutateAsync: deleteCustomerObjectMutation.mutateAsync,
+            mutateAsync: (item) =>
+                deleteCustomerObjectMutation.mutateAsync({
+                    id,
+                    objectId: item.id,
+                }),
             refetch,
             title: 'Удалить объект?',
             text: (item) => `Вы действительно хотите удалить "${item.name}"?`,
@@ -62,19 +66,18 @@ export default function CustomerObjectListPage() {
         <Box sx={sx.page}>
             <AppBreadcrumbs dynamicLabels={entity ? { id: entity.name } : {}} />
 
-            <Box sx={sx.header}>
-                <Typography variant="h4" gutterBottom fontWeight={600}>
-                    Объекты
-                </Typography>
-
-                <AddAction
-                    onClick={() =>
-                        navigate(`/customers/${entity?.id}/construction_objects/create`, {
-                            state: { entity },
-                        })
-                    }
-                />
-            </Box>
+            <PageHeader
+                title="Строительные объекты"
+                actions={
+                    <AddAction
+                        onClick={() =>
+                            navigate(`/customers/${id}/construction_objects/create`, {
+                                state: entity ? { entity } : undefined,
+                            })
+                        }
+                    />
+                }
+            />
 
             <Divider sx={sx.divider} />
 

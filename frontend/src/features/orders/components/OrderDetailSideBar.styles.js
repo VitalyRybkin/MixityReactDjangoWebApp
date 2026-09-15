@@ -10,7 +10,11 @@ export const orderDetailSideBarSx = {
     },
 
     title: {
-        color: 'primary.main',
+        color: '#fc9e34',
+    },
+
+    negative: {
+        color: 'error.main',
     },
 
     divider: {
@@ -19,5 +23,14 @@ export const orderDetailSideBarSx = {
 
     warehouseField: {
         mt: 1,
+    },
+
+    total: {
+        flex: 1,
+        minWidth: 0,
+        overflow: 'hidden',
+        textOverflow: 'ellipsis',
+        whiteSpace: 'nowrap',
+        color: 'primary.main',
     },
 }

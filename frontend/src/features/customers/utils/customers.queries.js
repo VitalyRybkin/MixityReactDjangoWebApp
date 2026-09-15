@@ -74,13 +74,13 @@ export const deleteCustomer = async (id) => {
     return id
 }
 
-export const deleteCustomerObject = async (id) => {
-    await api.delete(customerApiPaths.detail(id))
-    return id
+export const deleteCustomerObject = async ({ id, objectId }) => {
+    await api.delete(constructionObjectsApiPaths.detail(id, objectId))
+    return objectId
 }
 
-export const createConstructionObject = async (payload) => {
-    const res = await api.post(constructionObjectsApiPaths.listCreate(), payload)
+export const createConstructionObject = async ({ id, payload }) => {
+    const res = await api.post(constructionObjectsApiPaths.listCreate(id), payload)
     return res.data
 }
 
@@ -108,7 +108,7 @@ export function useGetCustomer(id) {
 
 export function useGetCustomerObject(id, objectId) {
     return useQuery({
-        queryKey: [...customerKeys.detail(id), objectId],
+        queryKey: [...customerKeys.detail(id), String(objectId)],
         queryFn: () => {
             if (!objectId) return null
             return fetchCustomerObjectDetail(id, objectId)
@@ -190,16 +190,20 @@ export function useDeleteCustomer() {
 
 export function useDeleteCustomerObject() {
     const queryClient = useQueryClient()
+
     return useMutation({
         mutationFn: deleteCustomerObject,
-        onSuccess: (id, variables) => {
-            queryClient.removeQueries({ queryKey: customerKeys.detail(id) })
-            const customerId = variables?.id
-            const promises = [queryClient.invalidateQueries({ queryKey: customerKeys.all })]
-            if (customerId) {
-                promises.push(queryClient.invalidateQueries({ queryKey: customerKeys.list(customerId) }))
-            }
-            return Promise.all(promises)
+
+        onSuccess: async (_, variables) => {
+            const { id, objectId } = variables
+
+            queryClient.removeQueries({
+                queryKey: [...customerKeys.detail(id), objectId],
+            })
+
+            await queryClient.invalidateQueries({
+                queryKey: customerKeys.objects(id),
+            })
         },
     })
 }

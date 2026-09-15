@@ -13,10 +13,10 @@ import {
     TableContainer,
     TableHead,
     TableRow,
-    Typography,
 } from '@mui/material'
 
 import AppBreadcrumbs from '../../../components/AppBreadcrumbs.jsx'
+import PageHeader from '../../../components/PageHeader.jsx'
 import ErrorState from '../../../components/ui/ErrorState.jsx'
 import AddAction from '../../../components/ui/buttons/AddAction.jsx'
 import DeleteAction from '../../../components/ui/buttons/DeleteAction.jsx'
@@ -62,19 +62,18 @@ export default function CarrierTruckListPage() {
         <Box sx={sx.page}>
             <AppBreadcrumbs dynamicLabels={entity ? { id: entity.name } : {}} />
 
-            <Box sx={sx.header}>
-                <Typography variant="h4" gutterBottom fontWeight={600}>
-                    Автотранспорт
-                </Typography>
-
-                <AddAction
-                    onClick={() =>
-                        navigate(`/carriers/${entity?.id}/trucks/create`, {
-                            state: { entity },
-                        })
-                    }
-                />
-            </Box>
+            <PageHeader
+                title={`Автотранспорт - ${entity?.name || ''}`}
+                actions={
+                    <AddAction
+                        onClick={() =>
+                            navigate(`/carriers/${entity?.id}/trucks/create`, {
+                                state: { entity },
+                            })
+                        }
+                    />
+                }
+            />
 
             <Divider sx={sx.divider} />
 
