@@ -236,6 +236,7 @@ export default function OrderFormPage() {
                                             form={form}
                                             setForm={setForm}
                                             orderResources={orderResources}
+                                            refetchOrderResources={refetch}
                                         />
                                     </Box>
 

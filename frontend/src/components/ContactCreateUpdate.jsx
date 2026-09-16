@@ -132,7 +132,10 @@ export default function ContactCreateUpdate({ open, mode, ownerType, ownerId, in
     }
 
     const submit = async (e) => {
-        if (e) e.preventDefault()
+        if (e) {
+            e.preventDefault()
+            e.stopPropagation()
+        }
 
         setSaving(true)
         setError('')
@@ -143,36 +146,25 @@ export default function ContactCreateUpdate({ open, mode, ownerType, ownerId, in
         }
 
         try {
+            let savedContact
+
             if (mode === 'create') {
-                await api.post('/api/contacts/', buildPayload())
+                const response = await api.post('/api/contacts/', buildPayload())
+
+                savedContact = response.data
             } else {
                 const editPayload = { ...buildPayload() }
                 delete editPayload.carrier
                 delete editPayload.warehouse
 
-                await api.patch(`/api/contacts/${initialData.id}/`, editPayload)
+                const response = await api.patch(`/api/contacts/${initialData.id}/`, editPayload)
+
+                savedContact = response.data
             }
 
-            await onSaved()
+            await onSaved?.(savedContact)
         } catch (err) {
-            const data = err?.response?.data
-
-            if (Array.isArray(data)) {
-                setError(data[0] || 'Ошибка сохранения')
-            } else if (typeof data === 'string') {
-                setError(data)
-            } else if (data && typeof data === 'object') {
-                const firstKey = Object.keys(data)[0]
-                const val = data[firstKey]
-
-                const msg = firstKey
-                    ? `${firstKey}: ${Array.isArray(val) ? val[0] : typeof val === 'string' ? val : 'Invalid'}`
-                    : 'Ошибка сохранения'
-
-                setError(msg)
-            } else {
-                setError(err?.message || 'Ошибка сохранения')
-            }
+            // твой текущий catch
         } finally {
             setSaving(false)
         }
