@@ -1,3 +1,5 @@
+import { useState } from 'react'
+
 import ObjectListView from '../../components/ObjectListView.jsx'
 import ObjectListViewRow from '../../components/ObjectListViewRow.jsx'
 import AppSnackbar from '../../components/ui/feedback/AppSnackbar.jsx'
@@ -6,13 +8,18 @@ import useConfirm from '../../hooks/useConfirm.js'
 import { useConfirmDelete } from '../../hooks/useConfirmDelete.js'
 import useSnackbar from '../../hooks/useSnackbar.js'
 
+import CustomerDialog from './CustomerDialog.jsx'
 import { useDeleteCustomer, useGetCustomers } from './utils/customers.queries.js'
 
 export default function CustomersList() {
     const { data: customers = [], isPending, error, refetch } = useGetCustomers()
+
     const deleteCustomer = useDeleteCustomer()
 
+    const [customerDialogOpen, setCustomerDialogOpen] = useState(false)
+
     const { confirm, askConfirm, closeConfirm, handleConfirm } = useConfirm()
+
     const { snack, showSnackbar, closeSnackbar } = useSnackbar()
 
     const confirmDelete = useConfirmDelete({
@@ -31,6 +38,14 @@ export default function CustomersList() {
         })
     }
 
+    const handleCustomerSaved = async () => {
+        await refetch()
+
+        setCustomerDialogOpen(false)
+
+        showSnackbar('Заказчик добавлен!', 'success')
+    }
+
     return (
         <>
             <ObjectListView
@@ -39,7 +54,7 @@ export default function CustomersList() {
                 loading={isPending || deleteCustomer.isPending}
                 error={error}
                 onRetry={refetch}
-                addTo="/customers/create"
+                onAdd={() => setCustomerDialogOpen(true)}
                 searchable
                 searchPlaceholder="Поиск заказчика"
                 getSearchText={(customer) =>
@@ -59,6 +74,14 @@ export default function CustomersList() {
                     />
                 )}
             />
+
+            <CustomerDialog
+                open={customerDialogOpen}
+                mode="create"
+                onClose={() => setCustomerDialogOpen(false)}
+                onSaved={handleCustomerSaved}
+            />
+
             <ConfirmDialog
                 open={confirm.open}
                 title={confirm.title}

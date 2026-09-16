@@ -1,5 +1,4 @@
-import React from 'react'
-import { useLocation, useNavigate, useParams } from 'react-router-dom'
+import { useLocation, useParams } from 'react-router-dom'
 
 import { Edit as EditIcon } from '@mui/icons-material'
 import {
@@ -25,15 +24,17 @@ import AppSnackbar from '../../components/ui/feedback/AppSnackbar.jsx'
 import ConfirmDialog from '../../components/ui/feedback/ConfirmDialog.jsx'
 import useConfirm from '../../hooks/useConfirm.js'
 import { useConfirmDelete } from '../../hooks/useConfirmDelete.js'
+import useEntityDialog from '../../hooks/useEntityDialog.js'
 import useSnackbar from '../../hooks/useSnackbar.js'
 import { entityTableListSx as sx } from '../../styles/entityTableList.styles.js'
 
+import CustomerObjectDialog from './CustomerObjectDialog.jsx'
 import { useDeleteCustomerObject, useGetCustomerObjects } from './utils/customers.queries.js'
+
 
 const tableHeaders = ['Наименование', 'Адрес', '']
 
 export default function CustomerObjectListPage() {
-    const navigate = useNavigate()
     const { id } = useParams()
     const { data: customer_objects = [], isPending, error, refetch } = useGetCustomerObjects(id)
 
@@ -46,6 +47,21 @@ export default function CustomerObjectListPage() {
     const confirmDelete = useConfirmDelete({ askConfirm, showSnackbar })
 
     const deleteCustomerObjectMutation = useDeleteCustomerObject()
+
+    const {
+        dialog: objectDialog,
+        openCreate: handleAddObject,
+        openEdit: handleEditObject,
+        close: closeObjectDialog,
+    } = useEntityDialog()
+
+    const handleObjectSaved = async () => {
+        await refetch()
+
+        closeObjectDialog()
+
+        showSnackbar(objectDialog.mode === 'edit' ? 'Объект изменен!' : 'Объект добавлен!', 'success')
+    }
 
     const handleDeleteObject = (constructionObject) => {
         confirmDelete({
@@ -66,18 +82,7 @@ export default function CustomerObjectListPage() {
         <Box sx={sx.page}>
             <AppBreadcrumbs dynamicLabels={entity ? { id: entity.name } : {}} />
 
-            <PageHeader
-                title="Строительные объекты"
-                actions={
-                    <AddAction
-                        onClick={() =>
-                            navigate(`/customers/${id}/construction_objects/create`, {
-                                state: entity ? { entity } : undefined,
-                            })
-                        }
-                    />
-                }
-            />
+            <PageHeader title="Строительные объекты" actions={<AddAction onClick={handleAddObject} />} />
 
             <Divider sx={sx.divider} />
 
@@ -110,14 +115,7 @@ export default function CustomerObjectListPage() {
                                         <TableCell align="right">
                                             <Stack direction="row" spacing={1} justifyContent="flex-end">
                                                 <EditAction
-                                                    onClick={() =>
-                                                        navigate(
-                                                            `/customers/${id}/construction_objects/${co.id}/edit`,
-                                                            {
-                                                                state: { entity },
-                                                            },
-                                                        )
-                                                    }
+                                                    onClick={(event) => handleEditObject(event, co)}
                                                     icon={<EditIcon fontSize="small" />}
                                                 />
 
@@ -137,6 +135,15 @@ export default function CustomerObjectListPage() {
                     </Table>
                 </TableContainer>
             )}
+
+            <CustomerObjectDialog
+                open={objectDialog.open}
+                mode={objectDialog.mode}
+                customerId={id}
+                initialData={objectDialog.item}
+                onClose={closeObjectDialog}
+                onSaved={handleObjectSaved}
+            />
 
             <ConfirmDialog
                 open={confirm.open}

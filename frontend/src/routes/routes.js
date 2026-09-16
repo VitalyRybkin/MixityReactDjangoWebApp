@@ -8,16 +8,8 @@ export const routes = [
         breadcrumb: 'Перевозчики',
     },
     {
-        path: '/carriers/create',
-        breadcrumb: 'Создать',
-    },
-    {
         path: '/carriers/:id',
         breadcrumb: 'Карточка',
-    },
-    {
-        path: '/carriers/:id/edit',
-        breadcrumb: 'Редактировать',
     },
     {
         path: '/carriers/:id/drivers',

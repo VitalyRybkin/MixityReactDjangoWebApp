@@ -3,6 +3,7 @@ import { useParams } from 'react-router-dom'
 import ObjectDetailWithContactList from '../../components/ObjectDetailWithContactList.jsx'
 import { emailValue } from '../../utils/emailValue.jsx'
 
+import CustomerDialog from './CustomerDialog.jsx'
 import { customerApiPaths } from './utils/customerApiPaths.js'
 
 export default function CustomerDetailPage() {
@@ -25,6 +26,9 @@ export default function CustomerDetailPage() {
                 { label: 'Телефон', value: c?.phone },
                 { label: 'Email', value: emailValue(c?.email) },
             ]}
+            renderEditDialog={({ open, entity, onClose, onSaved }) => (
+                <CustomerDialog open={open} mode="edit" initialData={entity} onClose={onClose} onSaved={onSaved} />
+            )}
         />
     )
 }

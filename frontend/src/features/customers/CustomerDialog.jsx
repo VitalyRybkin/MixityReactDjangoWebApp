@@ -2,10 +2,11 @@ import { useEffect, useState } from 'react'
 
 import { Alert, Button, Dialog, DialogActions, DialogContent, DialogTitle, Stack, TextField } from '@mui/material'
 
-import { firstError } from '../../../utils/apiError.js'
-import { EMAIL_HINT, normalizeEmailInput, validateEmailValue } from '../../../utils/email.js'
-import { normalizePhoneInput, validatePhoneValue } from '../../../utils/phone.js'
-import { useCreateCustomer } from '../../customers/utils/customers.queries.js'
+import { firstError } from '../../utils/apiError.js'
+import { EMAIL_HINT, normalizeEmailInput, validateEmailValue } from '../../utils/email.js'
+import { normalizePhoneInput, validatePhoneValue } from '../../utils/phone.js'
+
+import { useCreateCustomer, useUpdateCustomer } from './utils/customers.queries.js'
 
 const emptyForm = {
     name: '',
@@ -15,26 +16,41 @@ const emptyForm = {
     email: '',
 }
 
-export default function CustomerCreateDialog({ open, onClose, onSaved }) {
+export default function CustomerDialog({ open, mode = 'create', initialData = null, onClose, onSaved }) {
     const createCustomer = useCreateCustomer()
+    const updateCustomer = useUpdateCustomer()
 
     const [form, setForm] = useState(emptyForm)
     const [error, setError] = useState('')
     const [phoneError, setPhoneError] = useState('')
     const [emailError, setEmailError] = useState('')
 
-    const saving = createCustomer.isPending
+    const isEdit = mode === 'edit'
+    const saving = createCustomer.isPending || updateCustomer.isPending
 
     useEffect(() => {
         if (!open) {
             return
         }
 
-        setForm(emptyForm)
         setError('')
         setPhoneError('')
         setEmailError('')
-    }, [open])
+
+        if (isEdit && initialData) {
+            setForm({
+                name: initialData.name ?? '',
+                organization: initialData.organization ?? '',
+                address: initialData.address ?? '',
+                phone: initialData.phone ?? '',
+                email: initialData.email ?? '',
+            })
+
+            return
+        }
+
+        setForm(emptyForm)
+    }, [open, isEdit, initialData])
 
     const onChange = (field) => (event) => {
         let value = event.target.value
@@ -58,9 +74,11 @@ export default function CustomerCreateDialog({ open, onClose, onSaved }) {
     const handleSubmit = async (event) => {
         event.preventDefault()
         event.stopPropagation()
+
         setError('')
 
         const currentPhoneError = validatePhoneValue(form.phone)
+
         const currentEmailError = validateEmailValue(form.email)
 
         setPhoneError(currentPhoneError)
@@ -71,8 +89,18 @@ export default function CustomerCreateDialog({ open, onClose, onSaved }) {
         }
 
         try {
-            const customer = await createCustomer.mutateAsync(form)
-            await onSaved(customer)
+            let savedCustomer
+
+            if (isEdit) {
+                savedCustomer = await updateCustomer.mutateAsync({
+                    id: initialData.id,
+                    payload: form,
+                })
+            } else {
+                savedCustomer = await createCustomer.mutateAsync(form)
+            }
+
+            await onSaved?.(savedCustomer)
         } catch (err) {
             setError(firstError(err))
         }
@@ -80,24 +108,46 @@ export default function CustomerCreateDialog({ open, onClose, onSaved }) {
 
     return (
         <Dialog open={open} onClose={saving ? undefined : onClose} fullWidth maxWidth="sm">
-            <DialogTitle>Добавить заказчика</DialogTitle>
+            <DialogTitle>{isEdit ? 'Редактировать заказчика' : 'Добавить заказчика'}</DialogTitle>
 
-            <DialogContent>
-                <Stack component="form" id="customer-create-form" onSubmit={handleSubmit} spacing={2} sx={{ mt: 1 }}>
+            <DialogContent sx={{ pt: 1, pb: 1 }}>
+                <Stack
+                    component="form"
+                    id="customer-dialog-form"
+                    onSubmit={handleSubmit}
+                    spacing={1.5}
+                    sx={{ mt: 0.5 }}
+                >
                     {error && <Alert severity="error">{error}</Alert>}
 
-                    <TextField label="Наименование" value={form.name} onChange={onChange('name')} fullWidth required />
+                    <TextField
+                        size="small"
+                        label="Наименование"
+                        value={form.name}
+                        onChange={onChange('name')}
+                        required
+                        fullWidth
+                        autoFocus
+                    />
 
                     <TextField
+                        size="small"
                         label="Наименование заказчика"
                         value={form.organization}
                         onChange={onChange('organization')}
                         fullWidth
                     />
 
-                    <TextField label="Адрес" value={form.address} onChange={onChange('address')} fullWidth />
+                    <TextField
+                        size="small"
+                        label="Адрес"
+                        value={form.address}
+                        onChange={onChange('address')}
+                        fullWidth
+                    />
 
                     <TextField
+                        size="small"
                         label="Телефон"
                         value={form.phone}
                         onChange={onChange('phone')}
@@ -105,9 +155,15 @@ export default function CustomerCreateDialog({ open, onClose, onSaved }) {
                         helperText={phoneError || 'Формат: +79991234567'}
                         placeholder="+79991234567"
                         fullWidth
+                        slotProps={{
+                            formHelperText: {
+                                sx: { mt: 0.5 },
+                            },
+                        }}
                     />
 
                     <TextField
+                        size="small"
                         label="Эл. почта"
                         value={form.email}
                         onChange={onChange('email')}
@@ -115,16 +171,27 @@ export default function CustomerCreateDialog({ open, onClose, onSaved }) {
                         helperText={emailError || EMAIL_HINT}
                         placeholder="name@example.com"
                         fullWidth
+                        slotProps={{
+                            formHelperText: {
+                                sx: { mt: 0.5 },
+                            },
+                        }}
                     />
                 </Stack>
             </DialogContent>
 
-            <DialogActions>
+            <DialogActions
+                sx={{
+                    px: 3,
+                    pb: 3,
+                    pt: 1,
+                }}
+            >
                 <Button type="button" onClick={onClose} disabled={saving}>
                     Отмена
                 </Button>
 
-                <Button type="submit" form="customer-create-form" variant="contained" disabled={saving}>
+                <Button type="submit" form="customer-dialog-form" variant="contained" disabled={saving}>
                     {saving ? 'Сохранение...' : 'Сохранить'}
                 </Button>
             </DialogActions>

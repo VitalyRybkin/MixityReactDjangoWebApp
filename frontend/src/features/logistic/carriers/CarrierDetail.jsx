@@ -3,6 +3,7 @@ import { useParams } from 'react-router-dom'
 import ObjectDetailWithContactList from '../../../components/ObjectDetailWithContactList.jsx'
 import { emailValue } from '../../../utils/emailValue.jsx'
 
+import CarrierDialog from './CarrierDialog.jsx'
 import { carrierApiPaths } from './utils/carrierApiPaths.js'
 
 export default function CarrierDetailPage() {
@@ -26,6 +27,9 @@ export default function CarrierDetailPage() {
                 { label: 'Email', value: emailValue(c?.email) },
                 { label: 'Примечание', value: c?.description },
             ]}
+            renderEditDialog={({ open, entity, onClose, onSaved }) => (
+                <CarrierDialog open={open} mode="edit" initialData={entity} onClose={onClose} onSaved={onSaved} />
+            )}
         />
     )
 }

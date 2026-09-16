@@ -30,6 +30,7 @@ export default function ObjectDetailWithContactList({
     ownerType,
     ownerId,
     fields,
+    renderEditDialog,
 }) {
     const navigate = useNavigate()
     const location = useLocation()
@@ -59,6 +60,8 @@ export default function ObjectDetailWithContactList({
         mode: 'create',
         contact: null,
     })
+
+    const [entityEditOpen, setEntityEditOpen] = useState(false)
 
     const closeDialog = () => setDialog((s) => ({ ...s, open: false }))
     const openCreateContact = () =>
@@ -185,13 +188,17 @@ export default function ObjectDetailWithContactList({
 
                         <Stack direction="row" spacing={1}>
                             <EditAction
-                                onClick={() =>
+                                onClick={(event) => {
+                                    if (renderEditDialog) {
+                                        event.currentTarget.blur()
+                                        setEntityEditOpen(true)
+                                        return
+                                    }
+
                                     navigate(editTo(id), {
-                                        state: {
-                                            from: location.pathname,
-                                        },
+                                        state: { from: location.pathname },
                                     })
-                                }
+                                }}
                                 icon={<EditIcon fontSize="small" />}
                             />
 
@@ -278,6 +285,17 @@ export default function ObjectDetailWithContactList({
                     isDeletingContact={isContactDeleting}
                 />
             </Stack>
+
+            {renderEditDialog?.({
+                open: entityEditOpen,
+                entity,
+                onClose: () => setEntityEditOpen(false),
+                onSaved: async () => {
+                    await entityQuery.refetch()
+                    setEntityEditOpen(false)
+                    showSnackbar('Изменения сохранены', 'success')
+                },
+            })}
 
             <ContactCreateUpdate
                 open={dialog.open}

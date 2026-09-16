@@ -41,6 +41,14 @@ import {
 
 const EMPTY_PRICES = []
 
+const getEntityId = (value) => {
+    if (value == null) {
+        return null
+    }
+
+    return typeof value === 'object' ? (value.id ?? null) : value
+}
+
 export default function OrderFormPage() {
     const { id } = useParams()
     const isEdit = Boolean(id)
@@ -109,9 +117,9 @@ export default function OrderFormPage() {
             products: buildProductsPayload(orderProducts),
             delivery: {
                 ...orderDelivery,
-                carrier: orderDelivery.carrier?.id ?? null,
-                driver: orderDelivery.driver?.id ?? null,
-                truck: orderDelivery.truck?.id ?? null,
+                carrier: getEntityId(orderDelivery.carrier),
+                driver: getEntityId(orderDelivery.driver),
+                truck: getEntityId(orderDelivery.truck),
             },
         }),
         validate: validateProducts,

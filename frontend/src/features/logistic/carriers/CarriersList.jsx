@@ -1,3 +1,5 @@
+import { useState } from 'react'
+
 import ObjectListView from '../../../components/ObjectListView.jsx'
 import ObjectListViewRow from '../../../components/ObjectListViewRow.jsx'
 import AppSnackbar from '../../../components/ui/feedback/AppSnackbar.jsx'
@@ -6,16 +8,24 @@ import useConfirm from '../../../hooks/useConfirm.js'
 import { useConfirmDelete } from '../../../hooks/useConfirmDelete.js'
 import useSnackbar from '../../../hooks/useSnackbar.js'
 
+import CarrierDialog from './CarrierDialog.jsx'
 import { useDeleteCarrier, useGetCarriers } from './utils/carriers.queries.js'
 
 export default function CarriersList() {
     const { data: carriers = [], isPending, error, refetch } = useGetCarriers()
+
     const deleteCarrier = useDeleteCarrier()
 
+    const [carrierDialogOpen, setCarrierDialogOpen] = useState(false)
+
     const { confirm, askConfirm, closeConfirm, handleConfirm } = useConfirm()
+
     const { snack, showSnackbar, closeSnackbar } = useSnackbar()
 
-    const confirmDelete = useConfirmDelete({ askConfirm, showSnackbar })
+    const confirmDelete = useConfirmDelete({
+        askConfirm,
+        showSnackbar,
+    })
 
     const handleDeleteCarrier = (carrier) => {
         confirmDelete({
@@ -28,6 +38,14 @@ export default function CarriersList() {
         })
     }
 
+    const handleCarrierSaved = async () => {
+        await refetch()
+
+        setCarrierDialogOpen(false)
+
+        showSnackbar('Перевозчик добавлен!', 'success')
+    }
+
     return (
         <>
             <ObjectListView
@@ -36,7 +54,7 @@ export default function CarriersList() {
                 loading={isPending || deleteCarrier.isPending}
                 error={error}
                 onRetry={refetch}
-                addTo="/carriers/create"
+                onAdd={() => setCarrierDialogOpen(true)}
                 renderRow={(carrier) => (
                     <ObjectListViewRow
                         title={carrier.name}
@@ -48,6 +66,13 @@ export default function CarriersList() {
                         onDelete={() => handleDeleteCarrier(carrier)}
                     />
                 )}
+            />
+
+            <CarrierDialog
+                open={carrierDialogOpen}
+                mode="create"
+                onClose={() => setCarrierDialogOpen(false)}
+                onSaved={handleCarrierSaved}
             />
 
             <ConfirmDialog

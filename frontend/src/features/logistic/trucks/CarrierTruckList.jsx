@@ -1,5 +1,4 @@
-import React from 'react'
-import { useLocation, useNavigate, useParams } from 'react-router-dom'
+import { useLocation, useParams } from 'react-router-dom'
 
 import { Edit as EditIcon } from '@mui/icons-material'
 import {
@@ -25,15 +24,17 @@ import AppSnackbar from '../../../components/ui/feedback/AppSnackbar.jsx'
 import ConfirmDialog from '../../../components/ui/feedback/ConfirmDialog.jsx'
 import useConfirm from '../../../hooks/useConfirm.js'
 import { useConfirmDelete } from '../../../hooks/useConfirmDelete.js'
+import useEntityDialog from '../../../hooks/useEntityDialog.js'
 import useSnackbar from '../../../hooks/useSnackbar.js'
 import { entityTableListSx as sx } from '../../../styles/entityTableList.styles.js'
 
+import TruckDialog from './TruckDialog.jsx'
 import { useDeleteCarrierTruck, useGetCarrierTrucks } from './utils/trucks.queries.js'
+
 
 const tableHeaders = ['Тип', 'Грузоподъемность', 'Госномер', 'Примечание', '']
 
 export default function CarrierTruckListPage() {
-    const navigate = useNavigate()
     const { id } = useParams()
     const { data: trucks = [], isPending, error, refetch } = useGetCarrierTrucks(id)
 
@@ -46,6 +47,23 @@ export default function CarrierTruckListPage() {
     const confirmDelete = useConfirmDelete({ askConfirm, showSnackbar })
 
     const deleteCarrierTruckMutation = useDeleteCarrierTruck()
+
+    const {
+        dialog: truckDialog,
+        openCreate: openCreateDialog,
+        openEdit: openEditDialog,
+        close: closeTruckDialog,
+    } = useEntityDialog()
+
+    const handleTruckSaved = async () => {
+        const isEdit = truckDialog.mode === 'edit'
+
+        await refetch()
+
+        closeTruckDialog()
+
+        showSnackbar(isEdit ? 'Автомобиль изменён!' : 'Автомобиль добавлен!', 'success')
+    }
 
     const handleDeleteTruck = (truck) => {
         confirmDelete({
@@ -64,15 +82,7 @@ export default function CarrierTruckListPage() {
 
             <PageHeader
                 title={`Автотранспорт - ${entity?.name || ''}`}
-                actions={
-                    <AddAction
-                        onClick={() =>
-                            navigate(`/carriers/${entity?.id}/trucks/create`, {
-                                state: { entity },
-                            })
-                        }
-                    />
-                }
+                actions={<AddAction onClick={openCreateDialog} />}
             />
 
             <Divider sx={sx.divider} />
@@ -111,11 +121,7 @@ export default function CarrierTruckListPage() {
                                         <TableCell align="right">
                                             <Stack direction="row" spacing={1} justifyContent="flex-end">
                                                 <EditAction
-                                                    onClick={() =>
-                                                        navigate(`/carriers/${id}/trucks/${truck.id}/edit`, {
-                                                            state: { entity },
-                                                        })
-                                                    }
+                                                    onClick={(event) => openEditDialog(event, truck)}
                                                     icon={<EditIcon fontSize="small" />}
                                                 />
 
@@ -135,6 +141,15 @@ export default function CarrierTruckListPage() {
                     </Table>
                 </TableContainer>
             )}
+
+            <TruckDialog
+                open={truckDialog.open}
+                mode={truckDialog.mode}
+                carrierId={id}
+                initialData={truckDialog.item}
+                onClose={closeTruckDialog}
+                onSaved={handleTruckSaved}
+            />
 
             <ConfirmDialog
                 open={confirm.open}

@@ -13,17 +13,12 @@ import ClientDetailPage from './features/clients/ClientDetail.jsx'
 import ClientFormPage from './features/clients/ClientForm.jsx'
 import ClientsList from './features/clients/ClientsList.jsx'
 import DocumentationListPage from './features/common/DocumentationList.jsx'
-import ConstructionObjectFormPage from './features/customers/ConstructionObjectForm.jsx'
 import CustomerDetailPage from './features/customers/CustomerDetail.jsx'
-import CustomerFormPage from './features/customers/CustomerForm.jsx'
 import CustomerObjectListPage from './features/customers/CustomerObjectList.jsx'
 import CustomersList from './features/customers/CustomersList.jsx'
 import CarrierDetailPage from './features/logistic/carriers/CarrierDetail.jsx'
-import CarrierFormPage from './features/logistic/carriers/CarrierForm.jsx'
 import CarriersList from './features/logistic/carriers/CarriersList.jsx'
-import DriverFormPage from './features/logistic/drivers/CarrierDriverForm.jsx'
 import CarrierDriverListPage from './features/logistic/drivers/CarrierDriverList.jsx'
-import TruckFormPage from './features/logistic/trucks/CarrierTruckForm.jsx'
 import CarrierTruckListPage from './features/logistic/trucks/CarrierTruckList.jsx'
 import OrderFilteringPage from './features/orders/OrderFilteringPage.jsx'
 import OrderFormPage from './features/orders/OrderForm.jsx'
@@ -73,16 +68,10 @@ const router = createBrowserRouter(
                 <Route element={<MainLayout />}>
                     <Route element={<GroupRoute groups={[GROUPS.LOGISTIC_MANAGER, GROUPS.ACCOUNTANT]} />}>
                         <Route path="/carriers" element={<CarriersList />} />
-                        <Route path="/carriers/create" element={<CarrierFormPage />} />
                         <Route path="/carriers/:id" element={<CarrierDetailPage />} />
-                        <Route path="/carriers/:id/edit" element={<CarrierFormPage />} />
                         <Route path="/carriers/:id/trucks" element={<CarrierTruckListPage />} />
-                        <Route path="/carriers/:carrierId/trucks/create" element={<TruckFormPage />} />
-                        <Route path="/carriers/:carrierId/trucks/:truckId/edit" element={<TruckFormPage />} />
 
                         <Route path="/carriers/:id/drivers" element={<CarrierDriverListPage />} />
-                        <Route path="/carriers/:carrierId/drivers/create" element={<DriverFormPage />} />
-                        <Route path="/carriers/:carrierId/drivers/:driverId/edit" element={<DriverFormPage />} />
 
                         <Route path="/warehouses" element={<WarehousesList />} />
                         <Route path="/warehouses/create" element={<WarehouseFormPage />} />
@@ -96,18 +85,8 @@ const router = createBrowserRouter(
                         <Route path="/clients/:id/edit" element={<ClientFormPage />} />
 
                         <Route path="/customers" element={<CustomersList />} />
-                        <Route path="/customers/create" element={<CustomerFormPage />} />
                         <Route path="/customers/:id" element={<CustomerDetailPage />} />
-                        <Route path="/customers/:id/edit" element={<CustomerFormPage />} />
                         <Route path="/customers/:id/construction_objects" element={<CustomerObjectListPage />} />
-                        <Route
-                            path="/customers/:id/construction_objects/:objectId/edit"
-                            element={<ConstructionObjectFormPage />}
-                        />
-                        <Route
-                            path="/customers/:id/construction_objects/create"
-                            element={<ConstructionObjectFormPage />}
-                        />
                     </Route>
 
                     <Route path="/documentation" element={<DocumentationListPage />} />

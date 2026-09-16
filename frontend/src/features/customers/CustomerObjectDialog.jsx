@@ -2,30 +2,49 @@ import { useEffect, useState } from 'react'
 
 import { Alert, Button, Dialog, DialogActions, DialogContent, DialogTitle, Stack, TextField } from '@mui/material'
 
-import { firstError } from '../../../utils/apiError.js'
-import { useCreateCustomerObject } from '../../customers/utils/customers.queries.js'
+import { firstError } from '../../utils/apiError.js'
+
+import { useCreateCustomerObject, useUpdateCustomerObject } from './utils/customers.queries.js'
 
 const emptyForm = {
     name: '',
     address: '',
 }
 
-export default function CustomerObjectCreateDialog({ open, customerId, onClose, onSaved }) {
+export default function CustomerObjectDialog({
+    open,
+    mode = 'create',
+    customerId,
+    initialData = null,
+    onClose,
+    onSaved,
+}) {
     const createObject = useCreateCustomerObject()
+    const updateObject = useUpdateCustomerObject()
 
     const [form, setForm] = useState(emptyForm)
     const [error, setError] = useState('')
 
-    const saving = createObject.isPending
+    const isEdit = mode === 'edit'
+    const saving = createObject.isPending || updateObject.isPending
 
     useEffect(() => {
         if (!open) {
             return
         }
 
-        setForm(emptyForm)
         setError('')
-    }, [open])
+
+        if (isEdit && initialData) {
+            setForm({
+                name: initialData.name ?? '',
+                address: initialData.address ?? '',
+            })
+            return
+        }
+
+        setForm(emptyForm)
+    }, [open, isEdit, initialData])
 
     const handleChange = (event) => {
         const { name, value } = event.target
@@ -39,15 +58,26 @@ export default function CustomerObjectCreateDialog({ open, customerId, onClose, 
     const handleSubmit = async (event) => {
         event.preventDefault()
         event.stopPropagation()
+
         setError('')
 
         try {
-            const object = await createObject.mutateAsync({
-                id: customerId,
-                payload: form,
-            })
+            let savedObject
 
-            await onSaved(object)
+            if (isEdit) {
+                savedObject = await updateObject.mutateAsync({
+                    id: customerId,
+                    objectId: initialData.id,
+                    payload: form,
+                })
+            } else {
+                savedObject = await createObject.mutateAsync({
+                    id: customerId,
+                    payload: form,
+                })
+            }
+
+            await onSaved?.(savedObject)
         } catch (err) {
             setError(firstError(err))
         }
@@ -55,45 +85,54 @@ export default function CustomerObjectCreateDialog({ open, customerId, onClose, 
 
     return (
         <Dialog open={open} onClose={saving ? undefined : onClose} fullWidth maxWidth="sm">
-            <DialogTitle>Добавить объект</DialogTitle>
+            <DialogTitle>{isEdit ? 'Редактировать объект' : 'Добавить объект'}</DialogTitle>
 
-            <DialogContent>
+            <DialogContent sx={{ pt: 1, pb: 1 }}>
                 <Stack
                     component="form"
-                    id="customer-object-create-form"
+                    id="customer-object-dialog-form"
                     onSubmit={handleSubmit}
-                    spacing={2}
-                    sx={{ mt: 1 }}
+                    spacing={1.5}
+                    sx={{ mt: 0.5 }}
                 >
                     {error && <Alert severity="error">{error}</Alert>}
 
                     <TextField
+                        size="small"
                         label="Наименование"
                         name="name"
                         value={form.name}
                         onChange={handleChange}
-                        fullWidth
                         required
+                        fullWidth
+                        autoFocus
                     />
 
                     <TextField
+                        size="small"
                         label="Адрес"
                         name="address"
                         value={form.address}
                         onChange={handleChange}
-                        fullWidth
                         multiline
                         minRows={3}
+                        fullWidth
                     />
                 </Stack>
             </DialogContent>
 
-            <DialogActions>
+            <DialogActions
+                sx={{
+                    px: 3,
+                    pb: 3,
+                    pt: 1,
+                }}
+            >
                 <Button type="button" onClick={onClose} disabled={saving}>
                     Отмена
                 </Button>
 
-                <Button type="submit" form="customer-object-create-form" variant="contained" disabled={saving}>
+                <Button type="submit" form="customer-object-dialog-form" variant="contained" disabled={saving}>
                     {saving ? 'Сохранение...' : 'Сохранить'}
                 </Button>
             </DialogActions>

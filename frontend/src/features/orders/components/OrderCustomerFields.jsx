@@ -4,10 +4,9 @@ import { Autocomplete, Box, Stack, TextField, Typography } from '@mui/material'
 
 import ContactCreateUpdate from '../../../components/ContactCreateUpdate.jsx'
 import AddAction from '../../../components/ui/buttons/AddAction.jsx'
+import CustomerDialog from '../../customers/CustomerDialog.jsx'
+import CustomerObjectDialog from '../../customers/CustomerObjectDialog.jsx'
 import { fieldsetStyles } from '../utils/order.form.constants.js'
-
-import CustomerCreateDialog from './CustomerCreateDialog.jsx'
-import CustomerObjectCreateDialog from './CustomerObjectCreateDialog.jsx'
 
 export default function OrderCustomerFields({ form, setForm, orderResources, refetchOrderResources }) {
     const [customerDialogOpen, setCustomerDialogOpen] = useState(false)
@@ -111,7 +110,13 @@ export default function OrderCustomerFields({ form, setForm, orderResources, ref
                         sx={{ flex: 1 }}
                     />
 
-                    <AddAction title="Добавить заказчика" onClick={() => setCustomerDialogOpen(true)} />
+                    <AddAction
+                        title="Добавить заказчика"
+                        onClick={(event) => {
+                            event.currentTarget.blur()
+                            setCustomerDialogOpen(true)
+                        }}
+                    />
                 </Stack>
 
                 <Stack direction="row" spacing={1} alignItems="flex-start">
@@ -136,7 +141,10 @@ export default function OrderCustomerFields({ form, setForm, orderResources, ref
                     <AddAction
                         title="Добавить объект"
                         disabled={!form.customer}
-                        onClick={() => setObjectDialogOpen(true)}
+                        onClick={(event) => {
+                            event.currentTarget.blur()
+                            setObjectDialogOpen(true)
+                        }}
                     />
                 </Stack>
 
@@ -171,19 +179,24 @@ export default function OrderCustomerFields({ form, setForm, orderResources, ref
                     <AddAction
                         title="Добавить контакт"
                         disabled={!form.customer}
-                        onClick={() => setContactDialogOpen(true)}
+                        onClick={(event) => {
+                            event.currentTarget.blur()
+                            setContactDialogOpen(true)
+                        }}
                     />
                 </Stack>
             </Box>
 
-            <CustomerCreateDialog
+            <CustomerDialog
                 open={customerDialogOpen}
+                mode="create"
                 onClose={() => setCustomerDialogOpen(false)}
                 onSaved={handleCustomerSaved}
             />
 
-            <CustomerObjectCreateDialog
+            <CustomerObjectDialog
                 open={objectDialogOpen}
+                mode="create"
                 customerId={customerId}
                 onClose={() => setObjectDialogOpen(false)}
                 onSaved={handleObjectSaved}

@@ -29,6 +29,7 @@ const ObjectListView = ({
     renderRow,
     loading = false,
     addTo,
+    onAdd,
     error = null,
     onRetry,
     emptyText = 'Список пуст',
@@ -60,13 +61,19 @@ const ObjectListView = ({
             <PageHeader
                 title={title}
                 actions={
-                    addTo ? (
+                    addTo || onAdd ? (
                         <AddAction
-                            onClick={() =>
+                            onClick={(event) => {
+                                if (onAdd) {
+                                    event.currentTarget.blur()
+                                    onAdd()
+                                    return
+                                }
+
                                 navigate(addTo, {
                                     state: { from: location.pathname },
                                 })
-                            }
+                            }}
                         />
                     ) : null
                 }
