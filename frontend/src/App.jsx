@@ -9,6 +9,8 @@ import {
 
 import ProtectedRoute from './components/routing/ProtectedRoute.jsx'
 import { ACCESS_TOKEN, REFRESH_TOKEN } from './constants.js'
+import CatalogPage from './features/catalog/Catalog.jsx'
+import CatalogPrices from './features/catalog/CatalogPrices.jsx'
 import ClientDetailPage from './features/clients/ClientDetail.jsx'
 import ClientFormPage from './features/clients/ClientForm.jsx'
 import ClientsList from './features/clients/ClientsList.jsx'
@@ -87,6 +89,10 @@ const router = createBrowserRouter(
                         <Route path="/customers" element={<CustomersList />} />
                         <Route path="/customers/:id" element={<CustomerDetailPage />} />
                         <Route path="/customers/:id/construction_objects" element={<CustomerObjectListPage />} />
+                    </Route>
+                    <Route element={<GroupRoute groups={[GROUPS.ADMINS]} />}>
+                        <Route path="/catalog" element={<CatalogPage />} />
+                        <Route path="/catalog/products/:id" element={<CatalogPrices />} />
                     </Route>
 
                     <Route path="/documentation" element={<DocumentationListPage />} />

@@ -39,6 +39,7 @@ export default function ColorModeProvider({ children }) {
                                   light: '#93c5fd',
                                   dark: '#3b82f6',
                                   contrastText: '#0f172a',
+                                  title: '#fc9e34',
                               },
                               secondary: {
                                   main: '#a78bfa',
@@ -74,6 +75,7 @@ export default function ColorModeProvider({ children }) {
                                   light: '#60a5fa',
                                   dark: '#1d4ed8',
                                   contrastText: '#ffffff',
+                                  title: '#fe7f2d',
                               },
                               secondary: {
                                   main: '#7c3aed',

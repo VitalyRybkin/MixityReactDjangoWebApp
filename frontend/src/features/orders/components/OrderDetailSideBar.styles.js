@@ -10,7 +10,8 @@ export const orderDetailSideBarSx = {
     },
 
     title: {
-        color: '#fc9e34',
+        // color: '#fc9e34',
+        color: 'primary.title',
     },
 
     negative: {

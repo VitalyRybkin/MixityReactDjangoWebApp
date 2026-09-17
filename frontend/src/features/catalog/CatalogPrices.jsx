@@ -52,11 +52,8 @@ export default function CatalogPrices() {
     const deletePurchasePrice = useDeletePurchasePrice(id)
 
     const activeQuery = selection?.type === 'sale' ? salesQuery : purchaseQuery
-
     const createMutation = selection?.type === 'sale' ? createSalesPrice : createPurchasePrice
-
     const updateMutation = selection?.type === 'sale' ? updateSalesPrice : updatePurchasePrice
-
     const deleteMutation = selection?.type === 'sale' ? deleteSalesPrice : deletePurchasePrice
 
     const [snackbar, setSnackbar] = useState({
@@ -147,7 +144,7 @@ export default function CatalogPrices() {
 
     return (
         <Box sx={sx.page}>
-            <AppBreadcrumbs />
+            <AppBreadcrumbs dynamicLabels={product ? { id: product.name } : []} />
 
             <Typography variant="h4" sx={sx.title}>
                 История цен — {product.name}

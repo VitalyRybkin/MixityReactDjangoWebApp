@@ -15,11 +15,8 @@ export default function CustomersList() {
     const { data: customers = [], isPending, error, refetch } = useGetCustomers()
 
     const deleteCustomer = useDeleteCustomer()
-
     const [customerDialogOpen, setCustomerDialogOpen] = useState(false)
-
     const { confirm, askConfirm, closeConfirm, handleConfirm } = useConfirm()
-
     const { snack, showSnackbar, closeSnackbar } = useSnackbar()
 
     const confirmDelete = useConfirmDelete({

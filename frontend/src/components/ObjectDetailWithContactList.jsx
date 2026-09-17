@@ -117,7 +117,6 @@ export default function ObjectDetailWithContactList({
     }
 
     const isContactDeleting = (contactId) => deleting.contactIds.has(contactId)
-
     const isPhoneDeleting = (contactId, phoneNumber) => deleting.phoneKeySet.has(`${contactId}:${phoneNumber}`)
 
     const refetchAll = async () => {
