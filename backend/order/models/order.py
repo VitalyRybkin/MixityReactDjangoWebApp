@@ -20,6 +20,9 @@ class Order(models.Model):
 
     created_at = models.DateTimeField(auto_now_add=True, verbose_name="Дата создания")
     updated_at = models.DateTimeField(auto_now=True, verbose_name="Дата обновления")
+    order_date = models.DateField(
+        default=timezone.localdate, verbose_name="Дата заявки"
+    )
 
     delivery_date = models.DateField(
         null=True, blank=True, verbose_name="Дата доставки"
