@@ -33,7 +33,7 @@ export default function CatalogPrices() {
     const [dialogOpen, setDialogOpen] = useState(false)
     const [editingPrice, setEditingPrice] = useState(null)
 
-    const { data: product, error: productError } = useGetProduct(id)
+    const { data: product, error: productError, isPending: loadingProduct } = useGetProduct(id)
     const { data: customers = [], isPending: loadingCustomers } = useGetCustomers()
     const { data: warehouses = [], isPending: loadingWarehouses } = useGetWarehouses()
 
@@ -122,14 +122,6 @@ export default function CatalogPrices() {
         showSnackbar(message || 'Не удалось выполнить операцию', 'error')
     }
 
-    if (loadingCustomers || loadingWarehouses) {
-        return (
-            <Box sx={sx.loading}>
-                <CircularProgress />
-            </Box>
-        )
-    }
-
     if (productError) {
         return (
             <Box sx={sx.page}>
@@ -138,39 +130,43 @@ export default function CatalogPrices() {
         )
     }
 
-    if (!product) {
-        return null
-    }
-
     return (
         <Box sx={sx.page}>
-            <AppBreadcrumbs dynamicLabels={product ? { id: product.name } : []} />
+            <AppBreadcrumbs
+                dynamicLabels={product ? { id: product.name } : {}}
+            />
 
             <Typography variant="h4" sx={sx.title}>
-                История цен — {product.name}
+                История цен{product ? ` — ${product.name}` : ''}
             </Typography>
 
             <Divider sx={sx.divider} />
 
-            <Box sx={sx.layout}>
-                <PriceSidebar
-                    customers={sortedCustomers}
-                    warehouses={warehouses}
-                    selection={selection}
-                    onSelect={handleSelect}
-                />
+            {loadingProduct || loadingCustomers || loadingWarehouses ? (
+                <Box sx={sx.loading}>
+                    <CircularProgress />
+                </Box>
+            ) : (
+                <Box sx={sx.layout}>
+                    <PriceSidebar
+                        customers={sortedCustomers}
+                        warehouses={warehouses}
+                        selection={selection}
+                        onSelect={handleSelect}
+                    />
 
-                <PriceHistory
-                    selection={selection}
-                    data={activeQuery.data}
-                    loading={activeQuery.isPending}
-                    error={activeQuery.error}
-                    page={page}
-                    onPageChange={setPage}
-                    onAdd={handleAdd}
-                    onEdit={handleEdit}
-                />
-            </Box>
+                    <PriceHistory
+                        selection={selection}
+                        data={activeQuery.data}
+                        loading={activeQuery.isFetching}
+                        error={activeQuery.error}
+                        page={page}
+                        onPageChange={setPage}
+                        onAdd={handleAdd}
+                        onEdit={handleEdit}
+                    />
+                </Box>
+            )}
 
             <PriceDialog
                 open={dialogOpen}
