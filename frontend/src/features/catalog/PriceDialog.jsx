@@ -214,6 +214,7 @@ export default function PriceDialog({
                 confirmColor={confirm.confirmColor}
                 onClose={closeConfirm}
                 onConfirm={handleConfirm}
+                loading={deleting}
             />
         </>
     )

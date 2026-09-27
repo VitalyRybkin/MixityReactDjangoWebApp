@@ -1,40 +1,69 @@
 import React from 'react'
 
-import { Button, CircularProgress, Dialog, DialogContent, Stack, Typography } from '@mui/material'
+import {
+    Button,
+    CircularProgress,
+    Dialog,
+    DialogContent,
+    Stack,
+    Typography,
+} from '@mui/material'
 
 const ConfirmDialog = ({
-    open,
-    title = 'Confirm action',
-    text = '',
-    confirmText = 'Confirm',
-    cancelText = 'Cancel',
-    onClose,
-    onConfirm,
-    loading = false, // 👈
-}) => {
+                           open,
+                           title = 'Confirm action',
+                           text = '',
+                           confirmText = 'Confirm',
+                           cancelText = 'Cancel',
+                           confirmColor = 'primary',
+                           onClose,
+                           onConfirm,
+                           loading = false,
+                       }) => {
     return (
-        <Dialog open={open} onClose={loading ? undefined : onClose} maxWidth="xs" fullWidth>
+        <Dialog
+            open={open}
+            onClose={loading ? undefined : onClose}
+            maxWidth="xs"
+            fullWidth
+        >
             <DialogContent sx={{ p: 3 }}>
                 <Stack spacing={2}>
-                    <Typography variant="h6">{title}</Typography>
+                    <Typography variant="h6">
+                        {title}
+                    </Typography>
 
                     <Typography variant="body2" color="text.secondary">
                         {text}
                     </Typography>
 
-                    <Stack direction="row" justifyContent="flex-end" spacing={1}>
-                        <Button onClick={onClose} disabled={loading}>
+                    <Stack
+                        direction="row"
+                        justifyContent="flex-end"
+                        spacing={1}
+                    >
+                        <Button
+                            onClick={onClose}
+                            disabled={loading}
+                        >
                             {cancelText}
                         </Button>
 
                         <Button
                             variant="contained"
-                            color="error"
+                            color={confirmColor}
                             onClick={onConfirm}
                             disabled={loading}
-                            startIcon={loading ? <CircularProgress size={16} color="inherit" /> : null}
+                            startIcon={
+                                loading ? (
+                                    <CircularProgress
+                                        size={16}
+                                        color="inherit"
+                                    />
+                                ) : undefined
+                            }
                         >
-                            {confirmText}
+                            {loading ? 'Удаление...' : confirmText}
                         </Button>
                     </Stack>
                 </Stack>

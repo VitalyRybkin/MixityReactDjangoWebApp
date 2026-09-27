@@ -1,14 +1,16 @@
 import React from 'react'
 
 import DeleteIcon from '@mui/icons-material/Delete'
+import CircularProgress from '@mui/material/CircularProgress'
 
 import IconAction from './IconAction.jsx'
 
-export default function DeleteAction({ ...props }) {
+export default function DeleteAction({ loading = false, ...props }) {
     return (
         <IconAction
-            title="Удалить"
+            title={loading ? 'Удаление...' : 'Удалить'}
             {...props}
+            disabled={props.disabled || loading}
             sx={{
                 transition: 'color 0.2s ease-in-out',
                 '&:hover': {
@@ -17,7 +19,11 @@ export default function DeleteAction({ ...props }) {
                 ...props.sx,
             }}
         >
-            <DeleteIcon fontSize="small" />
+            {loading ? (
+                <CircularProgress size={18} />
+            ) : (
+                <DeleteIcon fontSize="small" />
+            )}
         </IconAction>
     )
 }
