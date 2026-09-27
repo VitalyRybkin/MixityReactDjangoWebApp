@@ -36,6 +36,16 @@ export default function OrderMainFields({
             <Stack spacing={2} sx={sx.fields}>
                 <Box sx={sx.fieldRow}>
                     <TextField
+                        label="Дата заявки"
+                        type="date"
+                        size="small"
+                        value={form.order_date || ''}
+                        onChange={onChange('order_date')}
+                        slotProps={{ inputLabel: { shrink: true } }}
+                        sx={sx.field}
+                    />
+
+                    <TextField
                         label="Дата доставки"
                         type="date"
                         size="small"
@@ -111,7 +121,7 @@ export default function OrderMainFields({
 
                     <Select
                         labelId="client-label"
-                        label="Постащик"
+                        label="Поставщик"
                         value={form.client || ''}
                         onChange={onChange('client')}
                         variant="outlined"

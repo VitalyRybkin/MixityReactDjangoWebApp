@@ -39,7 +39,7 @@ export const mapOrderToForm = (order, orderResources) => {
     return {
         id: order.id ?? '',
         status: order.status ?? 'draft',
-        created_at: order.created_at ?? '',
+        order_date: order.order_date ?? '',
         delivery_date: order.delivery_date ?? '',
         delivery_from: toTimeValue(order.delivery_from),
         delivery_to: toTimeValue(order.delivery_to),
