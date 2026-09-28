@@ -84,6 +84,13 @@ class Contact(models.Model):
         blank=True,
         related_name="contacts",
     )
+    repair_company = models.ForeignKey(
+        "repairs.RepairCompany",
+        on_delete=models.CASCADE,
+        null=True,
+        blank=True,
+        related_name="contacts",
+    )
 
     class Meta:
         verbose_name = "Контакт"
@@ -96,24 +103,35 @@ class Contact(models.Model):
                         warehouse__isnull=True,
                         client__isnull=True,
                         customer__isnull=True,
+                        repair_company__isnull=True,
                     )
                     | models.Q(
                         carrier__isnull=True,
                         warehouse__isnull=False,
                         client__isnull=True,
                         customer__isnull=True,
+                        repair_company__isnull=True,
                     )
                     | models.Q(
                         carrier__isnull=True,
                         warehouse__isnull=True,
                         client__isnull=False,
                         customer__isnull=True,
+                        repair_company__isnull=True,
                     )
                     | models.Q(
                         carrier__isnull=True,
                         warehouse__isnull=True,
                         client__isnull=True,
                         customer__isnull=False,
+                        repair_company__isnull=True,
+                    )
+                    | models.Q(
+                        carrier__isnull=True,
+                        warehouse__isnull=True,
+                        client__isnull=True,
+                        customer__isnull=True,
+                        repair_company__isnull=False,
                     )
                 ),
                 name="contact_belongs_to_exactly_one_parent",
@@ -139,6 +157,11 @@ class Contact(models.Model):
                 fields=["customer"],
                 name="idx_customer_not_null",
                 condition=models.Q(customer__isnull=False),
+            ),
+            models.Index(
+                fields=["repair_company"],
+                name="idx_repair_company_not_null",
+                condition=models.Q(repair_company__isnull=False),
             ),
         ]
 
