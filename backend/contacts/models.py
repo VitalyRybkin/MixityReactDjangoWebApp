@@ -90,7 +90,7 @@ class Contact(models.Model):
         verbose_name_plural = "Контакты"
         constraints = [
             models.CheckConstraint(
-                check=(
+                condition=(
                     models.Q(
                         carrier__isnull=False,
                         warehouse__isnull=True,
