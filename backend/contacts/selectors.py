@@ -12,6 +12,7 @@ class ContactSelector:
                 | Q(warehouse__is_active=True)
                 | Q(client__is_active=True)
                 | Q(customer__is_active=True)
+                | Q(repair_company__is_active=True)
             )
             .prefetch_related("phone_numbers")
             .order_by("id")
@@ -32,3 +33,7 @@ class ContactSelector:
     @classmethod
     def by_customer(cls, customer_id: int) -> QuerySet[Contact]:
         return cls.get_base_qs().filter(customer_id=customer_id)
+
+    @classmethod
+    def by_repair_company(cls, repair_company_id: int) -> QuerySet[Contact]:
+        return cls.get_base_qs().filter(repair_company_id=repair_company_id)

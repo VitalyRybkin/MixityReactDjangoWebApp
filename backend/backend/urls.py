@@ -39,6 +39,7 @@ urlpatterns = [
     path("api/orders/", include("order.urls.clients")),
     path("api/orders/", include("order.urls.customers")),
     path("api/orders/", include("order.urls.orders")),
+    path("api/repairs/", include("repairs.urls")),
 ]
 
 
@@ -232,6 +233,24 @@ if settings.DEBUG:
                 permission_classes=[AllowAny],
             ),
             name="swagger-order",
+        ),
+
+        # Repair OpenAPI
+        path(
+            "api/schema/repairs/",
+            SpectacularAPIView.as_view(
+                urlconf="repairs.schema_urls",
+                permission_classes=[AllowAny],
+            ),
+            name="schema-repairs",
+        ),
+        path(
+            "api/docs/repairs/",
+            SpectacularSwaggerView.as_view(
+                url_name="schema-repairs",
+                permission_classes=[AllowAny],
+            ),
+            name="swagger-repairs",
         ),
     ]
 

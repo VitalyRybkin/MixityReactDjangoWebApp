@@ -1,7 +1,7 @@
 from core.api.routing import ApiRoute
 
 
-class RepairsRoutes:
+class RepairCompanyRoutes:
     """
     Routes for managing Repair resources.
     """
