@@ -110,5 +110,9 @@ export const routes = [
     {
         path: '/repair/companies',
         breadcrumb: 'Ремонтные компании',
+    },
+    {
+        path: '/repair/companies/create',
+        breadcrumb: 'Создать',
     }
 ]

@@ -39,6 +39,7 @@ import GroupRoute from './pages/auth/components/GroupRoute.jsx'
 import { AuthProvider } from './pages/auth/context/AuthContext.jsx'
 import { GROUPS } from './pages/auth/permissions.js'
 import RepairCompaniesList from "./features/repairs/RepairCompniesList.jsx";
+import RepairCompanyFormPage from "./features/repairs/RepairCompanyForm.jsx";
 
 function Logout() {
     localStorage.removeItem(ACCESS_TOKEN)
@@ -92,6 +93,7 @@ const router = createBrowserRouter(
                         <Route path="/customers/:id/construction_objects" element={<CustomerObjectListPage />} />
 
                         <Route path="/repair/companies" element={<RepairCompaniesList />} />
+                        <Route path="/repair/companies/create" element={<RepairCompanyFormPage />} />
                     </Route>
                     <Route element={<GroupRoute groups={[GROUPS.ADMINS]} />}>
                         <Route path="/catalog" element={<CatalogPage />} />
