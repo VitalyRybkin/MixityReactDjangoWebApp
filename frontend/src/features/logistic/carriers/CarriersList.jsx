@@ -15,11 +15,8 @@ export default function CarriersList() {
     const { data: carriers = [], isPending, error, refetch } = useGetCarriers()
 
     const deleteCarrier = useDeleteCarrier()
-
     const [carrierDialogOpen, setCarrierDialogOpen] = useState(false)
-
     const { confirm, askConfirm, closeConfirm, handleConfirm } = useConfirm()
-
     const { snack, showSnackbar, closeSnackbar } = useSnackbar()
 
     const confirmDelete = useConfirmDelete({

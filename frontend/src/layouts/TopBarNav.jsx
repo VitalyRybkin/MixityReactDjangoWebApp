@@ -92,6 +92,10 @@ const TopBarNav = () => {
                     Поиск
                 </Button>
 
+                <Button component={NavLink} to="/repair/companies" color="inherit" sx={sx.navButton}>
+                    Ремонт
+                </Button>
+
                 <Can group={[GROUPS.ADMINS]}>
                     <Button component={NavLink} to="/catalog" color="inherit" sx={sx.navButton}>
                         Каталог

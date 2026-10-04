@@ -37,9 +37,7 @@ export default function CustomersList() {
 
     const handleCustomerSaved = async () => {
         await refetch()
-
         setCustomerDialogOpen(false)
-
         showSnackbar('Заказчик добавлен!', 'success')
     }
 

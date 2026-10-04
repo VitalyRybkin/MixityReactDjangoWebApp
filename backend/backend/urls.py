@@ -39,7 +39,7 @@ urlpatterns = [
     path("api/orders/", include("order.urls.clients")),
     path("api/orders/", include("order.urls.customers")),
     path("api/orders/", include("order.urls.orders")),
-    path("api/repairs/", include("repairs.urls")),
+    path("api/repair/", include("repairs.urls")),
 ]
 
 

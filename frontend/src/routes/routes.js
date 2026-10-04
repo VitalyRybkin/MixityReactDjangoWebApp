@@ -107,4 +107,8 @@ export const routes = [
         path: '/documentation',
         breadcrumb: 'Документация',
     },
+    {
+        path: '/repair/companies',
+        breadcrumb: 'Ремонтные компании',
+    }
 ]
