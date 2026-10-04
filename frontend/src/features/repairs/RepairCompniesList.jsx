@@ -1,19 +1,16 @@
 import {useDeleteRepairCompany, useGetRepairCompanies} from "./utils/repair.queries.js";
-import {useState} from "react";
 import useConfirm from "../../hooks/useConfirm.js";
 import useSnackbar from "../../hooks/useSnackbar.js";
 import {useConfirmDelete} from "../../hooks/useConfirmDelete.js";
 import ObjectListView from "../../components/ObjectListView.jsx";
 import ObjectListViewRow from "../../components/ObjectListViewRow.jsx";
-import CustomerDialog from "../customers/CustomerDialog.jsx";
 import ConfirmDialog from "../../components/ui/feedback/ConfirmDialog.jsx";
 import AppSnackbar from "../../components/ui/feedback/AppSnackbar.jsx";
 
 export default function RepairCompaniesList() {
     const { data: repairCompanies, isPending, error, refetch } = useGetRepairCompanies()
-
     const deleteRepairCompany = useDeleteRepairCompany()
-    const [companyDialogOpen, setCompanyDialogOpen] = useState(false)
+
     const { confirm, askConfirm, closeConfirm, handleConfirm } = useConfirm()
     const {snack, showSnackbar, closeSnackbar} = useSnackbar()
 
@@ -33,12 +30,6 @@ export default function RepairCompaniesList() {
         })
     }
 
-    const handleCompanySaved = async() => {
-        await refetch()
-        setCompanyDialogOpen(false)
-        showSnackbar("Компания сохранена!", 'success')
-    }
-
     return (
         <>
             <ObjectListView
@@ -47,7 +38,7 @@ export default function RepairCompaniesList() {
                 loading={isPending || deleteRepairCompany.isPending}
                 error={error}
                 onRetry={refetch}
-                onAdd={() => setCompanyDialogOpen(true)}
+                addTo="/repair/companies/create"
                 renderRow={(company) => (
                     <ObjectListViewRow
                         title={company.name}
@@ -55,17 +46,10 @@ export default function RepairCompaniesList() {
                         address={company.address}
                         email={company.email}
                         phone={company.phone}
-                        to={`/repairCompanies/${company.id}`}
+                        to={`/repair-companies/${company.id}`}
                         onDelete={() => handleDeleteCompany(company)}
                     />
                 )}
-            />
-
-            <CustomerDialog
-                open={companyDialogOpen}
-                mode="create"
-                onClose={() => setCompanyDialogOpen(false)}
-                onSaved={handleCompanySaved}
             />
 
             <ConfirmDialog

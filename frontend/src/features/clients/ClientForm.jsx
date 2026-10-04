@@ -75,7 +75,7 @@ export default function ClientFormPage() {
             <AppBreadcrumbs dynamicLabels={{ id: client?.name }} />
             <Paper sx={{ p: 3, borderRadius: 3 }}>
                 <Typography variant="h5" color="text.secondary" sx={{ mb: 2 }}>
-                    {isEdit ? `Редактировать ${form.organization || ''}` : 'Создать клиента'}
+                    {isEdit ? `Редактировать ${form.organization || ''}` : 'Создать поставщика'}
                 </Typography>
 
                 {error && (

@@ -1,152 +1,252 @@
 import { useState } from 'react'
-import { NavLink } from 'react-router-dom'
+import { NavLink, useLocation } from 'react-router-dom'
 
+import ArrowDropDownIcon from '@mui/icons-material/ArrowDropDown'
 import MenuIcon from '@mui/icons-material/Menu'
-import { Button, IconButton, Menu, MenuItem, Stack, Tooltip } from '@mui/material'
+import {
+    Button,
+    IconButton,
+    Menu,
+    MenuItem,
+    Stack,
+    Tooltip,
+} from '@mui/material'
 
 import Can from '../pages/auth/components/Can.jsx'
 import { GROUPS } from '../pages/auth/permissions.js'
+import { topBarNavSx as sx } from './TopBarNav.styles.js'
 
-const NAV_BREAKPOINT = 1200
+const REFERENCE_GROUPS = [
+    GROUPS.LOGISTIC_MANAGER,
+    GROUPS.ACCOUNTANT,
+]
 
-const sx = {
-    nav: {
-        ml: 3,
-        display: 'none',
+const REFERENCE_ITEMS = [
+    { label: 'Перевозчики', to: '/carriers'},
+    { label: 'Склады', to: '/warehouses'},
+    { label: 'Поставщики', to: '/clients'},
+    { label: 'Заказчики', to: '/customers'},
+    { label: 'Ремонт', to: '/repair/companies'},
+]
 
-        [`@media (min-width: ${NAV_BREAKPOINT}px)`]: {
-            display: 'flex',
-        },
-    },
+const NAV_ITEMS = [
+    { label: 'Документация', to: '/documentation'},
+    { label: 'Поиск', to: '/filtering'},
+]
 
-    menuButton: {
-        ml: 1,
-        display: 'flex',
-
-        [`@media (min-width: ${NAV_BREAKPOINT}px)`]: {
-            display: 'none',
-        },
-    },
-
-    navButton: {
-        whiteSpace: 'nowrap',
-
-        '&.active': {
-            backgroundColor: 'rgba(255, 255, 255, 0.12)',
-            borderBottom: '2px solid white',
-            borderRadius: 0,
-        },
-    },
-
-    menuItem: {
-        '&.active': {
-            fontWeight: 600,
-            backgroundColor: 'action.selected',
-        },
-    },
-}
+const MenuItems = ({ items, onClick }) =>
+    items.map(({ label, to }) => (
+        <MenuItem
+            key={to}
+            component={NavLink}
+            to={to}
+            onClick={onClick}
+            sx={sx.menuItem}
+        >
+            {label}
+        </MenuItem>
+    ))
 
 const TopBarNav = () => {
-    const [anchorEl, setAnchorEl] = useState(null)
+    const location = useLocation()
 
-    const menuOpen = Boolean(anchorEl)
+    const [mobileMenuAnchorEl, setMobileMenuAnchorEl] = useState(null)
+    const [referencesAnchorEl, setReferencesAnchorEl] = useState(null)
 
-    const handleOpenMenu = (event) => {
-        setAnchorEl(event.currentTarget)
+    const mobileMenuOpen = Boolean(mobileMenuAnchorEl)
+    const referencesMenuOpen = Boolean(referencesAnchorEl)
+
+    const referencesActive = REFERENCE_ITEMS.some(({ to }) =>
+        location.pathname.startsWith(to),
+    )
+
+    const handleOpenMobileMenu = (event) => {
+        setMobileMenuAnchorEl(event.currentTarget)
     }
 
-    const handleCloseMenu = () => {
-        setAnchorEl(null)
+    const handleCloseMobileMenu = () => {
+        setMobileMenuAnchorEl(null)
+        setMobileReferencesOpen(false)
     }
+
+    const handleOpenReferencesMenu = (event) => {
+        setReferencesAnchorEl(event.currentTarget)
+    }
+
+    const handleCloseReferencesMenu = () => {
+        setReferencesAnchorEl(null)
+    }
+
+    const handleCloseAllMenus = () => {
+        setReferencesAnchorEl(null)
+        setMobileMenuAnchorEl(null)
+    }
+
+    const [mobileReferencesOpen, setMobileReferencesOpen] = useState(false)
 
     return (
         <>
             <Stack direction="row" spacing={2} sx={sx.nav}>
-                <Button component={NavLink} to="/" color="inherit" sx={sx.navButton}>
+                <Button
+                    component={NavLink}
+                    to="/"
+                    color="inherit"
+                    sx={sx.navButton}
+                >
                     Главная
                 </Button>
 
-                <Can group={[GROUPS.LOGISTIC_MANAGER, GROUPS.ACCOUNTANT]}>
-                    <Button component={NavLink} to="/carriers" color="inherit" sx={sx.navButton}>
-                        Перевозчики
-                    </Button>
-
-                    <Button component={NavLink} to="/warehouses" color="inherit" sx={sx.navButton}>
-                        Склады
-                    </Button>
-
-                    <Button component={NavLink} to="/clients" color="inherit" sx={sx.navButton}>
-                        Поставщики
-                    </Button>
-
-                    <Button component={NavLink} to="/customers" color="inherit" sx={sx.navButton}>
-                        Заказчики
+                <Can group={REFERENCE_GROUPS}>
+                    <Button
+                        color="inherit"
+                        onClick={handleOpenReferencesMenu}
+                        endIcon={<ArrowDropDownIcon />}
+                        sx={[
+                            sx.navButton,
+                            referencesActive && sx.activeNavButton,
+                        ]}
+                        aria-controls={
+                            referencesMenuOpen
+                                ? 'references-menu'
+                                : undefined
+                        }
+                        aria-haspopup="true"
+                        aria-expanded={
+                            referencesMenuOpen ? 'true' : undefined
+                        }
+                    >
+                        Справочники
                     </Button>
                 </Can>
 
-                <Button component={NavLink} to="/documentation" color="inherit" sx={sx.navButton}>
-                    Документация
-                </Button>
-
-                <Button component={NavLink} to="/filtering" color="inherit" sx={sx.navButton}>
-                    Поиск
-                </Button>
-
-                <Button component={NavLink} to="/repair/companies" color="inherit" sx={sx.navButton}>
-                    Ремонт
-                </Button>
+                {NAV_ITEMS.map(({ label, to }) => (
+                    <Button
+                        key={to}
+                        component={NavLink}
+                        to={to}
+                        color="inherit"
+                        sx={sx.navButton}
+                    >
+                        {label}
+                    </Button>
+                ))}
 
                 <Can group={[GROUPS.ADMINS]}>
-                    <Button component={NavLink} to="/catalog" color="inherit" sx={sx.navButton}>
+                    <Button
+                        component={NavLink}
+                        to="/catalog"
+                        color="inherit"
+                        sx={sx.navButton}
+                    >
                         Каталог
                     </Button>
                 </Can>
             </Stack>
 
+            <Menu
+                id="references-menu"
+                anchorEl={referencesAnchorEl}
+                open={referencesMenuOpen}
+                onClose={handleCloseReferencesMenu}
+                anchorOrigin={{
+                    vertical: 'bottom',
+                    horizontal: 'left',
+                }}
+                transformOrigin={{
+                    vertical: 'top',
+                    horizontal: 'left',
+                }}
+                slotProps={{
+                    paper: {
+                        sx: {
+                            width: referencesAnchorEl?.offsetWidth,
+                        },
+                    },
+                }}
+            >
+                <Can group={REFERENCE_GROUPS}>
+                    <MenuItems
+                        items={REFERENCE_ITEMS}
+                        onClick={handleCloseAllMenus}
+                    />
+                </Can>
+            </Menu>
+
             <Tooltip title="Меню">
                 <IconButton
                     color="inherit"
-                    onClick={handleOpenMenu}
+                    onClick={handleOpenMobileMenu}
                     sx={sx.menuButton}
                     aria-label="Открыть меню"
-                    aria-controls={menuOpen ? 'top-bar-menu' : undefined}
+                    aria-controls={
+                        mobileMenuOpen
+                            ? 'top-bar-menu'
+                            : undefined
+                    }
                     aria-haspopup="true"
-                    aria-expanded={menuOpen ? 'true' : undefined}
+                    aria-expanded={
+                        mobileMenuOpen ? 'true' : undefined
+                    }
                 >
                     <MenuIcon />
                 </IconButton>
             </Tooltip>
 
-            <Menu id="top-bar-menu" anchorEl={anchorEl} open={menuOpen} onClose={handleCloseMenu}>
-                <MenuItem component={NavLink} to="/" onClick={handleCloseMenu} sx={sx.menuItem}>
-                    Главная
-                </MenuItem>
+            <Menu
+                id="top-bar-menu"
+                anchorEl={mobileMenuAnchorEl}
+                open={mobileMenuOpen}
+                onClose={handleCloseMobileMenu}
+            >
+                {mobileReferencesOpen ? (
+                    <>
+                        <MenuItem onClick={() => setMobileReferencesOpen(false)}>
+                            ← Назад
+                        </MenuItem>
 
-                <Can group={[GROUPS.LOGISTIC_MANAGER, GROUPS.ACCOUNTANT]}>
-                    <MenuItem component={NavLink} to="/carriers" onClick={handleCloseMenu} sx={sx.menuItem}>
-                        Перевозчики
-                    </MenuItem>
+                        <Can group={REFERENCE_GROUPS}>
+                            <MenuItems
+                                items={REFERENCE_ITEMS}
+                                onClick={handleCloseMobileMenu}
+                            />
+                        </Can>
+                    </>
+                ) : (
+                    <>
+                        <MenuItem
+                            component={NavLink}
+                            to="/"
+                            onClick={handleCloseMobileMenu}
+                            sx={sx.menuItem}
+                        >
+                            Главная
+                        </MenuItem>
 
-                    <MenuItem component={NavLink} to="/warehouses" onClick={handleCloseMenu} sx={sx.menuItem}>
-                        Склады
-                    </MenuItem>
+                        <Can group={REFERENCE_GROUPS}>
+                            <MenuItem
+                                onClick={() => setMobileReferencesOpen(true)}
+                            >
+                                Справочники
+                            </MenuItem>
+                        </Can>
 
-                    <MenuItem component={NavLink} to="/clients" onClick={handleCloseMenu} sx={sx.menuItem}>
-                        Поставщики
-                    </MenuItem>
+                        <MenuItems
+                            items={NAV_ITEMS}
+                            onClick={handleCloseMobileMenu}
+                        />
 
-                    <MenuItem component={NavLink} to="/customers" onClick={handleCloseMenu} sx={sx.menuItem}>
-                        Заказчики
-                    </MenuItem>
-                </Can>
-
-                <MenuItem component={NavLink} to="/documentation" onClick={handleCloseMenu} sx={sx.menuItem}>
-                    Документация
-                </MenuItem>
-
-                <MenuItem component={NavLink} to="/filtering" onClick={handleCloseMenu} sx={sx.menuItem}>
-                    Поиск
-                </MenuItem>
+                        <Can group={[GROUPS.ADMINS]}>
+                            <MenuItem
+                                component={NavLink}
+                                to="/catalog"
+                                onClick={handleCloseMobileMenu}
+                                sx={sx.menuItem}
+                            >
+                                Каталог
+                            </MenuItem>
+                        </Can>
+                    </>
+                )}
             </Menu>
         </>
     )

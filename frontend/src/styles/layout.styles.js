@@ -10,14 +10,8 @@ export const commonLayoutSx = {
 
     header: {
         display: 'flex',
-        flexDirection: {
-            xs: 'column',
-            sm: 'row',
-        },
-        alignItems: {
-            xs: 'stretch',
-            sm: 'center',
-        },
+        flexDirection: 'row',
+        alignItems: 'center',
         justifyContent: 'space-between',
         gap: 2,
         py: {
@@ -29,15 +23,10 @@ export const commonLayoutSx = {
     headerActions: {
         display: 'flex',
         alignItems: 'center',
-        justifyContent: {
-            xs: 'flex-start',
-            sm: 'flex-end',
-        },
+        justifyContent: 'flex-end',
+        flexShrink: 0,
+        ml: 'auto',
         gap: 1,
-        ml: {
-            xs: 0,
-            sm: 'auto',
-        },
     },
 
     divider: {
