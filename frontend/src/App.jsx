@@ -94,6 +94,7 @@ const router = createBrowserRouter(
 
                         <Route path="/repair/companies" element={<RepairCompaniesList />} />
                         <Route path="/repair/companies/create" element={<RepairCompanyFormPage />} />
+                        <Route path="/repair/companies/:id/edit" element={<RepairCompanyFormPage />} />
                     </Route>
                     <Route element={<GroupRoute groups={[GROUPS.ADMINS]} />}>
                         <Route path="/catalog" element={<CatalogPage />} />

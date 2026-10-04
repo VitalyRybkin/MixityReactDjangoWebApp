@@ -34,8 +34,12 @@ export const createRepairCompany = async (payload) => {
     return response.data
 }
 
-export const updateRepairCompany = async (id, payload) => {
-    const response = await api.patch(repairCompaniesApiPaths.detail(id), payload)
+export const updateRepairCompany = async ({ id, payload }) => {
+    const response = await api.patch(
+        repairCompaniesApiPaths.detail(id),
+        payload,
+    )
+
     return response.data
 }
 

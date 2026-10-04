@@ -46,7 +46,7 @@ export default function RepairCompaniesList() {
                         address={company.address}
                         email={company.email}
                         phone={company.phone}
-                        to={`/repair-companies/${company.id}`}
+                        to={`/repair/companies/${company.id}`}
                         onDelete={() => handleDeleteCompany(company)}
                     />
                 )}
