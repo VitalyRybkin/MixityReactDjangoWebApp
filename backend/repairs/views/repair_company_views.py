@@ -16,7 +16,7 @@ from repairs.serializers.repair_company_serializers import RepairCompanySerializ
 
 
 class BaseRepairCompanyGenericAPIView(generics.GenericAPIView):
-    queryset = RepairCompany.objects.all()
+    queryset = RepairCompany.objects.active()
     serializer_class = RepairCompanySerializer
 
 
