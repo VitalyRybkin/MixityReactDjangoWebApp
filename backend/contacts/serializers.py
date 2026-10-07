@@ -8,6 +8,7 @@ from contacts.services import create_contact, update_contact
 from core.validators.validators import validate_ru_phone
 from logistic.models import Carrier
 from order.models import Client, Customer
+from repairs.models import RepairCompany
 from stock.models import Warehouse
 
 
@@ -89,6 +90,12 @@ class ContactSerializer(serializers.ModelSerializer):
         allow_null=True,
     )
 
+    repair_company = serializers.PrimaryKeyRelatedField(
+        queryset=RepairCompany.objects.active(),
+        required=False,
+        allow_null=True,
+    )
+
     class Meta:
         model = Contact
         fields = [
@@ -102,6 +109,7 @@ class ContactSerializer(serializers.ModelSerializer):
             "warehouse",
             "client",
             "customer",
+            "repair_company",
         ]
 
     def validate_phoneNumbers(
@@ -163,7 +171,7 @@ class ContactSerializer(serializers.ModelSerializer):
                 attrs[field] if field in attrs else getattr(self.instance, field, None)
             )
 
-        fields = ["carrier", "warehouse", "client", "customer"]
+        fields = ["carrier", "warehouse", "client", "customer", "repair_company"]
         values = [get_val(f) for f in fields]
 
         filled_count = sum(v is not None for v in values)
