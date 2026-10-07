@@ -24,6 +24,9 @@ import CarrierDriverListPage from './features/logistic/drivers/CarrierDriverList
 import CarrierTruckListPage from './features/logistic/trucks/CarrierTruckList.jsx'
 import OrderFilteringPage from './features/orders/OrderFilteringPage.jsx'
 import OrderFormPage from './features/orders/OrderForm.jsx'
+import RepairCompanyDetailPage from './features/repairs/RepairCompanyDetail.jsx'
+import RepairCompanyFormPage from './features/repairs/RepairCompanyForm.jsx'
+import RepairCompaniesList from './features/repairs/RepairCompniesList.jsx'
 import WarehouseInfoPage from './features/warehouses/WarehouseDetail.jsx'
 import WarehouseFormPage from './features/warehouses/WarehouseForm.jsx'
 import WarehouseMapUploadPage from './features/warehouses/WarehouseMapUpload.jsx'
@@ -38,8 +41,6 @@ import Unauthorized from './pages/Unauthorized.jsx'
 import GroupRoute from './pages/auth/components/GroupRoute.jsx'
 import { AuthProvider } from './pages/auth/context/AuthContext.jsx'
 import { GROUPS } from './pages/auth/permissions.js'
-import RepairCompaniesList from "./features/repairs/RepairCompniesList.jsx";
-import RepairCompanyFormPage from "./features/repairs/RepairCompanyForm.jsx";
 
 function Logout() {
     localStorage.removeItem(ACCESS_TOKEN)
@@ -94,6 +95,7 @@ const router = createBrowserRouter(
 
                         <Route path="/repair/companies" element={<RepairCompaniesList />} />
                         <Route path="/repair/companies/create" element={<RepairCompanyFormPage />} />
+                        <Route path="/repair/companies/:id" element={<RepairCompanyDetailPage />} />
                         <Route path="/repair/companies/:id/edit" element={<RepairCompanyFormPage />} />
                     </Route>
                     <Route element={<GroupRoute groups={[GROUPS.ADMINS]} />}>

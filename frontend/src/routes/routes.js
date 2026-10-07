@@ -116,7 +116,11 @@ export const routes = [
         breadcrumb: 'Создать',
     },
     {
+        path: '/repair/companies/:id',
+        breadcrumb: 'Карточка',
+    },
+    {
         path: '/repair/companies/:id/edit',
         breadcrumb: 'Редактировать',
-    }
+    },
 ]
