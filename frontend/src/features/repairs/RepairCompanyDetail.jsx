@@ -16,7 +16,7 @@ export default function RepairCompanyDetailPage() {
             editTo={(id) => `/repair/companies/${id}/edit`}
             entityUrl={(id) => repairCompaniesApiPaths.detail(id)}
             contactsUrl={(id) => repairCompaniesApiPaths.contacts(id)}
-            ownerType="repair"
+            ownerType="repair_company"
             ownerId={clientId}
             fields={(c) => [
                 { label: 'Наименование', value: c?.name },

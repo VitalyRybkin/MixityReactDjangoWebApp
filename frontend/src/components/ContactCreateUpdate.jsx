@@ -119,6 +119,7 @@ export default function ContactCreateUpdate({ open, mode, ownerType, ownerId, in
             carrier: ownerType === 'carrier' ? id : null,
             client: ownerType === 'client' ? id : null,
             customer: ownerType === 'customer' ? id : null,
+            repair_company: ownerType === 'repair_company' ? id : null,
         }
 
         return {
