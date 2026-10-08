@@ -6,7 +6,10 @@ from repairs.views.repair_company_views import (
     RepairCompanyListCreateAPIView,
     RepairCompanyRetrieveUpdateDestroyAPIView,
 )
-from repairs.views.repair_request_views import RepairRequestListAPIView
+from repairs.views.repair_request_views import (
+    RepairRequestListAPIView,
+    RepairRequestRetrieveUpdateDestroyAPIView,
+)
 
 app_name = "repairs"
 
@@ -31,9 +34,9 @@ urlpatterns = [
         RepairRequestListAPIView.as_view(),
         name=RepairRequestRoutes.LIST_CREATE.name,
     ),
-    # path(
-    #     RepairRequestRoutes.DETAIL.path,
-    #     RepairRequestRetrieveUpdateDestroyAPIView.as_view(),
-    #     name=RepairRequestRoutes.DETAIL.name,
-    # ),
+    path(
+        RepairRequestRoutes.DETAIL.path,
+        RepairRequestRetrieveUpdateDestroyAPIView.as_view(),
+        name=RepairRequestRoutes.DETAIL.name,
+    ),
 ]

@@ -10,6 +10,7 @@ class RepairCompanyRoutes:
     DETAIL = ApiRoute("companies/<int:pk>/", "repair_company_detail")
     CONTACTS = ApiRoute("companies/<int:pk>/contacts/", "repair_company_contacts")
 
+
 class RepairRequestRoutes:
     """
     Routes for managing Repair Request resources.

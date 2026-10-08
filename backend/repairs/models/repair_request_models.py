@@ -80,7 +80,7 @@ class RequestFile(models.Model):
         related_name="request_files",
         verbose_name="Заявка",
     )
-    file = models.FileField(
+    file_name = models.FileField(
         upload_to="repair_requests/",
         validators=[
             FileExtensionValidator(
@@ -107,7 +107,7 @@ class ClosingFile(models.Model):
         related_name="closing_files",
         verbose_name="Заявка",
     )
-    file = models.FileField(
+    file_name = models.FileField(
         upload_to="repair_closing/",
         validators=[
             FileExtensionValidator(allowed_extensions=["pdf", "jpeg", "doc", "docx"])
