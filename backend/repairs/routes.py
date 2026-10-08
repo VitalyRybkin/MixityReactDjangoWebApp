@@ -9,3 +9,11 @@ class RepairCompanyRoutes:
     LIST_CREATE = ApiRoute("companies/", "repair_company_list_create")
     DETAIL = ApiRoute("companies/<int:pk>/", "repair_company_detail")
     CONTACTS = ApiRoute("companies/<int:pk>/contacts/", "repair_company_contacts")
+
+class RepairRequestRoutes:
+    """
+    Routes for managing Repair Request resources.
+    """
+
+    LIST_CREATE = ApiRoute("requests/", "repair_request_list_create")
+    DETAIL = ApiRoute("requests/<int:pk>/", "repair_request_detail")

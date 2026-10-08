@@ -219,7 +219,7 @@ if settings.DEBUG:
 
         # Order OpenAPI
         path(
-            "api/schema/orders/",
+            "api/schema/order/",
             SpectacularAPIView.as_view(
                 urlconf="order.schema_orders_urls",
                 permission_classes=[AllowAny],
@@ -227,7 +227,7 @@ if settings.DEBUG:
             name="schema-order",
         ),
         path(
-            "api/docs/orders/",
+            "api/docs/order/",
             SpectacularSwaggerView.as_view(
                 url_name="schema-order",
                 permission_classes=[AllowAny],
@@ -237,20 +237,20 @@ if settings.DEBUG:
 
         # Repair OpenAPI
         path(
-            "api/schema/repairs/",
+            "api/schema/repair/",
             SpectacularAPIView.as_view(
                 urlconf="repairs.schema_urls",
                 permission_classes=[AllowAny],
             ),
-            name="schema-repairs",
+            name="schema-repair",
         ),
         path(
-            "api/docs/repairs/",
+            "api/docs/repair/",
             SpectacularSwaggerView.as_view(
-                url_name="schema-repairs",
+                url_name="schema-repair",
                 permission_classes=[AllowAny],
             ),
-            name="swagger-repairs",
+            name="swagger-repair",
         ),
     ]
 
