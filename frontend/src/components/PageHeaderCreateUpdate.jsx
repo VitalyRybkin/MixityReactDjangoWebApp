@@ -1,8 +1,8 @@
 import { Box, Stack, Typography } from '@mui/material'
 
-import FormActions from '../../../components/ui/FormActions.jsx'
+import FormActions from './ui/FormActions.jsx'
 
-export default function OrderPageHeader({ isEdit, orderId, saving }) {
+export default function PageHeaderCreateUpdate({ isEdit, orderId, saving, newOrder, editOrder }) {
     return (
         <Box
             sx={{
@@ -29,7 +29,7 @@ export default function OrderPageHeader({ isEdit, orderId, saving }) {
                     overflowWrap: 'anywhere',
                 }}
             >
-                {isEdit ? `Редактирование заявки № ${orderId}` : 'Новая заявка'}
+                {isEdit ? `${editOrder} № ${orderId}` : newOrder}
             </Typography>
 
             <Stack direction="row" spacing={1}>

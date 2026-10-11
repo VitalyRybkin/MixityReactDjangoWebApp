@@ -129,6 +129,6 @@ export const routes = [
     },
     {
         path: '/repair/requests/create',
-        breadcrumb: 'Создать заявку',
+        breadcrumb: 'Заявка',
     },
 ]

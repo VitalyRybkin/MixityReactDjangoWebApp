@@ -4,6 +4,7 @@ import { useNavigate, useParams } from 'react-router-dom'
 import { Box, CircularProgress, Container, Divider, TextField, Typography } from '@mui/material'
 
 import AppBreadcrumbs from '../../components/AppBreadcrumbs.jsx'
+import PageHeaderCreateUpdate from '../../components/PageHeaderCreateUpdate.jsx'
 import ErrorState from '../../components/ui/ErrorState.jsx'
 import AppSnackbar from '../../components/ui/feedback/AppSnackbar.jsx'
 import ConfirmDialog from '../../components/ui/feedback/ConfirmDialog.jsx'
@@ -20,7 +21,6 @@ import { getOrderFormContentSx, orderFormSx as sx } from './OrderForm.styles.js'
 import OrderCustomerFields from './components/OrderCustomerFields.jsx'
 import OrderDetailSideBar from './components/OrderDetailSideBar.jsx'
 import OrderMainFields from './components/OrderMainFields.jsx'
-import OrderPageHeader from './components/OrderPageHeader.jsx'
 import OrderProductsList from './components/OrderProductsList.jsx'
 import { useLoadingError } from './hooks/useLoadingError.js'
 import { useOrderFormData } from './hooks/useOrderFormData.js'
@@ -206,7 +206,13 @@ export default function OrderFormPage() {
 
                         <Box component="form" noValidate onSubmit={onSubmit} sx={sx.form}>
                             <Box sx={sx.header}>
-                                <OrderPageHeader isEdit={isEdit} orderId={form.id} saving={saving} />
+                                <PageHeaderCreateUpdate
+                                    isEdit={isEdit}
+                                    orderId={form.id}
+                                    saving={saving}
+                                    newOrder={'Создание заявки'}
+                                    editOrder={'Редактирование заявки'}
+                                />
                             </Box>
 
                             <Divider sx={sx.divider} />
