@@ -1,81 +1,117 @@
-import { useLocation, useNavigate } from 'react-router-dom';
+import { useLocation } from 'react-router-dom'
 
+import { Box, Divider } from '@mui/material'
 
+import AppSelectField from '../../AppSelectField.jsx'
+import AppBreadcrumbs from '../../components/AppBreadcrumbs.jsx'
+import DateRangeFields from '../../components/DateRangeFields.jsx'
+import PageHeader from '../../components/PageHeader.jsx'
+import ApplyAction from '../../components/ui/buttons/ApplyAction.jsx'
+import DownloadAction from '../../components/ui/buttons/DownloadAction.jsx'
+import { useFilters } from '../../hooks/useFilters.js'
+import { formatDate } from '../../pages/utils/orders.date-filters.js'
+import { useGetCustomerObjects, useGetCustomers } from '../customers/utils/customers.queries.js'
+import { orderFilteringPageSx as sx } from '../orders/OrderFilteringPage.styles.js'
 
-import { Box, Divider } from '@mui/material';
+const statusOptions = [
+    { id: 'open', name: 'Открыта' },
+    { id: 'closed', name: 'Закрыта' },
+]
 
+const locationOptions = [
+    { id: 'site', name: 'На объекте' },
+    { id: 'workshop', name: 'В мастерской' },
+]
 
+const today = formatDate(new Date())
 
-import AppBreadcrumbs from '../../components/AppBreadcrumbs.jsx';
-import PageHeader from '../../components/PageHeader.jsx';
-import DownloadAction from '../../components/ui/buttons/DownloadAction.jsx';
-import { useGetCustomerObjects, useGetCustomers } from '../customers/utils/customers.queries.js';
-import { orderFilteringPageSx as sx } from '../orders/OrderFilteringPage.styles.js';
-
-
-
-import { useGetRepairCompanies } from './utils/repair.queries.js'
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+const initialDefaults = {
+    dateFrom: today,
+    dateTo: today,
+    customerId: '',
+    objectId: '',
+    status: '',
+    location: '',
+}
 
 export default function RepairRequestListPage() {
-    const navigate = useNavigate()
     const location = useLocation()
     const entity = location.state?.entity
 
     const { data: customers = [] } = useGetCustomers()
-    const { data: repairCompanies = [] } = useGetRepairCompanies()
-    const { data: customerObjects = [] } = useGetCustomerObjects()
+
+    const { filters, draftFilters, applyFilters, handleDraftFilterChange } = useFilters(initialDefaults)
+
+    const { data: customerObjects = [] } = useGetCustomerObjects(draftFilters.customerId)
+
+    const handleCustomerChange = (value) => {
+        handleDraftFilterChange('customerId', value)
+        handleDraftFilterChange('objectId', '')
+    }
 
     return (
         <Box sx={sx.page}>
             <AppBreadcrumbs dynamicLabels={entity ? { id: entity.name } : {}} />
 
-            <PageHeader
-                title="Ремонт"
-                actions={
-                    <DownloadAction
-                        title="Экспорт в Excel"
-                        // onClick={handleExport}
-                        // disabled={isDownloading || loadingOrders}
-                        // loading={isDownloading || loadingOrders}
-                    />
-                }
-            />
+            <PageHeader title="Ремонт" actions={<DownloadAction title="Экспорт в Excel" />} />
 
             <Divider />
 
+            <Box sx={sx.filters}>
+                <DateRangeFields
+                    filters={draftFilters}
+                    onChange={handleDraftFilterChange}
+                    fromId="repair-date-from"
+                    toId="repair-date-to"
+                />
+
+                <Box sx={sx.filterColumn}>
+                    <AppSelectField
+                        id="repair-customer"
+                        label="Контрагент"
+                        value={draftFilters.customerId}
+                        options={customers}
+                        onChange={handleCustomerChange}
+                        fullWidth
+                    />
+
+                    <AppSelectField
+                        id="repair-object"
+                        label="Объект"
+                        value={draftFilters.objectId}
+                        options={customerObjects}
+                        onChange={(value) => handleDraftFilterChange('objectId', value)}
+                        disabled={!draftFilters.customerId}
+                        fullWidth
+                    />
+                </Box>
+
+                <Box sx={sx.filterColumn}>
+                    <AppSelectField
+                        id="repair-status"
+                        label="Статус"
+                        value={draftFilters.status}
+                        options={statusOptions}
+                        onChange={(value) => handleDraftFilterChange('status', value)}
+                        fullWidth
+                    />
+
+                    <AppSelectField
+                        id="repair-location"
+                        label="Место выполнения"
+                        value={draftFilters.location}
+                        options={locationOptions}
+                        onChange={(value) => handleDraftFilterChange('location', value)}
+                        fullWidth
+                    />
+                </Box>
+            </Box>
+
+            <Box sx={sx.actions}>
+                <ApplyAction onClick={applyFilters} sx={sx.applyButton} />
+            </Box>
+
+            <Divider sx={sx.tableDivider} />
         </Box>
     )
 }

@@ -2,8 +2,6 @@ import { useState } from 'react'
 
 import dayjs from 'dayjs'
 
-import { getPresetRange } from '../utils/orders.date-filters.js'
-
 const normalizeStoredValue = (value, defaultValue) => {
     if (typeof defaultValue === 'boolean') {
         return value === true || value === 'true'
@@ -13,6 +11,10 @@ const normalizeStoredValue = (value, defaultValue) => {
 }
 
 const loadFiltersFromStorage = (storageKey, defaults) => {
+    if (!storageKey) {
+        return { ...defaults }
+    }
+
     try {
         const saved = localStorage.getItem(storageKey)
 
@@ -31,48 +33,33 @@ const loadFiltersFromStorage = (storageKey, defaults) => {
             return result
         }, {})
     } catch (error) {
-        console.error('Failed to load order filters:', error)
+        console.error('Failed to load filters:', error)
         return { ...defaults }
     }
 }
 
 const saveFiltersToStorage = (storageKey, filters) => {
+    if (!storageKey) {
+        return
+    }
+
     try {
         localStorage.setItem(storageKey, JSON.stringify(filters))
     } catch (error) {
-        console.error('Failed to save order filters:', error)
+        console.error('Failed to save filters:', error)
     }
 }
 
-export function useOrdersFilters(storageKey, initialDefaults) {
+export function useFilters(initialDefaults, storageKey = null) {
     const [filters, setFilters] = useState(() => loadFiltersFromStorage(storageKey, initialDefaults))
 
     const [draftFilters, setDraftFilters] = useState(() => loadFiltersFromStorage(storageKey, initialDefaults))
-
-    const selectedPreset = draftFilters.selectedPreset ?? null
-
-    const formattedFilters = {
-        ...filters,
-        dateFrom: filters.dateFrom || '',
-        dateTo: filters.dateTo || '',
-    }
 
     const applyFilters = () => {
         const nextFilters = { ...draftFilters }
 
         setFilters(nextFilters)
         saveFiltersToStorage(storageKey, nextFilters)
-    }
-
-    const handlePresetClick = (preset) => {
-        const range = getPresetRange(preset)
-
-        setDraftFilters((prev) => ({
-            ...prev,
-            dateFrom: range.dateFrom,
-            dateTo: range.dateTo,
-            selectedPreset: preset,
-        }))
     }
 
     const handleDraftFilterChange = (field, value) => {
@@ -87,12 +74,9 @@ export function useOrdersFilters(storageKey, initialDefaults) {
 
     return {
         filters,
-        formattedFilters,
         draftFilters,
         setDraftFilters,
-        selectedPreset,
         applyFilters,
-        handlePresetClick,
         handleDraftFilterChange,
     }
 }

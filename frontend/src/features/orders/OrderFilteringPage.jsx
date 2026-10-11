@@ -13,7 +13,6 @@ import DownloadAction from '../../components/ui/buttons/DownloadAction.jsx'
 import AppSnackbar from '../../components/ui/feedback/AppSnackbar.jsx'
 import { useFileUpload } from '../../hooks/useUploadFile.js'
 import CustomPagination from '../../pages/components/CustomPagination.jsx'
-import { useOrdersFilters } from '../../pages/hooks/useOrdersFilters.js'
 import { exportOrdersToExcel } from '../../pages/utils/exportOrders.js'
 import { formatDate } from '../../pages/utils/orders.date-filters.js'
 import { localeText } from '../../utils/localeDataGridText.js'
@@ -22,6 +21,7 @@ import { useGetCustomers } from '../customers/utils/customers.queries.js'
 import { useGetWarehouses } from '../warehouses/utils/stocks.queries.js'
 
 import { orderFilteringPageSx as sx } from './OrderFilteringPage.styles.js'
+import { useOrdersFilters } from './hooks/useOrdersFilters.js'
 import { useViewUpd } from './hooks/useViewUpd.js'
 import { getFilterGridOrderColumns } from './utils/filtering_order.columns.jsx'
 import { useExportOrders, useGetOrders, useUploadUpd } from './utils/orders.queries.js'
@@ -38,6 +38,7 @@ const initialDefaults = {
     samples: false,
     no_upd: false,
     productId: '',
+    selectedPreset: null,
 }
 
 export default function OrderFilteringPage() {
@@ -58,7 +59,6 @@ export default function OrderFilteringPage() {
     const { formattedFilters, draftFilters, applyFilters, handleDraftFilterChange } = useOrdersFilters(
         STORAGE_KEY,
         initialDefaults,
-        ['samples', 'no_upd'],
     )
 
     const productValue = products.some((product) => product.id === draftFilters.productId) ? draftFilters.productId : ''
