@@ -1,55 +1,8 @@
 import { clickableDataGridSx } from '../../styles/dataGrid.styles.js'
-import { commonLayoutSx } from '../../styles/layout.styles.js'
+import { filteringPageSx } from '../../styles/filteringPage.styles.js'
 
 export const orderFilteringPageSx = {
-    page: commonLayoutSx.page,
-
-    header: {
-        ...commonLayoutSx.header,
-
-        display: 'flex',
-        flexDirection: {
-            xs: 'column',
-            sm: 'row',
-        },
-    },
-
-    title: {
-        m: 0,
-        minWidth: 0,
-        overflowWrap: 'anywhere',
-    },
-
-    headerActions: {
-        display: 'flex',
-        justifyContent: {
-            xs: 'flex-start',
-            sm: 'flex-end',
-        },
-        gap: 2,
-    },
-
-    filters: {
-        display: 'grid',
-        gridTemplateColumns: {
-            xs: 'minmax(0, 1fr)',
-            md: 'repeat(3, minmax(0, 1fr))',
-        },
-        gap: {
-            xs: 2,
-            md: 3,
-        },
-        pt: 2,
-        alignItems: 'start',
-        minWidth: 0,
-    },
-
-    filterColumn: {
-        display: 'flex',
-        flexDirection: 'column',
-        gap: 2,
-        minWidth: 0,
-    },
+    ...filteringPageSx,
 
     checkboxGroup: {
         display: 'flex',
@@ -66,21 +19,6 @@ export const orderFilteringPageSx = {
             color: 'text.secondary',
         },
     },
-
-    actions: {
-        p: 1,
-        display: 'flex',
-        justifyContent: 'flex-end',
-    },
-
-    applyButton: {
-        width: {
-            xs: '100%',
-            sm: 150,
-        },
-    },
-
-    tableDivider: commonLayoutSx.divider,
 
     dataGrid: clickableDataGridSx,
 

@@ -8,10 +8,11 @@ import DateRangeFields from '../../components/DateRangeFields.jsx'
 import PageHeader from '../../components/PageHeader.jsx'
 import ApplyAction from '../../components/ui/buttons/ApplyAction.jsx'
 import DownloadAction from '../../components/ui/buttons/DownloadAction.jsx'
+import ResetAction from '../../components/ui/buttons/ResetAction.jsx'
 import { useFilters } from '../../hooks/useFilters.js'
 import { formatDate } from '../../pages/utils/orders.date-filters.js'
+import { filteringPageSx as sx } from '../../styles/filteringPage.styles.js'
 import { useGetCustomerObjects, useGetCustomers } from '../customers/utils/customers.queries.js'
-import { orderFilteringPageSx as sx } from '../orders/OrderFilteringPage.styles.js'
 
 const statusOptions = [
     { id: 'open', name: 'Открыта' },
@@ -40,7 +41,7 @@ export default function RepairRequestListPage() {
 
     const { data: customers = [] } = useGetCustomers()
 
-    const { filters, draftFilters, applyFilters, handleDraftFilterChange } = useFilters(initialDefaults)
+    const { filters, draftFilters, applyFilters, resetFilters, handleDraftFilterChange } = useFilters(initialDefaults)
 
     const { data: customerObjects = [] } = useGetCustomerObjects(draftFilters.customerId)
 
@@ -109,6 +110,7 @@ export default function RepairRequestListPage() {
 
             <Box sx={sx.actions}>
                 <ApplyAction onClick={applyFilters} sx={sx.applyButton} />
+                <ResetAction onClick={resetFilters} />
             </Box>
 
             <Divider sx={sx.tableDivider} />

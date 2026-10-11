@@ -72,11 +72,23 @@ export function useFilters(initialDefaults, storageKey = null) {
         }))
     }
 
+    const resetFilters = () => {
+        const nextFilters = { ...initialDefaults }
+
+        setFilters(nextFilters)
+        setDraftFilters(nextFilters)
+
+        if (storageKey) {
+            localStorage.removeItem(storageKey)
+        }
+    }
+
     return {
         filters,
         draftFilters,
         setDraftFilters,
         applyFilters,
+        resetFilters,
         handleDraftFilterChange,
     }
 }
