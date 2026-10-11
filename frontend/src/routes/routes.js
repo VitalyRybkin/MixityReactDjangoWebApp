@@ -123,4 +123,8 @@ export const routes = [
         path: '/repair/companies/:id/edit',
         breadcrumb: 'Редактировать',
     },
+    {
+        path: '/repair/requests',
+        breadcrumb: 'Ремонт',
+    },
 ]

@@ -1,7 +1,9 @@
 // --- UTILS ---
-import {repairCompaniesApiPaths} from "./repairApiPaths.js";
-import api from "../../../api.js";
-import {useMutation, useQuery, useQueryClient} from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+
+import api from '../../../api.js'
+
+import { repairCompaniesApiPaths, repairRequestsApiPaths } from './repairApiPaths.js'
 
 const unwrapList = (data) => {
     if (Array.isArray(data)) return data
@@ -17,6 +19,12 @@ export const repairCompaniesKeys = {
     contacts: (id) => [...repairCompaniesKeys.all, 'detail', String(id), 'contacts'],
 }
 
+export const repairRequestsKeys = {
+    all: ['repairRequests'],
+    list: () => [...repairRequestsKeys.all, 'list'],
+    detail: (id) => [...repairRequestsKeys.all, 'detail', String(id)],
+}
+
 // --- API FUNCTIONS ---
 
 export const fetchRepairCompanies = async () => {
@@ -24,7 +32,7 @@ export const fetchRepairCompanies = async () => {
     return unwrapList(response.data)
 }
 
-export const fetchRepairCompanyDetail = async(id) => {
+export const fetchRepairCompanyDetail = async (id) => {
     const response = await api.get(repairCompaniesApiPaths.detail(id))
     return response.data
 }
@@ -35,10 +43,7 @@ export const createRepairCompany = async (payload) => {
 }
 
 export const updateRepairCompany = async ({ id, payload }) => {
-    const response = await api.patch(
-        repairCompaniesApiPaths.detail(id),
-        payload,
-    )
+    const response = await api.patch(repairCompaniesApiPaths.detail(id), payload)
 
     return response.data
 }
@@ -48,6 +53,15 @@ export const deleteRepairCompany = async (id) => {
     return response.data
 }
 
+export const fetchRepairRequests = async () => {
+    const response = await api.get(repairRequestsApiPaths.listCreate())
+    return unwrapList(response.data)
+}
+
+export const fetchRepairRequestDetail = async (id) => {
+    const response = await api.get(repairRequestsApiPaths.detail(id))
+    return response.data
+}
 
 // --- HOOKS ---
 
@@ -76,7 +90,7 @@ export function useCreateRepairCompany() {
     })
 }
 
-export function useUpdateRepairCompany(){
+export function useUpdateRepairCompany() {
     const queryClient = useQueryClient()
     return useMutation({
         mutationFn: updateRepairCompany,
@@ -87,7 +101,7 @@ export function useUpdateRepairCompany(){
     })
 }
 
-export function useDeleteRepairCompany(){
+export function useDeleteRepairCompany() {
     const queryClient = useQueryClient()
     return useMutation({
         mutationFn: deleteRepairCompany,
@@ -95,5 +109,20 @@ export function useDeleteRepairCompany(){
             await queryClient.invalidateQueries({ queryKey: repairCompaniesKeys.list() })
             await queryClient.invalidateQueries({ queryKey: repairCompaniesKeys.detail(id) })
         },
+    })
+}
+
+export function useGetRepairRequests() {
+    return useQuery({
+        queryKey: repairRequestsKeys.list(),
+        queryFn: fetchRepairRequests,
+    })
+}
+
+export function useGetRepairRequest(id) {
+    return useQuery({
+        queryKey: repairRequestsKeys.detail(id),
+        queryFn: () => fetchRepairRequestDetail(id),
+        enabled: Boolean(id),
     })
 }

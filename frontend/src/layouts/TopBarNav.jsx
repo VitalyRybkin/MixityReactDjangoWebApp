@@ -23,6 +23,7 @@ const REFERENCE_ITEMS = [
 const NAV_ITEMS = [
     { label: 'Документация', to: '/documentation' },
     { label: 'Поиск', to: '/filtering' },
+    { label: 'Ремонт', to: '/repair/requests' },
 ]
 
 const MenuItems = ({ items, onClick }) =>
