@@ -127,4 +127,8 @@ export const routes = [
         path: '/repair/requests',
         breadcrumb: 'Ремонт',
     },
+    {
+        path: '/repair/requests/create',
+        breadcrumb: 'Создать заявку',
+    },
 ]

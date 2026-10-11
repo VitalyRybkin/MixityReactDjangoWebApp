@@ -27,6 +27,7 @@ import OrderFormPage from './features/orders/OrderForm.jsx'
 import RepairCompanyDetailPage from './features/repairs/RepairCompanyDetail.jsx'
 import RepairCompanyFormPage from './features/repairs/RepairCompanyForm.jsx'
 import RepairCompaniesList from './features/repairs/RepairCompniesList.jsx'
+import RepairRequestFormPage from './features/repairs/RepairRequestForm.jsx'
 import RepairRequestListPage from './features/repairs/RepairRequestList.jsx'
 import WarehouseInfoPage from './features/warehouses/WarehouseDetail.jsx'
 import WarehouseFormPage from './features/warehouses/WarehouseForm.jsx'
@@ -107,6 +108,7 @@ const router = createBrowserRouter(
                     <Route path="/documentation" element={<DocumentationListPage />} />
                     <Route path="/filtering" element={<OrderFilteringPage />} />
                     <Route path="/repair/requests" element={<RepairRequestListPage />} />
+                    <Route path="/repair/requests/create" element={<RepairRequestFormPage />} />
                 </Route>
 
                 {/* Full-width layout */}
