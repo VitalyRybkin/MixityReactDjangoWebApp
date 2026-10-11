@@ -53,13 +53,49 @@ export const deleteRepairCompany = async (id) => {
     return response.data
 }
 
-export const fetchRepairRequests = async () => {
-    const response = await api.get(repairRequestsApiPaths.listCreate())
-    return unwrapList(response.data)
+export const fetchRepairRequests = async (filters = {}) => {
+    const params = {}
+
+    if (filters.dateFrom) {
+        params.date_from = filters.dateFrom
+    }
+
+    if (filters.dateTo) {
+        params.date_to = filters.dateTo
+    }
+
+    if (filters.status) {
+        params.status = filters.status
+    }
+
+    if (filters.location) {
+        params.location = filters.location
+    }
+
+    if (filters.customerId) {
+        params.customer_id = filters.customerId
+    }
+
+    if (filters.objectId) {
+        params.customer = filters.objectId
+    }
+
+    const response = await api.get(repairRequestsApiPaths.listCreate(), { params })
+    return response.data
 }
 
 export const fetchRepairRequestDetail = async (id) => {
     const response = await api.get(repairRequestsApiPaths.detail(id))
+    return response.data
+}
+
+export const createRepairRequest = async (payload) => {
+    const response = await api.post(repairRequestsApiPaths.listCreate(), payload)
+    return response.data
+}
+
+export const updateRepairRequest = async (id, payload) => {
+    const response = await api.put(repairRequestsApiPaths.detail(id), payload)
     return response.data
 }
 
@@ -112,17 +148,39 @@ export function useDeleteRepairCompany() {
     })
 }
 
-export function useGetRepairRequests() {
+export function useGetRepairRequests(filters) {
     return useQuery({
-        queryKey: repairRequestsKeys.list(),
-        queryFn: fetchRepairRequests,
+        queryKey: repairRequestsKeys.list(filters),
+        queryFn: () => fetchRepairRequests(filters),
     })
 }
 
-export function useGetRepairRequest(id) {
+export function useGetRepairRequest(id, options) {
     return useQuery({
         queryKey: repairRequestsKeys.detail(id),
+        ...options,
         queryFn: () => fetchRepairRequestDetail(id),
-        enabled: Boolean(id),
+        enabled: Boolean(id) && options.enabled !== false,
+    })
+}
+
+export function useCreateRepairRequest() {
+    const queryClient = useQueryClient()
+    return useMutation({
+        mutationFn: createRepairRequest,
+        onSuccess: async () => {
+            await queryClient.invalidateQueries({ queryKey: repairRequestsKeys.all })
+        },
+    })
+}
+
+export function useUpdateRepairRequest() {
+    const queryClient = useQueryClient()
+    return useMutation({
+        mutationFn: updateRepairRequest,
+        onSuccess: async (_, variables) => {
+            await queryClient.invalidateQueries({ queryKey: repairRequestsKeys.list() })
+            await queryClient.invalidateQueries({ queryKey: repairRequestsKeys.detail(variables.id) })
+        },
     })
 }
