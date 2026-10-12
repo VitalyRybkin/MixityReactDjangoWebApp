@@ -8,3 +8,8 @@ export const repairRequestsApiPaths = {
     listCreate: () => '/api/repair/requests/',
     detail: (id) => `/api/repair/requests/${id}/`,
 }
+
+export const repairRequestPartsApiPaths = {
+    listCreate: (id) => `/api/repair/parts/`,
+    detail: (id) => `/api/repair/parts/${id}/`,
+}

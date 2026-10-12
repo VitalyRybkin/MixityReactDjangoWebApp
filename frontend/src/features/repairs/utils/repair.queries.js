@@ -3,7 +3,12 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 
 import api from '../../../api.js'
 
-import { repairCompaniesApiPaths, repairRequestsApiPaths } from './repairApiPaths.js'
+import {
+    repairCompaniesApiPaths,
+    repairCompaniesApiPaths as repairPartsApiPaths,
+    repairRequestPartsApiPaths,
+    repairRequestsApiPaths,
+} from './repairApiPaths.js'
 
 const unwrapList = (data) => {
     if (Array.isArray(data)) return data
@@ -25,7 +30,13 @@ export const repairRequestsKeys = {
     detail: (id) => [...repairRequestsKeys.all, 'detail', String(id)],
 }
 
-// --- API FUNCTIONS ---
+export const repairRequestPartsKeys = {
+    all: ['repairRequestParts'],
+    list: () => [...repairRequestPartsKeys.all, 'list'],
+    detail: (id) => [...repairRequestPartsKeys.all, 'detail', String(id)],
+}
+
+// --- API FUNCTIONS FOR COMPANY ---
 
 export const fetchRepairCompanies = async () => {
     const response = await api.get(repairCompaniesApiPaths.listCreate())
@@ -52,6 +63,8 @@ export const deleteRepairCompany = async (id) => {
     const response = await api.delete(repairCompaniesApiPaths.detail(id))
     return response.data
 }
+
+// --- API FUNCTIONS FOR REPAIR REQUESTS ---
 
 export const fetchRepairRequests = async (filters = {}) => {
     const params = {}
@@ -99,7 +112,19 @@ export const updateRepairRequest = async (id, payload) => {
     return response.data
 }
 
-// --- HOOKS ---
+// --- API FUNCTIONS FOR REPAIR PARTS ---
+
+export const fetchSpareParts = async () => {
+    const response = await api.get(repairRequestPartsApiPaths.listCreate())
+    return unwrapList(response.data)
+}
+
+export const fetchSparePartDetail = async (id) => {
+    const response = await api.get(repairRequestPartsApiPaths.detail(id))
+    return response.data
+}
+
+// --- HOOKS FOR COMPANIES ---
 
 export function useGetRepairCompanies() {
     return useQuery({
@@ -148,6 +173,8 @@ export function useDeleteRepairCompany() {
     })
 }
 
+// --- HOOKS FOR REPAIR REQUESTS ---
+
 export function useGetRepairRequests(filters) {
     return useQuery({
         queryKey: repairRequestsKeys.list(filters),
@@ -182,5 +209,22 @@ export function useUpdateRepairRequest() {
             await queryClient.invalidateQueries({ queryKey: repairRequestsKeys.list() })
             await queryClient.invalidateQueries({ queryKey: repairRequestsKeys.detail(variables.id) })
         },
+    })
+}
+
+// --- HOOKS FOR SPARE PARTS ---
+
+export function useGetSpareParts() {
+    return useQuery({
+        queryKey: repairRequestPartsKeys.list(),
+        queryFn: () => fetchSpareParts(),
+    })
+}
+
+export function useSparePartDetail(id) {
+    return useQuery({
+        queryKey: repairRequestPartsKeys.detail(id),
+        queryFn: () => fetchSparePartDetail(id),
+        enabled: Boolean(id),
     })
 }
