@@ -1,12 +1,13 @@
 from django.urls import path
 
-from repairs.routes import RepairCompanyRoutes, RepairRequestRoutes
+from repairs.routes import RepairCompanyRoutes, RepairPartRoutes, RepairRequestRoutes
 from repairs.views.repair_company_views import (
     RepairCompanyContactListCreateAPIView,
     RepairCompanyListCreateAPIView,
     RepairCompanyRetrieveUpdateDestroyAPIView,
 )
 from repairs.views.repair_request_views import (
+    RepairPartsListAPIView,
     RepairRequestListAPIView,
     RepairRequestRetrieveUpdateDestroyAPIView,
 )
@@ -38,5 +39,10 @@ urlpatterns = [
         RepairRequestRoutes.DETAIL.path,
         RepairRequestRetrieveUpdateDestroyAPIView.as_view(),
         name=RepairRequestRoutes.DETAIL.name,
+    ),
+    path(
+        RepairPartRoutes.LIST_CREATE.path,
+        RepairPartsListAPIView.as_view(),
+        name=RepairPartRoutes.LIST_CREATE.name,
     ),
 ]

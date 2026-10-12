@@ -19,6 +19,7 @@ class RepairRequestRoutes:
     LIST_CREATE = ApiRoute("requests/", "repair_request_list_create")
     DETAIL = ApiRoute("requests/<int:pk>/", "repair_request_detail")
 
+
 class RepairPartRoutes:
     """
     Routes for managing Repair Part resources.
@@ -26,6 +27,7 @@ class RepairPartRoutes:
 
     LIST_CREATE = ApiRoute("parts/", "repair_part_list_create")
     DETAIL = ApiRoute("parts/<int:pk>/", "repair_part_detail")
+
 
 class ServiceRoutes:
     """
