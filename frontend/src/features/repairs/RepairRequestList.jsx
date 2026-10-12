@@ -3,8 +3,8 @@ import { useLocation, useNavigate } from 'react-router-dom'
 
 import { Box, Divider } from '@mui/material'
 
-import AppSelectField from '../../AppSelectField.jsx'
 import AppBreadcrumbs from '../../components/AppBreadcrumbs.jsx'
+import AppSelectField from '../../components/AppSelectField.jsx'
 import DateRangeFields from '../../components/DateRangeFields.jsx'
 import PageHeader from '../../components/PageHeader.jsx'
 import AddAction from '../../components/ui/buttons/AddAction.jsx'
@@ -102,6 +102,7 @@ export default function RepairRequestListPage() {
                         value={draftFilters.customerId}
                         options={customers}
                         onChange={handleCustomerChange}
+                        searchable
                         fullWidth
                     />
 
@@ -112,6 +113,7 @@ export default function RepairRequestListPage() {
                         options={customerObjects}
                         onChange={(value) => handleDraftFilterChange('objectId', value)}
                         disabled={!draftFilters.customerId}
+                        searchable
                         fullWidth
                     />
                 </Box>

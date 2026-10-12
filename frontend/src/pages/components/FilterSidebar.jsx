@@ -1,6 +1,6 @@
 import { Box, Button, Divider, Tooltip, Typography } from '@mui/material'
 
-import AppSelectField from '../../AppSelectField.jsx'
+import AppSelectField from '../../components/AppSelectField.jsx'
 import DateRangeFields from '../../components/DateRangeFields.jsx'
 import ApplyAction from '../../components/ui/buttons/ApplyAction.jsx'
 import AppSidebar from '../../layouts/AppSidebar.jsx'
