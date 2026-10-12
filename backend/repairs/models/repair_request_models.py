@@ -24,6 +24,12 @@ class RepairRequest(models.Model):
         blank=True,
         verbose_name="Дата выполнения",
     )
+    repair_company = models.ForeignKey(
+        "repairs.RepairCompany",
+        on_delete=models.SET_NULL,
+        null=True,
+        verbose_name="Ремонтная компания",
+    )
     status = models.CharField(
         max_length=10,
         choices=Status.choices,
@@ -52,7 +58,6 @@ class RepairRequest(models.Model):
         blank=True,
         verbose_name="Описание запроса на ремонт",
     )
-
     closing_description = models.TextField(
         null=True,
         blank=True,

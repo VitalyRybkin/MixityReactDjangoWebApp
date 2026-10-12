@@ -20,6 +20,7 @@ class RepairRequestSerializer(serializers.ModelSerializer):
             "id",
             "request_date",
             "closing_date",
+            "repair_company",
             "created_by",
             "location",
             "status",
