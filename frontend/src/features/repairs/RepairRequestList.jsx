@@ -98,7 +98,7 @@ export default function RepairRequestListPage() {
                 onChange={handleRepairCompanyChange}
                 searchable
                 fullWidth
-                sx={{ width: '410px', mt: 1 }}
+                sx={{ width: '420px', mt: 1 }}
             />
 
             <Box sx={sx.filters}>

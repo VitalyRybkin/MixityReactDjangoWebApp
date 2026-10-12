@@ -17,6 +17,9 @@ import { useGetCustomerObjects, useGetCustomers } from '../customers/utils/custo
 import { useLoadingError } from '../orders/hooks/useLoadingError.js'
 
 import { fieldsetStyles, repairRequestFormSx as sx } from './RepairRequestForm.styles.js'
+import RepairRequestDescription from './components/RepairRequestDescription.jsx'
+import RepairRequestExecutionFields from './components/RepairRequestExecutionFields.jsx'
+import RepairRequestMainFields from './components/RepairRequestMainFields.jsx'
 import {
     useCreateRepairRequest,
     useGetRepairCompanies,
@@ -72,6 +75,7 @@ export default function RepairRequestFormPage() {
             closing_date: form.closing_date || null,
             status: form.status,
             location: form.location,
+            repair_company: form.repair_company,
             construction_object: form.construction_object,
             description: form.description,
             closing_description: form.closing_description,
@@ -135,137 +139,29 @@ export default function RepairRequestFormPage() {
                 ) : (
                     <>
                         <Box sx={sx.formColumns}>
-                            <Box component="fieldset" sx={[fieldsetStyles, sx.fieldset]}>
-                                <Typography component="legend" variant="caption" sx={sx.legend}>
-                                    Данные заявки:
-                                </Typography>
-
-                                <Box sx={sx.fields}>
-                                    <TextField
-                                        label="Дата открытия заявки"
-                                        type="date"
-                                        size="small"
-                                        value={form.request_date || ''}
-                                        onChange={onChange('request_date')}
-                                        slotProps={{ inputLabel: { shrink: true } }}
-                                        sx={sx.field}
-                                    />
-
-                                    <AppSelectField
-                                        id="repair-company"
-                                        label="Ремонтирующая компания"
-                                        value={form.repair_company || ''}
-                                        options={repairCompanies}
-                                        onChange={(value) => handleSelectChange('repair_company', value)}
-                                        searchable
-                                        fullWidth
-                                        sx={{ width: '410px' }}
-                                    />
-
-                                    <AppSelectField
-                                        id="repair-customer"
-                                        label="Контрагент"
-                                        value={form.customerId || ''}
-                                        options={customers}
-                                        onChange={handleCustomerChange}
-                                        searchable
-                                        includeAll={false}
-                                        fullWidth
-                                    />
-
-                                    <AppSelectField
-                                        id="repair-object"
-                                        label="Объект"
-                                        value={form.construction_object || ''}
-                                        options={customerObjects}
-                                        onChange={(value) => handleSelectChange('construction_object', value)}
-                                        searchable
-                                        includeAll={false}
-                                        disabled={!form.customerId}
-                                        fullWidth
-                                    />
-                                </Box>
-
-                                <Box sx={sx.filesSection}>
-                                    <Typography variant="caption" sx={sx.filesTitle}>
-                                        Файлы
-                                    </Typography>
-
-                                    <FileUploadAction />
-                                </Box>
-                            </Box>
-
-                            <Box component="fieldset" sx={[fieldsetStyles, sx.fieldset]}>
-                                <Typography component="legend" variant="caption" sx={sx.legend}>
-                                    Выполнение заявки:
-                                </Typography>
-
-                                <Box sx={sx.fields}>
-                                    <TextField
-                                        label="Дата закрытия заявки"
-                                        type="date"
-                                        size="small"
-                                        value={form.closing_date || ''}
-                                        onChange={onChange('closing_date')}
-                                        slotProps={{ inputLabel: { shrink: true } }}
-                                        sx={sx.field}
-                                    />
-
-                                    <AppSelectField
-                                        id="repair-status"
-                                        label="Статус"
-                                        value={form.status}
-                                        options={toSelectOptions(statusOptions)}
-                                        onChange={(value) => handleSelectChange('status', value)}
-                                        includeAll={false}
-                                        fullWidth
-                                    />
-
-                                    <AppSelectField
-                                        id="repair-location"
-                                        label="Место выполнения"
-                                        value={form.location}
-                                        options={toSelectOptions(locationOptions)}
-                                        onChange={(value) => handleSelectChange('location', value)}
-                                        includeAll={false}
-                                        fullWidth
-                                    />
-                                </Box>
-
-                                <Box sx={sx.filesSection}>
-                                    <Typography variant="caption" sx={sx.filesTitle}>
-                                        Файлы
-                                    </Typography>
-
-                                    <FileUploadAction />
-                                </Box>
-                            </Box>
-
-                            <TextField
-                                value={form.description || ''}
-                                onChange={onChange('description')}
-                                label="Описание"
-                                multiline
-                                fullWidth
-                                sx={sx.descriptionField}
+                            <RepairRequestMainFields
+                                form={form}
+                                customers={customers}
+                                customerObjects={customerObjects}
+                                repairCompanies={repairCompanies}
+                                onChange={onChange}
+                                onSelectChange={handleSelectChange}
+                                onCustomerChange={handleCustomerChange}
                             />
+
+                            <RepairRequestExecutionFields
+                                form={form}
+                                onChange={onChange}
+                                onSelectChange={handleSelectChange}
+                            />
+
+                            <RepairRequestDescription form={form} onChange={onChange} />
                         </Box>
-
-                        {form.status === 'closed' && (
-                            <TextField
-                                size="small"
-                                label="Описание при закрытии"
-                                value={form.closing_description || ''}
-                                onChange={onChange('closing_description')}
-                                multiline
-                                rows={3}
-                                fullWidth
-                                sx={sx.note}
-                            />
-                        )}
                     </>
                 )}
             </Box>
+
+            <Divider sx={sx.divider} />
 
             <ConfirmDialog
                 title="Есть несохранённые изменения"

@@ -3,7 +3,7 @@ const tomorrow = new Date(today)
 tomorrow.setDate(today.getDate() + 1)
 
 export const emptyRequestForm = {
-    request_date: '',
+    request_date: today.toISOString().split('T')[0],
     closing_date: '',
     status: 'open',
     location: 'site',
