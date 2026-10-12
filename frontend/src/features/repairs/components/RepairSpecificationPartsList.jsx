@@ -1,132 +1,123 @@
 import { useMemo } from 'react'
 
-import { Autocomplete, Box, Divider, Stack, TextField, Typography } from '@mui/material'
+import { Autocomplete, Box, Checkbox, FormControlLabel, Stack, TextField, Typography } from '@mui/material'
 
-import AddAction from '../../../components/ui/buttons/AddAction.jsx'
 import DeleteAction from '../../../components/ui/buttons/DeleteAction.jsx'
 
 import { repairPartsListSx as sx } from './RepairSpecificationPartsList.styles.js'
 
-export default function RepairSpecificationPartsList({ rows, partErrors = {}, partsList, onChange, onAdd, onRemove }) {
+export default function RepairSpecificationPartsList({ rows, partErrors = {}, partsList, onChange, onRemove }) {
     const selectedPartIds = useMemo(() => rows.map((row) => row.partId).filter(Boolean), [rows])
+
     return (
-        <>
-            <Box sx={sx.header}>
-                <Typography variant="h5" color="text.secondary">
-                    Запчасти
+        <Stack spacing={1}>
+            {rows.length === 0 && (
+                <Typography color="text.secondary" sx={sx.emptyText}>
+                    Добавьте запчасти.
                 </Typography>
+            )}
 
-                <AddAction onClick={onAdd} />
-            </Box>
+            {rows.map((row) => {
+                const selectedPart = partsList.find((part) => part.id === row.partId) || null
 
-            <Divider sx={sx.divider} />
+                const rowErrors = partErrors[row.id] || {}
 
-            <Stack spacing={1}>
-                {rows.length === 0 && (
-                    <Typography color="text.secondary" sx={sx.emptyText}>
-                        Добавьте запчасти.
-                    </Typography>
-                )}
-
-                {rows.map((row) => {
-                    const selectedPart = partsList.find((part) => part.id === row.partId) || null
-                    const quantityError = Boolean(partErrors[row.id])
-
-                    return (
-                        <Box key={row.id} sx={sx.row}>
-                            <Box sx={sx.fields}>
-                                <Autocomplete
-                                    fullWidth
-                                    size="small"
-                                    options={partsList}
-                                    value={selectedPart}
-                                    getOptionLabel={(option) => option?.name || ''}
-                                    isOptionEqualToValue={(option, value) => option.id === value.id}
-                                    getOptionDisabled={(option) =>
-                                        selectedPartIds.includes(option.id) && option.id !== row.partId
-                                    }
-                                    onChange={(_, newValue) => {
-                                        onChange(row.id, {
-                                            partId: newValue?.id || '',
-                                        })
-                                    }}
-                                    renderInput={(params) => (
-                                        <TextField
-                                            {...params}
-                                            label="Запчасти"
-                                            placeholder="Начните вводить название"
-                                        />
-                                    )}
-                                    sx={sx.productField}
-                                />
-
-                                <Box sx={sx.quantityGroup}>
+                return (
+                    <Box key={row.id} sx={sx.row}>
+                        <Box sx={sx.fields}>
+                            <Autocomplete
+                                fullWidth
+                                size="small"
+                                options={partsList}
+                                value={selectedPart}
+                                getOptionLabel={(option) => option?.name || ''}
+                                isOptionEqualToValue={(option, value) => option.id === value.id}
+                                getOptionDisabled={(option) =>
+                                    selectedPartIds.includes(option.id) && option.id !== row.partId
+                                }
+                                onChange={(_, newValue) =>
+                                    onChange(row.id, {
+                                        partId: newValue?.id || '',
+                                    })
+                                }
+                                renderInput={(params) => (
                                     <TextField
-                                        size="small"
-                                        label="Количество"
-                                        type="number"
-                                        required
-                                        value={row.quantity}
-                                        onChange={(e) => {
-                                            const value = e.target.value
-
-                                            if (value === '') {
-                                                onChange(row.id, { quantity: '' })
-                                                return
-                                            }
-
-                                            // if (isPieceBased) {
-                                            //     if (/^\d*$/.test(value)) {
-                                            //         onChange(row.id, { quantity: value })
-                                            //     }
-                                            // } else if (/^\d*\.?\d{0,2}$/.test(value)) {
-                                            //     onChange(row.id, { quantity: value })
-                                            // }
-                                        }}
-                                        error={quantityError}
-                                        // slotProps={{
-                                        //     input: {
-                                        //         inputProps: {
-                                        //             step: isPieceBased ? 1 : 0.01,
-                                        //             inputMode: isPieceBased ? 'numeric' : 'decimal',
-                                        //             min: isPieceBased ? 1 : 0.01,
-                                        //         },
-                                        //     },
-                                        // }}
-                                        sx={sx.quantityField}
+                                        {...params}
+                                        label="Запчасть"
+                                        placeholder="Начните вводить название"
+                                        error={Boolean(rowErrors.partId)}
+                                        helperText={rowErrors.partId || ''}
                                     />
+                                )}
+                                sx={sx.partField}
+                            />
 
-                                    {/*<Typography variant="body1" sx={sx.unit}>*/}
-                                    {/*    {unitTitle}*/}
-                                    {/*</Typography>*/}
-                                </Box>
+                            <TextField
+                                size="small"
+                                label="Кол-во"
+                                type="number"
+                                required
+                                value={row.quantity}
+                                onChange={(e) =>
+                                    onChange(row.id, {
+                                        quantity: e.target.value,
+                                    })
+                                }
+                                error={Boolean(rowErrors.quantity)}
+                                helperText={rowErrors.quantity || ''}
+                                slotProps={{
+                                    htmlInput: {
+                                        min: 0,
+                                        step: 'any',
+                                    },
+                                }}
+                                sx={sx.quantityField}
+                            />
 
-                                {/*<Autocomplete*/}
-                                {/*    fullWidth*/}
-                                {/*    size="small"*/}
-                                {/*    options={packsList}*/}
-                                {/*    value={selectedPack}*/}
-                                {/*    getOptionLabel={(option) => option?.name || ''}*/}
-                                {/*    isOptionEqualToValue={(option, value) => option.id === value.id}*/}
-                                {/*    onChange={(_, newValue) =>*/}
-                                {/*        onChange(row.id, {*/}
-                                {/*            packId: newValue?.id || '',*/}
-                                {/*        })*/}
-                                {/*    }*/}
-                                {/*    renderInput={(params) => (*/}
-                                {/*        <TextField {...params} label="Тип упаковки" placeholder="Выберите упаковку" />*/}
-                                {/*    )}*/}
-                                {/*    sx={sx.packField}*/}
-                                {/*/>*/}
+                            <TextField
+                                size="small"
+                                label="Цена"
+                                type="number"
+                                required
+                                value={row.price_per_item}
+                                onChange={(e) =>
+                                    onChange(row.id, {
+                                        price_per_item: e.target.value,
+                                    })
+                                }
+                                error={Boolean(rowErrors.price_per_item)}
+                                helperText={rowErrors.price_per_item || ''}
+                                slotProps={{
+                                    htmlInput: {
+                                        min: 0,
+                                        step: '0.01',
+                                    },
+                                }}
+                                sx={sx.priceField}
+                            />
 
-                                <Box sx={sx.deleteAction}>
-                                    <DeleteAction onClick={() => onRemove(row.id)} />
-                                </Box>
+                            <FormControlLabel
+                                control={
+                                    <Checkbox
+                                        checked={Boolean(row.is_rebillable)}
+                                        onChange={(e) =>
+                                            onChange(row.id, {
+                                                is_rebillable: e.target.checked,
+                                            })
+                                        }
+                                    />
+                                }
+                                label="Перевыставить"
+                                sx={sx.rebillableField}
+                            />
+
+                            <Box sx={sx.deleteAction}>
+                                <DeleteAction onClick={() => onRemove(row.id)} />
                             </Box>
                         </Box>
-                    )
-                })}
-            </Stack>
-        </>
+                    </Box>
+                )
+            })}
+        </Stack>
     )
 }

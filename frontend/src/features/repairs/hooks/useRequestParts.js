@@ -4,48 +4,68 @@ const emptyPartsRow = () => ({
     id: crypto.randomUUID(),
     partId: '',
     quantity: '',
-    price: '',
+    price_per_item: '',
     is_rebillable: false,
 })
 
-export function useRequestParts(parts = []) {
+export function useRequestParts() {
     const [requestParts, setRequestParts] = useState([])
     const [partsErrors, setPartsErrors] = useState({})
 
     const totalPartsPrice = useMemo(() => {
         return requestParts.reduce((acc, row) => {
-            const price_per_item = Number(String(row.quantity).replace(',', '.')) || 0
             const quantity = Number(String(row.quantity).replace(',', '.')) || 0
-            if (!quantity) return acc
-            return acc + quantity * price_per_item
+
+            const pricePerItem = Number(String(row.price_per_item).replace(',', '.')) || 0
+
+            return acc + quantity * pricePerItem
         }, 0)
-    }, [requestParts, parts])
+    }, [requestParts])
 
     const normalizeRequestParts = (items = []) =>
         items.map((item) => ({
             id: item.id ?? crypto.randomUUID(),
-            partId: item.part?.id || '',
-            quantity: item.quantity || '',
-            price_per_item: Number(item.price_per_item) || 0,
+            partId: item.part?.id ?? item.part ?? '',
+            quantity: item.quantity ?? '',
+            price_per_item: item.price_per_item ?? '',
+            is_rebillable: item.is_rebillable ?? false,
         }))
 
-    const buildPartsPayload = (currentParts) =>
-        (currentParts || requestParts)
+    const buildPartsPayload = (currentParts = requestParts) =>
+        currentParts
             .filter((row) => row.partId && row.quantity)
             .map((row) => ({
                 part: row.partId,
                 quantity: row.quantity,
-                price_per_item: Number(row.price_per_item) || 0,
+                price_per_item: Number(String(row.price_per_item).replace(',', '.')) || 0,
+                is_rebillable: row.is_rebillable,
             }))
 
     const validate = () => {
         const errors = {}
+
         requestParts.forEach((row) => {
-            if (row.partId && (row.quantity === '' || row.quantity == null)) {
-                errors[row.id] = 'Пожалуйста, заполните поле'
+            const rowErrors = {}
+
+            if (!row.partId) {
+                rowErrors.partId = 'Выберите запчасть'
+            }
+
+            if (row.quantity === '' || row.quantity == null) {
+                rowErrors.quantity = 'Укажите количество'
+            }
+
+            if (row.price_per_item === '' || row.price_per_item == null) {
+                rowErrors.price_per_item = 'Укажите цену'
+            }
+
+            if (Object.keys(rowErrors).length > 0) {
+                errors[row.id] = rowErrors
             }
         })
+
         setPartsErrors(errors)
+
         return Object.keys(errors).length === 0
     }
 
@@ -55,17 +75,40 @@ export function useRequestParts(parts = []) {
 
     const handleChange = (rowId, updates) => {
         setRequestParts((prev) => prev.map((row) => (row.id === rowId ? { ...row, ...updates } : row)))
-        if ('quantity' in updates && updates.quantity !== '') {
-            setPartsErrors((prev) => {
-                const next = { ...prev }
-                delete next[rowId]
-                return next
+
+        setPartsErrors((prev) => {
+            const next = { ...prev }
+
+            if (!next[rowId]) {
+                return prev
+            }
+
+            const rowErrors = {
+                ...next[rowId],
+            }
+
+            Object.keys(updates).forEach((field) => {
+                delete rowErrors[field]
             })
-        }
+
+            if (Object.keys(rowErrors).length === 0) {
+                delete next[rowId]
+            } else {
+                next[rowId] = rowErrors
+            }
+
+            return next
+        })
     }
 
     const handleRemove = (rowId) => {
         setRequestParts((prev) => prev.filter((row) => row.id !== rowId))
+
+        setPartsErrors((prev) => {
+            const next = { ...prev }
+            delete next[rowId]
+            return next
+        })
     }
 
     return {

@@ -18,10 +18,8 @@ export const repairPartsListSx = {
     },
 
     row: {
-        p: {
-            xs: 0,
-            sm: 0.5,
-        },
+        py: 0.5,
+        px: 0,
         minWidth: 0,
     },
 
@@ -30,46 +28,45 @@ export const repairPartsListSx = {
         gridTemplateColumns: {
             xs: 'minmax(0, 1fr)',
             sm: 'repeat(2, minmax(0, 1fr))',
-            lg: 'minmax(240px, 2fr) minmax(170px, 0.7fr) minmax(240px, 1.5fr) auto',
+            md: 'minmax(260px, 1.8fr) 105px 130px auto 48px',
         },
-        gap: 1.5,
-        alignItems: 'center',
-        minWidth: 0,
-    },
-
-    productField: {
-        minWidth: 0,
-    },
-
-    quantityGroup: {
-        display: 'flex',
-        alignItems: 'center',
         gap: 1,
+        alignItems: 'center',
+        minWidth: 0,
+    },
+
+    partField: {
         minWidth: 0,
     },
 
     quantityField: {
-        flex: 1,
         minWidth: 0,
+        width: '100%',
     },
 
-    unit: {
-        width: 55,
-        flexShrink: 0,
-        color: 'text.secondary',
-    },
-
-    packField: {
+    priceField: {
         minWidth: 0,
         width: '100%',
     },
 
     deleteAction: {
         display: 'flex',
-        justifyContent: {
-            xs: 'flex-end',
-            sm: 'flex-end',
-            lg: 'center',
+        justifyContent: 'center',
+        alignItems: 'center',
+        width: 48,
+    },
+
+    rebillableField: {
+        m: 0,
+        whiteSpace: 'nowrap',
+
+        '& .MuiFormControlLabel-label': {
+            fontSize: '0.9rem',
+        },
+
+        '& .MuiCheckbox-root': {
+            p: 0.5,
+            mr: 0.5,
         },
     },
 }
