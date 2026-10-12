@@ -1,29 +1,35 @@
 import React, { useRef } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 
-import { Box, CircularProgress, Divider, TextField, Typography } from '@mui/material'
+import { Box, CircularProgress, Divider, Stack, TextField, Typography } from '@mui/material'
 
 import AppBreadcrumbs from '../../components/AppBreadcrumbs.jsx'
 import AppSelectField from '../../components/AppSelectField.jsx'
 import FileUploadAction from '../../components/FileUploadAction.jsx'
 import PageHeaderCreateUpdate from '../../components/PageHeaderCreateUpdate.jsx'
 import ErrorState from '../../components/ui/ErrorState.jsx'
+import AddAction from '../../components/ui/buttons/AddAction.jsx'
 import AppSnackbar from '../../components/ui/feedback/AppSnackbar.jsx'
 import ConfirmDialog from '../../components/ui/feedback/ConfirmDialog.jsx'
 import { useFormLogic } from '../../hooks/useEntityForm.js'
 import useSnackbar from '../../hooks/useSnackbar.js'
 import { entityTableListSx as listSx } from '../../styles/entityTableList.styles.js'
 import { useGetCustomerObjects, useGetCustomers } from '../customers/utils/customers.queries.js'
+import OrderProductsList from '../orders/components/OrderProductsList.jsx'
 import { useLoadingError } from '../orders/hooks/useLoadingError.js'
+import { useOrderProducts } from '../orders/hooks/useOrderProducts.js'
 
 import { fieldsetStyles, repairRequestFormSx as sx } from './RepairRequestForm.styles.js'
 import RepairRequestDescription from './components/RepairRequestDescription.jsx'
 import RepairRequestExecutionFields from './components/RepairRequestExecutionFields.jsx'
 import RepairRequestMainFields from './components/RepairRequestMainFields.jsx'
+import RepairSpecificationPartsList from './components/RepairSpecificationPartsList.jsx'
+import { useRequestParts } from './hooks/useRequestParts.js'
 import {
     useCreateRepairRequest,
     useGetRepairCompanies,
     useGetRepairRequest,
+    useGetSpareParts,
     useUpdateRepairRequest,
 } from './utils/repair.queries.js'
 import { emptyRequestForm, locationOptions, statusOptions } from './utils/request.form.constants.js'
@@ -49,6 +55,9 @@ export default function RepairRequestFormPage() {
     } = useGetRepairRequest(id, { enabled: isEdit })
 
     const { data: customers = [] } = useGetCustomers()
+    const { data: spareParts = [] } = useGetSpareParts()
+
+    console.log(spareParts)
 
     const createRepairRequest = useCreateRepairRequest()
     const updateRepairRequest = useUpdateRepairRequest()
@@ -100,6 +109,19 @@ export default function RepairRequestFormPage() {
             construction_object: '',
         }))
     }
+
+    const {
+        requestParts,
+        setRequestParts,
+        partsErrors,
+        totalPartsPrice,
+        normalizeRequestParts,
+        buildPartsPayload,
+        validate: validateParts,
+        handleAdd: handleAddPartRow,
+        handleChange: handlePartChange,
+        handleRemove: handleRemovePartRow,
+    } = useRequestParts(spareParts)
 
     useLoadingError(setError, {
         loadRequestError,
@@ -162,6 +184,35 @@ export default function RepairRequestFormPage() {
             </Box>
 
             <Divider sx={sx.divider} />
+
+            <Box sx={sx.header}>
+                <Stack direction="row" justifyContent="space-between" sx={{ p: 1 }}>
+                    <Typography variant="h6">Оказанные услуги:</Typography>
+                    <AddAction onClick={handleAddPartRow} />
+                </Stack>
+                <Divider sx={sx.divider} />
+            </Box>
+
+            {!pageLoadError && !isLoadingPage && (
+                <Box>
+                    <RepairSpecificationPartsList
+                        rows={requestParts}
+                        productErrors={partsErrors}
+                        productsList={requestParts || []}
+                        onAdd={handleAddPartRow}
+                        onChange={handlePartChange}
+                        onRemove={handleRemovePartRow}
+                    />
+                </Box>
+            )}
+
+            <Box sx={sx.header}>
+                <Stack direction="row" justifyContent="space-between" sx={{ p: 1 }}>
+                    <Typography variant="h6">Запчасти:</Typography>
+                    <AddAction onClick={handleAddPartRow} />
+                </Stack>
+                <Divider sx={sx.divider} />
+            </Box>
 
             <ConfirmDialog
                 title="Есть несохранённые изменения"

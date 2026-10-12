@@ -108,6 +108,7 @@ export const repairRequestFormSx = {
         alignItems: 'stretch',
         width: '100%',
         minWidth: 0,
+        mb: 2,
     },
 
     fieldset: {
