@@ -1,4 +1,4 @@
-import { useRef } from 'react'
+import React, { useRef } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 
 import { Box, CircularProgress, Divider, TextField, Typography } from '@mui/material'
@@ -17,7 +17,12 @@ import { useGetCustomerObjects, useGetCustomers } from '../customers/utils/custo
 import { useLoadingError } from '../orders/hooks/useLoadingError.js'
 
 import { fieldsetStyles, repairRequestFormSx as sx } from './RepairRequestForm.styles.js'
-import { useCreateRepairRequest, useGetRepairRequest, useUpdateRepairRequest } from './utils/repair.queries.js'
+import {
+    useCreateRepairRequest,
+    useGetRepairCompanies,
+    useGetRepairRequest,
+    useUpdateRepairRequest,
+} from './utils/repair.queries.js'
 import { emptyRequestForm, locationOptions, statusOptions } from './utils/request.form.constants.js'
 
 const toSelectOptions = (options) =>
@@ -44,6 +49,7 @@ export default function RepairRequestFormPage() {
 
     const createRepairRequest = useCreateRepairRequest()
     const updateRepairRequest = useUpdateRepairRequest()
+    const { data: repairCompanies = [] } = useGetRepairCompanies()
 
     const saving = createRepairRequest.isPending || updateRepairRequest.isPending
 
@@ -143,6 +149,17 @@ export default function RepairRequestFormPage() {
                                         onChange={onChange('request_date')}
                                         slotProps={{ inputLabel: { shrink: true } }}
                                         sx={sx.field}
+                                    />
+
+                                    <AppSelectField
+                                        id="repair-company"
+                                        label="Ремонтирующая компания"
+                                        value={form.repair_company || ''}
+                                        options={repairCompanies}
+                                        onChange={(value) => handleSelectChange('repair_company', value)}
+                                        searchable
+                                        fullWidth
+                                        sx={{ width: '410px' }}
                                     />
 
                                     <AppSelectField

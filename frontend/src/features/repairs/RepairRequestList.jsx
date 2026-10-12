@@ -17,9 +17,8 @@ import { entityTableListSx as listSx } from '../../styles/entityTableList.styles
 import { filteringPageSx as sx } from '../../styles/filteringPage.styles.js'
 import { useGetCustomerObjects, useGetCustomers } from '../customers/utils/customers.queries.js'
 
-import { useGetRepairRequests } from './utils/repair.queries.js'
+import { useGetRepairCompanies, useGetRepairRequests } from './utils/repair.queries.js'
 import { locationOptions, statusOptions } from './utils/request.form.constants.js'
-
 
 const today = formatDate(new Date())
 
@@ -30,6 +29,7 @@ const initialDefaults = {
     objectId: '',
     status: '',
     location: '',
+    repairCompanyId: '',
 }
 
 export default function RepairRequestListPage() {
@@ -38,6 +38,7 @@ export default function RepairRequestListPage() {
     const entity = location.state?.entity
 
     const { data: customers = [] } = useGetCustomers()
+    const { data: repairCompanies = [] } = useGetRepairCompanies()
 
     const { filters, draftFilters, applyFilters, resetFilters, handleDraftFilterChange } = useFilters(initialDefaults)
 
@@ -54,6 +55,10 @@ export default function RepairRequestListPage() {
             id,
             name,
         }))
+
+    const handleRepairCompanyChange = (value) => {
+        handleDraftFilterChange('repairCompanyId', value)
+    }
 
     return (
         <Box sx={listSx.page}>
@@ -84,6 +89,17 @@ export default function RepairRequestListPage() {
             />
 
             <Divider />
+
+            <AppSelectField
+                id="repair-customer"
+                label="Ремонтирующая компания"
+                value={draftFilters.repairCompanyId}
+                options={repairCompanies}
+                onChange={handleRepairCompanyChange}
+                searchable
+                fullWidth
+                sx={{ width: '410px', mt: 1 }}
+            />
 
             <Box sx={sx.filters}>
                 <DateRangeFields

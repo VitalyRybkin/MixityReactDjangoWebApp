@@ -52,6 +52,7 @@ export const filteringPageSx = {
 
     actions: {
         p: 1,
+        m: 1,
         display: 'flex',
         justifyContent: 'flex-end',
         gap: 1,
