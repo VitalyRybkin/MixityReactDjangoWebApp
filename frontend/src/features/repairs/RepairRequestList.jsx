@@ -18,16 +18,8 @@ import { filteringPageSx as sx } from '../../styles/filteringPage.styles.js'
 import { useGetCustomerObjects, useGetCustomers } from '../customers/utils/customers.queries.js'
 
 import { useGetRepairRequests } from './utils/repair.queries.js'
+import { locationOptions, statusOptions } from './utils/request.form.constants.js'
 
-const statusOptions = [
-    { id: 'open', name: 'Открыта' },
-    { id: 'closed', name: 'Закрыта' },
-]
-
-const locationOptions = [
-    { id: 'site', name: 'На объекте' },
-    { id: 'workshop', name: 'В мастерской' },
-]
 
 const today = formatDate(new Date())
 
@@ -56,6 +48,12 @@ export default function RepairRequestListPage() {
         handleDraftFilterChange('customerId', value)
         handleDraftFilterChange('objectId', '')
     }
+
+    const toSelectOptions = (options) =>
+        Object.entries(options).map(([id, name]) => ({
+            id,
+            name,
+        }))
 
     return (
         <Box sx={listSx.page}>
@@ -123,7 +121,7 @@ export default function RepairRequestListPage() {
                         id="repair-status"
                         label="Статус"
                         value={draftFilters.status}
-                        options={statusOptions}
+                        options={toSelectOptions(statusOptions)}
                         onChange={(value) => handleDraftFilterChange('status', value)}
                         fullWidth
                     />
@@ -132,7 +130,7 @@ export default function RepairRequestListPage() {
                         id="repair-location"
                         label="Место выполнения"
                         value={draftFilters.location}
-                        options={locationOptions}
+                        options={toSelectOptions(locationOptions)}
                         onChange={(value) => handleDraftFilterChange('location', value)}
                         fullWidth
                     />

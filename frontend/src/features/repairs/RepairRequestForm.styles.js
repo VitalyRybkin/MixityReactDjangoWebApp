@@ -1,11 +1,34 @@
 import { commonLayoutSx } from '../../styles/layout.styles.js'
 
-export const orderFormSx = {
+export const repairRequestFormSx = {
     form: {
         minWidth: 0,
     },
 
     header: {
+        minWidth: 0,
+    },
+
+    legend: {
+        px: 1,
+        color: 'text.secondary',
+        fontWeight: 'medium',
+    },
+
+    field: {
+        flex: 1,
+        width: '100%',
+        minWidth: 0,
+    },
+
+    fieldRow: {
+        display: 'flex',
+        flexDirection: {
+            xs: 'column',
+            sm: 'row',
+        },
+        gap: 2,
+        alignItems: 'stretch',
         minWidth: 0,
     },
 
@@ -31,8 +54,19 @@ export const orderFormSx = {
         },
     },
 
+    filesTitle: {
+        mb: 1,
+        color: 'text.secondary',
+        fontWeight: 'medium',
+    },
+
     note: {
         mt: 2,
+        width: {
+            xs: '100%',
+            md: 440,
+        },
+        maxWidth: '100%',
     },
 
     divider: commonLayoutSx.divider,
@@ -62,5 +96,65 @@ export const orderFormSx = {
 
     weightLabel: {
         m: 1,
+    },
+
+    formColumns: {
+        display: 'grid',
+        gridTemplateColumns: {
+            xs: '1fr',
+            md: 'minmax(320px, 440px) minmax(320px, 440px) minmax(360px, 1fr)',
+        },
+        gap: 3,
+        alignItems: 'stretch',
+        width: '100%',
+        minWidth: 0,
+    },
+
+    fieldset: {
+        display: 'flex',
+        flexDirection: 'column',
+        minWidth: 0,
+        height: '100%',
+    },
+
+    fields: {
+        display: 'flex',
+        flexDirection: 'column',
+        minWidth: 0,
+    },
+
+    filesSection: {
+        mt: 'auto',
+    },
+
+    descriptionField: {
+        flex: 1,
+        minWidth: 0,
+        height: '100%',
+
+        '& .MuiInputBase-root': {
+            height: '100%',
+            alignItems: 'flex-start',
+        },
+
+        '& textarea': {
+            height: '100% !important',
+            overflow: 'auto',
+        },
+    },
+}
+
+export const fieldsetStyles = {
+    flex: 1,
+    border: '1px solid',
+    borderColor: 'divider',
+    borderRadius: 1,
+    p: 2,
+    m: 0,
+    display: 'flex',
+    flexDirection: 'column',
+    gap: 2.1,
+    '&:hover': {
+        borderColor: 'text.secondary',
     },
 }
