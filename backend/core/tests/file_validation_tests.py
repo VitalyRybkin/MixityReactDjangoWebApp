@@ -3,7 +3,7 @@ from typing import Collection
 from django.core.validators import FileExtensionValidator
 from django.db import models
 
-from core.validators.files import validate_image_file_size
+from core.validators.files import validate_file_size
 
 
 class ImageFieldValidationContractMixin:
@@ -32,4 +32,4 @@ class ImageFieldValidationContractMixin:
 
         assert set(extension_validator.allowed_extensions) == set(allowed_extensions)
 
-        assert validate_image_file_size in field.validators
+        assert validate_file_size in field.validators

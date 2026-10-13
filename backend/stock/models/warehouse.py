@@ -3,7 +3,7 @@ from django.db import models
 
 from core.models.active_mixin import ActiveMixin
 from core.models.contact_info_mixin import ContactDetailsMixin
-from core.validators.files import validate_image_file_size
+from core.validators.files import validate_file_size
 
 
 class Warehouse(ContactDetailsMixin, ActiveMixin):
@@ -36,7 +36,7 @@ class Warehouse(ContactDetailsMixin, ActiveMixin):
             FileExtensionValidator(
                 allowed_extensions=["jpg", "jpeg", "png"],
             ),
-            validate_image_file_size,
+            validate_file_size,
         ],
     )
     description = models.TextField(null=True, blank=True)

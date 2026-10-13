@@ -10,8 +10,13 @@ from repairs.views.repair_request_views import (
     RepairPartsListAPIView,
     RepairRequestListAPIView,
     RepairRequestRetrieveUpdateDestroyAPIView, )
-from repairs.views.repair_file_views import RepairFilesListAPIView, RepairClosingRetrieveUpdateDestroyAPIView, \
-    RepairRequestListCreateAPIView, RepairClosingListCreateAPIView
+from repairs.views.repair_file_views import (
+    RepairClosingFileListCreateAPIView,
+    RepairClosingFileRetrieveUpdateDestroyAPIView,
+    RepairFilesListAPIView,
+    RepairRequestFileListCreateAPIView,
+    RepairRequestFileRetrieveUpdateDestroyAPIView,
+)
 
 app_name = "repairs"
 
@@ -53,22 +58,22 @@ urlpatterns = [
     ),
     path(
         RepairFilesRoutes.LIST_CREATE_REQUEST.path,
-        RepairRequestListCreateAPIView.as_view(),
+        RepairRequestFileListCreateAPIView.as_view(),
         name=RepairFilesRoutes.LIST_CREATE_REQUEST.name,
     ),
     path(
         RepairFilesRoutes.DELETE_REQUEST_FILE.path,
-        RepairRequestRetrieveUpdateDestroyAPIView.as_view(),
+        RepairRequestFileRetrieveUpdateDestroyAPIView.as_view(),
         name=RepairFilesRoutes.DELETE_REQUEST_FILE.name,
     ),
     path(
         RepairFilesRoutes.LIST_CREATE_CLOSING.path,
-        RepairClosingListCreateAPIView.as_view(),
+        RepairClosingFileListCreateAPIView.as_view(),
         name=RepairFilesRoutes.LIST_CREATE_CLOSING.name,
     ),
     path(
         RepairFilesRoutes.DELETE_CLOSING_FILE.path,
-        RepairClosingRetrieveUpdateDestroyAPIView.as_view(),
+        RepairClosingFileRetrieveUpdateDestroyAPIView.as_view(),
         name=RepairFilesRoutes.DELETE_CLOSING_FILE.name,
     ),
 ]

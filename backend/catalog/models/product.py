@@ -8,7 +8,7 @@ from django.core.validators import FileExtensionValidator
 from django.db import models
 from django.db.models import Max, QuerySet
 
-from core.validators.files import validate_image_file_size
+from core.validators.files import validate_file_size
 
 from ..utils.unit_choices import TitleChoices
 from .unit import AppUnit
@@ -45,7 +45,7 @@ class Product(models.Model):
             FileExtensionValidator(
                 allowed_extensions=["jpg", "jpeg", "png"],
             ),
-            validate_image_file_size,
+            validate_file_size,
         ],
     )
     product_group = models.ForeignKey(

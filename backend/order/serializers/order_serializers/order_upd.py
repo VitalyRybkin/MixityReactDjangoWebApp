@@ -1,8 +1,8 @@
 from django.core.files.uploadedfile import UploadedFile
 from rest_framework import serializers
 
+from core.validators.files import validate_pdf
 from order.models import Order
-from order.validators.upd_pdf import validate_upd_pdf
 
 
 class OrderUpdSerializer(serializers.ModelSerializer):
@@ -19,4 +19,4 @@ class OrderUpdSerializer(serializers.ModelSerializer):
         self,
         file: UploadedFile | None,
     ) -> UploadedFile | None:
-        return validate_upd_pdf(file)
+        return validate_pdf(file, pdf_only=True)

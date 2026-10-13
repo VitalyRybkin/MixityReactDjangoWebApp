@@ -15,6 +15,6 @@ class Migration(migrations.Migration):
         migrations.AlterField(
             model_name='product',
             name='product_image',
-            field=models.ImageField(blank=True, null=True, upload_to='product_images', validators=[django.core.validators.FileExtensionValidator(allowed_extensions=['jpg', 'jpeg', 'png']), core.validators.files.validate_image_file_size]),
+            field=models.ImageField(blank=True, null=True, upload_to='product_images', validators=[django.core.validators.FileExtensionValidator(allowed_extensions=['jpg', 'jpeg', 'png']), core.validators.files.validate_file_size]),
         ),
     ]

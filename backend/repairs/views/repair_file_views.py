@@ -1,11 +1,25 @@
 from typing import Any
 
+from django.db.models import QuerySet
 from rest_framework.serializers import Serializer
 
-from core.openapi.base_views import BaseListAPIView, BaseRetrieveUpdateDestroyAPIView, BaseListCreateAPIView
-from repairs.models.repair_request_models import RepairRequest
-from repairs.serializers.repair_file_serializers import RepairFilesSerializer, RepairRequestFileReadSerializer, \
-    RepairRequestFileWriteSerializer, RepairClosingFileReadSerializer, RepairClosingFileWriteSerializer
+from core.openapi.base_views import (
+    BaseListAPIView,
+    BaseListCreateAPIView,
+    BaseRetrieveUpdateDestroyAPIView,
+)
+from repairs.models.repair_request_models import (
+    ClosingFile,
+    RepairRequest,
+    RequestFile,
+)
+from repairs.serializers.repair_file_serializers import (
+    RepairClosingFileReadSerializer,
+    RepairClosingFileWriteSerializer,
+    RepairFilesSerializer,
+    RepairRequestFileReadSerializer,
+    RepairRequestFileWriteSerializer,
+)
 
 
 class RepairFilesListAPIView(BaseListAPIView):
@@ -13,51 +27,100 @@ class RepairFilesListAPIView(BaseListAPIView):
     schema_tags = ["Repair Files"]
 
     serializer_class = RepairFilesSerializer
-    queryset = RepairRequest._default_manager.all().prefetch_related(
-        "closing_files",
-        "request_files",
-    )
-
     read_serializer_class = RepairFilesSerializer
 
-    def get_queryset(self):
-        return self.queryset.filter(id=self.kwargs["pk"])
+    def get_queryset(self) -> QuerySet[RepairRequest]:
+        return (
+            RepairRequest._default_manager
+            .filter(pk=self.kwargs["pk"])
+            .prefetch_related(
+                "request_files",
+                "closing_files",
+            )
+        )
 
-class RepairRequestListCreateAPIView(BaseListCreateAPIView):
-    resource_name = "RepairRequest"
-    schema_tags = ["Repair Requests"]
+
+class RepairRequestFileListCreateAPIView(BaseListCreateAPIView):
+    resource_name = "RepairRequestFile"
+    schema_tags = ["Repair Request Files"]
 
     serializer_class = RepairRequestFileReadSerializer
-    queryset = RepairRequest._default_manager.all()
-
     read_serializer_class = RepairRequestFileReadSerializer
     write_serializer_class = RepairRequestFileWriteSerializer
 
+    def get_queryset(self) -> QuerySet[RequestFile]:
+        return RequestFile._default_manager.filter(
+            repair_request_id=self.kwargs["pk"],
+        )
+
     def get_serializer(self, *args: Any, **kwargs: Any) -> Serializer:
-        if self.request.method in ("POST", "PUT", "PATCH"):
+        if self.request.method == "POST":
             return self.write_serializer_class(*args, **kwargs)
+
         return self.read_serializer_class(*args, **kwargs)
 
+    def perform_create(self, serializer: Serializer) -> None:
+        serializer.save(
+            repair_request_id=self.kwargs["pk"],
+        )
 
-class RepairRequestRetrieveUpdateDestroyAPIView(BaseRetrieveUpdateDestroyAPIView):
-    pass
+
+class RepairRequestFileRetrieveUpdateDestroyAPIView(
+    BaseRetrieveUpdateDestroyAPIView,
+):
+    resource_name = "RepairRequestFile"
+    schema_tags = ["Repair Request Files"]
+
+    serializer_class = RepairRequestFileReadSerializer
+    read_serializer_class = RepairRequestFileReadSerializer
+    write_serializer_class = RepairRequestFileWriteSerializer
+
+    def get_queryset(self) -> QuerySet[RequestFile]:
+        return RequestFile._default_manager.filter(
+            repair_request_id=self.kwargs["pk"],
+        )
+
+    lookup_url_kwarg = "file_pk"
 
 
-class RepairClosingListCreateAPIView(BaseListCreateAPIView):
-    resource_name = "RepairClosing"
-    schema_tags = ["Repair Closings"]
+class RepairClosingFileListCreateAPIView(BaseListCreateAPIView):
+    resource_name = "RepairClosingFile"
+    schema_tags = ["Repair Closing Files"]
 
     serializer_class = RepairClosingFileReadSerializer
-    queryset = RepairRequest._default_manager.all()
-
     read_serializer_class = RepairClosingFileReadSerializer
     write_serializer_class = RepairClosingFileWriteSerializer
 
+    def get_queryset(self) -> QuerySet[ClosingFile]:
+        return ClosingFile._default_manager.filter(
+            repair_request_id=self.kwargs["pk"],
+        )
+
     def get_serializer(self, *args: Any, **kwargs: Any) -> Serializer:
-        if self.request.method in ("POST", "PUT", "PATCH"):
+        if self.request.method == "POST":
             return self.write_serializer_class(*args, **kwargs)
+
         return self.read_serializer_class(*args, **kwargs)
 
+    def perform_create(self, serializer: Serializer) -> None:
+        serializer.save(
+            repair_request_id=self.kwargs["pk"],
+        )
 
-class RepairClosingRetrieveUpdateDestroyAPIView(BaseRetrieveUpdateDestroyAPIView):
-    pass
+
+class RepairClosingFileRetrieveUpdateDestroyAPIView(
+    BaseRetrieveUpdateDestroyAPIView,
+):
+    resource_name = "RepairClosingFile"
+    schema_tags = ["Repair Closing File"]
+
+    serializer_class = RepairClosingFileReadSerializer
+    read_serializer_class = RepairClosingFileReadSerializer
+    write_serializer_class = RepairClosingFileWriteSerializer
+
+    def get_queryset(self) -> QuerySet[ClosingFile]:
+        return ClosingFile._default_manager.filter(
+            repair_request_id=self.kwargs["pk"],
+        )
+
+    lookup_url_kwarg = "file_pk"
