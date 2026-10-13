@@ -9,8 +9,7 @@ from repairs.models.repair_request_models import RepairPart, RepairRequest
 from repairs.serializers.repair_request_serializers import (
     PartSerializer,
     RepairRequestReadSerializer,
-    RepairRequestSerializer,
-)
+    RepairRequestSerializer, )
 
 
 class CustomPagination(PageNumberPagination):

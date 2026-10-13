@@ -2,13 +2,12 @@ from rest_framework import serializers
 
 from order.serializers.customer_serializers import BaseCustomerObjectsSerializer
 from repairs.models.repair_request_models import (
-    ClosingFile,
     RepairPart,
     RepairRequest,
     RepairService,
     RepairSpecification,
-    RequestFile,
 )
+from repairs.serializers.repair_file_serializers import RepairRequestFileReadSerializer, RepairClosingFileReadSerializer
 
 
 class RepairRequestSerializer(serializers.ModelSerializer):
@@ -27,24 +26,6 @@ class RepairRequestSerializer(serializers.ModelSerializer):
             "construction_object",
             "description",
             "closing_description",
-        ]
-
-
-class RequestFileSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = RequestFile
-        fields = [
-            "id",
-            "file_name",
-        ]
-
-
-class ClosingFilesSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = ClosingFile
-        fields = [
-            "id",
-            "file_name",
         ]
 
 
@@ -82,8 +63,8 @@ class RepairSpecificationSerializer(serializers.ModelSerializer):
 
 
 class RepairRequestReadSerializer(RepairRequestSerializer):
-    request_files = RequestFileSerializer(many=True, read_only=True)
-    closing_files = ClosingFilesSerializer(many=True, read_only=True)
+    request_files = RepairRequestFileReadSerializer(many=True, read_only=True)
+    closing_files = RepairClosingFileReadSerializer(many=True, read_only=True)
     specifications = RepairSpecificationSerializer(many=True, read_only=True)
 
     class Meta(RepairRequestSerializer.Meta):

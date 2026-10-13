@@ -85,7 +85,13 @@ class RequestFile(models.Model):
         related_name="request_files",
         verbose_name="Заявка",
     )
-    file_name = models.FileField(
+    file_name = models.CharField(
+        max_length=255,
+        verbose_name="Название файла",
+        blank=True,
+        help_text="Название файла заявки на ремонт",
+    )
+    file = models.FileField(
         upload_to="repair_requests/",
         validators=[
             FileExtensionValidator(
@@ -112,7 +118,13 @@ class ClosingFile(models.Model):
         related_name="closing_files",
         verbose_name="Заявка",
     )
-    file_name = models.FileField(
+    file_name = models.CharField(
+        max_length=255,
+        verbose_name="Название файла",
+        blank=True,
+        help_text="Название файла заявки на ремонт",
+    )
+    file = models.FileField(
         upload_to="repair_closing/",
         validators=[
             FileExtensionValidator(allowed_extensions=["pdf", "jpeg", "doc", "docx"])
