@@ -13,3 +13,11 @@ export const repairRequestPartsApiPaths = {
     listCreate: (id) => `/api/repair/parts/`,
     detail: (id) => `/api/repair/parts/${id}/`,
 }
+
+export const repairFilesApiPaths = {
+    list: (id) => `/api/repair/requests/${id}/files/`,
+    requestFileListCreate: (id) => `/api/repair/requests/${id}/request_files/`,
+    requestFileDetail: (id, fileId) => `/api/repair/requests/${id}/request_files/${fileId}/`,
+    closingFileListCreate: (id) => `/api/repair/requests/${id}/closing_files/`,
+    closingFileDetail: (id, fileId) => `/api/repair/requests/${id}/closing_files/${fileId}/`,
+}

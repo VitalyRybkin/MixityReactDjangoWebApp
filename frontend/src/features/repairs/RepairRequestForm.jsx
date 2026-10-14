@@ -28,6 +28,13 @@ import {
     useGetSpareParts,
     useUpdateRepairRequest,
 } from './utils/repair.queries.js'
+import {
+    useDeleteClosingFile,
+    useDeleteRequestFile,
+    useGetRepairFiles,
+    useUploadClosingFile,
+    useUploadRequestFile,
+} from './utils/repeir.files.queries.js'
 import { emptyRequestForm, locationOptions, statusOptions } from './utils/request.form.constants.js'
 
 const toSelectOptions = (options) =>
@@ -56,6 +63,48 @@ export default function RepairRequestFormPage() {
     const createRepairRequest = useCreateRepairRequest()
     const updateRepairRequest = useUpdateRepairRequest()
     const { data: repairCompanies = [] } = useGetRepairCompanies()
+    const { data: repairFiles, isLoading: loadingFiles } = useGetRepairFiles(id)
+
+    const uploadRequestFile = useUploadRequestFile()
+    const deleteRequestFile = useDeleteRequestFile()
+
+    const uploadClosingFile = useUploadClosingFile()
+    const deleteClosingFile = useDeleteClosingFile()
+
+    const filesData = Array.isArray(repairFiles) ? repairFiles[0] : repairFiles
+
+    const requestFiles = filesData?.request_files ?? []
+    const closingFiles = filesData?.closing_files ?? []
+
+    const handleUploadRequestFile = async (file) => {
+        await uploadRequestFile.mutateAsync({
+            requestId: id,
+            file,
+            fileName: file.name,
+        })
+    }
+
+    const handleDeleteRequestFile = async (fileId) => {
+        await deleteRequestFile.mutateAsync({
+            requestId: id,
+            fileId,
+        })
+    }
+
+    const handleUploadClosingFile = async (file) => {
+        await uploadClosingFile.mutateAsync({
+            requestId: id,
+            file,
+            fileName: file.name,
+        })
+    }
+
+    const handleDeleteClosingFile = async (fileId) => {
+        await deleteClosingFile.mutateAsync({
+            requestId: id,
+            fileId,
+        })
+    }
 
     const saving = createRepairRequest.isPending || updateRepairRequest.isPending
 
@@ -163,12 +212,22 @@ export default function RepairRequestFormPage() {
                                 onChange={onChange}
                                 onSelectChange={handleSelectChange}
                                 onCustomerChange={handleCustomerChange}
+                                requestId={id}
+                                requestFiles={requestFiles}
+                                onUploadFile={handleUploadRequestFile}
+                                onDeleteFile={handleDeleteRequestFile}
+                                uploadingFile={uploadRequestFile.isPending}
                             />
 
                             <RepairRequestExecutionFields
                                 form={form}
                                 onChange={onChange}
                                 onSelectChange={handleSelectChange}
+                                requestId={id}
+                                closingFiles={closingFiles}
+                                onUploadFile={handleUploadClosingFile}
+                                onDeleteFile={handleDeleteClosingFile}
+                                uploadingFile={uploadClosingFile.isPending}
                             />
 
                             <RepairRequestDescription form={form} onChange={onChange} />

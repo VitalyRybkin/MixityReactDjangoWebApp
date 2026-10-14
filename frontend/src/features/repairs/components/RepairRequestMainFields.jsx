@@ -1,8 +1,9 @@
 import { Box, TextField, Typography } from '@mui/material'
 
 import AppSelectField from '../../../components/AppSelectField.jsx'
-import FileUploadAction from '../../../components/FileUploadAction.jsx'
 import { fieldsetStyles, repairRequestFormSx as sx } from '../RepairRequestForm.styles.js'
+
+import RepairFilesSection from './RepairFilesSection.jsx'
 
 export default function RepairRequestMainFields({
     form,
@@ -12,6 +13,12 @@ export default function RepairRequestMainFields({
     onChange,
     onSelectChange,
     onCustomerChange,
+
+    requestId,
+    requestFiles,
+    onUploadFile,
+    onDeleteFile,
+    uploadingFile,
 }) {
     return (
         <Box component="fieldset" sx={[fieldsetStyles, sx.fieldset]}>
@@ -66,11 +73,14 @@ export default function RepairRequestMainFields({
             </Box>
 
             <Box sx={sx.filesSection}>
-                <Typography variant="caption" sx={sx.filesTitle}>
-                    Файлы:
-                </Typography>
-
-                <FileUploadAction />
+                <RepairFilesSection
+                    title="Файлы открытия"
+                    files={requestFiles}
+                    onUpload={onUploadFile}
+                    onDelete={onDeleteFile}
+                    uploading={uploadingFile}
+                    disabled={!requestId}
+                />
             </Box>
         </Box>
     )

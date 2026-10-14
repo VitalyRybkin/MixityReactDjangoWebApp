@@ -1,9 +1,10 @@
 import { Box, TextField, Typography } from '@mui/material'
 
 import AppSelectField from '../../../components/AppSelectField.jsx'
-import FileUploadAction from '../../../components/FileUploadAction.jsx'
 import { fieldsetStyles, repairRequestFormSx as sx } from '../RepairRequestForm.styles.js'
 import { locationOptions, statusOptions } from '../utils/request.form.constants.js'
+
+import RepairFilesSection from './RepairFilesSection.jsx'
 
 const toSelectOptions = (options) =>
     Object.entries(options).map(([id, name]) => ({
@@ -11,7 +12,17 @@ const toSelectOptions = (options) =>
         name,
     }))
 
-export default function RepairRequestExecutionFields({ form, onChange, onSelectChange }) {
+export default function RepairRequestExecutionFields({
+    form,
+    onChange,
+    onSelectChange,
+
+    requestId,
+    closingFiles,
+    onUploadFile,
+    onDeleteFile,
+    uploadingFile,
+}) {
     return (
         <Box component="fieldset" sx={[fieldsetStyles, sx.fieldset]}>
             <Typography component="legend" variant="caption" sx={sx.legend}>
@@ -51,11 +62,14 @@ export default function RepairRequestExecutionFields({ form, onChange, onSelectC
             </Box>
 
             <Box sx={sx.filesSection}>
-                <Typography variant="caption" sx={sx.filesTitle}>
-                    Файлы:
-                </Typography>
-
-                <FileUploadAction />
+                <RepairFilesSection
+                    title="Файлы закрытия"
+                    files={closingFiles}
+                    onUpload={onUploadFile}
+                    onDelete={onDeleteFile}
+                    uploading={uploadingFile}
+                    disabled={!requestId}
+                />
             </Box>
         </Box>
     )
