@@ -19,8 +19,8 @@ class CustomPagination(PageNumberPagination):
 
 
 class RepairRequestListAPIView(BaseListAPIView):
-    resource_name = "RepairRequest"
-    schema_tags = ["Repair Requests"]
+    resource_name = "RepairRequestList"
+    schema_tags = ["Repair Request"]
 
     read_serializer_class = RepairRequestSerializer
     pagination_class = CustomPagination

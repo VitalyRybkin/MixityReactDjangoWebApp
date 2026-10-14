@@ -23,8 +23,8 @@ from repairs.serializers.repair_file_serializers import (
 
 
 class RepairFilesListAPIView(BaseListAPIView):
-    resource_name = "RepairFile"
-    schema_tags = ["Repair Files"]
+    resource_name = "RepairFiles"
+    schema_tags = ["Repair Request"]
 
     serializer_class = RepairFilesSerializer
     read_serializer_class = RepairFilesSerializer
@@ -41,8 +41,8 @@ class RepairFilesListAPIView(BaseListAPIView):
 
 
 class RepairRequestFileListCreateAPIView(BaseListCreateAPIView):
-    resource_name = "RepairRequestFile"
-    schema_tags = ["Repair Request Files"]
+    resource_name = "RepairRequestFileList"
+    schema_tags = ["Repair Request File"]
 
     serializer_class = RepairRequestFileReadSerializer
     read_serializer_class = RepairRequestFileReadSerializer
@@ -69,7 +69,7 @@ class RepairRequestFileRetrieveUpdateDestroyAPIView(
     BaseRetrieveUpdateDestroyAPIView,
 ):
     resource_name = "RepairRequestFile"
-    schema_tags = ["Repair Request Files"]
+    schema_tags = ["Repair Request File"]
 
     serializer_class = RepairRequestFileReadSerializer
     read_serializer_class = RepairRequestFileReadSerializer
@@ -85,7 +85,7 @@ class RepairRequestFileRetrieveUpdateDestroyAPIView(
 
 class RepairClosingFileListCreateAPIView(BaseListCreateAPIView):
     resource_name = "RepairClosingFile"
-    schema_tags = ["Repair Closing Files"]
+    schema_tags = ["Repair Closing File"]
 
     serializer_class = RepairClosingFileReadSerializer
     read_serializer_class = RepairClosingFileReadSerializer
