@@ -1,5 +1,3 @@
-import React from 'react'
-
 import { IconButton, Tooltip } from '@mui/material'
 
 export default function IconAction({
@@ -11,11 +9,14 @@ export default function IconAction({
     children,
     color = 'primary',
     sx,
+    type = 'button',
+    ...props
 }) {
     return (
         <Tooltip title={title}>
             <span>
                 <IconButton
+                    type={type}
                     color={color}
                     sx={(theme) => ({
                         backgroundColor: theme.palette.action.hover,
@@ -30,6 +31,7 @@ export default function IconAction({
                         if (stopPropagation) e.stopPropagation()
                         onClick?.(e)
                     }}
+                    {...props}
                 >
                     {children}
                 </IconButton>

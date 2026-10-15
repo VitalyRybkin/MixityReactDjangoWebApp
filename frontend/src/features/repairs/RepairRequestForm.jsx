@@ -12,6 +12,7 @@ import ConfirmDialog from '../../components/ui/feedback/ConfirmDialog.jsx'
 import { useFormLogic } from '../../hooks/useEntityForm.js'
 import useSnackbar from '../../hooks/useSnackbar.js'
 import { entityTableListSx as listSx } from '../../styles/entityTableList.styles.js'
+import { firstError } from '../../utils/apiError.js'
 import { useGetCustomerObjects, useGetCustomers } from '../customers/utils/customers.queries.js'
 import { useLoadingError } from '../orders/hooks/useLoadingError.js'
 
@@ -20,6 +21,7 @@ import RepairRequestDescription from './components/RepairRequestDescription.jsx'
 import RepairRequestExecutionFields from './components/RepairRequestExecutionFields.jsx'
 import RepairRequestMainFields from './components/RepairRequestMainFields.jsx'
 import RepairSpecificationPartsList from './components/RepairSpecificationPartsList.jsx'
+import { useFormDirty } from './hooks/useFormDirty.js'
 import { useRequestParts } from './hooks/useRequestParts.js'
 import {
     useCreateRepairRequest,
@@ -77,26 +79,44 @@ export default function RepairRequestFormPage() {
     const closingFiles = filesData?.closing_files ?? []
 
     const handleUploadRequestFile = async ({ file, fileName }) => {
-        await uploadRequestFile.mutateAsync({
-            requestId: id,
-            file,
-            fileName,
-        })
+        try {
+            await uploadRequestFile.mutateAsync({
+                requestId: id,
+                file,
+                fileName,
+            })
+
+            showSnackbar('Файл успешно загружен', 'success')
+        } catch (error) {
+            showSnackbar(firstError(error) || 'Не удалось загрузить файл', 'error')
+        }
     }
 
     const handleDeleteRequestFile = async (fileId) => {
-        await deleteRequestFile.mutateAsync({
-            requestId: id,
-            fileId,
-        })
+        try {
+            await deleteRequestFile.mutateAsync({
+                requestId: id,
+                fileId,
+            })
+
+            showSnackbar('Файл удалён', 'success')
+        } catch (error) {
+            showSnackbar(firstError(error) || 'Не удалось удалить файл', 'error')
+        }
     }
 
     const handleUploadClosingFile = async ({ file, fileName }) => {
-        await uploadClosingFile.mutateAsync({
-            requestId: id,
-            file,
-            fileName,
-        })
+        try {
+            await uploadClosingFile.mutateAsync({
+                requestId: id,
+                file,
+                fileName,
+            })
+
+            showSnackbar('Файл успешно загружен', 'success')
+        } catch (error) {
+            showSnackbar(firstError(error) || 'Не удалось загрузить файл', 'error')
+        }
     }
 
     const handleDeleteClosingFile = async (fileId) => {
@@ -142,7 +162,7 @@ export default function RepairRequestFormPage() {
             return
         }
 
-        setForm({
+        const mappedForm = {
             ...emptyRequestForm,
 
             id: repairRequest.id,
@@ -159,8 +179,18 @@ export default function RepairRequestFormPage() {
 
             description: repairRequest.description ?? '',
             closing_description: repairRequest.closing_description ?? '',
-        })
-    }, [repairRequest, setForm])
+        }
+
+        setForm(mappedForm)
+        resetSnapshot(mappedForm)
+    }, [repairRequest, setForm, resetSnapshot])
+
+    const { isDirty, markClean, resetSnapshot } = useFormDirty({
+        form,
+        enabled: !isLoadingPage && !pageLoadError,
+    })
+
+    markCleanRef.current = markClean
 
     const { data: customerObjects = [] } = useGetCustomerObjects(form.customerId)
 
@@ -206,6 +236,7 @@ export default function RepairRequestFormPage() {
                         isEdit={isEdit}
                         orderId={id}
                         saving={saving}
+                        saveDisabled={isEdit && !isDirty}
                         newOrder="Заявка на ремонт"
                         editOrder="Редактирование заявки на ремонт"
                     />

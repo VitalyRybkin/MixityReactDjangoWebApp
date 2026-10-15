@@ -2,7 +2,7 @@ import { Box, Stack, Typography } from '@mui/material'
 
 import FormActions from './ui/FormActions.jsx'
 
-export default function PageHeaderCreateUpdate({ isEdit, orderId, saving, newOrder, editOrder }) {
+export default function PageHeaderCreateUpdate({ isEdit, orderId, saving, saveDisabled = false, newOrder, editOrder }) {
     return (
         <Box
             sx={{
@@ -33,7 +33,7 @@ export default function PageHeaderCreateUpdate({ isEdit, orderId, saving, newOrd
             </Typography>
 
             <Stack direction="row" spacing={1}>
-                <FormActions saving={saving} />
+                <FormActions saving={saving} submitDisabled={saveDisabled} />
             </Stack>
         </Box>
     )

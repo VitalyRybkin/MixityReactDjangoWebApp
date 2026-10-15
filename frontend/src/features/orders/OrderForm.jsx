@@ -76,9 +76,7 @@ export default function OrderFormPage() {
 
     const createOrder = useCreateOrder()
     const updateOrder = useUpdateOrder()
-    const uploadUpd = useUploadUpd({
-        onSuccess: () => navigate('/'),
-    })
+    const uploadUpd = useUploadUpd()
 
     const handleUploadUpd = useFileUpload(uploadUpd, showSnackbar, {
         successMessage: 'УПД успешно загружен.',
@@ -210,8 +208,9 @@ export default function OrderFormPage() {
                                     isEdit={isEdit}
                                     orderId={form.id}
                                     saving={saving}
-                                    newOrder={'Создание заявки'}
-                                    editOrder={'Редактирование заявки'}
+                                    saveDisabled={isEdit && !isDirty}
+                                    newOrder="Создание заявки"
+                                    editOrder="Редактирование заявки"
                                 />
                             </Box>
 

@@ -4,6 +4,7 @@ import { Button, Stack } from '@mui/material'
 
 export default function FormActions({
     saving = false,
+    submitDisabled = false,
     onCancel,
     submitLabel = 'Сохранить',
     cancelLabel = 'Отмена',
@@ -22,7 +23,7 @@ export default function FormActions({
     }
 
     const submitButton = (
-        <Button type="submit" variant="contained" disabled={saving}>
+        <Button type="submit" variant="contained" disabled={saving || submitDisabled}>
             {saving ? 'Сохранение...' : submitLabel}
         </Button>
     )
