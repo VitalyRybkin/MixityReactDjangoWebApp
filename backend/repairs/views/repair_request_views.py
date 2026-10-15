@@ -26,7 +26,7 @@ class RepairRequestListAPIView(BaseListCreateAPIView):
     write_serializer_class = RepairRequestWriteSerializer
     pagination_class = CustomPagination
 
-    serializer_class = RepairRequestWriteSerializer
+    serializer_class = RepairRequestReadSerializer
     queryset = RepairRequest._default_manager.all()
 
     def get(self, request: Request, *args: Any, **kwargs: Any) -> Response:
@@ -38,12 +38,14 @@ class RepairRequestListAPIView(BaseListCreateAPIView):
         return paginator.get_paginated_response(serializer.data)
 
 
-class RepairRequestRetrieveUpdateDestroyAPIView(BaseRetrieveUpdateDestroyAPIView):
+class RepairRequestRetrieveUpdateDestroyAPIView(
+    BaseRetrieveUpdateDestroyAPIView,
+):
     resource_name = "RepairRequest"
     schema_tags = ["Repair Requests"]
 
     read_serializer_class = RepairRequestReadSerializer
-    write_serializer_class = RepairRequestReadSerializer
+    write_serializer_class = RepairRequestWriteSerializer
 
     serializer_class = RepairRequestWriteSerializer
 
@@ -58,9 +60,10 @@ class RepairRequestRetrieveUpdateDestroyAPIView(BaseRetrieveUpdateDestroyAPIView
         "specifications__part",
     )
 
-    def get_serializer_class(self) -> type[RepairRequestReadSerializer]:
-        if self.request.GET:
+    def get_serializer_class(self):
+        if self.request.method == "GET":
             return self.read_serializer_class
+
         return self.write_serializer_class
 
 
