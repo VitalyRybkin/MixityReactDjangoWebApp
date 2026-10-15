@@ -1,7 +1,17 @@
-import React from 'react'
+import React, { useState } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
 
-import { Box, Divider } from '@mui/material'
+import {
+    Box,
+    Divider,
+    Pagination,
+    Table,
+    TableBody,
+    TableCell,
+    TableContainer,
+    TableHead,
+    TableRow,
+} from '@mui/material'
 
 import AppBreadcrumbs from '../../components/AppBreadcrumbs.jsx'
 import AppSelectField from '../../components/AppSelectField.jsx'
@@ -20,6 +30,8 @@ import { useGetCustomerObjects, useGetCustomers } from '../customers/utils/custo
 import { useGetRepairCompanies, useGetRepairRequests } from './utils/repair.queries.js'
 import { locationOptions, statusOptions } from './utils/request.form.constants.js'
 
+const PAGE_SIZE = 5
+
 const today = formatDate(new Date())
 
 const initialDefaults = {
@@ -36,6 +48,7 @@ export default function RepairRequestListPage() {
     const navigate = useNavigate()
     const location = useLocation()
     const entity = location.state?.entity
+    const [page, setPage] = useState(1)
 
     const { data: customers = [] } = useGetCustomers()
     const { data: repairCompanies = [] } = useGetRepairCompanies()
@@ -43,7 +56,15 @@ export default function RepairRequestListPage() {
     const { filters, draftFilters, applyFilters, resetFilters, handleDraftFilterChange } = useFilters(initialDefaults)
 
     const { data: customerObjects = [] } = useGetCustomerObjects(draftFilters.customerId)
-    const { data: repairRequests = [], isLoading: loadingRepairRequests } = useGetRepairRequests(draftFilters)
+    const { data: repairRequests, isLoading: loadingRepairRequests } = useGetRepairRequests({
+        ...filters,
+        page,
+    })
+
+    const rows = repairRequests?.results ?? []
+    const totalCount = repairRequests?.count ?? 0
+
+    const pageCount = Math.max(1, Math.ceil(totalCount / PAGE_SIZE))
 
     const handleCustomerChange = (value) => {
         handleDraftFilterChange('customerId', value)
@@ -58,6 +79,16 @@ export default function RepairRequestListPage() {
 
     const handleRepairCompanyChange = (value) => {
         handleDraftFilterChange('repairCompanyId', value)
+    }
+
+    const handleApplyFilters = () => {
+        setPage(1)
+        applyFilters()
+    }
+
+    const handleResetFilters = () => {
+        setPage(1)
+        resetFilters()
     }
 
     return (
@@ -155,15 +186,72 @@ export default function RepairRequestListPage() {
 
             <Box sx={sx.actions}>
                 <ApplyAction
-                    onClick={applyFilters}
+                    onClick={handleApplyFilters}
                     sx={sx.applyButton}
                     disabled={loadingRepairRequests}
                     loading={loadingRepairRequests}
                 />
-                <ResetAction onClick={resetFilters} disabled={loadingRepairRequests} loading={loadingRepairRequests} />
+                <ResetAction
+                    onClick={handleResetFilters}
+                    disabled={loadingRepairRequests}
+                    loading={loadingRepairRequests}
+                />
             </Box>
 
             <Divider sx={sx.tableDivider} />
+
+            <TableContainer>
+                <Table size="small">
+                    <TableHead>
+                        <TableRow>
+                            <TableCell>№</TableCell>
+                            <TableCell>Дата</TableCell>
+                            <TableCell>Контрагент</TableCell>
+                            <TableCell>Объект</TableCell>
+                            <TableCell>Статус</TableCell>
+                            <TableCell>Место выполнения</TableCell>
+                        </TableRow>
+                    </TableHead>
+
+                    <TableBody>
+                        {rows.map((request) => (
+                            <TableRow
+                                key={request.id}
+                                hover
+                                onClick={() => navigate(`/repair/requests/${request.id}`)}
+                                sx={{ cursor: 'pointer' }}
+                            >
+                                <TableCell>{request.id}</TableCell>
+
+                                <TableCell>{request.request_date}</TableCell>
+
+                                <TableCell>{request.construction_object?.customer_name ?? '—'}</TableCell>
+
+                                <TableCell>{request.construction_object?.name ?? '—'}</TableCell>
+
+                                <TableCell>{statusOptions[request.status] ?? request.status}</TableCell>
+
+                                <TableCell>{locationOptions[request.location] ?? request.location}</TableCell>
+                            </TableRow>
+                        ))}
+                    </TableBody>
+                </Table>
+            </TableContainer>
+
+            <Box
+                sx={{
+                    display: 'flex',
+                    justifyContent: 'center',
+                    mt: 2,
+                }}
+            >
+                <Pagination
+                    page={page}
+                    count={pageCount}
+                    onChange={(_, value) => setPage(value)}
+                    disabled={loadingRepairRequests}
+                />
+            </Box>
         </Box>
     )
 }

@@ -1,6 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 
 import api from '../../../api.js'
+import { REFERENCE_STALE_TIME } from '../../../utils/query.constants.js'
 
 import { constructionObjectsApiPaths, customerApiPaths } from './customerApiPaths.js'
 
@@ -95,6 +96,7 @@ export function useGetCustomers() {
     return useQuery({
         queryKey: customerKeys.list(),
         queryFn: fetchCustomers,
+        staleTime: REFERENCE_STALE_TIME,
     })
 }
 
@@ -122,6 +124,7 @@ export function useGetCustomerObjects(id) {
         queryKey: customerKeys.objects(id),
         queryFn: () => fetchCustomerObjects(id),
         enabled: Boolean(id),
+        staleTime: REFERENCE_STALE_TIME,
     })
 }
 

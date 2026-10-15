@@ -2,6 +2,7 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 
 import api from '../../../api.js'
+import { LIST_STALE_TIME, REFERENCE_STALE_TIME } from '../../../utils/query.constants.js'
 
 import {
     repairCompaniesApiPaths,
@@ -26,8 +27,10 @@ export const repairCompaniesKeys = {
 
 export const repairRequestsKeys = {
     all: ['repairRequests'],
-    list: () => [...repairRequestsKeys.all, 'list'],
-    detail: (id) => [...repairRequestsKeys.all, 'detail', String(id)],
+    lists: () => [...repairRequestsKeys.all, 'list'],
+    list: (filters) => [...repairRequestsKeys.lists(), filters],
+    details: () => [...repairRequestsKeys.all, 'detail'],
+    detail: (id) => [...repairRequestsKeys.details(), String(id)],
 }
 
 export const repairRequestPartsKeys = {
@@ -69,6 +72,10 @@ export const deleteRepairCompany = async (id) => {
 export const fetchRepairRequests = async (filters = {}) => {
     const params = {}
 
+    if (filters.page) {
+        params.page = filters.page
+    }
+
     if (filters.dateFrom) {
         params.date_from = filters.dateFrom
     }
@@ -90,10 +97,15 @@ export const fetchRepairRequests = async (filters = {}) => {
     }
 
     if (filters.objectId) {
-        params.customer = filters.objectId
+        params.object_id = filters.objectId
+    }
+
+    if (filters.repairCompanyId) {
+        params.repair_company_id = filters.repairCompanyId
     }
 
     const response = await api.get(repairRequestsApiPaths.listCreate(), { params })
+
     return response.data
 }
 
@@ -130,6 +142,7 @@ export function useGetRepairCompanies() {
     return useQuery({
         queryKey: repairCompaniesKeys.list(),
         queryFn: fetchRepairCompanies,
+        staleTime: REFERENCE_STALE_TIME,
     })
 }
 
@@ -179,10 +192,11 @@ export function useGetRepairRequests(filters) {
     return useQuery({
         queryKey: repairRequestsKeys.list(filters),
         queryFn: () => fetchRepairRequests(filters),
+        staleTime: LIST_STALE_TIME,
     })
 }
 
-export function useGetRepairRequest(id, options) {
+export function useGetRepairRequest(id, options = {}) {
     return useQuery({
         queryKey: repairRequestsKeys.detail(id),
         ...options,
@@ -193,10 +207,14 @@ export function useGetRepairRequest(id, options) {
 
 export function useCreateRepairRequest() {
     const queryClient = useQueryClient()
+
     return useMutation({
         mutationFn: createRepairRequest,
+
         onSuccess: async () => {
-            await queryClient.invalidateQueries({ queryKey: repairRequestsKeys.all })
+            await queryClient.invalidateQueries({
+                queryKey: repairRequestsKeys.all,
+            })
         },
     })
 }
@@ -209,7 +227,7 @@ export function useUpdateRepairRequest() {
 
         onSuccess: async (_, variables) => {
             await queryClient.invalidateQueries({
-                queryKey: repairRequestsKeys.list(),
+                queryKey: repairRequestsKeys.lists(),
             })
 
             await queryClient.invalidateQueries({
@@ -225,6 +243,7 @@ export function useGetSpareParts() {
     return useQuery({
         queryKey: repairRequestPartsKeys.list(),
         queryFn: () => fetchSpareParts(),
+        staleTime: REFERENCE_STALE_TIME,
     })
 }
 
