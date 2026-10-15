@@ -42,7 +42,7 @@ class CustomerSerializer(serializers.ModelSerializer):
 class BaseCustomerObjectsSerializer(serializers.ModelSerializer):
     class Meta:
         model = ConstructionObject
-        fields = ["id", "name", "address"]
+        fields = ["id", "name", "address", "customer"]
 
 
 class CustomerObjectsSerializer(BaseCustomerObjectsSerializer):

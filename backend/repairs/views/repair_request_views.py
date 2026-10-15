@@ -4,12 +4,12 @@ from rest_framework.pagination import PageNumberPagination
 from rest_framework.request import Request
 from rest_framework.response import Response
 
-from core.openapi.base_views import BaseListAPIView, BaseRetrieveUpdateDestroyAPIView
+from core.openapi.base_views import BaseListAPIView, BaseRetrieveUpdateDestroyAPIView, BaseListCreateAPIView
 from repairs.models.repair_request_models import RepairPart, RepairRequest
 from repairs.serializers.repair_request_serializers import (
     PartSerializer,
     RepairRequestReadSerializer,
-    RepairRequestSerializer, )
+    RepairRequestWriteSerializer, )
 
 
 class CustomPagination(PageNumberPagination):
@@ -18,14 +18,15 @@ class CustomPagination(PageNumberPagination):
     max_page_size = 100
 
 
-class RepairRequestListAPIView(BaseListAPIView):
+class RepairRequestListAPIView(BaseListCreateAPIView):
     resource_name = "RepairRequestList"
     schema_tags = ["Repair Request"]
 
-    read_serializer_class = RepairRequestSerializer
+    read_serializer_class = RepairRequestReadSerializer
+    write_serializer_class = RepairRequestWriteSerializer
     pagination_class = CustomPagination
 
-    serializer_class = RepairRequestSerializer
+    serializer_class = RepairRequestWriteSerializer
     queryset = RepairRequest._default_manager.all()
 
     def get(self, request: Request, *args: Any, **kwargs: Any) -> Response:
@@ -44,7 +45,7 @@ class RepairRequestRetrieveUpdateDestroyAPIView(BaseRetrieveUpdateDestroyAPIView
     read_serializer_class = RepairRequestReadSerializer
     write_serializer_class = RepairRequestReadSerializer
 
-    serializer_class = RepairRequestSerializer
+    serializer_class = RepairRequestWriteSerializer
 
     queryset = RepairRequest._default_manager.select_related(
         "construction_object",

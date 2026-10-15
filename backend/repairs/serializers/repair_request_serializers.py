@@ -73,3 +73,23 @@ class RepairRequestReadSerializer(RepairRequestSerializer):
             "closing_files",
             "specifications",
         ]
+
+class RepairRequestWriteSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = RepairRequest
+        fields = [
+            "id",
+            "request_date",
+            "closing_date",
+            "created_by",
+            "location",
+            "status",
+            "repair_company",
+            "construction_object",
+            "description",
+            "closing_description",
+        ]
+        read_only_fields = [
+            "id",
+            "created_by",
+        ]
