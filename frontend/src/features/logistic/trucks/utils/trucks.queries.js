@@ -1,6 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 
 import api from '../../../../api.js'
+import { REFERENCE_STALE_TIME } from '../../../../utils/query.constants.js'
 
 import { truckApiPaths, truckCapacityApiPaths, truckTypeApiPaths } from './truckApiPaths.js'
 
@@ -105,6 +106,7 @@ export function useGetCarrierTrucks(carrierId) {
         queryKey: truckKeys.list(carrierId),
         queryFn: () => fetchCarrierTrucks(carrierId),
         enabled: Boolean(carrierId),
+        staleTime: REFERENCE_STALE_TIME,
     })
 }
 
@@ -167,7 +169,11 @@ export function useDeleteCarrierTruck() {
 
 // CAPACITIES
 export function useGetTruckCapacities() {
-    return useQuery({ queryKey: truckCapacityKeys.lists(), queryFn: fetchTruckCapacities })
+    return useQuery({
+        queryKey: truckCapacityKeys.lists(),
+        queryFn: fetchTruckCapacities,
+        staleTime: REFERENCE_STALE_TIME,
+    })
 }
 
 export function useGetTruckCapacity(id) {
@@ -201,7 +207,7 @@ export function useUpdateTruckCapacity() {
 
 // TYPES
 export function useGetTruckTypes() {
-    return useQuery({ queryKey: truckTypeKeys.lists(), queryFn: fetchTruckTypes })
+    return useQuery({ queryKey: truckTypeKeys.lists(), queryFn: fetchTruckTypes, staleTime: REFERENCE_STALE_TIME })
 }
 
 export function useGetTruckType(id) {

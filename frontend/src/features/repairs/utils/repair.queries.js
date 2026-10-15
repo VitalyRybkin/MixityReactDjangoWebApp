@@ -4,12 +4,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import api from '../../../api.js'
 import { LIST_STALE_TIME, REFERENCE_STALE_TIME } from '../../../utils/query.constants.js'
 
-import {
-    repairCompaniesApiPaths,
-    repairCompaniesApiPaths as repairPartsApiPaths,
-    repairRequestPartsApiPaths,
-    repairRequestsApiPaths,
-} from './repairApiPaths.js'
+import { repairCompaniesApiPaths, repairRequestPartsApiPaths, repairRequestsApiPaths } from './repairApiPaths.js'
 
 const unwrapList = (data) => {
     if (Array.isArray(data)) return data

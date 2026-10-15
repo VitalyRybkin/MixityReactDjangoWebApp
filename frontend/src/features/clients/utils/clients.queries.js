@@ -1,6 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 
 import api from '../../../api.js'
+import { REFERENCE_STALE_TIME } from '../../../utils/query.constants.js'
 
 import { clientApiPaths } from './clientApiPaths.js'
 
@@ -51,6 +52,7 @@ export function useGetClients() {
     return useQuery({
         queryKey: clientKeys.list(),
         queryFn: fetchClients,
+        staleTime: REFERENCE_STALE_TIME,
     })
 }
 

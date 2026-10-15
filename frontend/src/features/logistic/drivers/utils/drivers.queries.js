@@ -1,6 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 
 import api from '../../../../api.js'
+import { REFERENCE_STALE_TIME } from '../../../../utils/query.constants.js'
 
 import { driverApiPaths } from './driverApiPaths.js'
 
@@ -52,6 +53,7 @@ export function useGetDrivers(carrierId) {
         queryKey: driverKeys.list(carrierId),
         queryFn: () => fetchCarrierDrivers(carrierId),
         enabled: Boolean(carrierId),
+        staleTime: REFERENCE_STALE_TIME,
     })
 }
 

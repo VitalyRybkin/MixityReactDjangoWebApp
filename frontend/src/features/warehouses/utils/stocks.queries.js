@@ -1,6 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 
 import api from '../../../api.js'
+import { REFERENCE_STALE_TIME } from '../../../utils/query.constants.js'
 
 import { warehouseApiPaths } from './warehouseApiPaths.js'
 
@@ -69,6 +70,7 @@ export function useGetWarehouses() {
     return useQuery({
         queryKey: warehouseKeys.list(),
         queryFn: fetchWarehouses,
+        staleTime: REFERENCE_STALE_TIME,
     })
 }
 
@@ -85,6 +87,7 @@ export function useWarehouseContacts(id) {
         queryKey: warehouseKeys.contacts(id),
         queryFn: () => fetchWarehouseContacts(id),
         enabled: Boolean(id),
+        staleTime: REFERENCE_STALE_TIME,
     })
 }
 

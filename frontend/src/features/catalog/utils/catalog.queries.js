@@ -1,6 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 
 import api from '../../../api.js'
+import { REFERENCE_STALE_TIME } from '../../../utils/query.constants.js'
 
 import { catalogApiPaths } from './catalogApiPaths.js'
 
@@ -13,26 +14,11 @@ const unwrapList = (data) => {
 export const productKeys = {
     all: ['products'],
     list: () => [...productKeys.all, 'list'],
-    detail: (id) => [...productKeys.all, 'detail', id],
-
-    salesPricesAll: (productId) => [
-        'sales-prices',
-        productId,
-    ],
-    salesPrices: (productId, customerId, page) => [
-        ...productKeys.salesPricesAll(productId),
-        customerId,
-        page,
-    ],
-    purchasePricesAll: (productId) => [
-        'purchase-prices',
-        productId,
-    ],
-    purchasePrices: (productId, warehouseId, page) => [
-        ...productKeys.purchasePricesAll(productId),
-        warehouseId,
-        page,
-    ],
+    detail: (id) => [...productKeys.all, 'detail', String(id)],
+    salesPricesAll: (productId) => ['sales-prices', productId],
+    salesPrices: (productId, customerId, page) => [...productKeys.salesPricesAll(productId), customerId, page],
+    purchasePricesAll: (productId) => ['purchase-prices', productId],
+    purchasePrices: (productId, warehouseId, page) => [...productKeys.purchasePricesAll(productId), warehouseId, page],
 }
 
 // --- API FUNCTIONS ---
@@ -49,50 +35,30 @@ export const fetchProduct = async (id) => {
     return res.data
 }
 
-export const getSalesPrices = async ({
-                                         productId,
-                                         customerId,
-                                         page,
-                                     }) => {
-    const res = await api.get(
-        catalogApiPaths.salesPrices(productId),
-        {
-            params: {
-                customer: customerId,
-                page,
-            },
+export const getSalesPrices = async ({ productId, customerId, page }) => {
+    const res = await api.get(catalogApiPaths.salesPrices(productId), {
+        params: {
+            customer: customerId,
+            page,
         },
-    )
+    })
 
     return res.data
 }
 
-export const getPurchasePrices = async ({
-                                            productId,
-                                            warehouseId,
-                                            page,
-                                        }) => {
-    const res = await api.get(
-        catalogApiPaths.purchasePrices(productId),
-        {
-            params: {
-                warehouse: warehouseId,
-                page,
-            },
+export const getPurchasePrices = async ({ productId, warehouseId, page }) => {
+    const res = await api.get(catalogApiPaths.purchasePrices(productId), {
+        params: {
+            warehouse: warehouseId,
+            page,
         },
-    )
+    })
 
     return res.data
 }
 
-export const createSalesPrice = async ({
-                                           productId,
-                                           payload,
-                                       }) => {
-    const res = await api.post(
-        catalogApiPaths.salesPrices(productId),
-        payload,
-    )
+export const createSalesPrice = async ({ productId, payload }) => {
+    const res = await api.post(catalogApiPaths.salesPrices(productId), payload)
 
     return res.data
 }
@@ -102,14 +68,8 @@ export const updateSalesPrice = async ({ id, payload }) => {
     return res.data
 }
 
-export const createPurchasePrice = async ({
-                                              productId,
-                                              payload,
-                                          }) => {
-    const res = await api.post(
-        catalogApiPaths.purchasePrices(productId),
-        payload,
-    )
+export const createPurchasePrice = async ({ productId, payload }) => {
+    const res = await api.post(catalogApiPaths.purchasePrices(productId), payload)
 
     return res.data
 }
@@ -133,6 +93,7 @@ export function useGetProducts() {
     return useQuery({
         queryKey: productKeys.list(),
         queryFn: fetchProducts,
+        staleTime: REFERENCE_STALE_TIME,
     })
 }
 
@@ -144,17 +105,9 @@ export function useGetProduct(id) {
     })
 }
 
-export function useGetSalesPrices(
-    productId,
-    customerId,
-    page = 1,
-) {
+export function useGetSalesPrices(productId, customerId, page = 1) {
     return useQuery({
-        queryKey: productKeys.salesPrices(
-            productId,
-            customerId,
-            page,
-        ),
+        queryKey: productKeys.salesPrices(productId, customerId, page),
 
         queryFn: () =>
             getSalesPrices({
@@ -167,17 +120,9 @@ export function useGetSalesPrices(
     })
 }
 
-export function useGetPurchasePrices(
-    productId,
-    warehouseId,
-    page = 1,
-) {
+export function useGetPurchasePrices(productId, warehouseId, page = 1) {
     return useQuery({
-        queryKey: productKeys.purchasePrices(
-            productId,
-            warehouseId,
-            page,
-        ),
+        queryKey: productKeys.purchasePrices(productId, warehouseId, page),
 
         queryFn: () =>
             getPurchasePrices({
@@ -198,8 +143,7 @@ export function useDeleteSalesPrice(productId) {
 
         onSuccess: () =>
             queryClient.invalidateQueries({
-                queryKey:
-                    productKeys.salesPricesAll(productId),
+                queryKey: productKeys.salesPricesAll(productId),
             }),
     })
 }
@@ -212,8 +156,7 @@ export function useDeletePurchasePrice(productId) {
 
         onSuccess: () =>
             queryClient.invalidateQueries({
-                queryKey:
-                    productKeys.purchasePricesAll(productId),
+                queryKey: productKeys.purchasePricesAll(productId),
             }),
     })
 }
@@ -232,8 +175,7 @@ export function useCreateSalesPrice(productId) {
 
         onSuccess: () =>
             queryClient.invalidateQueries({
-                queryKey:
-                    productKeys.salesPricesAll(productId),
+                queryKey: productKeys.salesPricesAll(productId),
             }),
     })
 }
@@ -246,8 +188,7 @@ export function useUpdateSalesPrice(productId) {
 
         onSuccess: () =>
             queryClient.invalidateQueries({
-                queryKey:
-                    productKeys.salesPricesAll(productId),
+                queryKey: productKeys.salesPricesAll(productId),
             }),
     })
 }
@@ -264,8 +205,7 @@ export function useCreatePurchasePrice(productId) {
 
         onSuccess: () =>
             queryClient.invalidateQueries({
-                queryKey:
-                    productKeys.purchasePricesAll(productId),
+                queryKey: productKeys.purchasePricesAll(productId),
             }),
     })
 }
@@ -278,8 +218,7 @@ export function useUpdatePurchasePrice(productId) {
 
         onSuccess: () =>
             queryClient.invalidateQueries({
-                queryKey:
-                    productKeys.purchasePricesAll(productId),
+                queryKey: productKeys.purchasePricesAll(productId),
             }),
     })
 }

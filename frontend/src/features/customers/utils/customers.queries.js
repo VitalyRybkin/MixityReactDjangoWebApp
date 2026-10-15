@@ -17,8 +17,8 @@ export const customerKeys = {
     all: ['customer'],
     list: () => [...customerKeys.all, 'list'],
     detail: (id) => [...customerKeys.all, 'detail', String(id)],
-    contacts: (id) => [...customerKeys.all, 'detail', String(id), 'contacts'],
-    objects: (id) => [...customerKeys.all, 'detail', String(id), 'objects'],
+    objectDetail: (id, objectId) => [...customerKeys.detail(id), 'object', String(objectId)],
+    objects: (id) => [...customerKeys.detail(id), 'objects'],
     prices: (customerId, productIds = []) => [
         ...customerKeys.all,
         'prices',
@@ -110,11 +110,8 @@ export function useGetCustomer(id) {
 
 export function useGetCustomerObject(id, objectId) {
     return useQuery({
-        queryKey: [...customerKeys.detail(id), String(objectId)],
-        queryFn: () => {
-            if (!objectId) return null
-            return fetchCustomerObjectDetail(id, objectId)
-        },
+        queryKey: customerKeys.objectDetail(id, objectId),
+        queryFn: () => fetchCustomerObjectDetail(id, objectId),
         enabled: Boolean(id && objectId),
     })
 }
@@ -149,12 +146,16 @@ export function useCreateCustomerObject() {
 export function useUpdateCustomerObject() {
     const queryClient = useQueryClient()
     return useMutation({
-        mutationFn: (variables) => updateConstructionObject(variables),
-        onSuccess: async (data, variables) => {
-            await queryClient.invalidateQueries({ queryKey: customerKeys.list() })
-            await queryClient.invalidateQueries({
-                queryKey: [...customerKeys.detail(variables.id), variables.objectId],
-            })
+        mutationFn: updateConstructionObject,
+        onSuccess: (_, { id, objectId }) => {
+            return Promise.all([
+                queryClient.invalidateQueries({
+                    queryKey: customerKeys.objects(id),
+                }),
+                queryClient.invalidateQueries({
+                    queryKey: customerKeys.objectDetail(id, objectId),
+                }),
+            ])
         },
     })
 }
@@ -193,17 +194,12 @@ export function useDeleteCustomer() {
 
 export function useDeleteCustomerObject() {
     const queryClient = useQueryClient()
-
     return useMutation({
         mutationFn: deleteCustomerObject,
-
-        onSuccess: async (_, variables) => {
-            const { id, objectId } = variables
-
+        onSuccess: async (_, { id, objectId }) => {
             queryClient.removeQueries({
-                queryKey: [...customerKeys.detail(id), objectId],
+                queryKey: customerKeys.objectDetail(id, objectId),
             })
-
             await queryClient.invalidateQueries({
                 queryKey: customerKeys.objects(id),
             })

@@ -1,6 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 
 import api from '../../../../api.js'
+import { REFERENCE_STALE_TIME } from '../../../../utils/query.constants.js'
 
 import { carrierApiPaths } from './carrierApiPaths.js'
 
@@ -65,6 +66,7 @@ export function useGetCarriers() {
     return useQuery({
         queryKey: carrierKeys.list(),
         queryFn: fetchCarriers,
+        staleTime: REFERENCE_STALE_TIME,
     })
 }
 
@@ -81,6 +83,7 @@ export function useGetCarrierContacts(id) {
         queryKey: carrierKeys.contacts(id),
         queryFn: () => fetchCarrierContacts(id),
         enabled: Boolean(id),
+        staleTime: REFERENCE_STALE_TIME,
     })
 }
 
@@ -89,6 +92,7 @@ export function useGetCarrierResources(id) {
         queryKey: carrierKeys.resources(id),
         queryFn: () => fetchCarrierResources(id),
         enabled: Boolean(id),
+        staleTime: REFERENCE_STALE_TIME,
     })
 }
 

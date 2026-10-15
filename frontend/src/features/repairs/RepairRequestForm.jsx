@@ -37,19 +37,12 @@ import {
     useUploadClosingFile,
     useUploadRequestFile,
 } from './utils/repeir.files.queries.js'
-import { emptyRequestForm, locationOptions, statusOptions } from './utils/request.form.constants.js'
-
-const toSelectOptions = (options) =>
-    Object.entries(options).map(([id, name]) => ({
-        id,
-        name,
-    }))
+import { emptyRequestForm } from './utils/request.form.constants.js'
 
 export default function RepairRequestFormPage() {
     const { id } = useParams()
     const isEdit = Boolean(id)
-
-    const navigate = useNavigate()
+    useNavigate()
     const { snack, showSnackbar, closeSnackbar } = useSnackbar()
 
     const {
@@ -128,7 +121,7 @@ export default function RepairRequestFormPage() {
 
     const saving = createRepairRequest.isPending || updateRepairRequest.isPending
 
-    const isLoadingPage = isEdit && (loadingRequest || !repairRequest)
+    const isLoadingPage = isEdit && (loadingRequest || loadingFiles || !repairRequest)
 
     const pageLoadError = loadRequestError
 

@@ -1,6 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 
 import api from '../../../api.js'
+import { LIST_STALE_TIME, REFERENCE_STALE_TIME } from '../../../utils/query.constants.js'
 
 import { orderApiPaths } from './orderApiPaths.js'
 
@@ -162,6 +163,7 @@ export function useGetOrderResources(options = {}) {
     return useQuery({
         queryKey: orderKeys.resources(),
         queryFn: fetchOrderResources,
+        staleTime: REFERENCE_STALE_TIME,
         ...options,
     })
 }
@@ -170,6 +172,7 @@ export function useGetOrders(filters = {}) {
     return useQuery({
         queryKey: orderKeys.list(filters),
         queryFn: () => fetchOrders(filters),
+        staleTime: LIST_STALE_TIME,
     })
 }
 
