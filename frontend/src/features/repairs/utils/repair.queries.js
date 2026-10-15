@@ -107,9 +107,9 @@ export const createRepairRequest = async (payload) => {
     return response.data
 }
 
-export const updateRepairRequest = async (id, payload) => {
-    const response = await api.put(repairRequestsApiPaths.detail(id), payload)
-    return response.data
+export const updateRepairRequest = async ({ id, payload }) => {
+    const res = await api.patch(repairRequestsApiPaths.detail(id), payload)
+    return res.data
 }
 
 // --- API FUNCTIONS FOR REPAIR PARTS ---
@@ -203,11 +203,18 @@ export function useCreateRepairRequest() {
 
 export function useUpdateRepairRequest() {
     const queryClient = useQueryClient()
+
     return useMutation({
         mutationFn: updateRepairRequest,
+
         onSuccess: async (_, variables) => {
-            await queryClient.invalidateQueries({ queryKey: repairRequestsKeys.list() })
-            await queryClient.invalidateQueries({ queryKey: repairRequestsKeys.detail(variables.id) })
+            await queryClient.invalidateQueries({
+                queryKey: repairRequestsKeys.list(),
+            })
+
+            await queryClient.invalidateQueries({
+                queryKey: repairRequestsKeys.detail(variables.id),
+            })
         },
     })
 }

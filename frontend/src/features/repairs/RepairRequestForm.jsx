@@ -157,6 +157,11 @@ export default function RepairRequestFormPage() {
         onSuccess: () => markCleanRef.current?.(),
     })
 
+    const { isDirty, markClean, resetSnapshot } = useFormDirty({
+        form,
+        enabled: !isLoadingPage && !pageLoadError,
+    })
+
     useEffect(() => {
         if (!repairRequest) {
             return
@@ -184,11 +189,6 @@ export default function RepairRequestFormPage() {
         setForm(mappedForm)
         resetSnapshot(mappedForm)
     }, [repairRequest, setForm, resetSnapshot])
-
-    const { isDirty, markClean, resetSnapshot } = useFormDirty({
-        form,
-        enabled: !isLoadingPage && !pageLoadError,
-    })
 
     markCleanRef.current = markClean
 
