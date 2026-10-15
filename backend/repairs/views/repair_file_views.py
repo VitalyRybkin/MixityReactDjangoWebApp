@@ -1,7 +1,7 @@
 from typing import Any
 
 from django.db.models import QuerySet
-from rest_framework.serializers import Serializer
+from rest_framework.serializers import BaseSerializer, Serializer
 
 from core.openapi.base_views import (
     BaseListAPIView,
@@ -30,13 +30,11 @@ class RepairFilesListAPIView(BaseListAPIView):
     read_serializer_class = RepairFilesSerializer
 
     def get_queryset(self) -> QuerySet[RepairRequest]:
-        return (
-            RepairRequest._default_manager
-            .filter(pk=self.kwargs["pk"])
-            .prefetch_related(
-                "request_files",
-                "closing_files",
-            )
+        return RepairRequest._default_manager.filter(
+            pk=self.kwargs["pk"]
+        ).prefetch_related(
+            "request_files",
+            "closing_files",
         )
 
 
@@ -59,7 +57,7 @@ class RepairRequestFileListCreateAPIView(BaseListCreateAPIView):
 
         return self.read_serializer_class(*args, **kwargs)
 
-    def perform_create(self, serializer: Serializer) -> None:
+    def perform_create(self, serializer: BaseSerializer[Any]) -> None:
         serializer.save(
             repair_request_id=self.kwargs["pk"],
         )
@@ -102,7 +100,7 @@ class RepairClosingFileListCreateAPIView(BaseListCreateAPIView):
 
         return self.read_serializer_class(*args, **kwargs)
 
-    def perform_create(self, serializer: Serializer) -> None:
+    def perform_create(self, serializer: BaseSerializer[Any]) -> None:
         serializer.save(
             repair_request_id=self.kwargs["pk"],
         )

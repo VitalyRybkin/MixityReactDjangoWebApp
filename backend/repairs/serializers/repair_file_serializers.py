@@ -1,8 +1,8 @@
 from django.core.files.uploadedfile import UploadedFile
 from rest_framework import serializers
 
-from core.validators.files import validate_pdf, validate_file_size
-from repairs.models.repair_request_models import RequestFile, ClosingFile, RepairRequest
+from core.validators.files import validate_file_size, validate_pdf
+from repairs.models.repair_request_models import ClosingFile, RepairRequest, RequestFile
 
 
 class RepairRequestFileReadSerializer(serializers.ModelSerializer):
@@ -28,6 +28,7 @@ class RepairRequestFileWriteSerializer(RepairRequestFileReadSerializer):
         validate_file_size(file)
         return file
 
+
 class RepairClosingFileReadSerializer(serializers.ModelSerializer):
     file = serializers.FileField(
         required=False,
@@ -41,6 +42,7 @@ class RepairClosingFileReadSerializer(serializers.ModelSerializer):
             "file_name",
             "file",
         ]
+
 
 class RepairClosingFileWriteSerializer(RepairClosingFileReadSerializer):
 
@@ -67,8 +69,3 @@ class RepairFilesSerializer(serializers.ModelSerializer):
             "request_files",
             "closing_files",
         ]
-
-
-
-
-

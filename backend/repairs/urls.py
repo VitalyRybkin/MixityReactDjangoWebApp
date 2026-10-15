@@ -1,21 +1,27 @@
 from django.urls import path
 
-from repairs.routes import RepairCompanyRoutes, RepairPartRoutes, RepairRequestRoutes, RepairFilesRoutes
+from repairs.routes import (
+    RepairCompanyRoutes,
+    RepairFilesRoutes,
+    RepairPartRoutes,
+    RepairRequestRoutes,
+)
 from repairs.views.repair_company_views import (
     RepairCompanyContactListCreateAPIView,
     RepairCompanyListCreateAPIView,
     RepairCompanyRetrieveUpdateDestroyAPIView,
 )
-from repairs.views.repair_request_views import (
-    RepairPartsListAPIView,
-    RepairRequestListAPIView,
-    RepairRequestRetrieveUpdateDestroyAPIView, )
 from repairs.views.repair_file_views import (
     RepairClosingFileListCreateAPIView,
     RepairClosingFileRetrieveUpdateDestroyAPIView,
     RepairFilesListAPIView,
     RepairRequestFileListCreateAPIView,
     RepairRequestFileRetrieveUpdateDestroyAPIView,
+)
+from repairs.views.repair_request_views import (
+    RepairPartsListAPIView,
+    RepairRequestListAPIView,
+    RepairRequestRetrieveUpdateDestroyAPIView,
 )
 
 app_name = "repairs"

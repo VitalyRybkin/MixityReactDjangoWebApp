@@ -37,12 +37,22 @@ class ServiceRoutes:
     LIST_CREATE = ApiRoute("services/", "service_list_create")
     DETAIL = ApiRoute("services/<int:pk>/", "service_detail")
 
+
 class RepairFilesRoutes:
     """
     Routes for managing Repair Request Files resources.
     """
+
     LIST = ApiRoute("requests/<int:pk>/files/", "repair_files_list")
-    LIST_CREATE_REQUEST = ApiRoute("requests/<int:pk>/request_files/", "repair_request_files_create")
-    DELETE_REQUEST_FILE = ApiRoute("requests/<int:pk>/request_files/<int:file_pk>/", "repair_request_files_delete")
-    LIST_CREATE_CLOSING = ApiRoute("requests/<int:pk>/closing_files/", "repair_closing_files_create")
-    DELETE_CLOSING_FILE = ApiRoute("requests/<int:pk>/closing_files/<int:file_pk>/", "repair_closing_files_delete")
+    LIST_CREATE_REQUEST = ApiRoute(
+        "requests/<int:pk>/request_files/", "repair_request_files_create"
+    )
+    DELETE_REQUEST_FILE = ApiRoute(
+        "requests/<int:pk>/request_files/<int:file_pk>/", "repair_request_files_delete"
+    )
+    LIST_CREATE_CLOSING = ApiRoute(
+        "requests/<int:pk>/closing_files/", "repair_closing_files_create"
+    )
+    DELETE_CLOSING_FILE = ApiRoute(
+        "requests/<int:pk>/closing_files/<int:file_pk>/", "repair_closing_files_delete"
+    )

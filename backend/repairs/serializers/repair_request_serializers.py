@@ -7,11 +7,28 @@ from repairs.models.repair_request_models import (
     RepairService,
     RepairSpecification,
 )
-from repairs.serializers.repair_file_serializers import RepairRequestFileReadSerializer, RepairClosingFileReadSerializer
+from repairs.serializers.repair_file_serializers import (
+    RepairClosingFileReadSerializer,
+    RepairRequestFileReadSerializer,
+)
+
+
+class RepairConstructionObjectSerializer(BaseCustomerObjectsSerializer):
+    customer = serializers.PrimaryKeyRelatedField(read_only=True)
+    customer_name = serializers.CharField(
+        source="customer.name",
+        read_only=True,
+    )
+
+    class Meta(BaseCustomerObjectsSerializer.Meta):
+        fields = BaseCustomerObjectsSerializer.Meta.fields + [
+            "customer",
+            "customer_name",
+        ]
 
 
 class RepairRequestSerializer(serializers.ModelSerializer):
-    construction_object = BaseCustomerObjectsSerializer()
+    construction_object = RepairConstructionObjectSerializer()
 
     class Meta:
         model = RepairRequest
@@ -73,6 +90,7 @@ class RepairRequestReadSerializer(RepairRequestSerializer):
             "closing_files",
             "specifications",
         ]
+
 
 class RepairRequestWriteSerializer(serializers.ModelSerializer):
     class Meta:
