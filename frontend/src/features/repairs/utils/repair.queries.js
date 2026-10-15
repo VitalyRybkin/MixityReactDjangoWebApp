@@ -6,6 +6,7 @@ import { LIST_STALE_TIME, REFERENCE_STALE_TIME } from '../../../utils/query.cons
 
 import { repairCompaniesApiPaths, repairRequestPartsApiPaths, repairRequestsApiPaths } from './repairApiPaths.js'
 
+
 const unwrapList = (data) => {
     if (Array.isArray(data)) return data
     if (Array.isArray(data?.results)) return data.results
@@ -97,6 +98,10 @@ export const fetchRepairRequests = async (filters = {}) => {
 
     if (filters.repairCompanyId) {
         params.repair_company_id = filters.repairCompanyId
+    }
+
+    if (filters.pageSize) {
+        params.page_size = filters.pageSize
     }
 
     const response = await api.get(repairRequestsApiPaths.listCreate(), { params })

@@ -3,6 +3,7 @@ import { useLocation, useNavigate } from 'react-router-dom'
 
 import {
     Box,
+    Collapse,
     Divider,
     Pagination,
     Table,
@@ -20,6 +21,7 @@ import PageHeader from '../../components/PageHeader.jsx'
 import AddAction from '../../components/ui/buttons/AddAction.jsx'
 import ApplyAction from '../../components/ui/buttons/ApplyAction.jsx'
 import DownloadAction from '../../components/ui/buttons/DownloadAction.jsx'
+import ExpandAction from '../../components/ui/buttons/ExpandAction.jsx'
 import ResetAction from '../../components/ui/buttons/ResetAction.jsx'
 import { useFilters } from '../../hooks/useFilters.js'
 import { formatDate } from '../../pages/utils/orders.date-filters.js'
@@ -30,7 +32,7 @@ import { useGetCustomerObjects, useGetCustomers } from '../customers/utils/custo
 import { useGetRepairCompanies, useGetRepairRequests } from './utils/repair.queries.js'
 import { locationOptions, statusOptions } from './utils/request.form.constants.js'
 
-const PAGE_SIZE = 5
+const PAGE_SIZE = 10
 
 const today = formatDate(new Date())
 
@@ -44,11 +46,18 @@ const initialDefaults = {
     repairCompanyId: '',
 }
 
+const headerCellSx = {
+    fontWeight: 700,
+    borderBottom: '1px solid rgba(255, 255, 255, 0.16)',
+    backgroundColor: 'rgba(255, 255, 255, 0.08)',
+}
+
 export default function RepairRequestListPage() {
     const navigate = useNavigate()
     const location = useLocation()
     const entity = location.state?.entity
     const [page, setPage] = useState(1)
+    const [filtersOpen, setFiltersOpen] = useState(false)
 
     const { data: customers = [] } = useGetCustomers()
     const { data: repairCompanies = [] } = useGetRepairCompanies()
@@ -120,96 +129,104 @@ export default function RepairRequestListPage() {
             />
 
             <Divider />
+            <ExpandAction open={filtersOpen} onClick={() => setFiltersOpen((prev) => !prev)} />
 
-            <AppSelectField
-                id="repair-customer"
-                label="Ремонтирующая компания"
-                value={draftFilters.repairCompanyId}
-                options={repairCompanies}
-                onChange={handleRepairCompanyChange}
-                searchable
-                fullWidth
-                sx={{ width: '420px', mt: 1 }}
+            <Collapse in={filtersOpen}>
+                <AppSelectField
+                    id="repair-customer"
+                    label="Ремонтирующая компания"
+                    value={draftFilters.repairCompanyId}
+                    options={repairCompanies}
+                    onChange={handleRepairCompanyChange}
+                    searchable
+                    fullWidth
+                    sx={{ width: '420px', mt: 1 }}
+                />
+
+                <Box sx={sx.filters}>
+                    <DateRangeFields
+                        filters={draftFilters}
+                        onChange={handleDraftFilterChange}
+                        fromId="repair-date-from"
+                        toId="repair-date-to"
+                    />
+
+                    <Box sx={sx.filterColumn}>
+                        <AppSelectField
+                            id="repair-customer"
+                            label="Контрагент"
+                            value={draftFilters.customerId}
+                            options={customers}
+                            onChange={handleCustomerChange}
+                            searchable
+                            fullWidth
+                        />
+
+                        <AppSelectField
+                            id="repair-object"
+                            label="Объект"
+                            value={draftFilters.objectId}
+                            options={customerObjects}
+                            onChange={(value) => handleDraftFilterChange('objectId', value)}
+                            disabled={!draftFilters.customerId}
+                            searchable
+                            fullWidth
+                        />
+                    </Box>
+
+                    <Box sx={sx.filterColumn}>
+                        <AppSelectField
+                            id="repair-status"
+                            label="Статус"
+                            value={draftFilters.status}
+                            options={toSelectOptions(statusOptions)}
+                            onChange={(value) => handleDraftFilterChange('status', value)}
+                            fullWidth
+                        />
+
+                        <AppSelectField
+                            id="repair-location"
+                            label="Место выполнения"
+                            value={draftFilters.location}
+                            options={toSelectOptions(locationOptions)}
+                            onChange={(value) => handleDraftFilterChange('location', value)}
+                            fullWidth
+                        />
+                    </Box>
+                </Box>
+
+                <Box sx={sx.actions}>
+                    <ApplyAction
+                        onClick={handleApplyFilters}
+                        sx={sx.applyButton}
+                        disabled={loadingRepairRequests}
+                        loading={loadingRepairRequests}
+                    />
+                    <ResetAction
+                        onClick={handleResetFilters}
+                        disabled={loadingRepairRequests}
+                        loading={loadingRepairRequests}
+                    />
+                </Box>
+            </Collapse>
+
+            <Divider
+                sx={{
+                    ...sx.tableDivider,
+                    mt: filtersOpen ? undefined : 1,
+                }}
             />
-
-            <Box sx={sx.filters}>
-                <DateRangeFields
-                    filters={draftFilters}
-                    onChange={handleDraftFilterChange}
-                    fromId="repair-date-from"
-                    toId="repair-date-to"
-                />
-
-                <Box sx={sx.filterColumn}>
-                    <AppSelectField
-                        id="repair-customer"
-                        label="Контрагент"
-                        value={draftFilters.customerId}
-                        options={customers}
-                        onChange={handleCustomerChange}
-                        searchable
-                        fullWidth
-                    />
-
-                    <AppSelectField
-                        id="repair-object"
-                        label="Объект"
-                        value={draftFilters.objectId}
-                        options={customerObjects}
-                        onChange={(value) => handleDraftFilterChange('objectId', value)}
-                        disabled={!draftFilters.customerId}
-                        searchable
-                        fullWidth
-                    />
-                </Box>
-
-                <Box sx={sx.filterColumn}>
-                    <AppSelectField
-                        id="repair-status"
-                        label="Статус"
-                        value={draftFilters.status}
-                        options={toSelectOptions(statusOptions)}
-                        onChange={(value) => handleDraftFilterChange('status', value)}
-                        fullWidth
-                    />
-
-                    <AppSelectField
-                        id="repair-location"
-                        label="Место выполнения"
-                        value={draftFilters.location}
-                        options={toSelectOptions(locationOptions)}
-                        onChange={(value) => handleDraftFilterChange('location', value)}
-                        fullWidth
-                    />
-                </Box>
-            </Box>
-
-            <Box sx={sx.actions}>
-                <ApplyAction
-                    onClick={handleApplyFilters}
-                    sx={sx.applyButton}
-                    disabled={loadingRepairRequests}
-                    loading={loadingRepairRequests}
-                />
-                <ResetAction
-                    onClick={handleResetFilters}
-                    disabled={loadingRepairRequests}
-                    loading={loadingRepairRequests}
-                />
-            </Box>
-
-            <Divider sx={sx.tableDivider} />
 
             <TableContainer>
                 <Table size="small">
                     <TableHead>
                         <TableRow>
-                            <TableCell>№</TableCell>
-                            <TableCell>Дата</TableCell>
-                            <TableCell>Контрагент</TableCell>
-                            <TableCell>Объект</TableCell>
-                            <TableCell>Статус</TableCell>
-                            <TableCell>Место выполнения</TableCell>
+                            <TableCell sx={headerCellSx}>№</TableCell>
+                            <TableCell sx={headerCellSx}>Дата</TableCell>
+                            <TableCell sx={headerCellSx}>Контрагент</TableCell>
+                            <TableCell sx={headerCellSx}>Объект</TableCell>
+                            <TableCell sx={headerCellSx}>Статус</TableCell>
+                            <TableCell sx={headerCellSx}>Место выполнения</TableCell>
                         </TableRow>
                     </TableHead>
 
