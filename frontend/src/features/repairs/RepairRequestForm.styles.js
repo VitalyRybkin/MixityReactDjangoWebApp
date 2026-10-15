@@ -126,6 +126,8 @@ export const repairRequestFormSx = {
 
     filesSection: {
         mt: 'auto',
+        pt: 2,
+        minHeight: 145,
     },
 
     descriptionField: {

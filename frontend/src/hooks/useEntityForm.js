@@ -11,11 +11,11 @@ export const useFormLogic = ({
     emptyForm,
     updateMutation,
     createMutation,
-    redirectPath = null,
+    redirectPath,
+    redirectToCreated = false,
     toPayload = (form) => form,
     validate = () => true,
     onSuccess = () => {},
-    onError = () => {},
 }) => {
     const navigate = useNavigate()
 
@@ -63,38 +63,32 @@ export const useFormLogic = ({
     }
 
     const onSubmit = async (e) => {
-        if (e) {
-            e.preventDefault()
-        }
-
+        if (e) e.preventDefault()
         setError('')
 
-        if (!validateBeforeSubmit()) {
-            return
-        }
+        if (!validateBeforeSubmit()) return
 
         const payload = toPayload(form)
 
         try {
             if (isEdit) {
-                await updateMutation.mutateAsync({
-                    id,
-                    payload,
-                })
-            } else {
-                await createMutation.mutateAsync(payload)
-            }
+                await updateMutation.mutateAsync({ id, payload })
 
-            await onSuccess()
-
-            if (redirectPath) {
+                onSuccess()
                 navigate(redirectPath)
+            } else {
+                const created = await createMutation.mutateAsync(payload)
+
+                onSuccess(created)
+
+                if (redirectToCreated && created?.id) {
+                    navigate(`${redirectPath}/${created.id}`)
+                } else {
+                    navigate(redirectPath)
+                }
             }
         } catch (e2) {
-            const message = firstError(e2)
-
-            setError(message)
-            onError(message)
+            setError(firstError(e2))
         }
     }
 

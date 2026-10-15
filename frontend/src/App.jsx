@@ -109,6 +109,7 @@ const router = createBrowserRouter(
                     <Route path="/filtering" element={<OrderFilteringPage />} />
                     <Route path="/repair/requests" element={<RepairRequestListPage />} />
                     <Route path="/repair/requests/create" element={<RepairRequestFormPage />} />
+                    <Route path="/repair/requests/:id" element={<RepairRequestFormPage />} />
                 </Route>
 
                 {/* Full-width layout */}

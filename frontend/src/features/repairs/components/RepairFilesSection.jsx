@@ -1,10 +1,12 @@
-import { useRef } from 'react'
+import { useRef, useState } from 'react'
 
 import AttachFileIcon from '@mui/icons-material/AttachFile'
 import OpenInNewIcon from '@mui/icons-material/OpenInNew'
-import { Box, CircularProgress, IconButton, Link, Stack, Typography } from '@mui/material'
+import { Box, CircularProgress, IconButton, Link, Stack, TextField, Typography } from '@mui/material'
 
 import DeleteAction from '../../../components/ui/buttons/DeleteAction.jsx'
+import UploadAction from '../../../components/ui/buttons/UploadAction.jsx'
+import ViewAction from '../../../components/ui/buttons/ViewAction.jsx'
 
 export default function RepairFilesSection({
     title,
@@ -16,6 +18,7 @@ export default function RepairFilesSection({
     disabled = false,
 }) {
     const inputRef = useRef(null)
+    const [fileName, setFileName] = useState('')
 
     const handleSelectFile = async (event) => {
         const file = event.target.files?.[0]
@@ -24,26 +27,37 @@ export default function RepairFilesSection({
             return
         }
 
-        await onUpload(file)
+        await onUpload({
+            file,
+            fileName,
+        })
 
+        setFileName('')
         event.target.value = ''
     }
 
     return (
         <Box>
-            <Stack direction="row" alignItems="center" justifyContent="space-between" sx={{ mb: 1 }}>
-                <Typography variant="caption" color="text.secondary">
-                    {title}
-                </Typography>
+            <Typography variant="caption" color="text.secondary" sx={{ mb: 1, display: 'block' }}>
+                {title}
+            </Typography>
 
-                <IconButton
+            <Stack direction="row" alignItems="center" spacing={1} sx={{ mb: 1 }}>
+                <TextField
                     size="small"
-                    onClick={() => inputRef.current?.click()}
+                    placeholder="Название файла"
+                    value={fileName}
+                    onChange={(event) => setFileName(event.target.value)}
                     disabled={disabled || uploading}
-                    aria-label="Добавить файл"
-                >
-                    {uploading ? <CircularProgress size={18} /> : <AttachFileIcon fontSize="small" />}
-                </IconButton>
+                    fullWidth
+                />
+
+                <UploadAction
+                    loading={uploading}
+                    disabled={disabled || !fileName.trim()}
+                    onClick={() => inputRef.current?.click()}
+                    title="Загрузить файл"
+                />
 
                 <input ref={inputRef} type="file" hidden accept=".pdf,.jpg,.jpeg" onChange={handleSelectFile} />
             </Stack>
@@ -74,21 +88,11 @@ export default function RepairFilesSection({
                                     whiteSpace: 'nowrap',
                                 }}
                             >
-                                {file.file_name || `Файл ${file.id}`}
+                                <Stack spacing={0.5}>{file.file_name || `Файл ${file.id}`}</Stack>
                             </Link>
 
                             <Stack direction="row" alignItems="center" spacing={0.5}>
-                                <IconButton
-                                    component="a"
-                                    href={file.file}
-                                    target="_blank"
-                                    rel="noopener noreferrer"
-                                    size="small"
-                                    aria-label="Открыть файл"
-                                >
-                                    <OpenInNewIcon fontSize="small" />
-                                </IconButton>
-
+                                <ViewAction component="a" href={file.file} target="_blank" rel="noopener noreferrer" />
                                 <DeleteAction onClick={() => onDelete(file.id)} disabled={deletingId === file.id} />
                             </Stack>
                         </Stack>

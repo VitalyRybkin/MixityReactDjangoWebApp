@@ -1,4 +1,4 @@
-import React, { useRef } from 'react'
+import React, { useEffect, useRef } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 
 import { Box, CircularProgress, Divider, Stack, Typography } from '@mui/material'
@@ -76,11 +76,11 @@ export default function RepairRequestFormPage() {
     const requestFiles = filesData?.request_files ?? []
     const closingFiles = filesData?.closing_files ?? []
 
-    const handleUploadRequestFile = async (file) => {
+    const handleUploadRequestFile = async ({ file, fileName }) => {
         await uploadRequestFile.mutateAsync({
             requestId: id,
             file,
-            fileName: file.name,
+            fileName,
         })
     }
 
@@ -91,11 +91,11 @@ export default function RepairRequestFormPage() {
         })
     }
 
-    const handleUploadClosingFile = async (file) => {
+    const handleUploadClosingFile = async ({ file, fileName }) => {
         await uploadClosingFile.mutateAsync({
             requestId: id,
             file,
-            fileName: file.name,
+            fileName,
         })
     }
 
@@ -121,6 +121,7 @@ export default function RepairRequestFormPage() {
         updateMutation: updateRepairRequest,
         createMutation: createRepairRequest,
         redirectPath: '/repair/requests',
+        redirectToCreated: true,
 
         toPayload: (form) => ({
             request_date: form.request_date,
@@ -135,6 +136,31 @@ export default function RepairRequestFormPage() {
 
         onSuccess: () => markCleanRef.current?.(),
     })
+
+    useEffect(() => {
+        if (!repairRequest) {
+            return
+        }
+
+        setForm({
+            ...emptyRequestForm,
+
+            id: repairRequest.id,
+            request_date: repairRequest.request_date ?? '',
+            closing_date: repairRequest.closing_date ?? '',
+            status: repairRequest.status ?? 'open',
+            location: repairRequest.location ?? 'site',
+
+            repair_company: repairRequest.repair_company ?? '',
+
+            customerId: repairRequest.construction_object?.customer ?? '',
+
+            construction_object: repairRequest.construction_object?.id ?? '',
+
+            description: repairRequest.description ?? '',
+            closing_description: repairRequest.closing_description ?? '',
+        })
+    }, [repairRequest, setForm])
 
     const { data: customerObjects = [] } = useGetCustomerObjects(form.customerId)
 
@@ -178,7 +204,7 @@ export default function RepairRequestFormPage() {
                 <Box sx={sx.header}>
                     <PageHeaderCreateUpdate
                         isEdit={isEdit}
-                        orderId={form.id}
+                        orderId={id}
                         saving={saving}
                         newOrder="Заявка на ремонт"
                         editOrder="Редактирование заявки на ремонт"
