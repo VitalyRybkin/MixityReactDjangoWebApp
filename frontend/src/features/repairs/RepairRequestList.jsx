@@ -33,6 +33,7 @@ import { useGetRepairCompanies, useGetRepairRequests } from './utils/repair.quer
 import { locationOptions, statusOptions } from './utils/request.form.constants.js'
 
 const PAGE_SIZE = 10
+const STORAGE_KEY = 'repair_requests_filters'
 
 const today = formatDate(new Date())
 
@@ -62,7 +63,16 @@ export default function RepairRequestListPage() {
     const { data: customers = [] } = useGetCustomers()
     const { data: repairCompanies = [] } = useGetRepairCompanies()
 
-    const { filters, draftFilters, applyFilters, resetFilters, handleDraftFilterChange } = useFilters(initialDefaults)
+    const {
+        filters,
+        draftFilters,
+        applyFilters,
+        resetFilters,
+        handleDraftFilterChange,
+    } = useFilters(
+        initialDefaults,
+        STORAGE_KEY,
+    )
 
     const { data: customerObjects = [] } = useGetCustomerObjects(draftFilters.customerId)
     const { data: repairRequests, isLoading: loadingRepairRequests } = useGetRepairRequests({
