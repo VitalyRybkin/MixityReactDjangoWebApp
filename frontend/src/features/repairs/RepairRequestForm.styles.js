@@ -133,7 +133,29 @@ export const repairRequestFormSx = {
     descriptionField: {
         flex: 1,
         minWidth: 0,
+
+        '& .MuiInputBase-root': {
+            height: '100%',
+            alignItems: 'flex-start',
+        },
+
+        '& textarea': {
+            height: '100% !important',
+            overflow: 'auto',
+        },
+    },
+
+    descriptionColumn: {
+        display: 'flex',
+        flexDirection: 'column',
+        gap: 2,
+        minWidth: 0,
         height: '100%',
+    },
+
+    descriptionHalf: {
+        flex: 1,
+        minHeight: 0,
 
         '& .MuiInputBase-root': {
             height: '100%',

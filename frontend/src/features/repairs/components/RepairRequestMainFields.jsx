@@ -23,7 +23,7 @@ export default function RepairRequestMainFields({
     return (
         <Box component="fieldset" sx={[fieldsetStyles, sx.fieldset]}>
             <Typography component="legend" variant="caption" sx={sx.legend}>
-                Данные заявки:
+                Открытие заявки:
             </Typography>
 
             <Box sx={sx.fields}>

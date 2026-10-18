@@ -4,14 +4,14 @@ import { repairRequestFormSx as sx } from '../RepairRequestForm.styles.js'
 
 export default function RepairRequestDescription({ form, onChange }) {
     return (
-        <Box sx={sx.description}>
+        <Box sx={sx.descriptionColumn}>
             <TextField
                 value={form.description || ''}
                 onChange={onChange('description')}
-                label="Описание"
+                label="Открытие заявки"
                 multiline
                 fullWidth
-                sx={sx.descriptionField}
+                sx={sx.descriptionHalf}
             />
 
             {form.status === 'closed' && (
@@ -23,7 +23,7 @@ export default function RepairRequestDescription({ form, onChange }) {
                     multiline
                     rows={3}
                     fullWidth
-                    sx={sx.closingDescription}
+                    sx={sx.descriptionHalf}
                 />
             )}
         </Box>
