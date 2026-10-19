@@ -1,8 +1,40 @@
+from pathlib import Path
+
 from django.core.files.uploadedfile import UploadedFile
 from rest_framework import serializers
 
-from core.validators.files import validate_file_size, validate_pdf
+from core.validators.files import (
+    compress_jpeg,
+    scan_uploaded_file,
+    validate_file_size,
+    validate_pdf,
+)
 from repairs.models.repair_request_models import ClosingFile, RepairRequest, RequestFile
+
+
+def process_repair_file(
+    file: UploadedFile | None,
+) -> UploadedFile | None:
+    if file is None:
+        return None
+
+    validate_file_size(file)
+    scan_uploaded_file(file)
+
+    file_name = file.name
+
+    if not file_name:
+        raise serializers.ValidationError("Не удалось определить имя файла.")
+
+    suffix = Path(file_name).suffix.lower()
+
+    if suffix == ".pdf":
+        return validate_pdf(file, pdf_only=True)
+
+    if suffix in {".jpg", ".jpeg"}:
+        return compress_jpeg(file)
+
+    return file
 
 
 class RepairRequestFileReadSerializer(serializers.ModelSerializer):
@@ -21,12 +53,12 @@ class RepairRequestFileReadSerializer(serializers.ModelSerializer):
 
 
 class RepairRequestFileWriteSerializer(RepairRequestFileReadSerializer):
-
     @classmethod
-    def validate_file(cls, file: UploadedFile | None) -> UploadedFile | None:
-        file = validate_pdf(file)
-        validate_file_size(file)
-        return file
+    def validate_file(
+        cls,
+        file: UploadedFile | None,
+    ) -> UploadedFile | None:
+        return process_repair_file(file)
 
 
 class RepairClosingFileReadSerializer(serializers.ModelSerializer):
@@ -45,12 +77,12 @@ class RepairClosingFileReadSerializer(serializers.ModelSerializer):
 
 
 class RepairClosingFileWriteSerializer(RepairClosingFileReadSerializer):
-
     @classmethod
-    def validate_file(cls, file: UploadedFile | None) -> UploadedFile | None:
-        file = validate_pdf(file)
-        validate_file_size(file)
-        return file
+    def validate_file(
+        cls,
+        file: UploadedFile | None,
+    ) -> UploadedFile | None:
+        return process_repair_file(file)
 
 
 class RepairFilesSerializer(serializers.ModelSerializer):
