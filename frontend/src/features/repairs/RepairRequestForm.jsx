@@ -207,6 +207,7 @@ export default function RepairRequestFormPage() {
         setRequestParts,
         partsErrors,
         totalPartsPrice,
+        totalPartsPriceRebillable,
         normalizeRequestParts,
         buildPartsPayload,
         validate: validateParts,
@@ -311,6 +312,8 @@ export default function RepairRequestFormPage() {
                             partsList={spareParts}
                             onChange={handlePartChange}
                             onRemove={handleRemovePartRow}
+                            totalPartsPrice={totalPartsPrice}
+                            totalPartsPriceRebillable={totalPartsPriceRebillable}
                         />
                     </Box>
                 )}

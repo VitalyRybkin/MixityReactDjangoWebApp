@@ -69,4 +69,22 @@ export const repairPartsListSx = {
             mr: 0.5,
         },
     },
+
+    totalSectionFooter: {
+        display: 'flex',
+        justifyContent: 'left',
+        flexDirection: 'row',
+        flexWrap: 'wrap',
+        gap: 1,
+    },
+
+    totalSubSectionFooter: {
+        color: 'text.secondary',
+        display: 'flex',
+        justifyContent: 'flex-start',
+        flexDirection: 'row',
+        flexWrap: 'wrap',
+        gap: 0.5,
+        marginTop: '2px',
+    }
 }

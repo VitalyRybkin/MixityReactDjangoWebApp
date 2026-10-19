@@ -1,12 +1,12 @@
 import { useMemo } from 'react'
 
-import { Autocomplete, Box, Checkbox, FormControlLabel, Stack, TextField, Typography } from '@mui/material'
+import {Autocomplete, Box, Checkbox, Divider, FormControlLabel, Stack, TextField, Typography} from '@mui/material'
 
 import DeleteAction from '../../../components/ui/buttons/DeleteAction.jsx'
 
 import { repairPartsListSx as sx } from './RepairSpecificationPartsList.styles.js'
 
-export default function RepairSpecificationPartsList({ rows, partErrors = {}, partsList, onChange, onRemove }) {
+export default function RepairSpecificationPartsList({ rows, partErrors = {}, partsList, onChange, onRemove, totalPartsPrice, totalPartsPriceRebillable, }) {
     const selectedPartIds = useMemo(() => rows.map((row) => row.partId).filter(Boolean), [rows])
 
     return (
@@ -118,6 +118,18 @@ export default function RepairSpecificationPartsList({ rows, partErrors = {}, pa
                     </Box>
                 )
             })}
+
+            <Divider />
+
+            <Stack sx={sx.totalSectionFooter}>
+                <Typography variant="h6">Итого запчасти:</Typography>
+                <Typography variant="h6">{totalPartsPrice} руб.</Typography>
+            </Stack>
+            <Stack sx={sx.totalSubSectionFooter} >
+                <Typography variant="body2">(В том числе клиенту:</Typography>
+                <Typography variant="body2">{totalPartsPriceRebillable} руб.)</Typography>
+            </Stack>
         </Stack>
+
     )
 }

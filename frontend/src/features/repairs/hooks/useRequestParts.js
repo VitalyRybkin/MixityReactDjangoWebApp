@@ -15,10 +15,18 @@ export function useRequestParts() {
     const totalPartsPrice = useMemo(() => {
         return requestParts.reduce((acc, row) => {
             const quantity = Number(String(row.quantity).replace(',', '.')) || 0
-
             const pricePerItem = Number(String(row.price_per_item).replace(',', '.')) || 0
-
             return acc + quantity * pricePerItem
+        }, 0)
+    }, [requestParts])
+
+    const totalPartsPriceRebillable = useMemo(() => {
+        return requestParts.reduce((acc, row) => {
+            if (row.is_rebillable) {
+                const quantity = Number(String(row.quantity).replace(',', '.')) || 0
+                const pricePerItem = Number(String(row.price_per_item).replace(',', '.')) || 0
+                return acc + quantity * pricePerItem
+            }
         }, 0)
     }, [requestParts])
 
@@ -116,6 +124,7 @@ export function useRequestParts() {
         setRequestParts,
         partsErrors,
         totalPartsPrice,
+        totalPartsPriceRebillable,
         normalizeRequestParts,
         buildPartsPayload,
         validate,
