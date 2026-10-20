@@ -2,6 +2,7 @@ from django.core.files.uploadedfile import UploadedFile
 from rest_framework import serializers
 
 from core.validators.files import (
+    compress_pdf,
     scan_uploaded_file,
     validate_file_size,
     validate_pdf,
@@ -23,6 +24,11 @@ class OrderUpdSerializer(serializers.ModelSerializer):
         self,
         file: UploadedFile | None,
     ) -> UploadedFile | None:
+        if file is None:
+            return None
+
         validate_file_size(file)
         scan_uploaded_file(file)
-        return validate_pdf(file, pdf_only=True)
+        validate_pdf(file, pdf_only=True)
+
+        return compress_pdf(file)

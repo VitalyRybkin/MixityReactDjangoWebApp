@@ -5,6 +5,7 @@ from rest_framework import serializers
 
 from core.validators.files import (
     compress_jpeg,
+    compress_pdf,
     scan_uploaded_file,
     validate_file_size,
     validate_pdf,
@@ -29,7 +30,8 @@ def process_repair_file(
     suffix = Path(file_name).suffix.lower()
 
     if suffix == ".pdf":
-        return validate_pdf(file, pdf_only=True)
+        validate_pdf(file, pdf_only=True)
+        return compress_pdf(file)
 
     if suffix in {".jpg", ".jpeg"}:
         return compress_jpeg(file)
