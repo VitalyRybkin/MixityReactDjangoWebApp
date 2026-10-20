@@ -1,4 +1,6 @@
 from io import BytesIO
+import subprocess
+import tempfile
 from pathlib import Path
 
 from django.core.files.uploadedfile import SimpleUploadedFile, UploadedFile
@@ -185,3 +187,88 @@ def validate_pdf(
         file.seek(0)
 
     return file
+
+def compress_pdf(file: UploadedFile) -> UploadedFile:
+    if file.size is not None and file.size <= MAX_STORED_FILE_SIZE:
+        file.seek(0)
+        return file
+
+    file_name = file.name or "upload.pdf"
+
+    profiles = (
+        (150, 300),
+        (120, 240),
+        (96, 200),
+    )
+
+    try:
+        with tempfile.TemporaryDirectory() as temp_dir:
+            temp_path = Path(temp_dir)
+            input_path = temp_path / "input.pdf"
+
+            file.seek(0)
+
+            with input_path.open("wb") as input_file:
+                for chunk in file.chunks():
+                    input_file.write(chunk)
+
+            for image_dpi, mono_dpi in profiles:
+                output_path = temp_path / f"output-{image_dpi}.pdf"
+
+                command = [
+                    "gs",
+                    "-sDEVICE=pdfwrite",
+                    "-dCompatibilityLevel=1.4",
+                    "-dNOPAUSE",
+                    "-dBATCH",
+                    "-dQUIET",
+                    "-dSAFER",
+                    "-sColorConversionStrategy=Gray",
+                    "-dProcessColorModel=/DeviceGray",
+                    "-dDownsampleColorImages=true",
+                    f"-dColorImageResolution={image_dpi}",
+                    "-dDownsampleGrayImages=true",
+                    f"-dGrayImageResolution={image_dpi}",
+                    "-dDownsampleMonoImages=true",
+                    f"-dMonoImageResolution={mono_dpi}",
+                    f"-sOutputFile={output_path}",
+                    str(input_path),
+                ]
+
+                try:
+                    subprocess.run(
+                        command,
+                        check=True,
+                        capture_output=True,
+                        timeout=30,
+                    )
+                except subprocess.TimeoutExpired as exc:
+                    raise serializers.ValidationError(
+                        "Превышено время обработки PDF."
+                    ) from exc
+                except subprocess.CalledProcessError as exc:
+                    raise serializers.ValidationError(
+                        "Не удалось обработать PDF."
+                    ) from exc
+                except FileNotFoundError as exc:
+                    raise serializers.ValidationError(
+                        "Сервис обработки PDF недоступен."
+                    ) from exc
+
+                if (
+                    output_path.exists()
+                    and output_path.stat().st_size <= MAX_STORED_FILE_SIZE
+                ):
+                    return SimpleUploadedFile(
+                        name=f"{Path(file_name).stem}.pdf",
+                        content=output_path.read_bytes(),
+                        content_type="application/pdf",
+                    )
+
+        raise serializers.ValidationError(
+            f"Не удалось уменьшить PDF до "
+            f"{MAX_STORED_FILE_SIZE_KB} КБ."
+        )
+
+    finally:
+        file.seek(0)

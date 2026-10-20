@@ -14,6 +14,7 @@ from logistic.routes import CarrierRoutes
 from logistic.tests.factories import CarrierFactory
 from order.routes import ClientRoutes, CustomerRoutes
 from order.tests.factories import ClientFactory, CustomerFactory
+from repairs.tests.factories import RepairCompanyFactory
 from stock.routes import WarehouseRoutes
 from stock.tests.factories import WarehouseFactory
 
@@ -65,12 +66,13 @@ class TestContactAPICreate(BaseAPIMixin):
         expected = f"Контакт: {contact.first_name} {contact.last_name}"
         self._str_method_logic(expected)
 
-    def test_invalid_xor_both(self) -> None:
-        """Test that we can't create a contact with both a carrier and warehouse."""
+    def test_invalid_xor_multiple(self) -> None:
+        """Test that a contact can't belong to multiple parent entities."""
         carrier = CarrierFactory.create()
         warehouse = WarehouseFactory.create()
         client = ClientFactory.create()
         customer = CustomerFactory.create()
+        repair_company = RepairCompanyFactory.create()
 
         temp = self.factory.build()
         payload = self.payload_generator(temp)
@@ -80,10 +82,12 @@ class TestContactAPICreate(BaseAPIMixin):
                 "warehouse": warehouse.id,
                 "client": client.id,
                 "customer": customer.id,
+                "repair_company": repair_company.id,
             }
         )
+        print(payload)
 
-        self._create_invalid_xor_both(payload)
+        self._create_invalid_xor(payload)
 
     def test_phone_numbers_validation(self) -> None:
         payload = {

@@ -282,7 +282,7 @@ class TestOrderUpdUploadAPIView(
             f"{self.COLOR['END']}"
         )
 
-    @patch("order.validators.upd_pdf.scan_file_for_malware")
+    @patch("core.validators.files.scan_file_for_malware")
     def test_upload_pdf_with_malware_returns_400(
         self,
         mock_scan: MagicMock,
@@ -321,7 +321,7 @@ class TestOrderUpdUploadAPIView(
             f"{self.COLOR['END']}"
         )
 
-    @patch("order.validators.upd_pdf.scan_file_for_malware")
+    @patch("core.validators.files.scan_file_for_malware")
     def test_upload_pdf_when_clamav_unavailable_returns_503(
         self,
         mock_scan: MagicMock,

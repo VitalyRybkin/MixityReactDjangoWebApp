@@ -338,32 +338,30 @@ class CrudContractMixin(_Base):
             f"{self.INDENT}{self.COLOR['OK']}✓ DELETE logic passed{self.COLOR['END']}"
         )
 
-    def _create_invalid_xor_both(self, payload: dict[str, Any] | None = None) -> None:
+    def _create_invalid_xor(self, payload: dict) -> None:
         """
         Creates a test case to validate the API behavior when both 'Carrier' and
         'Warehouse' fields are provided, ensuring the XOR constraint is correctly
         enforced. This test expects an HTTP 400 response from the server.
-
-        Args:
-            payload (dict[str, Any] | None): The payload to be used for the POST request.
         """
-        self._logger_header(f"ENDPOINT POST: {self.url_name}")
-
-        response = self.client.post(self.url, data=payload, format="json")
-
-        self.assertEqual(response.status_code, 400)
-        error_text = "Provide exactly one of carrier, warehouse, client, customer."
-
-        error_found = any(
-            (error_text in err or "non_field_errors" in err)
-            for err in response.data.get("messages", [])
+        response = self.client.post(
+            self.url,
+            data=payload,
+            format="json",
         )
 
-        self.assertTrue(
-            error_found, msg=f"Expected XOR validation error, but got: {response.data}"
+        self.assertEqual(
+            response.status_code,
+            400,
+            msg=f"Expected 400, got {response.status_code}: {response.data}",
         )
-        print(
-            f"{self.INDENT}{self.COLOR['OK']}✓ Correctly rejected double parent assignment.{self.COLOR['END']}"
+
+        errors = response.data.get("errors", {})
+
+        self.assertIn(
+            "non_field_errors",
+            errors,
+            msg=f"Expected XOR validation error, but got: {response.data}",
         )
 
     def _get_pk_list_logic(
