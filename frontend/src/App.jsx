@@ -8,6 +8,7 @@ import {
 } from 'react-router-dom'
 
 import ProtectedRoute from './components/routing/ProtectedRoute.jsx'
+import GlobalApiErrorSnackbar from './components/ui/feedback/GlobalApiErrorSnackbar.jsx'
 import { ACCESS_TOKEN, REFRESH_TOKEN } from './constants.js'
 import CatalogPage from './features/catalog/Catalog.jsx'
 import CatalogPrices from './features/catalog/CatalogPrices.jsx'
@@ -125,7 +126,12 @@ const router = createBrowserRouter(
 )
 
 function App() {
-    return <RouterProvider router={router} />
+    return (
+        <>
+            <RouterProvider router={router} />
+            <GlobalApiErrorSnackbar />
+        </>
+    )
 }
 
 export default App

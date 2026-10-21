@@ -1,6 +1,7 @@
 import axios from 'axios'
 
 import { ACCESS_TOKEN, REFRESH_TOKEN } from './constants.js'
+import { notifyApiError } from './utils/apiError.js'
 
 const api = axios.create({
     baseURL: import.meta.env.VITE_API_URL,
@@ -78,13 +79,18 @@ api.interceptors.response.use(
             })
         }
 
+        const status = error.response.status
+
+        if (status === 503) {
+            notifyApiError(error)
+            return Promise.reject(error)
+        }
+
         const isLoginRequest = originalRequest.url?.endsWith('/api/auth/token/')
 
         if (isLoginRequest) {
             return Promise.reject(error)
         }
-
-        const status = error.response.status
 
         if (status === 403) {
             if (window.location.pathname !== '/') {

@@ -30,6 +30,10 @@ export const firstError = (error) => {
     const status = error?.response?.status
     const data = error?.response?.data
 
+    if (status === 503) {
+        return 'Сервис временно недоступен. Попробуйте позже.'
+    }
+
     if (isHtmlResponse(data)) {
         if (status === 404) {
             return 'Запрашиваемый объект не найден.'
@@ -71,4 +75,30 @@ export const firstError = (error) => {
     }
 
     return 'Не удалось выполнить запрос.'
+}
+
+export const API_ERROR_EVENT = 'app:api-error'
+
+let lastNotificationAt = 0
+
+export const notifyApiError = (error) => {
+    if (typeof window === 'undefined') {
+        return
+    }
+
+    const now = Date.now()
+
+    if (now - lastNotificationAt < 3000) {
+        return
+    }
+
+    lastNotificationAt = now
+
+    window.dispatchEvent(
+        new CustomEvent(API_ERROR_EVENT, {
+            detail: {
+                message: firstError(error),
+            },
+        }),
+    )
 }

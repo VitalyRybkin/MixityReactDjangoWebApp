@@ -82,18 +82,14 @@ const Home = () => {
         handleDraftFilterChange,
     } = useOrdersFilters(STORAGE_KEY, initialDefaults)
 
-    const { data: orders, isPending: loadingOrders } = useGetOrders(formattedFilters)
+    const { data: orders, isPending: loadingOrders, isError: ordersError } = useGetOrders(formattedFilters)
     const { data: customers } = useGetCustomers()
     const { data: warehouses } = useGetWarehouses()
-
     const { refetch: fetchDownload, isFetching: isDownloading } = useExportOrders(formattedFilters)
-
     const uploadUpd = useUploadUpd()
-
     const { orderToDelete, setOrderToDelete, handleConfirmDelete, isDeleting } = useDeleteOrderFlow(() =>
         showSnackbar('Заявка удалена'),
     )
-
     const startPeriod = formatFilteringDate(formattedFilters.dateFrom, false)
     const endPeriod = formatFilteringDate(formattedFilters.dateTo, true)
 
@@ -258,7 +254,10 @@ const Home = () => {
                                     },
                                 },
                             }}
-                            localeText={localeText}
+                            localeText={{
+                                ...localeText,
+                                noRowsLabel: ordersError ? 'Не удалось загрузить заявки.' : localeText.noRowsLabel,
+                            }}
                             slots={{
                                 pagination: CustomPagination,
                             }}
