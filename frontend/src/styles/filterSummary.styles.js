@@ -1,6 +1,6 @@
 import { commonLayoutSx } from './layout.styles.js'
 
-export const filteringPageSx = {
+export const filteriSummarySx = {
     page: commonLayoutSx.page,
 
     header: {
@@ -48,6 +48,47 @@ export const filteringPageSx = {
         flexDirection: 'column',
         gap: 2,
         minWidth: 0,
+    },
+
+    filterSummary: {
+        display: 'flex',
+        flexWrap: 'wrap',
+        alignItems: 'center',
+        columnGap: {
+            xs: 2,
+            sm: 3,
+        },
+        rowGap: {
+            xs: 1,
+            sm: 1.5,
+        },
+        p: 1,
+        minWidth: 0,
+    },
+
+    filterSummaryItem: {
+        display: 'flex',
+        alignItems: 'center',
+        gap: 1,
+        minWidth: 0,
+        minHeight: 24,
+    },
+
+    filterSummaryLabel: {
+        color: 'text.secondary',
+        whiteSpace: 'nowrap',
+    },
+
+    filterSummaryValue: (theme) => ({
+        color: theme.palette.mode === 'dark' ? '#fc9e34' : '#d25100',
+        minWidth: 0,
+        overflowWrap: 'anywhere',
+    }),
+
+    filterSummaryActions: {
+        display: 'flex',
+        alignItems: 'center',
+        ml: 'auto',
     },
 
     actions: {

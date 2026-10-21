@@ -1,10 +1,11 @@
 import React, { useMemo, useState } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
 
-import { Box, Container, Divider, Typography } from '@mui/material'
+import { Box, Container, Divider } from '@mui/material'
 import { DataGrid } from '@mui/x-data-grid'
 
 import AppBreadcrumbs from '../components/AppBreadcrumbs.jsx'
+import FilterSummary from '../components/FilterSummary.jsx'
 import PageHeader from '../components/PageHeader.jsx'
 import AddAction from '../components/ui/buttons/AddAction.jsx'
 import DownloadAction from '../components/ui/buttons/DownloadAction.jsx'
@@ -19,7 +20,6 @@ import { useExportOrders, useGetOrders, useUploadUpd } from '../features/orders/
 import { useGetWarehouses } from '../features/warehouses/utils/stocks.queries.js'
 import { useFileUpload } from '../hooks/useUploadFile.js'
 import { sidebarPageSx } from '../layouts/AppSidebar.jsx'
-import { entityTableListSx as listSx } from '../styles/entityTableList.styles.js'
 import { localeText } from '../utils/localeDataGridText.js'
 
 import { getHomeContentSx, homeSx as sx } from './Home.styles.js'
@@ -209,49 +209,28 @@ const Home = () => {
                         }
                     />
 
-                    <Divider sx={listSx.divider} />
+                    <Divider />
 
-                    <Box sx={sx.filtersSummary}>
-                        <Box sx={sx.filterItem}>
-                            <Typography variant="body1" sx={sx.filterLabel}>
-                                Период:
-                            </Typography>
-
-                            <Typography variant="body1" sx={sx.filterValue}>
-                                {dateStr}
-                            </Typography>
-                        </Box>
-
-                        <Box sx={sx.filterItem}>
-                            <Typography variant="body1" sx={sx.filterLabel}>
-                                Статус:
-                            </Typography>
-
-                            <Typography variant="body1" sx={sx.filterValue}>
-                                {selectedStatus}
-                            </Typography>
-                        </Box>
-
-                        <Box sx={sx.filterItem}>
-                            <Typography variant="body1" sx={sx.filterLabel}>
-                                Контрагент:
-                            </Typography>
-
-                            <Typography variant="body1" sx={sx.filterValue}>
-                                {customerInputValue}
-                            </Typography>
-                        </Box>
-
-                        <Box sx={sx.filterItem}>
-                            <Typography variant="body1" sx={sx.filterLabel}>
-                                Склад:
-                            </Typography>
-
-                            <Typography variant="body1" sx={sx.filterValue}>
-                                {warehouseInputValue}
-                            </Typography>
-                        </Box>
-                    </Box>
+                    <FilterSummary
+                        dateStr={dateStr}
+                        items={[
+                            {
+                                key: 'status',
+                                label: 'Статус',
+                                value: selectedStatus,
+                            },
+                            {
+                                key: 'customer',
+                                label: 'Контрагент',
+                                value: customerInputValue,
+                            },
+                            {
+                                key: 'warehouse',
+                                label: 'Склад',
+                                value: warehouseInputValue,
+                            },
+                        ]}
+                    />
 
                     <Divider sx={sx.divider} />
 

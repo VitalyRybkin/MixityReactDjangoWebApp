@@ -4,9 +4,17 @@ import ExpandLessIcon from '@mui/icons-material/ExpandLess'
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore'
 import { Button } from '@mui/material'
 
-export default function ExpandAction({ open, onClick, ...props }) {
+export default function ExpandAction({ open, onClick, sx, ...props }) {
     return (
-        <Button onClick={onClick} endIcon={open ? <ExpandLessIcon /> : <ExpandMoreIcon />} sx={{ mt: 1 }} {...props}>
+        <Button
+            onClick={onClick}
+            endIcon={open ? <ExpandLessIcon /> : <ExpandMoreIcon />}
+            sx={{
+                textTransform: 'none',
+                ...sx,
+            }}
+            {...props}
+        >
             Фильтры
         </Button>
     )

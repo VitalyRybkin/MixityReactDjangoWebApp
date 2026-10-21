@@ -16,43 +16,6 @@ export const homeSx = {
         pl: 2,
     },
 
-    filtersSummary: {
-        display: 'flex',
-        flexWrap: 'wrap',
-        alignItems: 'center',
-
-        columnGap: {
-            xs: 2,
-            sm: 3,
-        },
-
-        rowGap: {
-            xs: 1,
-            sm: 1.5,
-        },
-
-        p: 1,
-        minWidth: 0,
-    },
-
-    filterItem: {
-        display: 'flex',
-        alignItems: 'center',
-        gap: 1,
-        minWidth: 0,
-    },
-
-    filterLabel: {
-        color: 'text.secondary',
-        whiteSpace: 'nowrap',
-    },
-
-    filterValue: {
-        color: '#fc9e34',
-        minWidth: 0,
-        overflowWrap: 'anywhere',
-    },
-
     divider: {
         mb: 1,
     },

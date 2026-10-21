@@ -17,6 +17,7 @@ import {
 import AppBreadcrumbs from '../../components/AppBreadcrumbs.jsx'
 import AppSelectField from '../../components/AppSelectField.jsx'
 import DateRangeFields from '../../components/DateRangeFields.jsx'
+import FilterSummary from '../../components/FilterSummary.jsx'
 import PageHeader from '../../components/PageHeader.jsx'
 import AddAction from '../../components/ui/buttons/AddAction.jsx'
 import ApplyAction from '../../components/ui/buttons/ApplyAction.jsx'
@@ -24,9 +25,9 @@ import DownloadAction from '../../components/ui/buttons/DownloadAction.jsx'
 import ExpandAction from '../../components/ui/buttons/ExpandAction.jsx'
 import ResetAction from '../../components/ui/buttons/ResetAction.jsx'
 import { useFilters } from '../../hooks/useFilters.js'
+import { formatFilteringDate } from '../../pages/utils/exportOrders.js'
 import { formatDate } from '../../pages/utils/orders.date-filters.js'
-import { entityTableListSx as listSx } from '../../styles/entityTableList.styles.js'
-import { filteringPageSx as sx } from '../../styles/filteringPage.styles.js'
+import { filteriSummarySx as sx } from '../../styles/filterSummary.styles.js'
 import { useGetCustomerObjects, useGetCustomers } from '../customers/utils/customers.queries.js'
 
 import { useGetRepairCompanies, useGetRepairRequests } from './utils/repair.queries.js'
@@ -63,13 +64,7 @@ export default function RepairRequestListPage() {
     const { data: customers = [] } = useGetCustomers()
     const { data: repairCompanies = [] } = useGetRepairCompanies()
 
-    const {
-        filters,
-        draftFilters,
-        applyFilters,
-        resetFilters,
-        handleDraftFilterChange,
-    } = useFilters(
+    const { filters, draftFilters, applyFilters, resetFilters, handleDraftFilterChange } = useFilters(
         initialDefaults,
         STORAGE_KEY,
     )
@@ -109,9 +104,23 @@ export default function RepairRequestListPage() {
         setPage(1)
         resetFilters()
     }
+    const startPeriod = formatFilteringDate(filters.dateFrom, false)
+    const endPeriod = formatFilteringDate(filters.dateTo, true)
+
+    const dateStr = filters.dateFrom === filters.dateTo ? endPeriod : `${startPeriod}-${endPeriod}`
+
+    const customerInputValue = Array.isArray(customers)
+        ? customers.find((customer) => customer.id === filters.customerId)?.name || '-'
+        : '-'
+
+    const objectInputValue = Array.isArray(customerObjects)
+        ? customerObjects.find((object) => object.id === filters.objectId)?.name || '-'
+        : '-'
+    const locationInputValue = locationOptions[filters.location] || '-'
+    const statusInputValue = statusOptions[filters.status] || '-'
 
     return (
-        <Box sx={listSx.page}>
+        <Box sx={sx.page}>
             <AppBreadcrumbs dynamicLabels={entity ? { id: entity.name } : {}} />
 
             <PageHeader
@@ -139,7 +148,39 @@ export default function RepairRequestListPage() {
             />
 
             <Divider />
-            <ExpandAction open={filtersOpen} onClick={() => setFiltersOpen((prev) => !prev)} />
+            <FilterSummary
+                dateStr={dateStr}
+                leading={<ExpandAction open={filtersOpen} onClick={() => setFiltersOpen((prev) => !prev)} />}
+                trailing={
+                    <ResetAction
+                        onClick={handleResetFilters}
+                        disabled={loadingRepairRequests}
+                        loading={loadingRepairRequests}
+                    />
+                }
+                items={[
+                    {
+                        key: 'customer',
+                        label: 'Контрагент',
+                        value: customerInputValue,
+                    },
+                    {
+                        key: 'object',
+                        label: 'Объект',
+                        value: objectInputValue,
+                    },
+                    {
+                        key: 'status',
+                        label: 'Статус',
+                        value: statusInputValue,
+                    },
+                    {
+                        key: 'location',
+                        label: 'Место выполнения',
+                        value: locationInputValue,
+                    },
+                ]}
+            />
 
             <Collapse in={filtersOpen}>
                 <AppSelectField
@@ -212,20 +253,10 @@ export default function RepairRequestListPage() {
                         disabled={loadingRepairRequests}
                         loading={loadingRepairRequests}
                     />
-                    <ResetAction
-                        onClick={handleResetFilters}
-                        disabled={loadingRepairRequests}
-                        loading={loadingRepairRequests}
-                    />
                 </Box>
             </Collapse>
 
-            <Divider
-                sx={{
-                    ...sx.tableDivider,
-                    mt: filtersOpen ? undefined : 1,
-                }}
-            />
+            <Divider sx={sx.tableDivider} />
 
             <TableContainer>
                 <Table size="small">

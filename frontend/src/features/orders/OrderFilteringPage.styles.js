@@ -1,8 +1,8 @@
 import { clickableDataGridSx } from '../../styles/dataGrid.styles.js'
-import { filteringPageSx } from '../../styles/filteringPage.styles.js'
+import { filteriSummarySx } from '../../styles/filterSummary.styles.js'
 
 export const orderFilteringPageSx = {
-    ...filteringPageSx,
+    ...filteriSummarySx,
 
     checkboxGroup: {
         display: 'flex',
@@ -21,11 +21,4 @@ export const orderFilteringPageSx = {
     },
 
     dataGrid: clickableDataGridSx,
-
-    exportAction: {
-        display: {
-            xs: 'none',
-            sm: 'block',
-        },
-    },
 }
