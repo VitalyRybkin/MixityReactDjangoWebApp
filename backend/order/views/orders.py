@@ -206,13 +206,12 @@ class OrderRetrieveUpdateDestroyAPIView(BaseRetrieveUpdateDestroyAPIView):
 
     def get_serializer_class(self) -> type[OrderWriteSerializer | OrderReadSerializer]:
         if self.request.method in ("PUT", "PATCH", "DELETE"):
-            return OrderWriteSerializer
-
-        return OrderReadSerializer
+            return self.write_serializer_class
+        return self.read_serializer_class
 
     def destroy(self, request: Request, *args: Any, **kwargs: Any) -> Response:
         instance = self.get_object()
-        serializer = OrderWriteSerializer(
+        serializer = self.write_serializer_class(
             instance, context=self.get_serializer_context()
         )
         serializer.destroy(instance)

@@ -5,6 +5,7 @@ from rest_framework.generics import get_object_or_404
 from contacts.models import Contact
 from contacts.selectors import ContactSelector
 from contacts.serializers import ContactSerializer
+from core.openapi import ERRORS_DETAIL, ERRORS_DETAIL_WRITE
 from core.openapi.base_views import (
     BaseListAPIView,
     BaseListCreateAPIView,
@@ -31,6 +32,8 @@ class RepairCompanyListCreateAPIView(
     schema_tags = ["RepairCompany"]
     read_serializer_class = RepairCompanySerializer
     write_serializer_class = RepairCompanySerializer
+    errors_read = ERRORS_DETAIL
+    errors_write = ERRORS_DETAIL_WRITE
 
 
 class RepairCompanyRetrieveUpdateDestroyAPIView(
@@ -49,6 +52,9 @@ class RepairCompanyRetrieveUpdateDestroyAPIView(
 
     serializer_class = RepairCompanySerializer
 
+    errors_read = ERRORS_DETAIL
+    errors_write = ERRORS_DETAIL_WRITE
+
 
 class RepairCompanyContactListCreateAPIView(BaseListAPIView):
     """
@@ -60,6 +66,9 @@ class RepairCompanyContactListCreateAPIView(BaseListAPIView):
     read_serializer_class = ContactSerializer
 
     serializer_class = ContactSerializer
+
+    errors_read = ERRORS_DETAIL
+    errors_write = ERRORS_DETAIL_WRITE
 
     def get_queryset(self) -> QuerySet[Contact]:
         repair_company = get_object_or_404(
