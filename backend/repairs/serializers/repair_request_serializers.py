@@ -66,13 +66,13 @@ class RepairRequestReadSerializer(RepairRequestSerializer):
 
     request_files = RepairRequestFileReadSerializer(many=True, read_only=True)
     closing_files = RepairClosingFileReadSerializer(many=True, read_only=True)
-    specification = RepairSpecificationReadSerializer(many=True, read_only=True)
+    specifications = RepairSpecificationReadSerializer(many=True, read_only=True)
 
     class Meta(RepairRequestSerializer.Meta):
         fields = RepairRequestSerializer.Meta.fields + [
             "request_files",
             "closing_files",
-            "specification",
+            "specifications",
         ]
 
 

@@ -45,6 +45,7 @@ class RepairSpecificationReadSerializer(serializers.ModelSerializer):
 class RepairSpecificationWriteSerializer(serializers.ModelSerializer):
     service = PrimaryKeyRelatedField(
         required=False,
+        allow_null=True,
         queryset=RepairService._default_manager.all(),
         error_messages={
             "null": "Выберите услугу.",
@@ -54,6 +55,7 @@ class RepairSpecificationWriteSerializer(serializers.ModelSerializer):
     )
     part = PrimaryKeyRelatedField(
         required=False,
+        allow_null=True,
         queryset=RepairPart._default_manager.all(),
         error_messages={
             "null": "Выберите деталь.",

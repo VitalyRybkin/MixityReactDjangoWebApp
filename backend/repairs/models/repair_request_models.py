@@ -188,9 +188,13 @@ class RepairSpecification(models.Model):
         blank=True,
         verbose_name="Запчасть",
     )
-    quantity = models.PositiveIntegerField(verbose_name="Количество")
+    quantity = models.DecimalField(
+        max_digits=10,
+        decimal_places=2,
+        verbose_name="Количество",
+    )
     price_per_item = models.DecimalField(
-        max_digits=10, decimal_places=2, verbose_name="Цена"
+        max_digits=10, decimal_places=2, null=True, blank=True, verbose_name="Цена"
     )
     is_rebillable = models.BooleanField(
         default=False, verbose_name="Перевыставить арендатору для возмещения"
