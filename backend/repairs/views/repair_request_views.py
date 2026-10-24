@@ -22,12 +22,20 @@ from repairs.serializers.repair_specification_serializer import PartItemSerializ
 
 
 class CustomPagination(PageNumberPagination):
-    page_size = 5
+    """
+    Custom pagination class for RepairRequestListAPIView.
+    """
+
+    page_size = 10
     page_size_query_param = "page_size"
     max_page_size = 100
 
 
 class RepairRequestListAPIView(BaseListCreateAPIView):
+    """
+    API view for listing and creating RepairRequests.
+    """
+
     resource_name = "RepairRequests"
     schema_tags = ["Repair Request"]
 
@@ -66,19 +74,19 @@ class RepairRequestListAPIView(BaseListCreateAPIView):
             description="Filter by location",
         ),
         OpenApiParameter(
-            "customer",
+            "customer_id",
             OpenApiTypes.INT,
             OpenApiParameter.QUERY,
             description="Filter by customer",
         ),
         OpenApiParameter(
-            "object",
+            "object_id",
             OpenApiTypes.INT,
             OpenApiParameter.QUERY,
             description="Filter by object",
         ),
         OpenApiParameter(
-            "repair_company",
+            "repair_company_id",
             OpenApiTypes.INT,
             OpenApiParameter.QUERY,
             description="Filter by repair company",
@@ -108,6 +116,11 @@ class RepairRequestListAPIView(BaseListCreateAPIView):
             "construction_object__customer",
             "repair_company",
             "created_by",
+        ).prefetch_related(
+            "request_files",
+            "closing_files",
+            "specifications__service",
+            "specifications__part",
         )
 
         params = self.request.query_params
@@ -139,6 +152,10 @@ class RepairRequestListAPIView(BaseListCreateAPIView):
 class RepairRequestRetrieveUpdateDestroyAPIView(
     BaseRetrieveUpdateDestroyAPIView,
 ):
+    """
+    API view for retrieving, updating, and deleting a RepairRequest.
+    """
+
     resource_name = "RepairRequest"
     schema_tags = ["Repair Request"]
 
@@ -178,6 +195,10 @@ class RepairRequestRetrieveUpdateDestroyAPIView(
 
 
 class RepairPartsListAPIView(BaseListCreateAPIView):
+    """
+    API view for listing and creating RepairParts.
+    """
+
     resource_name = "RepairPart"
     schema_tags = ["Repair Specification"]
 
@@ -189,6 +210,10 @@ class RepairPartsListAPIView(BaseListCreateAPIView):
 
 
 class RepairPartsRetrieveUpdateDestroyAPIView(BaseRetrieveUpdateDestroyAPIView):
+    """
+    API view for retrieving, updating, and deleting a RepairPart.
+    """
+
     resource_name = "RepairPart"
     schema_tags = ["Repair Specification"]
 

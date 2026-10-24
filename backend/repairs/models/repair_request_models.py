@@ -175,7 +175,7 @@ class RepairSpecification(models.Model):
     service = models.ForeignKey(
         RepairService,
         on_delete=models.PROTECT,
-        related_name="specifications",
+        related_name="specification_service",
         null=True,
         blank=True,
         verbose_name="Услуга",
@@ -183,7 +183,7 @@ class RepairSpecification(models.Model):
     part = models.ForeignKey(
         RepairPart,
         on_delete=models.PROTECT,
-        related_name="specifications",
+        related_name="specification_part",
         null=True,
         blank=True,
         verbose_name="Запчасть",

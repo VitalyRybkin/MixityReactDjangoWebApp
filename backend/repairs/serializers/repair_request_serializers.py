@@ -12,11 +12,17 @@ from repairs.serializers.repair_file_serializers import (
     RepairRequestFileReadSerializer,
 )
 from repairs.serializers.repair_specification_serializer import (
+    RepairSpecificationReadSerializer,
     RepairSpecificationWriteSerializer,
 )
+from repairs.services.specification_items import sync_specification_items
 
 
 class RepairConstructionObjectSerializer(BaseCustomerObjectsSerializer):
+    """
+    Serializer for RepairConstructionObject.
+    """
+
     customer = serializers.PrimaryKeyRelatedField(read_only=True)
     customer_name = serializers.CharField(
         source="customer.name",
@@ -31,6 +37,10 @@ class RepairConstructionObjectSerializer(BaseCustomerObjectsSerializer):
 
 
 class RepairRequestSerializer(serializers.ModelSerializer):
+    """
+    Serializer for RepairRequest.
+    """
+
     construction_object = RepairConstructionObjectSerializer()
 
     class Meta:
@@ -50,9 +60,13 @@ class RepairRequestSerializer(serializers.ModelSerializer):
 
 
 class RepairRequestReadSerializer(RepairRequestSerializer):
+    """
+    Serializer for reading RepairRequest.
+    """
+
     request_files = RepairRequestFileReadSerializer(many=True, read_only=True)
     closing_files = RepairClosingFileReadSerializer(many=True, read_only=True)
-    specification = RepairSpecificationWriteSerializer(many=True, read_only=True)
+    specification = RepairSpecificationReadSerializer(many=True, read_only=True)
 
     class Meta(RepairRequestSerializer.Meta):
         fields = RepairRequestSerializer.Meta.fields + [
@@ -63,6 +77,10 @@ class RepairRequestReadSerializer(RepairRequestSerializer):
 
 
 class RepairRequestWriteSerializer(serializers.ModelSerializer):
+    """
+    Serializer for writing RepairRequest.
+    """
+
     repair_company = serializers.PrimaryKeyRelatedField(
         queryset=RepairCompany.objects.active(),
         error_messages={
@@ -75,8 +93,10 @@ class RepairRequestWriteSerializer(serializers.ModelSerializer):
             "does_not_exist": "Выбранный объект не существует.",
         },
     )
-    specification = RepairSpecificationWriteSerializer(
-        many=True, read_only=True, required=False
+    specifications = RepairSpecificationWriteSerializer(
+        many=True,
+        write_only=True,
+        required=False,
     )
 
     class Meta:
@@ -94,39 +114,52 @@ class RepairRequestWriteSerializer(serializers.ModelSerializer):
             "construction_object",
             "description",
             "closing_description",
-            "specification",
+            "specifications",
         ]
         read_only_fields = [
             "id",
             "created_by",
         ]
 
+    @transaction.atomic
     def create(self, validated_data: dict) -> RepairRequest:
-        specification_data = validated_data.pop("specification", [])
+        specifications_data = validated_data.pop("specifications", [])
 
         request = self.context.get("request")
+
         if request and request.user and request.user.is_authenticated:
-            validated_data["user"] = request.user
+            validated_data["created_by"] = request.user
 
-        specification = RepairRequest.objects.create(**validated_data)
+        repair_request = RepairRequest._default_manager.create(**validated_data)
 
-        if specification_data:
-            specification.specification.set(specification_data)  # type: ignore
+        sync_specification_items(
+            repair_request,
+            specifications_data,
+        )
 
-        sync_order_items(specification, specification_data)
+        return repair_request
 
-        return specification
-
-    def update(self, instance: RepairRequest, validated_data: dict) -> RepairRequest:
-        specification_data = validated_data.pop("specification", None)
+    @transaction.atomic
+    def update(
+        self,
+        instance: RepairRequest,
+        validated_data: dict,
+    ) -> RepairRequest:
+        specifications_data = validated_data.pop(
+            "specifications",
+            None,
+        )
 
         for attr, value in validated_data.items():
             setattr(instance, attr, value)
 
         instance.save()
 
-        if specification_data is not None:
-            sync_order_items(instance, specification_data)
+        if specifications_data is not None:
+            sync_specification_items(
+                instance,
+                specifications_data,
+            )
 
         return instance
 

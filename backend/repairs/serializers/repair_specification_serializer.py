@@ -27,8 +27,8 @@ class PartItemSerializer(serializers.ModelSerializer):
 
 
 class RepairSpecificationReadSerializer(serializers.ModelSerializer):
-    service = ServiceItemSerializer(many=True, read_only=True)
-    part = PartItemSerializer(many=True, read_only=True)
+    service = ServiceItemSerializer(read_only=True)
+    part = PartItemSerializer(read_only=True)
 
     class Meta:
         model = RepairSpecification
@@ -38,11 +38,13 @@ class RepairSpecificationReadSerializer(serializers.ModelSerializer):
             "part",
             "quantity",
             "price_per_item",
+            "is_rebillable",
         ]
 
 
 class RepairSpecificationWriteSerializer(serializers.ModelSerializer):
     service = PrimaryKeyRelatedField(
+        required=False,
         queryset=RepairService._default_manager.all(),
         error_messages={
             "null": "Выберите услугу.",
@@ -51,6 +53,7 @@ class RepairSpecificationWriteSerializer(serializers.ModelSerializer):
         },
     )
     part = PrimaryKeyRelatedField(
+        required=False,
         queryset=RepairPart._default_manager.all(),
         error_messages={
             "null": "Выберите деталь.",
@@ -87,4 +90,18 @@ class RepairSpecificationWriteSerializer(serializers.ModelSerializer):
             "part",
             "quantity",
             "price_per_item",
+            "is_rebillable",
         ]
+        read_only_fields = ["id"]
+
+    def validate(self, attrs: dict) -> dict:
+        service = attrs.get("service")
+        part = attrs.get("part")
+
+        if service is None and part is None:
+            raise serializers.ValidationError("Choose one of the options.")
+
+        if service is not None and part is not None:
+            raise serializers.ValidationError("You can choose only one of the options.")
+
+        return attrs
