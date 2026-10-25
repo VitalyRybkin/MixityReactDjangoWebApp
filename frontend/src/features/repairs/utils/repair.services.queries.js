@@ -12,30 +12,30 @@ export const repairRequestServicesKeys = {
 
 // --- API FUNCTIONS
 
-export const fetchRequestServices = async () => {
+export const fetchRepairServices = async () => {
     const response = await api.get(repairRequestServicesApiPaths.listCreate())
     return unwrapList(response.data)
 }
 
-export const fetchRequestServiceDetail = async (id) => {
+export const fetchRepairServiceDetail = async (id) => {
     const response = await api.get(repairRequestServicesApiPaths.detail(id))
     return response.data
 }
 
-// --- HOOKS FOR SPARE PARTS ---
+// --- HOOKS ---
 
-export function useGetRequestServices() {
+export function useGetRepairServices() {
     return useQuery({
         queryKey: repairRequestServicesKeys.list(),
-        queryFn: () => fetchRequestServices(),
+        queryFn: fetchRepairServices,
         staleTime: REFERENCE_STALE_TIME,
     })
 }
 
-export function useRequestServiceDetail(id) {
+export function useRepairServiceDetail(id) {
     return useQuery({
         queryKey: repairRequestServicesKeys.detail(id),
-        queryFn: () => fetchRequestServiceDetail(id),
+        queryFn: () => fetchRepairServiceDetail(id),
         enabled: Boolean(id),
     })
 }

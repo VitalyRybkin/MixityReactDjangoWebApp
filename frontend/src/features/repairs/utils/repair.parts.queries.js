@@ -27,7 +27,7 @@ export const fetchSparePartDetail = async (id) => {
 export function useGetSpareParts() {
     return useQuery({
         queryKey: repairRequestPartsKeys.list(),
-        queryFn: () => fetchSpareParts(),
+        queryFn: fetchSpareParts,
         staleTime: REFERENCE_STALE_TIME,
     })
 }

@@ -10,12 +10,12 @@ export const repairRequestsApiPaths = {
 }
 
 export const repairRequestPartsApiPaths = {
-    listCreate: (id) => `/api/repair/parts/`,
+    listCreate: () => `/api/repair/parts/`,
     detail: (id) => `/api/repair/parts/${id}/`,
 }
 
 export const repairRequestServicesApiPaths = {
-    listCreate: (id) => `/api/repair/services/`,
+    listCreate: () => `/api/repair/services/`,
     detail: (id) => `/api/repair/services/${id}/`,
 }
 
