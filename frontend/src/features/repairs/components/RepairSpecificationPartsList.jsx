@@ -4,7 +4,7 @@ import {Autocomplete, Box, Checkbox, Divider, FormControlLabel, Stack, TextField
 
 import DeleteAction from '../../../components/ui/buttons/DeleteAction.jsx'
 
-import { repairPartsListSx as sx } from './RepairSpecificationPartsList.styles.js'
+import { repairSpecificationListSx as sx } from './RepairSpecificationList.styles.js'
 
 export default function RepairSpecificationPartsList({ rows, partErrors = {}, partsList, onChange, onRemove, totalPartsPrice, totalPartsPriceRebillable, }) {
     const selectedPartIds = useMemo(() => rows.map((row) => row.partId).filter(Boolean), [rows])
@@ -49,7 +49,7 @@ export default function RepairSpecificationPartsList({ rows, partErrors = {}, pa
                                         helperText={rowErrors.partId || ''}
                                     />
                                 )}
-                                sx={sx.partField}
+                                sx={sx.itemField}
                             />
 
                             <TextField
@@ -121,14 +121,19 @@ export default function RepairSpecificationPartsList({ rows, partErrors = {}, pa
 
             <Divider />
 
-            <Stack sx={sx.totalSectionFooter}>
-                <Typography variant="h6">Итого запчасти:</Typography>
-                <Typography variant="h6">{totalPartsPrice} руб.</Typography>
-            </Stack>
-            <Stack sx={sx.totalSubSectionFooter} >
-                <Typography variant="body2">(В том числе клиенту:</Typography>
-                <Typography variant="body2">{totalPartsPriceRebillable} руб.)</Typography>
-            </Stack>
+            <Box sx={sx.totalFooter}>
+                <Typography variant="h6">
+                    Итого запчасти:
+                </Typography>
+
+                <Typography variant="h6" sx={sx.totalValue}>
+                    {totalPartsPrice} руб.
+                </Typography>
+
+                <Typography variant="body2" color="text.secondary">
+                    (в том числе клиенту: {totalPartsPriceRebillable} руб.)
+                </Typography>
+            </Box>
         </Stack>
 
     )

@@ -32,30 +32,47 @@ export function useRepairSpecifications() {
         [repairRequestSpecifications],
     )
 
-    const totalPrice = useMemo(
-        () =>
-            repairRequestSpecifications.reduce((total, item) => {
-                const quantity = toNumber(item.quantity)
-                const pricePerItem = toNumber(item.price_per_item)
+    const calculateTotal = (items, rebillableOnly = false) =>
+        items.reduce((total, item) => {
+            if (rebillableOnly && !item.is_rebillable) {
+                return total
+            }
 
-                return total + quantity * pricePerItem
-            }, 0),
+            const quantity = toNumber(item.quantity)
+            const pricePerItem = toNumber(item.price_per_item)
+
+            return total + quantity * pricePerItem
+        }, 0)
+
+
+    const totalPrice = useMemo(
+        () => calculateTotal(repairRequestSpecifications),
         [repairRequestSpecifications],
     )
 
     const totalRebillablePrice = useMemo(
-        () =>
-            repairRequestSpecifications.reduce((total, item) => {
-                if (!item.is_rebillable) {
-                    return total
-                }
-
-                const quantity = toNumber(item.quantity)
-                const pricePerItem = toNumber(item.price_per_item)
-
-                return total + quantity * pricePerItem
-            }, 0),
+        () => calculateTotal(repairRequestSpecifications, true),
         [repairRequestSpecifications],
+    )
+
+    const totalServicesPrice = useMemo(
+        () => calculateTotal(serviceSpecifications),
+        [serviceSpecifications],
+    )
+
+    const totalServicesPriceRebillable = useMemo(
+        () => calculateTotal(serviceSpecifications, true),
+        [serviceSpecifications],
+    )
+
+    const totalPartsPrice = useMemo(
+        () => calculateTotal(partSpecifications),
+        [partSpecifications],
+    )
+
+    const totalPartsPriceRebillable = useMemo(
+        () => calculateTotal(partSpecifications, true),
+        [partSpecifications],
     )
 
     const normalizeSpecifications = (items = []) =>
@@ -85,11 +102,11 @@ export function useRepairSpecifications() {
             const rowErrors = {}
 
             if (item.type === 'service' && !item.serviceId) {
-                rowErrors.item = 'Выберите услугу.'
+                rowErrors.serviceId = 'Выберите услугу.'
             }
 
             if (item.type === 'part' && !item.partId) {
-                rowErrors.item = 'Выберите запчасть.'
+                rowErrors.partId = 'Выберите запчасть.'
             }
 
             if (toNumber(item.quantity) <= 0) {
@@ -180,6 +197,12 @@ export function useRepairSpecifications() {
 
         totalPrice,
         totalRebillablePrice,
+
+        totalServicesPrice,
+        totalServicesPriceRebillable,
+
+        totalPartsPrice,
+        totalPartsPriceRebillable,
 
         normalizeSpecifications,
         buildSpecificationsPayload,
