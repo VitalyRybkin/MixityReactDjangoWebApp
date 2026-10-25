@@ -1,5 +1,5 @@
 import React, { useRef } from 'react'
-import { useNavigate, useParams } from 'react-router-dom'
+import { useParams } from 'react-router-dom'
 
 import { Box, CircularProgress, Divider, Stack, Typography } from '@mui/material'
 
@@ -37,13 +37,14 @@ import {
     useUploadRequestFile,
 } from './utils/repair.files.queries.js'
 import { emptyRequestForm } from './utils/request.form.constants.js'
-import {useUnsavedGuard} from "../orders/hooks/useUnsavedGuard.js";
-import {useGetSpareParts} from "./utils/repair.parts.queries.js";
+import {useUnsavedGuard} from "../orders/hooks/useUnsavedGuard.js"
+import { useGetSpareParts } from './utils/repair.parts.queries.js'
+import { useGetRepairServices } from './utils/repair.services.queries.js'
+import RepairSpecificationServicesList from "./components/RepairSpecificationServicesList.jsx";
 
 export default function RepairRequestFormPage() {
     const { id } = useParams()
     const isEdit = Boolean(id)
-    useNavigate()
     const { snack, showSnackbar, closeSnackbar } = useSnackbar()
 
     const {
@@ -55,6 +56,7 @@ export default function RepairRequestFormPage() {
 
     const { data: customers = [] } = useGetCustomers()
     const { data: spareParts = [] } = useGetSpareParts()
+    const { data: repairServices = [] } = useGetRepairServices()
 
     const createRepairRequest = useCreateRepairRequest()
     const updateRepairRequest = useUpdateRepairRequest()
@@ -132,6 +134,10 @@ export default function RepairRequestFormPage() {
         specificationErrors,
         totalPrice,
         totalRebillablePrice,
+        totalServicesPrice,
+        totalServicesPriceRebillable,
+        totalPartsPrice,
+        totalPartsPriceRebillable,
         normalizeSpecifications,
         buildSpecificationsPayload,
         validate: validateSpecifications,
@@ -206,6 +212,12 @@ export default function RepairRequestFormPage() {
         loadRequestError,
     })
 
+    const formatPrice = (value) =>
+        Number(value || 0).toLocaleString('ru-RU', {
+            minimumFractionDigits: 2,
+            maximumFractionDigits: 2,
+        })
+
     return (
         <Box sx={listSx.page}>
             <AppBreadcrumbs />
@@ -275,34 +287,67 @@ export default function RepairRequestFormPage() {
 
             <Divider sx={sx.divider} />
 
-            <Box sx={sx.header}>
-                <Stack direction="row" justifyContent="space-between" sx={{ p: 1 }}>
-                    <Typography variant="h6">Оказанные услуги:</Typography>
+            <Box sx={sx.specificationSection}>
+                <Stack sx={sx.specificationHeader} direction="row">
+                    <Typography variant="h6" sx={sx.specificationGrandTotalValue}>
+                        УСЛУГИ
+                    </Typography>
                     <AddAction onClick={handleAddService} />
                 </Stack>
+
                 <Divider sx={sx.divider} />
+
+                <RepairSpecificationServicesList
+                    rows={serviceSpecifications}
+                    serviceErrors={specificationErrors}
+                    servicesList={repairServices}
+                    onChange={handleSpecificationChange}
+                    onRemove={handleSpecificationRemove}
+                    totalServicesPrice={formatPrice(totalServicesPrice)}
+                    totalServicesPriceRebillable={formatPrice(totalServicesPriceRebillable)}
+                />
             </Box>
 
-            <Box sx={sx.header}>
-                <Stack direction="row" justifyContent="space-between" sx={{ p: 1 }}>
-                    <Typography variant="h6">Запчасти:</Typography>
+            <Box sx={sx.specificationSection}>
+                <Stack sx={sx.specificationHeader} direction="row">
+                    <Typography variant="h6" sx={sx.specificationGrandTotalValue}>
+                        ЗАПЧАСТИ
+                    </Typography>
+
                     <AddAction onClick={handleAddPart} />
                 </Stack>
+
                 <Divider sx={sx.divider} />
 
-                {!pageLoadError && !isLoadingPage && (
-                    <Box>
-                        <RepairSpecificationPartsList
-                            rows={partSpecifications}
-                            partErrors={specificationErrors}
-                            partsList={spareParts}
-                            onChange={handleSpecificationChange}
-                            onRemove={handleSpecificationRemove}
-                            totalPartsPrice={totalPrice}
-                            totalPartsPriceRebillable={totalRebillablePrice}
-                        />
-                    </Box>
-                )}
+                <RepairSpecificationPartsList
+                    rows={partSpecifications}
+                    partErrors={specificationErrors}
+                    partsList={spareParts}
+                    onChange={handleSpecificationChange}
+                    onRemove={handleSpecificationRemove}
+                    totalPartsPrice={formatPrice(totalPartsPrice)}
+                    totalPartsPriceRebillable={formatPrice(totalPartsPriceRebillable)}
+                />
+            </Box>
+
+            <Box sx={sx.specificationGrandTotal}>
+                <Typography variant="h6">
+                    ИТОГО ПО ЗАЯВКЕ:
+                </Typography>
+
+                <Typography
+                    variant="h6"
+                    sx={sx.specificationGrandTotalValue}
+                >
+                    {formatPrice(totalPrice)} руб.
+                </Typography>
+
+                <Typography
+                    variant="body2"
+                    color="text.secondary"
+                >
+                    (в том числе клиенту: {formatPrice(totalRebillablePrice)} руб.)
+                </Typography>
             </Box>
 
             <ConfirmDialog

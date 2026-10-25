@@ -176,7 +176,7 @@ export default function RepairRequestListPage() {
                     },
                     {
                         key: 'location',
-                        label: 'Место выполнения',
+                        label: 'Место',
                         value: locationInputValue,
                     },
                 ]}
@@ -237,7 +237,7 @@ export default function RepairRequestListPage() {
 
                         <AppSelectField
                             id="repair-location"
-                            label="Место выполнения"
+                            label="Место"
                             value={draftFilters.location}
                             options={toSelectOptions(locationOptions)}
                             onChange={(value) => handleDraftFilterChange('location', value)}
@@ -267,7 +267,7 @@ export default function RepairRequestListPage() {
                             <TableCell sx={headerCellSx}>Контрагент</TableCell>
                             <TableCell sx={headerCellSx}>Объект</TableCell>
                             <TableCell sx={headerCellSx}>Статус</TableCell>
-                            <TableCell sx={headerCellSx}>Место выполнения</TableCell>
+                            <TableCell sx={headerCellSx}>Место</TableCell>
                         </TableRow>
                     </TableHead>
 
