@@ -118,6 +118,11 @@ export const updateRepairRequest = async ({ id, payload }) => {
     return res.data
 }
 
+export const deleteRepairRequest = async (id) => {
+    await api.delete(repairRequestsApiPaths.detail(id))
+    return id
+}
+
 // --- HOOKS FOR COMPANIES ---
 
 export function useGetRepairCompanies() {
@@ -214,6 +219,24 @@ export function useUpdateRepairRequest() {
 
             await queryClient.invalidateQueries({
                 queryKey: repairRequestsKeys.detail(variables.id),
+            })
+        },
+    })
+}
+
+export function useDeleteRepairRequest() {
+    const queryClient = useQueryClient()
+
+    return useMutation({
+        mutationFn: deleteRepairRequest,
+
+        onSuccess: async (id) => {
+            queryClient.removeQueries({
+                queryKey: repairRequestsKeys.detail(id),
+            })
+
+            await queryClient.invalidateQueries({
+                queryKey: repairRequestsKeys.lists(),
             })
         },
     })
