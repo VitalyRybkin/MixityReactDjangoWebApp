@@ -1,4 +1,4 @@
-import React, { useEffect, useRef } from 'react'
+import React, { useRef } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 
 import { Box, CircularProgress, Divider, Stack, Typography } from '@mui/material'
@@ -21,8 +21,8 @@ import RepairRequestDescription from './components/RepairRequestDescription.jsx'
 import RepairRequestExecutionFields from './components/RepairRequestExecutionFields.jsx'
 import RepairRequestMainFields from './components/RepairRequestMainFields.jsx'
 import RepairSpecificationPartsList from './components/RepairSpecificationPartsList.jsx'
-import { useFormDirty } from './hooks/useFormDirty.js'
-import { useRequestParts } from './hooks/useRequestParts.js'
+import { useRepairRequestFormData } from './hooks/useRepairRequestFormData.js'
+import { useRepairSpecifications } from './hooks/useRepairSpecifications.js'
 import {
     useCreateRepairRequest,
     useGetRepairCompanies,
@@ -38,6 +38,7 @@ import {
     useUploadRequestFile,
 } from './utils/repeir.files.queries.js'
 import { emptyRequestForm } from './utils/request.form.constants.js'
+import {useUnsavedGuard} from "../orders/hooks/useUnsavedGuard.js";
 
 export default function RepairRequestFormPage() {
     const { id } = useParams()
@@ -120,10 +121,25 @@ export default function RepairRequestFormPage() {
     }
 
     const saving = createRepairRequest.isPending || updateRepairRequest.isPending
-
     const isLoadingPage = isEdit && (loadingRequest || loadingFiles || !repairRequest)
-
     const pageLoadError = loadRequestError
+
+    const {
+        specifications,
+        setSpecifications,
+        serviceSpecifications,
+        partSpecifications,
+        specificationErrors,
+        totalPrice,
+        totalRebillablePrice,
+        normalizeSpecifications,
+        buildSpecificationsPayload,
+        validate: validateSpecifications,
+        handleAddService,
+        handleAddPart,
+        handleChange: handleSpecificationChange,
+        handleRemove: handleSpecificationRemove,
+    } = useRepairSpecifications()
 
     const markCleanRef = useRef(null)
 
@@ -145,45 +161,29 @@ export default function RepairRequestFormPage() {
             construction_object: form.construction_object,
             description: form.description,
             closing_description: form.closing_description,
+            specifications: buildSpecificationsPayload(specifications),
         }),
 
+        validate: validateSpecifications,
         onSuccess: () => markCleanRef.current?.(),
     })
 
-    const { isDirty, markClean, resetSnapshot } = useFormDirty({
+    const { isDirty, markClean } = useRepairRequestFormData({
+        isEdit,
+        repairRequest,
+        isLoadingPage,
+        pageLoadError,
         form,
-        enabled: !isLoadingPage && !pageLoadError,
+        specifications,
+        setForm,
+        setSpecifications,
+        normalizeSpecifications,
     })
 
-    useEffect(() => {
-        if (!repairRequest) {
-            return
-        }
-
-        const mappedForm = {
-            ...emptyRequestForm,
-
-            id: repairRequest.id,
-            request_date: repairRequest.request_date ?? '',
-            closing_date: repairRequest.closing_date ?? '',
-            status: repairRequest.status ?? 'open',
-            location: repairRequest.location ?? 'site',
-
-            repair_company: repairRequest.repair_company ?? '',
-
-            customerId: repairRequest.construction_object?.customer ?? '',
-
-            construction_object: repairRequest.construction_object?.id ?? '',
-
-            description: repairRequest.description ?? '',
-            closing_description: repairRequest.closing_description ?? '',
-        }
-
-        setForm(mappedForm)
-        resetSnapshot(mappedForm)
-    }, [repairRequest, setForm, resetSnapshot])
-
     markCleanRef.current = markClean
+
+    const { confirmOpen, handleConfirm, handleCancel } =
+        useUnsavedGuard(isDirty && !saving)
 
     const { data: customerObjects = [] } = useGetCustomerObjects(form.customerId)
 
@@ -201,20 +201,6 @@ export default function RepairRequestFormPage() {
             construction_object: '',
         }))
     }
-
-    const {
-        requestParts,
-        setRequestParts,
-        partsErrors,
-        totalPartsPrice,
-        totalPartsPriceRebillable,
-        normalizeRequestParts,
-        buildPartsPayload,
-        validate: validateParts,
-        handleAdd: handleAddPartRow,
-        handleChange: handlePartChange,
-        handleRemove: handleRemovePartRow,
-    } = useRequestParts()
 
     useLoadingError(setError, {
         loadRequestError,
@@ -292,7 +278,7 @@ export default function RepairRequestFormPage() {
             <Box sx={sx.header}>
                 <Stack direction="row" justifyContent="space-between" sx={{ p: 1 }}>
                     <Typography variant="h6">Оказанные услуги:</Typography>
-                    <AddAction onClick={handleAddPartRow} />
+                    <AddAction onClick={handleAddService} />
                 </Stack>
                 <Divider sx={sx.divider} />
             </Box>
@@ -300,30 +286,33 @@ export default function RepairRequestFormPage() {
             <Box sx={sx.header}>
                 <Stack direction="row" justifyContent="space-between" sx={{ p: 1 }}>
                     <Typography variant="h6">Запчасти:</Typography>
-                    <AddAction onClick={handleAddPartRow} />
+                    <AddAction onClick={handleAddPart} />
                 </Stack>
                 <Divider sx={sx.divider} />
 
                 {!pageLoadError && !isLoadingPage && (
                     <Box>
                         <RepairSpecificationPartsList
-                            rows={requestParts}
-                            partErrors={partsErrors}
+                            rows={partSpecifications}
+                            partErrors={specificationErrors}
                             partsList={spareParts}
-                            onChange={handlePartChange}
-                            onRemove={handleRemovePartRow}
-                            totalPartsPrice={totalPartsPrice}
-                            totalPartsPriceRebillable={totalPartsPriceRebillable}
+                            onChange={handleSpecificationChange}
+                            onRemove={handleSpecificationRemove}
+                            totalPartsPrice={totalPrice}
+                            totalPartsPriceRebillable={totalRebillablePrice}
                         />
                     </Box>
                 )}
             </Box>
 
             <ConfirmDialog
+                open={confirmOpen}
                 title="Есть несохранённые изменения"
                 text="Вы изменили форму. Уйти без сохранения?"
                 confirmText="Уйти"
                 cancelText="Остаться"
+                onClose={handleCancel}
+                onConfirm={handleConfirm}
             />
 
             <AppSnackbar open={snack.open} message={snack.message} severity={snack.severity} onClose={closeSnackbar} />
