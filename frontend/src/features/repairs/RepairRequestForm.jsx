@@ -27,7 +27,6 @@ import {
     useCreateRepairRequest,
     useGetRepairCompanies,
     useGetRepairRequest,
-    useGetSpareParts,
     useUpdateRepairRequest,
 } from './utils/repair.queries.js'
 import {
@@ -36,9 +35,10 @@ import {
     useGetRepairFiles,
     useUploadClosingFile,
     useUploadRequestFile,
-} from './utils/repeir.files.queries.js'
+} from './utils/repair.files.queries.js'
 import { emptyRequestForm } from './utils/request.form.constants.js'
 import {useUnsavedGuard} from "../orders/hooks/useUnsavedGuard.js";
+import {useGetSpareParts} from "./utils/repair.parts.queries.js";
 
 export default function RepairRequestFormPage() {
     const { id } = useParams()
