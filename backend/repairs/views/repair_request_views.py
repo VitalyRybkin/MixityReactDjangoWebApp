@@ -1,6 +1,6 @@
 from typing import Any
 
-from django.db.models import QuerySet
+from django.db.models import QuerySet, Exists, OuterRef
 from drf_spectacular.types import OpenApiTypes
 from drf_spectacular.utils import OpenApiParameter
 from rest_framework import status
@@ -13,10 +13,10 @@ from core.openapi.base_views import (
     BaseListCreateAPIView,
     BaseRetrieveUpdateDestroyAPIView,
 )
-from repairs.models.repair_request_models import RepairPart, RepairRequest, RepairService
+from repairs.models.repair_request_models import RepairPart, RepairRequest, RepairService, RepairSpecification
 from repairs.serializers.repair_request_serializers import (
     RepairRequestReadSerializer,
-    RepairRequestWriteSerializer,
+    RepairRequestWriteSerializer, RepairRequestSerializer, RepairRequestListSerializer,
 )
 from repairs.serializers.repair_specification_serializer import PartItemSerializer, ServiceItemSerializer
 
@@ -39,7 +39,7 @@ class RepairRequestListAPIView(BaseListCreateAPIView):
     resource_name = "RepairRequests"
     schema_tags = ["Repair Request"]
 
-    read_serializer_class = RepairRequestReadSerializer
+    read_serializer_class = RepairRequestListSerializer
     write_serializer_class = RepairRequestWriteSerializer
     pagination_class = CustomPagination
 
@@ -111,16 +111,20 @@ class RepairRequestListAPIView(BaseListCreateAPIView):
         return paginator.get_paginated_response(serializer.data)
 
     def get_queryset(self) -> QuerySet[RepairRequest]:
-        queryset = RepairRequest._default_manager.select_related(
-            "construction_object",
-            "construction_object__customer",
-            "repair_company",
-            "created_by",
-        ).prefetch_related(
-            "request_files",
-            "closing_files",
-            "specifications__service",
-            "specifications__part",
+        queryset = (
+            RepairRequest._default_manager
+            .select_related(
+                "construction_object",
+                "construction_object__customer",
+            )
+            .annotate(
+                has_rebillable_items=Exists(
+                    RepairSpecification._default_manager.filter(
+                        repair_request_id=OuterRef("pk"),
+                        is_rebillable=True,
+                    )
+                )
+            )
         )
 
         params = self.request.query_params

@@ -58,6 +58,13 @@ class RepairRequestSerializer(serializers.ModelSerializer):
             "closing_description",
         ]
 
+class RepairRequestListSerializer(RepairRequestSerializer):
+    has_rebillable_items = serializers.BooleanField(read_only=True)
+
+    class Meta(RepairRequestSerializer.Meta):
+        fields = RepairRequestSerializer.Meta.fields + [
+            "has_rebillable_items",
+        ]
 
 class RepairRequestReadSerializer(RepairRequestSerializer):
     """
