@@ -13,12 +13,12 @@ from core.openapi.base_views import (
     BaseListCreateAPIView,
     BaseRetrieveUpdateDestroyAPIView,
 )
-from repairs.models.repair_request_models import RepairPart, RepairRequest
+from repairs.models.repair_request_models import RepairPart, RepairRequest, RepairService
 from repairs.serializers.repair_request_serializers import (
     RepairRequestReadSerializer,
     RepairRequestWriteSerializer,
 )
-from repairs.serializers.repair_specification_serializer import PartItemSerializer
+from repairs.serializers.repair_specification_serializer import PartItemSerializer, ServiceItemSerializer
 
 
 class CustomPagination(PageNumberPagination):
@@ -199,7 +199,7 @@ class RepairPartsListAPIView(BaseListCreateAPIView):
     API view for listing and creating RepairParts.
     """
 
-    resource_name = "RepairPart"
+    resource_name = "RepairParts"
     schema_tags = ["Repair Specification"]
 
     queryset = RepairPart._default_manager.all()
@@ -222,3 +222,34 @@ class RepairPartsRetrieveUpdateDestroyAPIView(BaseRetrieveUpdateDestroyAPIView):
     write_serializer_class = PartItemSerializer
 
     serializer_class = PartItemSerializer
+
+
+
+class RepairServicesListAPIView(BaseListCreateAPIView):
+    """
+    API view for listing and creating RepairServices.
+    """
+
+    resource_name = "RepairServices"
+    schema_tags = ["Repair Specification"]
+
+    queryset = RepairService._default_manager.all()
+    read_serializer_class = ServiceItemSerializer
+    write_serializer_class = ServiceItemSerializer
+
+    serializer_class = ServiceItemSerializer
+
+
+class RepairServicesRetrieveUpdateDestroyAPIView(BaseRetrieveUpdateDestroyAPIView):
+    """
+    API view for retrieving, updating, and deleting a RepairService.
+    """
+
+    resource_name = "RepairService"
+    schema_tags = ["Repair Specification"]
+
+    queryset = RepairService._default_manager.all()
+    read_serializer_class = ServiceItemSerializer
+    write_serializer_class = ServiceItemSerializer
+
+    serializer_class = ServiceItemSerializer
