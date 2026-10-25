@@ -1,4 +1,4 @@
-import {useQuery} from "@tanstack/react-query";
+import {useMutation, useQuery, useQueryClient} from "@tanstack/react-query";
 import {REFERENCE_STALE_TIME} from "../../../utils/query.constants.js";
 import api from "../../../api.js";
 import {repairRequestServicesApiPaths} from "./repairApiPaths.js";
@@ -17,6 +17,15 @@ export const fetchRepairServices = async () => {
     return unwrapList(response.data)
 }
 
+export const createRepairService = async (payload) => {
+    const response = await api.post(
+        repairRequestServicesApiPaths.listCreate(),
+        payload,
+    )
+
+    return response.data
+}
+
 export const fetchRepairServiceDetail = async (id) => {
     const response = await api.get(repairRequestServicesApiPaths.detail(id))
     return response.data
@@ -29,6 +38,20 @@ export function useGetRepairServices() {
         queryKey: repairRequestServicesKeys.list(),
         queryFn: fetchRepairServices,
         staleTime: REFERENCE_STALE_TIME,
+    })
+}
+
+export function useCreateRepairService() {
+    const queryClient = useQueryClient()
+
+    return useMutation({
+        mutationFn: createRepairService,
+
+        onSuccess: async () => {
+            await queryClient.invalidateQueries({
+                queryKey: repairRequestServicesKeys.list(),
+            })
+        },
     })
 }
 

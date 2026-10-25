@@ -1,4 +1,4 @@
-import {useQuery} from "@tanstack/react-query";
+import {useMutation, useQuery, useQueryClient} from "@tanstack/react-query";
 import {REFERENCE_STALE_TIME} from "../../../utils/query.constants.js";
 import api from "../../../api.js";
 import {repairRequestPartsApiPaths} from "./repairApiPaths.js";
@@ -17,6 +17,15 @@ export const fetchSpareParts = async () => {
     return unwrapList(response.data)
 }
 
+export const createSparePart = async (payload) => {
+    const response = await api.post(
+        repairRequestPartsApiPaths.listCreate(),
+        payload,
+    )
+
+    return response.data
+}
+
 export const fetchSparePartDetail = async (id) => {
     const response = await api.get(repairRequestPartsApiPaths.detail(id))
     return response.data
@@ -29,6 +38,20 @@ export function useGetSpareParts() {
         queryKey: repairRequestPartsKeys.list(),
         queryFn: fetchSpareParts,
         staleTime: REFERENCE_STALE_TIME,
+    })
+}
+
+export function useCreateSparePart() {
+    const queryClient = useQueryClient()
+
+    return useMutation({
+        mutationFn: createSparePart,
+
+        onSuccess: async () => {
+            await queryClient.invalidateQueries({
+                queryKey: repairRequestPartsKeys.list(),
+            })
+        },
     })
 }
 

@@ -1,13 +1,18 @@
-import { useMemo } from 'react'
+import {useMemo, useState} from 'react'
 
 import {Autocomplete, Box, Checkbox, Divider, FormControlLabel, Stack, TextField, Typography} from '@mui/material'
 
 import DeleteAction from '../../../components/ui/buttons/DeleteAction.jsx'
 
 import { repairSpecificationListSx as sx } from './RepairSpecificationList.styles.js'
+import AddAction from "../../../components/ui/buttons/AddAction.jsx";
+import {useCreateSparePart} from "../utils/repair.parts.queries.js";
+import RepairSpecificationItemCreateDialog from "./RepairSpecificationItemCreateDialog.jsx";
 
 export default function RepairSpecificationPartsList({ rows, partErrors = {}, partsList, onChange, onRemove, totalPartsPrice, totalPartsPriceRebillable, }) {
     const selectedPartIds = useMemo(() => rows.map((row) => row.partId).filter(Boolean), [rows])
+    const createPart = useCreateSparePart()
+    const [createForRowId, setCreateForRowId] = useState(null)
 
     return (
         <Stack spacing={1}>
@@ -50,6 +55,11 @@ export default function RepairSpecificationPartsList({ rows, partErrors = {}, pa
                                     />
                                 )}
                                 sx={sx.itemField}
+                            />
+
+                            <AddAction
+                                title="Добавить запчаcть"
+                                onClick={() => setCreateForRowId(row.id)}
                             />
 
                             <TextField
@@ -134,6 +144,24 @@ export default function RepairSpecificationPartsList({ rows, partErrors = {}, pa
                     (в том числе клиенту: {totalPartsPriceRebillable} руб.)
                 </Typography>
             </Box>
+
+            <RepairSpecificationItemCreateDialog
+                open={Boolean(createForRowId)}
+                title="Добавить запчасть"
+                label="Наименование запчасти"
+                mutation={createPart}
+                errorMessage="Не удалось добавить запчасть"
+                onClose={() => setCreateForRowId(null)}
+                onCreated={(created) => {
+                    if (createForRowId) {
+                        onChange(createForRowId, {
+                            partId: created.id,
+                        })
+                    }
+
+                    setCreateForRowId(null)
+                }}
+            />
         </Stack>
 
     )

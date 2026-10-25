@@ -1,13 +1,26 @@
-import { useMemo } from 'react'
+import {useMemo, useState} from 'react'
 
 import {Autocomplete, Box, Checkbox, Divider, FormControlLabel, Stack, TextField, Typography} from '@mui/material'
 
 import DeleteAction from '../../../components/ui/buttons/DeleteAction.jsx'
 
 import { repairSpecificationListSx as sx } from './RepairSpecificationList.styles.js'
+import AddAction from "../../../components/ui/buttons/AddAction.jsx";
+import RepairSpecificationItemCreateDialog from './RepairSpecificationItemCreateDialog.jsx'
+import { useCreateRepairService } from '../utils/repair.services.queries.js'
 
-export default function RepairSpecificationServicesList({ rows, serviceErrors = {}, servicesList, onChange, onRemove, totalServicesPrice, totalServicesPriceRebillable, }) {
+export default function RepairSpecificationServicesList({
+                                                            rows,
+                                                            serviceErrors = {},
+                                                            servicesList,
+                                                            onChange,
+                                                            onRemove,
+                                                            totalServicesPrice,
+                                                            totalServicesPriceRebillable,
+                                                        }) {
     const selectedServiceIds = useMemo(() => rows.map((row) => row.serviceId).filter(Boolean), [rows])
+    const [createForRowId, setCreateForRowId] = useState(null)
+    const createService = useCreateRepairService()
 
     return (
         <Stack spacing={1}>
@@ -50,6 +63,11 @@ export default function RepairSpecificationServicesList({ rows, serviceErrors = 
                                     />
                                 )}
                                 sx={sx.itemField}
+                            />
+
+                            <AddAction
+                                title="Добавить услугу"
+                                onClick={() => setCreateForRowId(row.id)}
                             />
 
                             <TextField
@@ -133,6 +151,24 @@ export default function RepairSpecificationServicesList({ rows, serviceErrors = 
                     (в том числе клиенту: {totalServicesPriceRebillable} руб.)
                 </Typography>
             </Box>
+
+            <RepairSpecificationItemCreateDialog
+                open={Boolean(createForRowId)}
+                title="Добавить услугу"
+                label="Наименование услуги"
+                mutation={createService}
+                errorMessage="Не удалось добавить услугу"
+                onClose={() => setCreateForRowId(null)}
+                onCreated={(created) => {
+                    if (createForRowId) {
+                        onChange(createForRowId, {
+                            serviceId: created.id,
+                        })
+                    }
+
+                    setCreateForRowId(null)
+                }}
+            />
         </Stack>
 
     )

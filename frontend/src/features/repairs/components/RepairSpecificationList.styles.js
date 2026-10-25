@@ -15,13 +15,11 @@ export const repairSpecificationListSx = {
         display: 'grid',
         gridTemplateColumns: {
             xs: '1fr',
-            sm: 'minmax(0, 1fr) 120px',
-            md: 'minmax(360px, 620px) 120px 150px',
-            lg: 'minmax(360px, 620px) 120px 150px 170px 48px',
+            sm: '1fr',
+            md: 'minmax(280px, 1fr) 48px 140px 160px auto 48px',
         },
-        gap: 1,
+        gap: 0.75,
         alignItems: 'center',
-        justifyContent: 'start',
         minWidth: 0,
     },
 
