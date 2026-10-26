@@ -4,7 +4,8 @@ from repairs.routes import (
     RepairCompanyRoutes,
     RepairFilesRoutes,
     RepairPartRoutes,
-    RepairRequestRoutes, RepairServiceRoutes,
+    RepairRequestRoutes,
+    RepairServiceRoutes,
 )
 from repairs.views.repair_company_views import (
     RepairCompanyContactListCreateAPIView,
@@ -22,15 +23,15 @@ from repairs.views.repair_request_views import (
     RepairPartsListAPIView,
     RepairPartsRetrieveUpdateDestroyAPIView,
     RepairRequestListAPIView,
-    RepairRequestRetrieveUpdateDestroyAPIView, RepairServicesListAPIView, RepairServicesRetrieveUpdateDestroyAPIView,
+    RepairRequestRetrieveUpdateDestroyAPIView,
+    RepairServicesListAPIView,
+    RepairServicesRetrieveUpdateDestroyAPIView,
 )
 
 app_name = "repairs"
 
 urlpatterns = [
-
     # Company
-
     path(
         RepairCompanyRoutes.LIST_CREATE.path,
         RepairCompanyListCreateAPIView.as_view(),
@@ -46,9 +47,7 @@ urlpatterns = [
         RepairCompanyContactListCreateAPIView.as_view(),
         name=RepairCompanyRoutes.CONTACTS.name,
     ),
-
     # Request
-
     path(
         RepairRequestRoutes.LIST_CREATE.path,
         RepairRequestListAPIView.as_view(),
@@ -59,9 +58,7 @@ urlpatterns = [
         RepairRequestRetrieveUpdateDestroyAPIView.as_view(),
         name=RepairRequestRoutes.DETAIL.name,
     ),
-
     # Part
-
     path(
         RepairPartRoutes.LIST_CREATE.path,
         RepairPartsListAPIView.as_view(),
@@ -72,9 +69,7 @@ urlpatterns = [
         RepairPartsRetrieveUpdateDestroyAPIView.as_view(),
         name=RepairPartRoutes.DETAIL.name,
     ),
-
     # Service
-
     path(
         RepairServiceRoutes.LIST_CREATE.path,
         RepairServicesListAPIView.as_view(),
@@ -85,9 +80,7 @@ urlpatterns = [
         RepairServicesRetrieveUpdateDestroyAPIView.as_view(),
         name=RepairServiceRoutes.DETAIL.name,
     ),
-
     # File
-
     path(
         RepairFilesRoutes.LIST.path,
         RepairFilesListAPIView.as_view(),

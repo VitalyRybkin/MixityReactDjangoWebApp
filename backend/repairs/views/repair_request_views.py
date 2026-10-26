@@ -1,6 +1,6 @@
 from typing import Any
 
-from django.db.models import QuerySet, Exists, OuterRef
+from django.db.models import Exists, OuterRef, QuerySet
 from drf_spectacular.types import OpenApiTypes
 from drf_spectacular.utils import OpenApiParameter
 from rest_framework import status
@@ -13,12 +13,21 @@ from core.openapi.base_views import (
     BaseListCreateAPIView,
     BaseRetrieveUpdateDestroyAPIView,
 )
-from repairs.models.repair_request_models import RepairPart, RepairRequest, RepairService, RepairSpecification
-from repairs.serializers.repair_request_serializers import (
-    RepairRequestReadSerializer,
-    RepairRequestWriteSerializer, RepairRequestSerializer, RepairRequestListSerializer,
+from repairs.models.repair_request_models import (
+    RepairPart,
+    RepairRequest,
+    RepairService,
+    RepairSpecification,
 )
-from repairs.serializers.repair_specification_serializer import PartItemSerializer, ServiceItemSerializer
+from repairs.serializers.repair_request_serializers import (
+    RepairRequestListSerializer,
+    RepairRequestReadSerializer,
+    RepairRequestWriteSerializer,
+)
+from repairs.serializers.repair_specification_serializer import (
+    PartItemSerializer,
+    ServiceItemSerializer,
+)
 
 
 class CustomPagination(PageNumberPagination):
@@ -111,18 +120,14 @@ class RepairRequestListAPIView(BaseListCreateAPIView):
         return paginator.get_paginated_response(serializer.data)
 
     def get_queryset(self) -> QuerySet[RepairRequest]:
-        queryset = (
-            RepairRequest._default_manager
-            .select_related(
-                "construction_object",
-                "construction_object__customer",
-            )
-            .annotate(
-                has_rebillable_items=Exists(
-                    RepairSpecification._default_manager.filter(
-                        repair_request_id=OuterRef("pk"),
-                        is_rebillable=True,
-                    )
+        queryset = RepairRequest._default_manager.select_related(
+            "construction_object",
+            "construction_object__customer",
+        ).annotate(
+            has_rebillable_items=Exists(
+                RepairSpecification._default_manager.filter(
+                    repair_request_id=OuterRef("pk"),
+                    is_rebillable=True,
                 )
             )
         )
@@ -226,7 +231,6 @@ class RepairPartsRetrieveUpdateDestroyAPIView(BaseRetrieveUpdateDestroyAPIView):
     write_serializer_class = PartItemSerializer
 
     serializer_class = PartItemSerializer
-
 
 
 class RepairServicesListAPIView(BaseListCreateAPIView):

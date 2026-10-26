@@ -5,13 +5,13 @@ from rest_framework.generics import get_object_or_404
 from contacts.models import Contact
 from contacts.selectors import ContactSelector
 from contacts.serializers import ContactSerializer
+from core.api.mixins import SoftDeleteResponseMixin
 from core.openapi import ERRORS_DETAIL, ERRORS_DETAIL_WRITE
 from core.openapi.base_views import (
     BaseListAPIView,
     BaseListCreateAPIView,
     BaseRetrieveUpdateDestroyAPIView,
 )
-from core.tests.visibility_tests import SoftDeleteContractMixin
 from repairs.models import RepairCompany
 from repairs.serializers.repair_company_serializers import RepairCompanySerializer
 
@@ -37,7 +37,7 @@ class RepairCompanyListCreateAPIView(
 
 
 class RepairCompanyRetrieveUpdateDestroyAPIView(
-    SoftDeleteContractMixin,
+    SoftDeleteResponseMixin,
     BaseRetrieveUpdateDestroyAPIView,
     BaseRepairCompanyGenericAPIView,
 ):

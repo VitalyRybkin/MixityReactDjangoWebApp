@@ -15,7 +15,9 @@ def sync_specification_items(
     :param specifications_data: The specification data to sync.
     :return: None
     """
-    repair_request.specifications.all().delete()
+    RepairSpecification._default_manager.filter(
+        repair_request=repair_request,
+    ).delete()
 
     items = [
         RepairSpecification(
