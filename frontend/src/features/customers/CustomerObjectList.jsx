@@ -66,14 +66,15 @@ export default function CustomerObjectListPage() {
     const handleDeleteObject = (constructionObject) => {
         confirmDelete({
             item: constructionObject,
-            mutateAsync: (item) =>
+            mutateAsync: () =>
                 deleteCustomerObjectMutation.mutateAsync({
                     id,
-                    objectId: item.id,
+                    objectId: constructionObject.id,
                 }),
             refetch,
             title: 'Удалить объект?',
-            text: (item) => `Вы действительно хотите удалить "${item.name}"?`,
+            text: (item) =>
+                `Вы действительно хотите удалить "${item.name}"?`,
             successMessage: 'Объект удален!',
         })
     }
@@ -154,6 +155,7 @@ export default function CustomerObjectListPage() {
                 confirmColor={confirm.confirmColor}
                 onClose={closeConfirm}
                 onConfirm={handleConfirm}
+                loading={deleteCustomerObjectMutation.isPending}
             />
 
             <AppSnackbar open={snack.open} message={snack.message} severity={snack.severity} onClose={closeSnackbar} />

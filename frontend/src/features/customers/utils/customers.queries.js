@@ -76,6 +76,10 @@ export const deleteCustomer = async (id) => {
 }
 
 export const deleteCustomerObject = async ({ id, objectId }) => {
+    if (objectId == null) {
+        throw new Error('Construction object ID is missing')
+    }
+
     await api.delete(constructionObjectsApiPaths.detail(id, objectId))
     return objectId
 }
