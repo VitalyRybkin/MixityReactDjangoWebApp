@@ -69,7 +69,7 @@ export const routes = [
     },
     {
         path: '/customers',
-        breadcrumb: 'Заказчики',
+        breadcrumb: 'Покупатели',
     },
     {
         path: '/customers/create',

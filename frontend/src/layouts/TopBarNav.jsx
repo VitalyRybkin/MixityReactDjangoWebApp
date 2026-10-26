@@ -16,7 +16,7 @@ const REFERENCE_ITEMS = [
     { label: 'Перевозчики', to: '/carriers' },
     { label: 'Склады', to: '/warehouses' },
     { label: 'Поставщики', to: '/clients' },
-    { label: 'Заказчики', to: '/customers' },
+    { label: 'Покупатели', to: '/customers' },
     { label: 'Ремонт', to: '/repair/companies' },
 ]
 
