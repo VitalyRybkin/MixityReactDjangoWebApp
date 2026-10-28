@@ -167,6 +167,50 @@ export const repairRequestFormSx = {
             overflow: 'auto',
         },
     },
+
+    specificationSection: {
+        border: '1px solid',
+        borderColor: 'divider',
+        borderRadius: 1,
+        p: 2,
+        mb: 2,
+        minWidth: 0,
+        '&:hover': {
+            borderColor: 'text.secondary',
+        },
+    },
+
+    specificationHeader: {
+        display: 'flex',
+        alignItems: 'center',
+        gap: 3,
+        mb: 1.5,
+    },
+
+    specificationTotal: {
+        display: 'flex',
+        alignItems: 'baseline',
+        gap: 1,
+        mt: 1.5,
+        flexWrap: 'wrap',
+    },
+
+    specificationGrandTotal: {
+        display: 'flex',
+        alignItems: 'baseline',
+        gap: 1.5,
+        px: 2,
+        py: 1.5,
+        mt: 2,
+        borderTop: '1px solid',
+        borderColor: 'divider',
+        flexWrap: 'wrap',
+    },
+
+    specificationGrandTotalValue: {
+        color: 'warning.main',
+        fontWeight: 700,
+    },
 }
 
 export const fieldsetStyles = {

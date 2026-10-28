@@ -13,7 +13,6 @@ import {
     TableHead,
     TableRow,
 } from '@mui/material'
-
 import AppBreadcrumbs from '../../components/AppBreadcrumbs.jsx'
 import AppSelectField from '../../components/AppSelectField.jsx'
 import DateRangeFields from '../../components/DateRangeFields.jsx'
@@ -24,13 +23,16 @@ import ApplyAction from '../../components/ui/buttons/ApplyAction.jsx'
 import DownloadAction from '../../components/ui/buttons/DownloadAction.jsx'
 import ExpandAction from '../../components/ui/buttons/ExpandAction.jsx'
 import ResetAction from '../../components/ui/buttons/ResetAction.jsx'
+import ConfirmDialog from '../../components/ui/feedback/ConfirmDialog.jsx'
+import DeleteAction from '../../components/ui/buttons/DeleteAction.jsx'
+import PrintAction from '../../components/ui/buttons/PrintAction.jsx'
 import { useFilters } from '../../hooks/useFilters.js'
 import { formatFilteringDate } from '../../pages/utils/exportOrders.js'
 import { formatDate } from '../../pages/utils/orders.date-filters.js'
 import { filteriSummarySx as sx } from '../../styles/filterSummary.styles.js'
 import { useGetCustomerObjects, useGetCustomers } from '../customers/utils/customers.queries.js'
 
-import { useGetRepairCompanies, useGetRepairRequests } from './utils/repair.queries.js'
+import { useGetRepairCompanies, useGetRepairRequests, useDeleteRepairRequest } from './utils/repair.queries.js'
 import { locationOptions, statusOptions } from './utils/request.form.constants.js'
 
 const PAGE_SIZE = 10
@@ -60,9 +62,12 @@ export default function RepairRequestListPage() {
     const entity = location.state?.entity
     const [page, setPage] = useState(1)
     const [filtersOpen, setFiltersOpen] = useState(false)
+    const [deleteTarget, setDeleteTarget] = useState(null)
+
 
     const { data: customers = [] } = useGetCustomers()
     const { data: repairCompanies = [] } = useGetRepairCompanies()
+    const deleteRepairRequest = useDeleteRepairRequest()
 
     const { filters, draftFilters, applyFilters, resetFilters, handleDraftFilterChange } = useFilters(
         initialDefaults,
@@ -103,6 +108,30 @@ export default function RepairRequestListPage() {
     const handleResetFilters = () => {
         setPage(1)
         resetFilters()
+    }
+    const handleDeleteClick = (event, request) => {
+        event.stopPropagation()
+        setDeleteTarget(request)
+    }
+
+    const handleConfirmDelete = async () => {
+        if (!deleteTarget) {
+            return
+        }
+
+        await deleteRepairRequest.mutateAsync(deleteTarget.id)
+
+        setDeleteTarget(null)
+    }
+
+    const handleCancelDelete = () => {
+        setDeleteTarget(null)
+    }
+
+    const handlePrintClaim = (event, request) => {
+        event.stopPropagation()
+
+        console.log('Print claim:', request.id)
     }
     const startPeriod = formatFilteringDate(filters.dateFrom, false)
     const endPeriod = formatFilteringDate(filters.dateTo, true)
@@ -176,7 +205,7 @@ export default function RepairRequestListPage() {
                     },
                     {
                         key: 'location',
-                        label: 'Место выполнения',
+                        label: 'Место',
                         value: locationInputValue,
                     },
                 ]}
@@ -237,7 +266,7 @@ export default function RepairRequestListPage() {
 
                         <AppSelectField
                             id="repair-location"
-                            label="Место выполнения"
+                            label="Место"
                             value={draftFilters.location}
                             options={toSelectOptions(locationOptions)}
                             onChange={(value) => handleDraftFilterChange('location', value)}
@@ -267,7 +296,8 @@ export default function RepairRequestListPage() {
                             <TableCell sx={headerCellSx}>Контрагент</TableCell>
                             <TableCell sx={headerCellSx}>Объект</TableCell>
                             <TableCell sx={headerCellSx}>Статус</TableCell>
-                            <TableCell sx={headerCellSx}>Место выполнения</TableCell>
+                            <TableCell sx={headerCellSx}>Место</TableCell>
+                            <TableCell sx={headerCellSx}>Действия</TableCell>
                         </TableRow>
                     </TableHead>
 
@@ -290,6 +320,32 @@ export default function RepairRequestListPage() {
                                 <TableCell>{statusOptions[request.status] ?? request.status}</TableCell>
 
                                 <TableCell>{locationOptions[request.location] ?? request.location}</TableCell>
+
+                                <TableCell
+                                    align="right"
+                                    onClick={(event) => event.stopPropagation()}
+                                >
+                                    <Box
+                                        sx={{
+                                            display: 'flex',
+                                            gap: 2,
+                                        }}
+                                    >
+                                        <PrintAction
+                                            disabled={!request.has_rebillable_items}
+                                            onClick={(event) => handlePrintClaim(event, request)}
+                                        />
+
+                                        <DeleteAction
+                                            loading={
+                                                deleteRepairRequest.isPending &&
+                                                deleteTarget?.id === request.id
+                                            }
+                                            onClick={(event) =>handleDeleteClick(event, request)
+                                            }
+                                        />
+                                    </Box>
+                                </TableCell>
                             </TableRow>
                         ))}
                     </TableBody>
@@ -310,6 +366,21 @@ export default function RepairRequestListPage() {
                     disabled={loadingRepairRequests}
                 />
             </Box>
+
+            <ConfirmDialog
+                open={Boolean(deleteTarget)}
+                title="Удалить заявку?"
+                text={
+                    deleteTarget
+                        ? `Заявка №${deleteTarget.id} будет удалена без возможности восстановления.`
+                        : ''
+                }
+                confirmText="Удалить"
+                cancelText="Отмена"
+                onClose={handleCancelDelete}
+                onConfirm={handleConfirmDelete}
+                loading={deleteRepairRequest.isPending}
+            />
         </Box>
     )
 }

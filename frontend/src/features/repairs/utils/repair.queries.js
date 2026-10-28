@@ -1,13 +1,13 @@
 // --- UTILS ---
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import {useMutation, useQuery, useQueryClient} from '@tanstack/react-query'
 
 import api from '../../../api.js'
-import { LIST_STALE_TIME, REFERENCE_STALE_TIME } from '../../../utils/query.constants.js'
+import {LIST_STALE_TIME, REFERENCE_STALE_TIME} from '../../../utils/query.constants.js'
 
-import { repairCompaniesApiPaths, repairRequestPartsApiPaths, repairRequestsApiPaths } from './repairApiPaths.js'
+import {repairCompaniesApiPaths, repairRequestsApiPaths} from './repairApiPaths.js'
 
 
-const unwrapList = (data) => {
+export const unwrapList = (data) => {
     if (Array.isArray(data)) return data
     if (Array.isArray(data?.results)) return data.results
     return []
@@ -27,12 +27,6 @@ export const repairRequestsKeys = {
     list: (filters) => [...repairRequestsKeys.lists(), filters],
     details: () => [...repairRequestsKeys.all, 'detail'],
     detail: (id) => [...repairRequestsKeys.details(), String(id)],
-}
-
-export const repairRequestPartsKeys = {
-    all: ['repairRequestParts'],
-    list: () => [...repairRequestPartsKeys.all, 'list'],
-    detail: (id) => [...repairRequestPartsKeys.all, 'detail', String(id)],
 }
 
 // --- API FUNCTIONS FOR COMPANY ---
@@ -124,16 +118,9 @@ export const updateRepairRequest = async ({ id, payload }) => {
     return res.data
 }
 
-// --- API FUNCTIONS FOR REPAIR PARTS ---
-
-export const fetchSpareParts = async () => {
-    const response = await api.get(repairRequestPartsApiPaths.listCreate())
-    return unwrapList(response.data)
-}
-
-export const fetchSparePartDetail = async (id) => {
-    const response = await api.get(repairRequestPartsApiPaths.detail(id))
-    return response.data
+export const deleteRepairRequest = async (id) => {
+    await api.delete(repairRequestsApiPaths.detail(id))
+    return id
 }
 
 // --- HOOKS FOR COMPANIES ---
@@ -237,20 +224,20 @@ export function useUpdateRepairRequest() {
     })
 }
 
-// --- HOOKS FOR SPARE PARTS ---
+export function useDeleteRepairRequest() {
+    const queryClient = useQueryClient()
 
-export function useGetSpareParts() {
-    return useQuery({
-        queryKey: repairRequestPartsKeys.list(),
-        queryFn: () => fetchSpareParts(),
-        staleTime: REFERENCE_STALE_TIME,
-    })
-}
+    return useMutation({
+        mutationFn: deleteRepairRequest,
 
-export function useSparePartDetail(id) {
-    return useQuery({
-        queryKey: repairRequestPartsKeys.detail(id),
-        queryFn: () => fetchSparePartDetail(id),
-        enabled: Boolean(id),
+        onSuccess: async (id) => {
+            queryClient.removeQueries({
+                queryKey: repairRequestsKeys.detail(id),
+            })
+
+            await queryClient.invalidateQueries({
+                queryKey: repairRequestsKeys.lists(),
+            })
+        },
     })
 }

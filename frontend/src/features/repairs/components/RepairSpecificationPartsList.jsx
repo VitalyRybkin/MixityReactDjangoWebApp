@@ -1,13 +1,18 @@
-import { useMemo } from 'react'
+import {useMemo, useState} from 'react'
 
 import {Autocomplete, Box, Checkbox, Divider, FormControlLabel, Stack, TextField, Typography} from '@mui/material'
 
 import DeleteAction from '../../../components/ui/buttons/DeleteAction.jsx'
 
-import { repairPartsListSx as sx } from './RepairSpecificationPartsList.styles.js'
+import { repairSpecificationListSx as sx } from './RepairSpecificationList.styles.js'
+import AddAction from "../../../components/ui/buttons/AddAction.jsx";
+import {useCreateSparePart} from "../utils/repair.parts.queries.js";
+import RepairSpecificationItemCreateDialog from "./RepairSpecificationItemCreateDialog.jsx";
 
 export default function RepairSpecificationPartsList({ rows, partErrors = {}, partsList, onChange, onRemove, totalPartsPrice, totalPartsPriceRebillable, }) {
     const selectedPartIds = useMemo(() => rows.map((row) => row.partId).filter(Boolean), [rows])
+    const createPart = useCreateSparePart()
+    const [createForRowId, setCreateForRowId] = useState(null)
 
     return (
         <Stack spacing={1}>
@@ -49,7 +54,12 @@ export default function RepairSpecificationPartsList({ rows, partErrors = {}, pa
                                         helperText={rowErrors.partId || ''}
                                     />
                                 )}
-                                sx={sx.partField}
+                                sx={sx.itemField}
+                            />
+
+                            <AddAction
+                                title="Добавить запчаcть"
+                                onClick={() => setCreateForRowId(row.id)}
                             />
 
                             <TextField
@@ -121,14 +131,37 @@ export default function RepairSpecificationPartsList({ rows, partErrors = {}, pa
 
             <Divider />
 
-            <Stack sx={sx.totalSectionFooter}>
-                <Typography variant="h6">Итого запчасти:</Typography>
-                <Typography variant="h6">{totalPartsPrice} руб.</Typography>
-            </Stack>
-            <Stack sx={sx.totalSubSectionFooter} >
-                <Typography variant="body2">(В том числе клиенту:</Typography>
-                <Typography variant="body2">{totalPartsPriceRebillable} руб.)</Typography>
-            </Stack>
+            <Box sx={sx.totalFooter}>
+                <Typography variant="h6">
+                    Итого запчасти:
+                </Typography>
+
+                <Typography variant="h6" sx={sx.totalValue}>
+                    {totalPartsPrice} руб.
+                </Typography>
+
+                <Typography variant="body2" color="text.secondary">
+                    (в том числе клиенту: {totalPartsPriceRebillable} руб.)
+                </Typography>
+            </Box>
+
+            <RepairSpecificationItemCreateDialog
+                open={Boolean(createForRowId)}
+                title="Добавить запчасть"
+                label="Наименование запчасти"
+                mutation={createPart}
+                errorMessage="Не удалось добавить запчасть"
+                onClose={() => setCreateForRowId(null)}
+                onCreated={(created) => {
+                    if (createForRowId) {
+                        onChange(createForRowId, {
+                            partId: created.id,
+                        })
+                    }
+
+                    setCreateForRowId(null)
+                }}
+            />
         </Stack>
 
     )

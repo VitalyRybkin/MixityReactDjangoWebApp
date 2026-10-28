@@ -5,6 +5,7 @@ from repairs.routes import (
     RepairFilesRoutes,
     RepairPartRoutes,
     RepairRequestRoutes,
+    RepairServiceRoutes,
 )
 from repairs.views.repair_company_views import (
     RepairCompanyContactListCreateAPIView,
@@ -23,6 +24,8 @@ from repairs.views.repair_request_views import (
     RepairPartsRetrieveUpdateDestroyAPIView,
     RepairRequestListAPIView,
     RepairRequestRetrieveUpdateDestroyAPIView,
+    RepairServicesListAPIView,
+    RepairServicesRetrieveUpdateDestroyAPIView,
 )
 
 app_name = "repairs"
@@ -65,6 +68,17 @@ urlpatterns = [
         RepairPartRoutes.DETAIL.path,
         RepairPartsRetrieveUpdateDestroyAPIView.as_view(),
         name=RepairPartRoutes.DETAIL.name,
+    ),
+    # Service
+    path(
+        RepairServiceRoutes.LIST_CREATE.path,
+        RepairServicesListAPIView.as_view(),
+        name=RepairServiceRoutes.LIST_CREATE.name,
+    ),
+    path(
+        RepairServiceRoutes.DETAIL.path,
+        RepairServicesRetrieveUpdateDestroyAPIView.as_view(),
+        name=RepairServiceRoutes.DETAIL.name,
     ),
     # File
     path(

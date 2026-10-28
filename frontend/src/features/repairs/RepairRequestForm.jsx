@@ -1,5 +1,5 @@
-import React, { useEffect, useRef } from 'react'
-import { useNavigate, useParams } from 'react-router-dom'
+import React, { useRef } from 'react'
+import { useParams } from 'react-router-dom'
 
 import { Box, CircularProgress, Divider, Stack, Typography } from '@mui/material'
 
@@ -21,13 +21,12 @@ import RepairRequestDescription from './components/RepairRequestDescription.jsx'
 import RepairRequestExecutionFields from './components/RepairRequestExecutionFields.jsx'
 import RepairRequestMainFields from './components/RepairRequestMainFields.jsx'
 import RepairSpecificationPartsList from './components/RepairSpecificationPartsList.jsx'
-import { useFormDirty } from './hooks/useFormDirty.js'
-import { useRequestParts } from './hooks/useRequestParts.js'
+import { useRepairRequestFormData } from './hooks/useRepairRequestFormData.js'
+import { useRepairSpecifications } from './hooks/useRepairSpecifications.js'
 import {
     useCreateRepairRequest,
     useGetRepairCompanies,
     useGetRepairRequest,
-    useGetSpareParts,
     useUpdateRepairRequest,
 } from './utils/repair.queries.js'
 import {
@@ -36,13 +35,16 @@ import {
     useGetRepairFiles,
     useUploadClosingFile,
     useUploadRequestFile,
-} from './utils/repeir.files.queries.js'
+} from './utils/repair.files.queries.js'
 import { emptyRequestForm } from './utils/request.form.constants.js'
+import {useUnsavedGuard} from "../orders/hooks/useUnsavedGuard.js"
+import { useGetSpareParts } from './utils/repair.parts.queries.js'
+import { useGetRepairServices } from './utils/repair.services.queries.js'
+import RepairSpecificationServicesList from "./components/RepairSpecificationServicesList.jsx";
 
 export default function RepairRequestFormPage() {
     const { id } = useParams()
     const isEdit = Boolean(id)
-    useNavigate()
     const { snack, showSnackbar, closeSnackbar } = useSnackbar()
 
     const {
@@ -54,6 +56,7 @@ export default function RepairRequestFormPage() {
 
     const { data: customers = [] } = useGetCustomers()
     const { data: spareParts = [] } = useGetSpareParts()
+    const { data: repairServices = [] } = useGetRepairServices()
 
     const createRepairRequest = useCreateRepairRequest()
     const updateRepairRequest = useUpdateRepairRequest()
@@ -120,10 +123,29 @@ export default function RepairRequestFormPage() {
     }
 
     const saving = createRepairRequest.isPending || updateRepairRequest.isPending
-
     const isLoadingPage = isEdit && (loadingRequest || loadingFiles || !repairRequest)
-
     const pageLoadError = loadRequestError
+
+    const {
+        specifications,
+        setSpecifications,
+        serviceSpecifications,
+        partSpecifications,
+        specificationErrors,
+        totalPrice,
+        totalRebillablePrice,
+        totalServicesPrice,
+        totalServicesPriceRebillable,
+        totalPartsPrice,
+        totalPartsPriceRebillable,
+        normalizeSpecifications,
+        buildSpecificationsPayload,
+        validate: validateSpecifications,
+        handleAddService,
+        handleAddPart,
+        handleChange: handleSpecificationChange,
+        handleRemove: handleSpecificationRemove,
+    } = useRepairSpecifications()
 
     const markCleanRef = useRef(null)
 
@@ -145,45 +167,29 @@ export default function RepairRequestFormPage() {
             construction_object: form.construction_object,
             description: form.description,
             closing_description: form.closing_description,
+            specifications: buildSpecificationsPayload(specifications),
         }),
 
+        validate: validateSpecifications,
         onSuccess: () => markCleanRef.current?.(),
     })
 
-    const { isDirty, markClean, resetSnapshot } = useFormDirty({
+    const { isDirty, markClean } = useRepairRequestFormData({
+        isEdit,
+        repairRequest,
+        isLoadingPage,
+        pageLoadError,
         form,
-        enabled: !isLoadingPage && !pageLoadError,
+        specifications,
+        setForm,
+        setSpecifications,
+        normalizeSpecifications,
     })
 
-    useEffect(() => {
-        if (!repairRequest) {
-            return
-        }
-
-        const mappedForm = {
-            ...emptyRequestForm,
-
-            id: repairRequest.id,
-            request_date: repairRequest.request_date ?? '',
-            closing_date: repairRequest.closing_date ?? '',
-            status: repairRequest.status ?? 'open',
-            location: repairRequest.location ?? 'site',
-
-            repair_company: repairRequest.repair_company ?? '',
-
-            customerId: repairRequest.construction_object?.customer ?? '',
-
-            construction_object: repairRequest.construction_object?.id ?? '',
-
-            description: repairRequest.description ?? '',
-            closing_description: repairRequest.closing_description ?? '',
-        }
-
-        setForm(mappedForm)
-        resetSnapshot(mappedForm)
-    }, [repairRequest, setForm, resetSnapshot])
-
     markCleanRef.current = markClean
+
+    const { confirmOpen, handleConfirm, handleCancel } =
+        useUnsavedGuard(isDirty && !saving)
 
     const { data: customerObjects = [] } = useGetCustomerObjects(form.customerId)
 
@@ -202,23 +208,15 @@ export default function RepairRequestFormPage() {
         }))
     }
 
-    const {
-        requestParts,
-        setRequestParts,
-        partsErrors,
-        totalPartsPrice,
-        totalPartsPriceRebillable,
-        normalizeRequestParts,
-        buildPartsPayload,
-        validate: validateParts,
-        handleAdd: handleAddPartRow,
-        handleChange: handlePartChange,
-        handleRemove: handleRemovePartRow,
-    } = useRequestParts()
-
     useLoadingError(setError, {
         loadRequestError,
     })
+
+    const formatPrice = (value) =>
+        Number(value || 0).toLocaleString('ru-RU', {
+            minimumFractionDigits: 2,
+            maximumFractionDigits: 2,
+        })
 
     return (
         <Box sx={listSx.page}>
@@ -289,41 +287,77 @@ export default function RepairRequestFormPage() {
 
             <Divider sx={sx.divider} />
 
-            <Box sx={sx.header}>
-                <Stack direction="row" justifyContent="space-between" sx={{ p: 1 }}>
-                    <Typography variant="h6">Оказанные услуги:</Typography>
-                    <AddAction onClick={handleAddPartRow} />
+            <Box sx={sx.specificationSection}>
+                <Stack sx={sx.specificationHeader} direction="row">
+                    <Typography variant="h6" sx={sx.specificationGrandTotalValue}>
+                        УСЛУГИ
+                    </Typography>
+                    <AddAction onClick={handleAddService} />
                 </Stack>
+
                 <Divider sx={sx.divider} />
+
+                <RepairSpecificationServicesList
+                    rows={serviceSpecifications}
+                    serviceErrors={specificationErrors}
+                    servicesList={repairServices}
+                    onChange={handleSpecificationChange}
+                    onRemove={handleSpecificationRemove}
+                    totalServicesPrice={formatPrice(totalServicesPrice)}
+                    totalServicesPriceRebillable={formatPrice(totalServicesPriceRebillable)}
+                />
             </Box>
 
-            <Box sx={sx.header}>
-                <Stack direction="row" justifyContent="space-between" sx={{ p: 1 }}>
-                    <Typography variant="h6">Запчасти:</Typography>
-                    <AddAction onClick={handleAddPartRow} />
+            <Box sx={sx.specificationSection}>
+                <Stack sx={sx.specificationHeader} direction="row">
+                    <Typography variant="h6" sx={sx.specificationGrandTotalValue}>
+                        ЗАПЧАСТИ
+                    </Typography>
+
+                    <AddAction onClick={handleAddPart} />
                 </Stack>
+
                 <Divider sx={sx.divider} />
 
-                {!pageLoadError && !isLoadingPage && (
-                    <Box>
-                        <RepairSpecificationPartsList
-                            rows={requestParts}
-                            partErrors={partsErrors}
-                            partsList={spareParts}
-                            onChange={handlePartChange}
-                            onRemove={handleRemovePartRow}
-                            totalPartsPrice={totalPartsPrice}
-                            totalPartsPriceRebillable={totalPartsPriceRebillable}
-                        />
-                    </Box>
-                )}
+                <RepairSpecificationPartsList
+                    rows={partSpecifications}
+                    partErrors={specificationErrors}
+                    partsList={spareParts}
+                    onChange={handleSpecificationChange}
+                    onRemove={handleSpecificationRemove}
+                    totalPartsPrice={formatPrice(totalPartsPrice)}
+                    totalPartsPriceRebillable={formatPrice(totalPartsPriceRebillable)}
+                />
+            </Box>
+
+            <Box sx={sx.specificationGrandTotal}>
+                <Typography variant="h6">
+                    ИТОГО ПО ЗАЯВКЕ:
+                </Typography>
+
+                <Typography
+                    variant="h6"
+                    sx={sx.specificationGrandTotalValue}
+                >
+                    {formatPrice(totalPrice)} руб.
+                </Typography>
+
+                <Typography
+                    variant="body2"
+                    color="text.secondary"
+                >
+                    (в том числе клиенту: {formatPrice(totalRebillablePrice)} руб.)
+                </Typography>
             </Box>
 
             <ConfirmDialog
+                open={confirmOpen}
                 title="Есть несохранённые изменения"
                 text="Вы изменили форму. Уйти без сохранения?"
                 confirmText="Уйти"
                 cancelText="Остаться"
+                onClose={handleCancel}
+                onConfirm={handleConfirm}
             />
 
             <AppSnackbar open={snack.open} message={snack.message} severity={snack.severity} onClose={closeSnackbar} />

@@ -29,7 +29,7 @@ class RepairPartRoutes:
     DETAIL = ApiRoute("parts/<int:pk>/", "repair_part_detail")
 
 
-class ServiceRoutes:
+class RepairServiceRoutes:
     """
     Routes for managing Service resources.
     """

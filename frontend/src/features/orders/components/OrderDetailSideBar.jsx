@@ -45,9 +45,9 @@ export default function OrderDetailSideBar({
     const totalSalePrice = useOrderTotals(orderProducts, editableSalePrices)
     const totalPurchasePrice = useOrderTotals(orderProducts, editablePurchasePrices)
     const totalDelivery =
-        (Number(delivery?.delivery_cost) || 0) -
-        (Number(delivery?.delivery_compensation) || 0) -
-        (Number(delivery?.demurrage) || 0)
+        (Number(delivery?.delivery_cost) || 0) +
+        (Number(delivery?.demurrage) || 0) -
+        (Number(delivery?.delivery_compensation) || 0)
 
     const totalMargin = totalSalePrice - totalPurchasePrice - totalDelivery
 

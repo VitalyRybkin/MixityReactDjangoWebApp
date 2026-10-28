@@ -1,6 +1,6 @@
 from typing import Any
 
-from django.db.models import QuerySet
+from django.db.models import Exists, OuterRef, QuerySet
 from drf_spectacular.types import OpenApiTypes
 from drf_spectacular.utils import OpenApiParameter
 from rest_framework import status
@@ -13,25 +13,42 @@ from core.openapi.base_views import (
     BaseListCreateAPIView,
     BaseRetrieveUpdateDestroyAPIView,
 )
-from repairs.models.repair_request_models import RepairPart, RepairRequest
+from repairs.models.repair_request_models import (
+    RepairPart,
+    RepairRequest,
+    RepairService,
+    RepairSpecification,
+)
 from repairs.serializers.repair_request_serializers import (
+    RepairRequestListSerializer,
     RepairRequestReadSerializer,
     RepairRequestWriteSerializer,
 )
-from repairs.serializers.repair_specification_serializer import PartItemSerializer
+from repairs.serializers.repair_specification_serializer import (
+    PartItemSerializer,
+    ServiceItemSerializer,
+)
 
 
 class CustomPagination(PageNumberPagination):
-    page_size = 5
+    """
+    Custom pagination class for RepairRequestListAPIView.
+    """
+
+    page_size = 10
     page_size_query_param = "page_size"
     max_page_size = 100
 
 
 class RepairRequestListAPIView(BaseListCreateAPIView):
+    """
+    API view for listing and creating RepairRequests.
+    """
+
     resource_name = "RepairRequests"
     schema_tags = ["Repair Request"]
 
-    read_serializer_class = RepairRequestReadSerializer
+    read_serializer_class = RepairRequestListSerializer
     write_serializer_class = RepairRequestWriteSerializer
     pagination_class = CustomPagination
 
@@ -66,19 +83,19 @@ class RepairRequestListAPIView(BaseListCreateAPIView):
             description="Filter by location",
         ),
         OpenApiParameter(
-            "customer",
+            "customer_id",
             OpenApiTypes.INT,
             OpenApiParameter.QUERY,
             description="Filter by customer",
         ),
         OpenApiParameter(
-            "object",
+            "object_id",
             OpenApiTypes.INT,
             OpenApiParameter.QUERY,
             description="Filter by object",
         ),
         OpenApiParameter(
-            "repair_company",
+            "repair_company_id",
             OpenApiTypes.INT,
             OpenApiParameter.QUERY,
             description="Filter by repair company",
@@ -106,8 +123,13 @@ class RepairRequestListAPIView(BaseListCreateAPIView):
         queryset = RepairRequest._default_manager.select_related(
             "construction_object",
             "construction_object__customer",
-            "repair_company",
-            "created_by",
+        ).annotate(
+            has_rebillable_items=Exists(
+                RepairSpecification._default_manager.filter(
+                    repair_request_id=OuterRef("pk"),
+                    is_rebillable=True,
+                )
+            )
         )
 
         params = self.request.query_params
@@ -139,6 +161,10 @@ class RepairRequestListAPIView(BaseListCreateAPIView):
 class RepairRequestRetrieveUpdateDestroyAPIView(
     BaseRetrieveUpdateDestroyAPIView,
 ):
+    """
+    API view for retrieving, updating, and deleting a RepairRequest.
+    """
+
     resource_name = "RepairRequest"
     schema_tags = ["Repair Request"]
 
@@ -178,7 +204,11 @@ class RepairRequestRetrieveUpdateDestroyAPIView(
 
 
 class RepairPartsListAPIView(BaseListCreateAPIView):
-    resource_name = "RepairPart"
+    """
+    API view for listing and creating RepairParts.
+    """
+
+    resource_name = "RepairParts"
     schema_tags = ["Repair Specification"]
 
     queryset = RepairPart._default_manager.all()
@@ -189,6 +219,10 @@ class RepairPartsListAPIView(BaseListCreateAPIView):
 
 
 class RepairPartsRetrieveUpdateDestroyAPIView(BaseRetrieveUpdateDestroyAPIView):
+    """
+    API view for retrieving, updating, and deleting a RepairPart.
+    """
+
     resource_name = "RepairPart"
     schema_tags = ["Repair Specification"]
 
@@ -197,3 +231,33 @@ class RepairPartsRetrieveUpdateDestroyAPIView(BaseRetrieveUpdateDestroyAPIView):
     write_serializer_class = PartItemSerializer
 
     serializer_class = PartItemSerializer
+
+
+class RepairServicesListAPIView(BaseListCreateAPIView):
+    """
+    API view for listing and creating RepairServices.
+    """
+
+    resource_name = "RepairServices"
+    schema_tags = ["Repair Specification"]
+
+    queryset = RepairService._default_manager.all()
+    read_serializer_class = ServiceItemSerializer
+    write_serializer_class = ServiceItemSerializer
+
+    serializer_class = ServiceItemSerializer
+
+
+class RepairServicesRetrieveUpdateDestroyAPIView(BaseRetrieveUpdateDestroyAPIView):
+    """
+    API view for retrieving, updating, and deleting a RepairService.
+    """
+
+    resource_name = "RepairService"
+    schema_tags = ["Repair Specification"]
+
+    queryset = RepairService._default_manager.all()
+    read_serializer_class = ServiceItemSerializer
+    write_serializer_class = ServiceItemSerializer
+
+    serializer_class = ServiceItemSerializer
