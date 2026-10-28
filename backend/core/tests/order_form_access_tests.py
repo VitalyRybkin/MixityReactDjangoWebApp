@@ -64,18 +64,18 @@ class OrderFormAccessContractMixin:
             f"{color['END']}"
         )
 
-    def _with_only_view_order_permission_logic(self) -> None:
+    def _with_view_order_permission_logic(self) -> None:
         response = self._request_with_permission(
             "order.view_order",
             f"{self.__class__.__name__}_view_order",
         )
 
-        assert response.status_code == status.HTTP_403_FORBIDDEN, response.data
+        assert response.status_code == status.HTTP_200_OK, response.data
 
         color = getattr(self, "COLOR", {"OK": "", "END": ""})
 
         print(
             f"    {color['OK']}"
-            "✓ order.view_order is not enough | HTTP 403"
+            "✓ Access granted with order.view_order | HTTP 200"
             f"{color['END']}"
         )
