@@ -171,16 +171,27 @@ format:
 
 # CHECK must never change source files. Suitable for CI and before push.
 check:
-	$(UV) -m isort $(CODE_DIRS) \
+	uv run --active python -m isort catalog logistic stock core/tests contacts order common repairs \
+		--skip-glob "*/migrations/*" \
+		--skip-glob "*/fixtures/*"
+
+	uv run --active python -m black catalog logistic stock core/tests contacts order common repairs \
+		--exclude "/(\.git|\.hg|\.mypy_cache|\.tox|\.venv|venv|env|_build|build|dist|media|swagger_ui/static|migrations|__pycache__|fixtures|templates)/" \
+		--include "\.pyi?$$"
+
+	uv run --active python -m isort catalog logistic stock core/tests contacts order common repairs \
 		--check-only \
 		--skip-glob "*/migrations/*" \
 		--skip-glob "*/fixtures/*"
-	$(UV) -m black $(CODE_DIRS) \
+
+	uv run --active python -m black catalog logistic stock core/tests contacts order common repairs \
 		--check \
 		--exclude "/(\.git|\.hg|\.mypy_cache|\.tox|\.venv|venv|env|_build|build|dist|media|swagger_ui/static|migrations|__pycache__|fixtures|templates)/" \
 		--include "\.pyi?$$"
-	$(UV) -m flake8 $(CODE_DIRS) --exclude migrations,__pycache__
-	$(UV) -m mypy $(CODE_DIRS) --config-file=pyproject.toml
+
+	uv run --active python -m flake8 catalog logistic stock core/tests contacts order common repairs
+
+	uv run --active python -m mypy catalog logistic stock contacts order common repairs
 
 pre-commit:
 	$(UV) -m pre_commit run --all-files
