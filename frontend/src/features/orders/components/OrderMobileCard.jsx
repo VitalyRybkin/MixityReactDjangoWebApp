@@ -76,7 +76,14 @@ const sx = {
     },
 }
 
-export default function OrderMobileCard({ order, onOpen, onDelete, onUploadUpd }) {
+export default function OrderMobileCard({
+    order,
+    onOpen,
+    onDelete,
+    onUploadUpd,
+    canDelete = false,
+    canManageUpd = false,
+}) {
     const deliveryWindow = `${formatTime(order.delivery_from)} – ${formatTime(order.delivery_to)}`
     const status = ORDER_STATUS_LABELS[order.status] ?? order.status ?? '—'
 
@@ -165,17 +172,28 @@ export default function OrderMobileCard({ order, onOpen, onDelete, onUploadUpd }
                 </CardContent>
             </Box>
 
-            <CardActions sx={sx.actions}>
-                <FileUploadAction
-                    entityId={order.id}
-                    fileUrl={order.upd_pdf}
-                    onUpload={onUploadUpd}
-                    uploadTitle="Загрузить УПД"
-                    viewTitle="Просмотр УПД"
-                />
+            {(canManageUpd || canDelete) && (
+                <CardActions sx={sx.actions}>
+                    {canManageUpd && (
+                        <FileUploadAction
+                            entityId={order.id}
+                            fileUrl={order.upd_pdf}
+                            onUpload={onUploadUpd}
+                            uploadTitle="Загрузить УПД"
+                            viewTitle="Просмотр УПД"
+                        />
+                    )}
 
-                <DeleteAction title="Удалить заявку" onClick={() => onDelete(order)} stopPropagation preventDefault />
-            </CardActions>
+                    {canDelete && (
+                        <DeleteAction
+                            title="Удалить заявку"
+                            onClick={() => onDelete(order)}
+                            stopPropagation
+                            preventDefault
+                        />
+                    )}
+                </CardActions>
+            )}
         </Card>
     )
 }

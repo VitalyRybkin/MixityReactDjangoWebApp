@@ -140,6 +140,7 @@ class TestOrderAPIList(BaseAPIMixin):
     def test_create_with_customer_object_from_another_customer_returns_400(
         self,
     ) -> None:
+        self._logger_header("CREATE ORDER: OBJECT FROM ANOTHER CUSTOMER")
         payload, _ = self.payload_generator()
 
         another_customer = CustomerFactory.create()
@@ -161,9 +162,15 @@ class TestOrderAPIList(BaseAPIMixin):
             status.HTTP_400_BAD_REQUEST,
             response.data,
         )
+        print(
+            f"{self.INDENT}{self.COLOR['OK']}"
+            "✓ Customer object from another customer rejected | 400"
+            f"{self.COLOR['END']}"
+        )
 
     def test_create_with_invalid_contact_returns_400(self) -> None:
         """Tests that creating an order with an invalid contact returns a 400 status code."""
+        self._logger_header("CREATE ORDER: INVALID CONTACTS")
         cases = [
             ContactFactory.create(client=ClientFactory.create(), carrier=None),
             ContactFactory.create(customer=CustomerFactory.create(), carrier=None),
@@ -187,9 +194,15 @@ class TestOrderAPIList(BaseAPIMixin):
                     status.HTTP_400_BAD_REQUEST,
                     response.data,
                 )
+        print(
+            f"{self.INDENT}{self.COLOR['OK']}"
+            "✓ Unrelated contacts rejected | all cases returned 400"
+            f"{self.COLOR['END']}"
+        )
 
     def test_create_with_customer_contact_returns_201(self) -> None:
         """Tests that creating an order with a customer contact returns a 201 status code."""
+        self._logger_header("CREATE ORDER: VALID CUSTOMER CONTACT")
         payload, temp = self.payload_generator()
 
         contact = ContactFactory.create(
@@ -211,8 +224,15 @@ class TestOrderAPIList(BaseAPIMixin):
             response.data,
         )
 
+        print(
+            f"{self.INDENT}{self.COLOR['OK']}"
+            "✓ Customer contact accepted | 201"
+            f"{self.COLOR['END']}"
+        )
+
     def test_create_with_delivery_from_another_carrier_returns_400(self) -> None:
         """Tests that creating an order with a delivery from another carrier returns a 400 status code."""
+        self._logger_header("CREATE ORDER: DELIVERY FROM ANOTHER CARRIER")
         carrier = CarrierFactory.create()
         another_carrier = CarrierFactory.create()
 
@@ -247,9 +267,15 @@ class TestOrderAPIList(BaseAPIMixin):
                     status.HTTP_400_BAD_REQUEST,
                     response.data,
                 )
+        print(
+            f"{self.INDENT}{self.COLOR['OK']}"
+            "✓ Driver/truck from another carrier rejected | all cases returned 400"
+            f"{self.COLOR['END']}"
+        )
 
     def test_create_with_valid_delivery_returns_201(self) -> None:
         """Tests that creating an order with a valid delivery returns a 201 status code."""
+        self._logger_header("CREATE ORDER: VALID DELIVERY")
         payload, _ = self.payload_generator()
 
         carrier = CarrierFactory.create()
@@ -274,8 +300,15 @@ class TestOrderAPIList(BaseAPIMixin):
             response.data,
         )
 
+        print(
+            f"{self.INDENT}{self.COLOR['OK']}"
+            "✓ Carrier + driver + truck accepted | 201"
+            f"{self.COLOR['END']}"
+        )
+
     def test_create_with_inactive_delivery_carrier_returns_400(self) -> None:
         """Tests that creating an order with an inactive delivery carrier returns a 400 status code."""
+        self._logger_header("CREATE ORDER: INACTIVE CARRIER")
         payload, _ = self.payload_generator()
 
         carrier = CarrierFactory.create(is_active=False)
@@ -294,6 +327,12 @@ class TestOrderAPIList(BaseAPIMixin):
             response.status_code,
             status.HTTP_400_BAD_REQUEST,
             response.data,
+        )
+
+        print(
+            f"{self.INDENT}{self.COLOR['OK']}"
+            "✓ Inactive carrier rejected | 400"
+            f"{self.COLOR['END']}"
         )
 
     def test_create_with_order_date(self) -> None:
@@ -378,6 +417,7 @@ class TestOrderRetrieveUpdateDestroy(BaseAPIMixin):
         Test that updating the customer field through the order endpoint rejects existing
         construction object from the old customer.
         """
+        self._logger_header("PATCH ORDER: OBJECT FROM OLD CUSTOMER")
         customer_object = ConstructionObjectFactory.create(
             customer=self.obj.customer,
         )
@@ -397,11 +437,17 @@ class TestOrderRetrieveUpdateDestroy(BaseAPIMixin):
             status.HTTP_400_BAD_REQUEST,
             response.data,
         )
+        print(
+            f"{self.INDENT}{self.COLOR['OK']}"
+            "✓ Object from previous customer rejected | 400"
+            f"{self.COLOR['END']}"
+        )
 
     def test_patch_client_rejects_existing_contact_from_old_client(self) -> None:
         """
         Test that updating the client field through the order endpoint rejects existing contact from the old client.
         """
+        self._logger_header("PATCH ORDER: CONTACT FROM OLD CLIENT")
         contact = ContactFactory.create(
             client=self.obj.client,
             carrier=None,
@@ -421,6 +467,11 @@ class TestOrderRetrieveUpdateDestroy(BaseAPIMixin):
             status.HTTP_400_BAD_REQUEST,
             response.data,
         )
+        print(
+            f"{self.INDENT}{self.COLOR['OK']}"
+            "✓ Contact from old client rejected | 400"
+            f"{self.COLOR['END']}"
+        )
 
     def test_patch_carrier_rejects_existing_driver_and_truck_from_old_carrier(
         self,
@@ -429,6 +480,7 @@ class TestOrderRetrieveUpdateDestroy(BaseAPIMixin):
         Test that updating the carrier field through the order endpoint rejects
         existing driver and truck from the old carrier.
         """
+        self._logger_header("PATCH ORDER: EXISTING DRIVER AND TRUCK FROM OLD CARRIER")
         carrier = CarrierFactory.create()
         driver = DriverFactory.create(carrier=carrier)
         truck = TruckFactory.create(carrier=carrier)
@@ -457,11 +509,17 @@ class TestOrderRetrieveUpdateDestroy(BaseAPIMixin):
             status.HTTP_400_BAD_REQUEST,
             response.data,
         )
+        print(
+            f"{self.INDENT}{self.COLOR['OK']}"
+            "✓ Existing driver and truck from old carrier rejected | 400"
+            f"{self.COLOR['END']}"
+        )
 
     def test_patch_cannot_change_order_user(self) -> None:
         """
         Test that updating the user field through the order endpoint is not allowed.
         """
+        self._logger_header("PATCH ORDER: USER IS READ ONLY")
         original_user = get_user_model().objects.create_user(
             username="original_order_user",
             password="test_password",
@@ -493,10 +551,17 @@ class TestOrderRetrieveUpdateDestroy(BaseAPIMixin):
             original_user.pk,
         )
 
+        print(
+            f"{self.INDENT}{self.COLOR['OK']}"
+            "✓ Order user protected | attempted change ignored"
+            f"{self.COLOR['END']}"
+        )
+
     def test_patch_cannot_upload_upd_pdf_through_order_endpoint(self) -> None:
         """
         Test that updating the upd_pdf field through the order endpoint is not allowed.
         """
+        self._logger_header("PATCH ORDER: UPD PDF IS NOT WRITABLE")
         file = SimpleUploadedFile(
             "test.pdf",
             b"%PDF-1.4 fake content",
@@ -518,6 +583,12 @@ class TestOrderRetrieveUpdateDestroy(BaseAPIMixin):
         self.obj.refresh_from_db()
 
         self.assertFalse(self.obj.upd_pdf)
+
+        print(
+            f"{self.INDENT}{self.COLOR['OK']}"
+            "✓ UPD PDF protected | upload through Order endpoint ignored"
+            f"{self.COLOR['END']}"
+        )
 
     def test_patch_order_date(self) -> None:
         """

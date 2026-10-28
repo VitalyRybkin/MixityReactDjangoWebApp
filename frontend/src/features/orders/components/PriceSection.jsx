@@ -3,7 +3,7 @@ import { Box, CircularProgress, Divider, Stack, Typography } from '@mui/material
 import { PriceRow } from './PriceRow.jsx'
 import { priceSectionSx as sx } from './PriceSection.styles.js'
 
-export default function PriceSection({ title = '', label, loading, prices, total, onChange }) {
+export default function PriceSection({ title = '', label, loading, prices, total, onChange, readOnly = false }) {
     return (
         <>
             <Typography variant="h6" sx={sx.title}>
@@ -32,7 +32,7 @@ export default function PriceSection({ title = '', label, loading, prices, total
                 <Stack spacing={1}>
                     {prices.map((item) => (
                         <Stack key={item.id} direction="row" alignItems="center" spacing={2}>
-                            <PriceRow item={item} typographySx={sx.text} onChange={onChange} />
+                            <PriceRow item={item} typographySx={sx.text} onChange={onChange} readOnly={readOnly} />
                         </Stack>
                     ))}
                 </Stack>

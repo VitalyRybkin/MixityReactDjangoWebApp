@@ -6,11 +6,11 @@ from typing import Any
 
 from django.conf import settings
 from django.contrib.auth import get_user_model
-from django.contrib.auth.models import Permission, Group
+from django.contrib.auth.models import Group
+from django.core.management import call_command
 from django.core.management.base import BaseCommand
 
 from app_settings import project_settings
-from core.seed.group_permissions import ALL_PERMISSIONS, GROUP_PERMISSIONS
 
 User = get_user_model()
 
@@ -88,28 +88,13 @@ class Command(BaseCommand):
         groups: list[Group] = []
 
         for group_name in group_names:
-            try:
-                group = Group.objects.get(name__iexact=group_name)
-            except Group.DoesNotExist:
-                self.stdout.write(
-                    self.style.WARNING(
-                        f"Group '{group_name}' not found "
-                        "(did you load fixtures?)"
-                    )
-                )
-                continue
-            except Group.MultipleObjectsReturned:
-                self.stdout.write(
-                    self.style.ERROR(
-                        f"Multiple groups match '{group_name}' "
-                        "case-insensitively."
-                    )
-                )
-                continue
-
+            group, _ = Group.objects.get_or_create(name=group_name)
             groups.append(group)
 
         user.groups.set(groups)
+
+    def _seed_groups(self) -> None:
+        call_command("sync_group_permissions")
 
     def _load_users(self) -> list[dict[str, Any]]:
         seed_file = project_settings.SEED_USERS_FILE
@@ -152,40 +137,3 @@ class Command(BaseCommand):
             return []
 
         return data
-
-    def _seed_groups(self) -> None:
-        for group_name, permission_names in GROUP_PERMISSIONS.items():
-            group, _ = Group.objects.get_or_create(name=group_name)
-
-            if permission_names == ALL_PERMISSIONS:
-                group.permissions.set(Permission.objects.all())
-                continue
-
-            permissions = []
-
-            for permission_name in permission_names:
-                app_label, codename = permission_name.split(".", 1)
-
-                try:
-                    permission = Permission.objects.get(
-                        content_type__app_label=app_label,
-                        codename=codename,
-                    )
-                except Permission.DoesNotExist:
-                    self.stderr.write(
-                        self.style.ERROR(
-                            f"Permission '{permission_name}' does not exist."
-                        )
-                    )
-                    continue
-
-                permissions.append(permission)
-
-            group.permissions.set(permissions)
-
-            self.stdout.write(
-                self.style.SUCCESS(
-                    f"Configured group '{group_name}' "
-                    f"with {len(permissions)} permissions."
-                )
-            )

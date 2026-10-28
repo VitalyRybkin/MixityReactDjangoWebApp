@@ -12,6 +12,10 @@ from rest_framework.request import Request
 from rest_framework.response import Response
 
 from catalog.models import Product
+from core.api.permissions import (
+    OrderUpdPermission,
+    OrderViewPermission,
+)
 from core.openapi import ERRORS_DETAIL, ERRORS_DETAIL_WRITE
 from core.openapi.base_views import (
     BaseGenericAPIView,
@@ -201,7 +205,6 @@ class OrderRetrieveUpdateDestroyAPIView(BaseRetrieveUpdateDestroyAPIView):
     write_serializer_class = OrderWriteSerializer
     errors_read = ERRORS_DETAIL
     errors_write = ERRORS_DETAIL_WRITE
-
     queryset = Order.objects.all().prefetch_related("delivery")
 
     def get_serializer_class(self) -> type[OrderWriteSerializer | OrderReadSerializer]:
@@ -288,6 +291,11 @@ class OrderUpdUploadAPIView(generics.UpdateAPIView):
     queryset = Order.objects.all()
     serializer_class = OrderUpdSerializer
 
+    permission_classes = [
+        IsAuthenticated,
+        OrderUpdPermission,
+    ]
+
     http_method_names = [
         "patch",
         "options",
@@ -299,6 +307,11 @@ class OrderUpdViewAPIView(generics.GenericAPIView):
     serializer_class = OrderReadSerializer
 
     http_method_names = ["get", "head", "options"]
+
+    permission_classes = [
+        IsAuthenticated,
+        OrderViewPermission,
+    ]
 
     def get(self, request: Request, *args: Any, **kwargs: Any) -> FileResponse:
         order = self.get_object()

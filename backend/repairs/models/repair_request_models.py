@@ -212,6 +212,16 @@ class RepairSpecification(models.Model):
                 name="repair_specification_service_or_part",
             )
         ]
+        permissions = [
+            (
+                "export_repairrequest",
+                "Can export repair request",
+            ),
+            (
+                "print_repairrequest_claim",
+                "Can print repair request claim",
+            ),
+        ]
 
     def __str__(self) -> str:
         return f"{self.service}" if self.service else f"{self.part}"

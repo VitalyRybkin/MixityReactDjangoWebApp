@@ -4,6 +4,52 @@ export const PERMISSIONS = {
         add: 'order.add_order',
         change: 'order.change_order',
         delete: 'order.delete_order',
+        export: 'order.export_order',
+        manageUpd: 'order.manage_order_upd',
+    },
+
+    clients: {
+        view: 'order.view_client',
+        add: 'order.add_client',
+        change: 'order.change_client',
+        delete: 'order.delete_client',
+    },
+
+    customers: {
+        view: 'order.view_customer',
+        add: 'order.add_customer',
+        change: 'order.change_customer',
+        delete: 'order.delete_customer',
+    },
+
+    constructionObjects: {
+        view: 'order.view_constructionobject',
+        add: 'order.add_constructionobject',
+        change: 'order.change_constructionobject',
+        delete: 'order.delete_constructionobject',
+    },
+
+    repairRequests: {
+        view: 'repairs.view_repairrequest',
+        add: 'repairs.add_repairrequest',
+        change: 'repairs.change_repairrequest',
+        delete: 'repairs.delete_repairrequest',
+        export: 'repairs.export_repairrequest',
+        printClaim: 'repairs.print_repairrequest_claim',
+    },
+
+    repairCompanies: {
+        view: 'repairs.view_repaircompany',
+        add: 'repairs.add_repaircompany',
+        change: 'repairs.change_repaircompany',
+        delete: 'repairs.delete_repaircompany',
+    },
+
+    catalog: {
+        view: 'catalog.view_product',
+        add: 'catalog.add_product',
+        change: 'catalog.change_product',
+        delete: 'catalog.delete_product',
     },
 
     carriers: {
@@ -33,11 +79,4 @@ export const PERMISSIONS = {
         change: 'stock.change_warehouse',
         delete: 'stock.delete_warehouse',
     },
-}
-
-export const GROUPS = {
-    ADMINS: 'Admins',
-    ORDER_MANAGER: 'Order Manager',
-    LOGISTIC_MANAGER: 'Logistic Manager',
-    ACCOUNTANT: 'Accountant',
 }

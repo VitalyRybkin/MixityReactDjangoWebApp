@@ -14,3 +14,31 @@ class StrictDjangoModelPermissions(DjangoModelPermissions):
         "PATCH": ["%(app_label)s.change_%(model_name)s"],
         "DELETE": ["%(app_label)s.delete_%(model_name)s"],
     }
+
+
+class OrderUpdPermission(BasePermission):
+    message = "У вас нет прав для работы с УПД."
+
+    def has_permission(
+        self,
+        request: Request,
+        view: Any,
+    ) -> bool:
+        return bool(
+            request.user
+            and request.user.is_authenticated
+            and request.user.has_perm("order.manage_order_upd")
+        )
+
+
+class OrderViewPermission(BasePermission):
+    def has_permission(
+        self,
+        request: Request,
+        view: Any,
+    ) -> bool:
+        return bool(
+            request.user
+            and request.user.is_authenticated
+            and request.user.has_perm("order.view_order")
+        )

@@ -284,5 +284,5 @@ class TestCustomerPriceHistory(
     def test_with_change_order_permission_returns_200(self) -> None:
         self._with_change_order_permission_logic()
 
-    def test_with_only_view_order_permission_returns_403(self) -> None:
-        self._with_only_view_order_permission_logic()
+    def test_with_view_order_permission_returns_200(self) -> None:
+        self._with_view_order_permission_logic()

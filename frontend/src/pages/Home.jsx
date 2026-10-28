@@ -15,7 +15,6 @@ import { useGetCustomers } from '../features/customers/utils/customers.queries.j
 import OrderMobileList from '../features/orders/components/OrderMobileList.jsx'
 import { useDeleteOrderFlow } from '../features/orders/hooks/useDeleteOrderFlow.js'
 import { useOrdersFilters } from '../features/orders/hooks/useOrdersFilters.js'
-import { useViewUpd } from '../features/orders/hooks/useViewUpd.js'
 import { useExportOrders, useGetOrders, useUploadUpd } from '../features/orders/utils/orders.queries.js'
 import { useGetWarehouses } from '../features/warehouses/utils/stocks.queries.js'
 import { useFileUpload } from '../hooks/useUploadFile.js'
@@ -24,7 +23,8 @@ import { localeText } from '../utils/localeDataGridText.js'
 
 import { getHomeContentSx, homeSx as sx } from './Home.styles.js'
 import Can from './auth/components/Can.jsx'
-import { GROUPS } from './auth/permissions.js'
+import { useAuth } from './auth/context/AuthContext.jsx'
+import { PERMISSIONS } from './auth/permissions.js'
 import CustomPagination from './components/CustomPagination.jsx'
 import FilterSidebar from './components/FilterSidebar.jsx'
 import { exportOrdersToExcel, formatFilteringDate } from './utils/exportOrders.js'
@@ -53,6 +53,11 @@ const initialDefaults = {
 }
 
 const Home = () => {
+    const { hasPermission } = useAuth()
+
+    const canChangeOrders = hasPermission(PERMISSIONS.orders.change)
+    const canDeleteOrders = hasPermission(PERMISSIONS.orders.delete)
+    const canManageOrderUpd = hasPermission(PERMISSIONS.orders.manageUpd)
     const navigate = useNavigate()
     const location = useLocation()
 
@@ -111,16 +116,16 @@ const Home = () => {
         errorMessage: 'Не удалось изменить УПД.',
     })
 
-    const handleViewUpd = useViewUpd(showSnackbar)
 
     const columns = useMemo(
         () =>
             getHomeGridOrderColumns({
                 onDelete: setOrderToDelete,
                 onUploadUpd: handleUploadUpd,
-                onViewUpd: handleViewUpd,
+                canDelete: canDeleteOrders,
+                canManageUpd: canManageOrderUpd,
             }),
-        [setOrderToDelete, handleUploadUpd, handleViewUpd],
+        [setOrderToDelete, handleUploadUpd, canDeleteOrders, canManageOrderUpd],
     )
 
     const handleExport = async () => {
@@ -153,6 +158,10 @@ const Home = () => {
         }
     }
 
+    const handleOpenOrder = (id) => {
+        navigate(canChangeOrders ? `/orders/${id}/edit` : `/orders/${id}`)
+    }
+
     return (
         <Box sx={sidebarPageSx.page}>
             <FilterSidebar
@@ -179,7 +188,7 @@ const Home = () => {
                         title="Заявки"
                         actions={
                             <>
-                                <Can group={GROUPS.LOGISTIC_MANAGER}>
+                                <Can permission={PERMISSIONS.orders.export}>
                                     <Box sx={sx.exportAction}>
                                         <DownloadAction
                                             title="Экспорт заявок и доверенностей"
@@ -190,17 +199,19 @@ const Home = () => {
                                     </Box>
                                 </Can>
 
-                                <AddAction
-                                    onClick={() =>
-                                        navigate('/orders/create', {
-                                            state: {
-                                                from: location.pathname,
-                                            },
-                                        })
-                                    }
-                                    disabled={loadingOrders || uploadUpd.isPending}
-                                    loading={loadingOrders}
-                                />
+                                <Can permission={PERMISSIONS.orders.add}>
+                                    <AddAction
+                                        onClick={() =>
+                                            navigate('/orders/create', {
+                                                state: {
+                                                    from: location.pathname,
+                                                },
+                                            })
+                                        }
+                                        disabled={loadingOrders || uploadUpd.isPending}
+                                        loading={loadingOrders}
+                                    />
+                                </Can>
                             </>
                         }
                     />
@@ -233,9 +244,11 @@ const Home = () => {
                     <OrderMobileList
                         orders={orders ?? []}
                         loading={loadingOrders}
-                        onOpen={(id) => navigate(`/orders/${id}/edit`)}
+                        onOpen={handleOpenOrder}
                         onDelete={setOrderToDelete}
                         onUploadUpd={handleUploadUpd}
+                        canDelete={canDeleteOrders}
+                        canManageUpd={canManageOrderUpd}
                     />
 
                     <Box sx={sx.desktopGrid}>
@@ -261,7 +274,7 @@ const Home = () => {
                             slots={{
                                 pagination: CustomPagination,
                             }}
-                            onRowClick={(params) => navigate(`/orders/${params.row.id}/edit`)}
+                            onRowClick={(params) => handleOpenOrder(params.row.id)}
                             sx={sx.dataGrid}
                         />
                     </Box>

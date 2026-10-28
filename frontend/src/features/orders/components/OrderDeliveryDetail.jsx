@@ -10,7 +10,7 @@ import TruckDialog from '../../logistic/trucks/TruckDialog.jsx'
 import { useCurrencyField } from '../hooks/useCurrencyField.js'
 import { useDeliveryDetail } from '../utils/DeliveryContext.js'
 
-export default function OrderDeliveryDetail() {
+export default function OrderDeliveryDetail({ readOnly = false }) {
     const { data: delivery, update: updateDelivery } = useDeliveryDetail()
 
     const [carrierDialogOpen, setCarrierDialogOpen] = useState(false)
@@ -138,21 +138,24 @@ export default function OrderDeliveryDetail() {
                         }}
                         renderInput={(params) => <TextField {...params} label="ТК" />}
                         sx={{ flex: 1 }}
+                        disabled={readOnly}
                     />
 
-                    <AddAction
-                        title="Добавить ТК"
-                        onClick={(event) => {
-                            event.currentTarget.blur()
-                            setCarrierDialogOpen(true)
-                        }}
-                    />
+                    {!readOnly && (
+                        <AddAction
+                            title="Добавить ТК"
+                            onClick={(event) => {
+                                event.currentTarget.blur()
+                                setCarrierDialogOpen(true)
+                            }}
+                        />
+                    )}
                 </Stack>
 
                 <Stack direction="row" spacing={1} alignItems="flex-start">
                     <Autocomplete
                         size="small"
-                        disabled={!carrierId}
+                        disabled={readOnly || !carrierId}
                         options={trucks}
                         loading={isLoadingResources}
                         getOptionLabel={(option) => {
@@ -204,15 +207,16 @@ export default function OrderDeliveryDetail() {
                         )}
                         sx={{ flex: 1 }}
                     />
-
-                    <AddAction
-                        title="Добавить автомобиль"
-                        disabled={!carrierId}
-                        onClick={(event) => {
-                            event.currentTarget.blur()
-                            setTruckDialogOpen(true)
-                        }}
-                    />
+                    {!readOnly && (
+                        <AddAction
+                            title="Добавить автомобиль"
+                            disabled={!carrierId}
+                            onClick={(event) => {
+                                event.currentTarget.blur()
+                                setTruckDialogOpen(true)
+                            }}
+                        />
+                    )}
                 </Stack>
 
                 {truck && (
@@ -233,7 +237,7 @@ export default function OrderDeliveryDetail() {
                 <Stack direction="row" spacing={1} alignItems="flex-start">
                     <Autocomplete
                         size="small"
-                        disabled={!carrierId}
+                        disabled={readOnly || !carrierId}
                         options={drivers}
                         loading={isLoadingResources}
                         getOptionLabel={(option) => option?.fullName || ''}
@@ -254,15 +258,16 @@ export default function OrderDeliveryDetail() {
                         )}
                         sx={{ flex: 1 }}
                     />
-
-                    <AddAction
-                        title="Добавить водителя"
-                        disabled={!carrierId}
-                        onClick={(event) => {
-                            event.currentTarget.blur()
-                            setDriverDialogOpen(true)
-                        }}
-                    />
+                    {!readOnly && (
+                        <AddAction
+                            title="Добавить водителя"
+                            disabled={!carrierId}
+                            onClick={(event) => {
+                                event.currentTarget.blur()
+                                setDriverDialogOpen(true)
+                            }}
+                        />
+                    )}
                 </Stack>
 
                 <Typography variant="body2" sx={{ mt: 2 }}>
@@ -283,6 +288,7 @@ export default function OrderDeliveryDetail() {
                             endAdornment: <InputAdornment position="end">₽</InputAdornment>,
                         },
                     }}
+                    disabled={readOnly}
                 />
 
                 <TextField
@@ -297,6 +303,7 @@ export default function OrderDeliveryDetail() {
                             endAdornment: <InputAdornment position="end">₽</InputAdornment>,
                         },
                     }}
+                    disabled={readOnly}
                 />
 
                 <TextField
@@ -311,6 +318,7 @@ export default function OrderDeliveryDetail() {
                             endAdornment: <InputAdornment position="end">₽</InputAdornment>,
                         },
                     }}
+                    disabled={readOnly}
                 />
             </Stack>
 
