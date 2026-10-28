@@ -7,6 +7,7 @@ from django.core.management import call_command
 from rest_framework import status
 from rest_framework.test import APITestCase
 
+from core.tests.utils import TestLoggerMixin
 from order.tests.factories import ConstructionObjectFactory
 from repairs.models import RepairCompany
 from repairs.models.repair_request_models import RepairRequest
@@ -65,7 +66,10 @@ HTTP_METHODS: Final[dict[str, str]] = {
 }
 
 
-class TestRepairRequestPermissionMatrix(APITestCase):
+class TestRepairRequestPermissionMatrix(
+    TestLoggerMixin,
+    APITestCase,
+):
     """
     Verifies the RepairRequest permission matrix for all application roles.
     """
@@ -179,8 +183,8 @@ class TestRepairRequestPermissionMatrix(APITestCase):
             "delete": status.HTTP_204_NO_CONTENT,
         }[action]
 
-    @staticmethod
     def _print_permission_result(
+        self,
         *,
         role: str,
         action: str,
@@ -188,10 +192,13 @@ class TestRepairRequestPermissionMatrix(APITestCase):
     ) -> None:
         result = "ALLOWED" if allowed else "FORBIDDEN"
 
-        print(f"    ✓ {role:<18} | " f"{action:<12} | " f"{result}")
+        self._logger_success(
+            role,
+            f"{action:<12} | {result}",
+        )
 
-    @staticmethod
     def _print_api_result(
+        self,
         *,
         role: str,
         action: str,
@@ -200,11 +207,9 @@ class TestRepairRequestPermissionMatrix(APITestCase):
     ) -> None:
         result = "ALLOWED" if allowed else "FORBIDDEN"
 
-        print(
-            f"    ✓ {role:<18} | "
-            f"{HTTP_METHODS[action]:<6} | "
-            f"{status_code:<3} | "
-            f"{result}"
+        self._logger_success(
+            role,
+            (f"{HTTP_METHODS[action]:<6} | " f"{status_code:<3} | " f"{result}"),
         )
 
     def test_group_repair_permission_matrix(self) -> None:
@@ -212,7 +217,7 @@ class TestRepairRequestPermissionMatrix(APITestCase):
         Check actual Django permissions assigned to every role.
         """
 
-        print("\n=== REPAIR REQUEST GROUP PERMISSION MATRIX ===")
+        self._logger_header("REPAIR REQUEST GROUP PERMISSION MATRIX")
 
         for role, expected_permissions in ROLE_MATRIX.items():
             user = self._create_user_for_role(role)
@@ -251,7 +256,7 @@ class TestRepairRequestPermissionMatrix(APITestCase):
         Check RepairRequest CRUD endpoints for every role.
         """
 
-        print("\n=== REPAIR REQUEST API PERMISSION MATRIX ===")
+        self._logger_header("REPAIR REQUEST API PERMISSION MATRIX")
 
         api_actions = (
             "view",

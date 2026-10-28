@@ -9,6 +9,7 @@ from rest_framework import status
 from rest_framework.test import APITestCase
 
 from contacts.factories import ContactFactory
+from core.tests.utils import TestLoggerMixin
 from order.models import Order
 from order.routes import OrderRoutes
 from order.tests.factories import OrderFactory
@@ -67,7 +68,10 @@ HTTP_METHODS: Final[dict[str, str]] = {
 }
 
 
-class TestOrderPermissionMatrix(APITestCase):
+class TestOrderPermissionMatrix(
+    TestLoggerMixin,
+    APITestCase,
+):
     """
     Verifies the Order permission matrix for all application roles.
 
@@ -175,8 +179,8 @@ class TestOrderPermissionMatrix(APITestCase):
 
         return expected[action]
 
-    @staticmethod
     def _print_permission_result(
+        self,
         *,
         role: str,
         action: str,
@@ -184,10 +188,13 @@ class TestOrderPermissionMatrix(APITestCase):
     ) -> None:
         result = "ALLOWED" if allowed else "FORBIDDEN"
 
-        print(f"    ✓ {role:<18} | " f"{action:<11} | " f"{result}")
+        self._logger_success(
+            role,
+            f"{action:<12} | {result}",
+        )
 
-    @staticmethod
     def _print_api_result(
+        self,
         *,
         role: str,
         action: str,
@@ -196,11 +203,9 @@ class TestOrderPermissionMatrix(APITestCase):
     ) -> None:
         result = "ALLOWED" if allowed else "FORBIDDEN"
 
-        print(
-            f"    ✓ {role:<18} | "
-            f"{HTTP_METHODS[action]:<6} | "
-            f"{status_code:<3} | "
-            f"{result}"
+        self._logger_success(
+            role,
+            (f"{HTTP_METHODS[action]:<6} | " f"{status_code:<3} | " f"{result}"),
         )
 
     def test_group_order_permission_matrix(self) -> None:
@@ -208,7 +213,7 @@ class TestOrderPermissionMatrix(APITestCase):
         Check the actual permissions assigned to every role.
         """
 
-        print("\n=== ORDER GROUP PERMISSION MATRIX ===")
+        self._logger_header("ORDER GROUP PERMISSION MATRIX")
 
         for role, expected_permissions in ROLE_MATRIX.items():
             user = self._create_user_for_role(role)
@@ -244,7 +249,7 @@ class TestOrderPermissionMatrix(APITestCase):
         Check that Order API CRUD endpoints enforce the role matrix.
         """
 
-        print("\n=== ORDER API PERMISSION MATRIX ===")
+        self._logger_header("ORDER API PERMISSION MATRIX")
 
         api_actions = (
             "view",
