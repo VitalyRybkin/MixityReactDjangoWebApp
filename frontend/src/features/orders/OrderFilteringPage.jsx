@@ -12,6 +12,8 @@ import ApplyAction from '../../components/ui/buttons/ApplyAction.jsx'
 import DownloadAction from '../../components/ui/buttons/DownloadAction.jsx'
 import AppSnackbar from '../../components/ui/feedback/AppSnackbar.jsx'
 import { useFileUpload } from '../../hooks/useUploadFile.js'
+import { useAuth } from '../../pages/auth/context/AuthContext.jsx'
+import { PERMISSIONS } from '../../pages/auth/permissions.js'
 import CustomPagination from '../../pages/components/CustomPagination.jsx'
 import { exportOrdersToExcel } from '../../pages/utils/exportOrders.js'
 import { formatDate } from '../../pages/utils/orders.date-filters.js'
@@ -43,6 +45,13 @@ const initialDefaults = {
 
 export default function OrderFilteringPage() {
     const navigate = useNavigate()
+    const { hasPermission } = useAuth()
+
+    const canChangeOrders = hasPermission(PERMISSIONS.orders.change)
+
+    const handleOpenOrder = (id) => {
+        navigate(canChangeOrders ? `/orders/${id}/edit` : `/orders/${id}`)
+    }
     const location = useLocation()
     const entity = location.state?.entity
 
@@ -214,7 +223,7 @@ export default function OrderFilteringPage() {
                 }}
                 localeText={localeText}
                 slots={{ pagination: CustomPagination }}
-                onRowClick={(params) => navigate(`/orders/${params.row.id}/edit`)}
+                onRowClick={(params) => handleOpenOrder(params.row.id)}
                 sx={sx.dataGrid}
             />
 

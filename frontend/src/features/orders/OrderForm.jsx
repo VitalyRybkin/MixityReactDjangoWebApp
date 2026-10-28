@@ -1,5 +1,5 @@
 import { useMemo, useRef, useState } from 'react'
-import { useNavigate, useParams } from 'react-router-dom'
+import { useParams } from 'react-router-dom'
 
 import { Box, CircularProgress, Container, Divider, TextField, Typography } from '@mui/material'
 
@@ -12,8 +12,6 @@ import { useFormLogic } from '../../hooks/useEntityForm.js'
 import useSnackbar from '../../hooks/useSnackbar.js'
 import { useFileUpload } from '../../hooks/useUploadFile.js'
 import { sidebarPageSx } from '../../layouts/AppSidebar.jsx'
-import Can from '../../pages/auth/components/Can.jsx'
-import { GROUPS } from '../../pages/auth/permissions.js'
 import { useGetCustomerPrices } from '../customers/utils/customers.queries.js'
 import { useGetWarehousePrices } from '../warehouses/utils/stocks.queries.js'
 
@@ -49,11 +47,9 @@ const getEntityId = (value) => {
     return typeof value === 'object' ? (value.id ?? null) : value
 }
 
-export default function OrderFormPage() {
+export default function OrderFormPage({ readOnly = false }) {
     const { id } = useParams()
     const isEdit = Boolean(id)
-
-    const navigate = useNavigate()
 
     const [open, setOpen] = useState(false)
     const [orderDelivery, setOrderDelivery] = useState(emptyDeliveryInfo)
@@ -161,7 +157,7 @@ export default function OrderFormPage() {
 
     markCleanRef.current = markClean
 
-    const { confirmOpen, handleConfirm, handleCancel } = useUnsavedGuard(isDirty && !saving)
+    const { confirmOpen, handleConfirm, handleCancel } = useUnsavedGuard(!readOnly && isDirty && !saving)
 
     useLoadingError(setError, {
         loadResourceError,
@@ -181,36 +177,40 @@ export default function OrderFormPage() {
     return (
         <DeliveryContext.Provider value={deliveryContextValue}>
             <Box sx={sidebarPageSx.page}>
-                <Can group={GROUPS.LOGISTIC_MANAGER}>
-                    <OrderDetailSideBar
-                        isEdit={isEdit}
-                        open={open}
-                        setOpen={setOpen}
-                        customerPrices={customerPrices}
-                        loadingCustomerPrices={isLoadingCustomerPrices}
-                        warehousePrices={warehousePrices}
-                        loadingWarehousePrices={isLoadingWarehousePrices}
-                        orderProducts={orderProducts}
-                        setOrderProducts={setOrderProducts}
-                        orderResources={orderResources}
-                        form={form}
-                        setForm={setForm}
-                    />
-                </Can>
+                <OrderDetailSideBar
+                    readOnly={readOnly}
+                    isEdit={isEdit}
+                    open={open}
+                    setOpen={setOpen}
+                    customerPrices={customerPrices}
+                    loadingCustomerPrices={isLoadingCustomerPrices}
+                    warehousePrices={warehousePrices}
+                    loadingWarehousePrices={isLoadingWarehousePrices}
+                    orderProducts={orderProducts}
+                    setOrderProducts={setOrderProducts}
+                    orderResources={orderResources}
+                    form={form}
+                    setForm={setForm}
+                />
 
                 <Box sx={getOrderFormContentSx(open)}>
                     <Container maxWidth="lg" sx={sx.container}>
                         <AppBreadcrumbs />
 
-                        <Box component="form" noValidate onSubmit={onSubmit} sx={sx.form}>
+                        <Box
+                            component="form"
+                            noValidate
+                            onSubmit={readOnly ? (event) => event.preventDefault() : onSubmit}
+                            sx={sx.form}
+                        >
                             <Box sx={sx.header}>
                                 <PageHeaderCreateUpdate
                                     isEdit={isEdit}
                                     orderId={form.id}
                                     saving={saving}
-                                    saveDisabled={isEdit && !isDirty}
+                                    saveDisabled={readOnly || (isEdit && !isDirty)}
                                     newOrder="Создание заявки"
-                                    editOrder="Редактирование заявки"
+                                    editOrder={readOnly ? 'Просмотр заявки' : 'Редактирование заявки'}
                                 />
                             </Box>
 
@@ -235,6 +235,7 @@ export default function OrderFormPage() {
                                 <>
                                     <Box sx={sx.mainFields}>
                                         <OrderMainFields
+                                            readOnly={readOnly}
                                             form={form}
                                             setForm={setForm}
                                             onChange={onChange}
@@ -246,6 +247,7 @@ export default function OrderFormPage() {
                                         />
 
                                         <OrderCustomerFields
+                                            readOnly={readOnly}
                                             form={form}
                                             setForm={setForm}
                                             orderResources={orderResources}
@@ -254,6 +256,7 @@ export default function OrderFormPage() {
                                     </Box>
 
                                     <TextField
+                                        disabled={readOnly}
                                         size="small"
                                         label="Примечание"
                                         value={form.description || ''}
@@ -269,6 +272,7 @@ export default function OrderFormPage() {
                             {!pageLoadError && !isLoadingPage && (
                                 <Box sx={sx.products}>
                                     <OrderProductsList
+                                        readOnly={readOnly}
                                         rows={orderProducts}
                                         productErrors={productErrors}
                                         productsList={orderResources?.products || []}

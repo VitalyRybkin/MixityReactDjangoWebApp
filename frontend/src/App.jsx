@@ -41,9 +41,9 @@ import Home from './pages/Home.jsx'
 import Login from './pages/Login.jsx'
 import NotFound from './pages/NotFound.jsx'
 import Unauthorized from './pages/Unauthorized.jsx'
-import GroupRoute from './pages/auth/components/GroupRoute.jsx'
+import PermissionRoute from './pages/auth/components/PermissionRoute.jsx'
 import { AuthProvider } from './pages/auth/context/AuthContext.jsx'
-import { GROUPS } from './pages/auth/permissions.js'
+import { PERMISSIONS } from './pages/auth/permissions.js'
 
 function Logout() {
     localStorage.removeItem(ACCESS_TOKEN)
@@ -74,49 +74,108 @@ const router = createBrowserRouter(
             <Route element={<AuthenticatedApp />}>
                 {/* Standard layout */}
                 <Route element={<MainLayout />}>
-                    <Route element={<GroupRoute groups={[GROUPS.LOGISTIC_MANAGER, GROUPS.ACCOUNTANT]} />}>
+                    {/* Carriers */}
+                    <Route element={<PermissionRoute permission={PERMISSIONS.carriers.view} />}>
                         <Route path="/carriers" element={<CarriersList />} />
                         <Route path="/carriers/:id" element={<CarrierDetailPage />} />
+                    </Route>
+
+                    <Route element={<PermissionRoute permission={PERMISSIONS.trucks.view} />}>
                         <Route path="/carriers/:id/trucks" element={<CarrierTruckListPage />} />
+                    </Route>
 
+                    <Route element={<PermissionRoute permission={PERMISSIONS.drivers.view} />}>
                         <Route path="/carriers/:id/drivers" element={<CarrierDriverListPage />} />
+                    </Route>
 
+                    {/* Warehouses */}
+                    <Route element={<PermissionRoute permission={PERMISSIONS.warehouses.view} />}>
                         <Route path="/warehouses" element={<WarehousesList />} />
-                        <Route path="/warehouses/create" element={<WarehouseFormPage />} />
                         <Route path="/warehouses/:id" element={<WarehouseInfoPage />} />
+                    </Route>
+
+                    <Route element={<PermissionRoute permission={PERMISSIONS.warehouses.add} />}>
+                        <Route path="/warehouses/create" element={<WarehouseFormPage />} />
+                    </Route>
+
+                    <Route element={<PermissionRoute permission={PERMISSIONS.warehouses.change} />}>
                         <Route path="/warehouses/:id/edit" element={<WarehouseFormPage />} />
                         <Route path="/warehouses/:id/map" element={<WarehouseMapUploadPage />} />
+                    </Route>
 
+                    {/* Clients */}
+                    <Route element={<PermissionRoute permission={PERMISSIONS.clients.view} />}>
                         <Route path="/clients" element={<ClientsList />} />
-                        <Route path="/clients/create" element={<ClientFormPage />} />
                         <Route path="/clients/:id" element={<ClientDetailPage />} />
-                        <Route path="/clients/:id/edit" element={<ClientFormPage />} />
+                    </Route>
 
+                    <Route element={<PermissionRoute permission={PERMISSIONS.clients.add} />}>
+                        <Route path="/clients/create" element={<ClientFormPage />} />
+                    </Route>
+
+                    <Route element={<PermissionRoute permission={PERMISSIONS.clients.change} />}>
+                        <Route path="/clients/:id/edit" element={<ClientFormPage />} />
+                    </Route>
+
+                    {/* Customers */}
+                    <Route element={<PermissionRoute permission={PERMISSIONS.customers.view} />}>
                         <Route path="/customers" element={<CustomersList />} />
                         <Route path="/customers/:id" element={<CustomerDetailPage />} />
+                    </Route>
+
+                    <Route element={<PermissionRoute permission={PERMISSIONS.constructionObjects.view} />}>
                         <Route path="/customers/:id/construction_objects" element={<CustomerObjectListPage />} />
+                    </Route>
 
+                    {/* Repair companies */}
+                    <Route element={<PermissionRoute permission={PERMISSIONS.repairCompanies.view} />}>
                         <Route path="/repair/companies" element={<RepairCompaniesList />} />
-                        <Route path="/repair/companies/create" element={<RepairCompanyFormPage />} />
                         <Route path="/repair/companies/:id" element={<RepairCompanyDetailPage />} />
-                        <Route path="/repair/companies/:id/edit" element={<RepairCompanyFormPage />} />
+                    </Route>
 
+                    <Route element={<PermissionRoute permission={PERMISSIONS.repairCompanies.add} />}>
+                        <Route path="/repair/companies/create" element={<RepairCompanyFormPage />} />
+                    </Route>
+
+                    <Route element={<PermissionRoute permission={PERMISSIONS.repairCompanies.change} />}>
+                        <Route path="/repair/companies/:id/edit" element={<RepairCompanyFormPage />} />
+                    </Route>
+
+                    {/* Catalog */}
+                    <Route element={<PermissionRoute permission={PERMISSIONS.catalog.view} />}>
                         <Route path="/catalog" element={<CatalogPage />} />
                         <Route path="/catalog/products/:id" element={<CatalogPrices />} />
                     </Route>
 
                     <Route path="/documentation" element={<DocumentationListPage />} />
-                    <Route path="/filtering" element={<OrderFilteringPage />} />
-                    <Route path="/repair/requests" element={<RepairRequestListPage />} />
-                    <Route path="/repair/requests/create" element={<RepairRequestFormPage />} />
-                    <Route path="/repair/requests/:id" element={<RepairRequestFormPage />} />
+                    <Route element={<PermissionRoute permission={PERMISSIONS.orders.view} />}>
+                        <Route path="/filtering" element={<OrderFilteringPage />} />
+                    </Route>
+                    <Route element={<PermissionRoute permission={PERMISSIONS.repairRequests.view} />}>
+                        <Route path="/repair/requests" element={<RepairRequestListPage />} />
+                        <Route path="/repair/requests/:id" element={<RepairRequestFormPage />} />
+                    </Route>
+
+                    <Route element={<PermissionRoute permission={PERMISSIONS.repairRequests.add} />}>
+                        <Route path="/repair/requests/create" element={<RepairRequestFormPage />} />
+                    </Route>
                 </Route>
 
                 {/* Full-width layout */}
                 <Route element={<FullWidthLayout />}>
                     <Route path="/" element={<Home />} />
-                    <Route path="/orders/create" element={<OrderFormPage />} />
-                    <Route path="/orders/:id/edit" element={<OrderFormPage />} />
+
+                    <Route element={<PermissionRoute permission={PERMISSIONS.orders.view} />}>
+                        <Route path="/orders/:id" element={<OrderFormPage readOnly />} />
+                    </Route>
+
+                    <Route element={<PermissionRoute permission={PERMISSIONS.orders.add} />}>
+                        <Route path="/orders/create" element={<OrderFormPage />} />
+                    </Route>
+
+                    <Route element={<PermissionRoute permission={PERMISSIONS.orders.change} />}>
+                        <Route path="/orders/:id/edit" element={<OrderFormPage />} />
+                    </Route>
                 </Route>
             </Route>
 

@@ -2,7 +2,7 @@ import { Stack, TextField, Typography } from '@mui/material'
 
 import { useCurrencyField } from '../hooks/useCurrencyField.js'
 
-export function PriceRow({ item, typographySx, onChange }) {
+export function PriceRow({ item, typographySx, onChange, readOnly = false }) {
     const field = useCurrencyField(item.current_display_price, (v) => onChange(item.id, v))
 
     return (
@@ -24,6 +24,7 @@ export function PriceRow({ item, typographySx, onChange }) {
                 onChange={field.handleChange}
                 onBlur={field.handleBlur}
                 onFocus={field.handleFocus}
+                disabled={readOnly}
                 sx={{
                     width: 120,
                     flexShrink: 0,

@@ -14,6 +14,7 @@ import { orderDetailSideBarSx as sx } from './OrderDetailSideBar.styles.js'
 import PriceSection from './PriceSection.jsx'
 
 export default function OrderDetailSideBar({
+    readOnly = false,
     isEdit,
     open,
     setOpen,
@@ -101,6 +102,7 @@ export default function OrderDetailSideBar({
         <AppSidebar open={open} setOpen={setOpen}>
             <Box component="fieldset" sx={sx.section}>
                 <PriceSection
+                    readOnly={readOnly}
                     title="ПРОДАЖА"
                     label="Цена продажи:"
                     loading={loadingCustomerPrices}
@@ -131,9 +133,11 @@ export default function OrderDetailSideBar({
                     }}
                     renderInput={(params) => <TextField {...params} label="Склад" />}
                     sx={sx.warehouseField}
+                    disabled={readOnly}
                 />
 
                 <PriceSection
+                    readOnly={readOnly}
                     label="Цена закупки:"
                     loading={loadingWarehousePrices}
                     prices={editablePurchasePrices}
@@ -149,7 +153,7 @@ export default function OrderDetailSideBar({
 
                 <Divider sx={sx.divider} />
 
-                <OrderDeliveryDetail />
+                <OrderDeliveryDetail readOnly={readOnly} />
 
                 <Divider sx={sx.divider} />
 

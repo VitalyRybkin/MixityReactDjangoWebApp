@@ -8,7 +8,13 @@ import CustomerDialog from '../../customers/CustomerDialog.jsx'
 import CustomerObjectDialog from '../../customers/CustomerObjectDialog.jsx'
 import { fieldsetStyles } from '../utils/order.form.constants.js'
 
-export default function OrderCustomerFields({ form, setForm, orderResources, refetchOrderResources }) {
+export default function OrderCustomerFields({
+    form,
+    setForm,
+    orderResources,
+    refetchOrderResources,
+    readOnly = false,
+}) {
     const [customerDialogOpen, setCustomerDialogOpen] = useState(false)
     const [objectDialogOpen, setObjectDialogOpen] = useState(false)
     const [contactDialogOpen, setContactDialogOpen] = useState(false)
@@ -108,15 +114,18 @@ export default function OrderCustomerFields({ form, setForm, orderResources, ref
                         }}
                         renderInput={(params) => <TextField {...params} label="Заказчик" />}
                         sx={{ flex: 1 }}
+                        disabled={readOnly}
                     />
 
-                    <AddAction
-                        title="Добавить заказчика"
-                        onClick={(event) => {
-                            event.currentTarget.blur()
-                            setCustomerDialogOpen(true)
-                        }}
-                    />
+                    {!readOnly && (
+                        <AddAction
+                            title="Добавить заказчика"
+                            onClick={(event) => {
+                                event.currentTarget.blur()
+                                setCustomerDialogOpen(true)
+                            }}
+                        />
+                    )}
                 </Stack>
 
                 <Stack direction="row" spacing={1} alignItems="flex-start">
@@ -132,20 +141,22 @@ export default function OrderCustomerFields({ form, setForm, orderResources, ref
                                 customer_object: newValue,
                             }))
                         }}
-                        disabled={!form.customer}
+                        disabled={readOnly || !form.customer}
                         renderInput={(params) => <TextField {...params} label="Объект / Адрес" />}
                         noOptionsText="Нет объектов для этого заказчика"
                         sx={{ flex: 1 }}
                     />
 
-                    <AddAction
-                        title="Добавить объект"
-                        disabled={!form.customer}
-                        onClick={(event) => {
-                            event.currentTarget.blur()
-                            setObjectDialogOpen(true)
-                        }}
-                    />
+                    {!readOnly && (
+                        <AddAction
+                            title="Добавить объект"
+                            disabled={!form.customer}
+                            onClick={(event) => {
+                                event.currentTarget.blur()
+                                setObjectDialogOpen(true)
+                            }}
+                        />
+                    )}
                 </Stack>
 
                 <Stack direction="row" spacing={1} alignItems="flex-start">
@@ -161,7 +172,7 @@ export default function OrderCustomerFields({ form, setForm, orderResources, ref
                                 contacts: newValue,
                             }))
                         }}
-                        disabled={!form.customer}
+                        disabled={readOnly || !form.customer}
                         getOptionLabel={(option) => {
                             if (!option || typeof option !== 'object') return ''
 
@@ -175,15 +186,16 @@ export default function OrderCustomerFields({ form, setForm, orderResources, ref
                         noOptionsText="Нет контактов для этого заказчика"
                         sx={{ flex: 1 }}
                     />
-
-                    <AddAction
-                        title="Добавить контакт"
-                        disabled={!form.customer}
-                        onClick={(event) => {
-                            event.currentTarget.blur()
-                            setContactDialogOpen(true)
-                        }}
-                    />
+                    {!readOnly && (
+                        <AddAction
+                            title="Добавить контакт"
+                            disabled={!form.customer}
+                            onClick={(event) => {
+                                event.currentTarget.blur()
+                                setContactDialogOpen(true)
+                            }}
+                        />
+                    )}
                 </Stack>
             </Box>
 

@@ -6,31 +6,64 @@ import MenuIcon from '@mui/icons-material/Menu'
 import { Button, IconButton, Menu, MenuItem, Stack, Tooltip } from '@mui/material'
 
 import Can from '../pages/auth/components/Can.jsx'
-import { GROUPS } from '../pages/auth/permissions.js'
+import { PERMISSIONS } from '../pages/auth/permissions.js'
 
 import { topBarNavSx as sx } from './TopBarNav.styles.js'
 
-const REFERENCE_GROUPS = [GROUPS.LOGISTIC_MANAGER, GROUPS.ACCOUNTANT]
-
 const REFERENCE_ITEMS = [
-    { label: 'Перевозчики', to: '/carriers' },
-    { label: 'Склады', to: '/warehouses' },
-    { label: 'Поставщики', to: '/clients' },
-    { label: 'Покупатели', to: '/customers' },
-    { label: 'Ремонт', to: '/repair/companies' },
+    {
+        label: 'Перевозчики',
+        to: '/carriers',
+        permission: PERMISSIONS.carriers.view,
+    },
+    {
+        label: 'Склады',
+        to: '/warehouses',
+        permission: PERMISSIONS.warehouses.view,
+    },
+    {
+        label: 'Поставщики',
+        to: '/clients',
+        permission: PERMISSIONS.clients.view,
+    },
+    {
+        label: 'Покупатели',
+        to: '/customers',
+        permission: PERMISSIONS.customers.view,
+    },
+    {
+        label: 'Ремонт',
+        to: '/repair/companies',
+        permission: PERMISSIONS.repairCompanies.view,
+    },
 ]
 
+const REFERENCE_PERMISSIONS = REFERENCE_ITEMS.map(({ permission }) => permission)
+
 const NAV_ITEMS = [
-    { label: 'Документация', to: '/documentation' },
-    { label: 'Поиск', to: '/filtering' },
-    { label: 'Ремонт', to: '/repair/requests' },
+    {
+        label: 'Документация',
+        to: '/documentation',
+    },
+    {
+        label: 'Поиск',
+        to: '/filtering',
+        permission: PERMISSIONS.orders.view,
+    },
+    {
+        label: 'Ремонт',
+        to: '/repair/requests',
+        permission: PERMISSIONS.repairRequests.view,
+    },
 ]
 
 const MenuItems = ({ items, onClick }) =>
-    items.map(({ label, to }) => (
-        <MenuItem key={to} component={NavLink} to={to} onClick={onClick} sx={sx.menuItem}>
-            {label}
-        </MenuItem>
+    items.map(({ label, to, permission }) => (
+        <Can key={to} permission={permission}>
+            <MenuItem component={NavLink} to={to} onClick={onClick} sx={sx.menuItem}>
+                {label}
+            </MenuItem>
+        </Can>
     ))
 
 const TopBarNav = () => {
@@ -75,7 +108,7 @@ const TopBarNav = () => {
                     Главная
                 </Button>
 
-                <Can group={REFERENCE_GROUPS}>
+                <Can any={REFERENCE_PERMISSIONS}>
                     <Button
                         color="inherit"
                         onClick={handleOpenReferencesMenu}
@@ -89,13 +122,15 @@ const TopBarNav = () => {
                     </Button>
                 </Can>
 
-                {NAV_ITEMS.map(({ label, to }) => (
-                    <Button key={to} component={NavLink} to={to} color="inherit" sx={sx.navButton}>
-                        {label}
-                    </Button>
+                {NAV_ITEMS.map(({ label, to, permission }) => (
+                    <Can key={to} permission={permission}>
+                        <Button component={NavLink} to={to} color="inherit" sx={sx.navButton}>
+                            {label}
+                        </Button>
+                    </Can>
                 ))}
 
-                <Can group={[GROUPS.ADMINS]}>
+                <Can permission={PERMISSIONS.catalog.view}>
                     <Button component={NavLink} to="/catalog" color="inherit" sx={sx.navButton}>
                         Каталог
                     </Button>
@@ -123,7 +158,7 @@ const TopBarNav = () => {
                     },
                 }}
             >
-                <Can group={REFERENCE_GROUPS}>
+                <Can any={REFERENCE_PERMISSIONS}>
                     <MenuItems items={REFERENCE_ITEMS} onClick={handleCloseAllMenus} />
                 </Can>
             </Menu>
@@ -152,11 +187,11 @@ const TopBarNav = () => {
                 )}
 
                 {mobileReferencesOpen ? (
-                    <Can group={REFERENCE_GROUPS}>
+                    <Can any={REFERENCE_PERMISSIONS}>
                         <MenuItems items={REFERENCE_ITEMS} onClick={handleCloseMobileMenu} />
                     </Can>
                 ) : (
-                    <Can group={REFERENCE_GROUPS}>
+                    <Can any={REFERENCE_PERMISSIONS}>
                         <MenuItem onClick={() => setMobileReferencesOpen(true)}>Справочники</MenuItem>
                     </Can>
                 )}
@@ -164,7 +199,7 @@ const TopBarNav = () => {
                 {!mobileReferencesOpen && <MenuItems items={NAV_ITEMS} onClick={handleCloseMobileMenu} />}
 
                 {!mobileReferencesOpen && (
-                    <Can group={[GROUPS.ADMINS]}>
+                    <Can permission={PERMISSIONS.catalog.view}>
                         <MenuItem component={NavLink} to="/catalog" onClick={handleCloseMobileMenu} sx={sx.menuItem}>
                             Каталог
                         </MenuItem>

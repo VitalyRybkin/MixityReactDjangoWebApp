@@ -26,6 +26,7 @@ export default function OrderMainFields({
     order,
     onDownloadUpd,
     onViewUpd,
+    readOnly = false,
 }) {
     return (
         <Box component="fieldset" sx={[fieldsetStyles, sx.fieldset]}>
@@ -43,6 +44,7 @@ export default function OrderMainFields({
                         onChange={onChange('order_date')}
                         slotProps={{ inputLabel: { shrink: true } }}
                         sx={sx.field}
+                        disabled={readOnly}
                     />
 
                     <TextField
@@ -53,6 +55,7 @@ export default function OrderMainFields({
                         onChange={onChange('delivery_date')}
                         slotProps={{ inputLabel: { shrink: true } }}
                         sx={sx.field}
+                        disabled={readOnly}
                     />
 
                     <FormControl variant="outlined" size="small" sx={sx.field}>
@@ -64,6 +67,7 @@ export default function OrderMainFields({
                             value={form.status || ''}
                             onChange={onChange('status')}
                             variant="outlined"
+                            disabled={readOnly}
                         >
                             {Object.entries(orderStatus).map(([value, label]) => (
                                 <MenuItem key={value} value={value}>
@@ -93,6 +97,7 @@ export default function OrderMainFields({
                                 sx: sx.field,
                             },
                         }}
+                        disabled={readOnly}
                     />
 
                     <TimePicker
@@ -113,6 +118,7 @@ export default function OrderMainFields({
                                 sx: sx.field,
                             },
                         }}
+                        disabled={readOnly}
                     />
                 </Box>
 
@@ -125,9 +131,9 @@ export default function OrderMainFields({
                         value={form.client || ''}
                         onChange={onChange('client')}
                         variant="outlined"
+                        disabled={readOnly}
                     >
                         <MenuItem value="">Не выбран</MenuItem>
-
                         {orderResources.clients.map((item) => (
                             <MenuItem key={item.id} value={item.id}>
                                 {item.name}
@@ -159,6 +165,7 @@ export default function OrderMainFields({
                                         samples: e.target.checked,
                                     }))
                                 }
+                                disabled={readOnly}
                             />
                         }
                         label="Образцы"

@@ -3,7 +3,7 @@ import DeleteAction from '../../components/ui/buttons/DeleteAction.jsx'
 import { formatDateTime, formatTime } from '../../utils/DateTimeFormatting.js'
 import { ORDER_STATUS_LABELS } from '../../utils/localeDataGridText.js'
 
-export const getHomeGridOrderColumns = ({ onDelete, onUploadUpd }) => [
+export const getHomeGridOrderColumns = ({ onDelete, onUploadUpd, canDelete = false, canManageUpd = false }) => [
     {
         field: 'id',
         headerName: '№',
@@ -59,41 +59,49 @@ export const getHomeGridOrderColumns = ({ onDelete, onUploadUpd }) => [
         minWidth: 140,
         valueGetter: (_, row) => ORDER_STATUS_LABELS[row.status] ?? row.status ?? '—',
     },
-    {
-        field: 'upd_pdf',
-        headerName: 'УПД',
-        width: 90,
-        minWidth: 90,
-        sortable: false,
-        filterable: false,
-        renderCell: ({ row }) => (
-            <FileUploadAction
-                entityId={row.id}
-                fileUrl={row.upd_pdf}
-                onUpload={onUploadUpd}
-                uploadTitle="Загрузить"
-                viewTitle="Просмотр"
-            />
-        ),
-    },
-    {
-        field: 'actions',
-        headerName: '',
-        width: 70,
-        minWidth: 70,
-        sortable: false,
-        filterable: false,
-        disableColumnMenu: true,
-        align: 'center',
-        headerAlign: 'center',
-        renderCell: (params) => (
-            <DeleteAction
-                onClick={(event) => {
-                    event.stopPropagation()
-                    event.currentTarget.blur()
-                    onDelete(params.row)
-                }}
-            />
-        ),
-    },
+    ...(canManageUpd
+        ? [
+              {
+                  field: 'upd_pdf',
+                  headerName: 'УПД',
+                  width: 90,
+                  minWidth: 90,
+                  sortable: false,
+                  filterable: false,
+                  renderCell: ({ row }) => (
+                      <FileUploadAction
+                          entityId={row.id}
+                          fileUrl={row.upd_pdf}
+                          onUpload={onUploadUpd}
+                          uploadTitle="Загрузить"
+                          viewTitle="Просмотр"
+                      />
+                  ),
+              },
+          ]
+        : []),
+    ...(canDelete
+        ? [
+              {
+                  field: 'actions',
+                  headerName: '',
+                  width: 70,
+                  minWidth: 70,
+                  sortable: false,
+                  filterable: false,
+                  disableColumnMenu: true,
+                  align: 'center',
+                  headerAlign: 'center',
+                  renderCell: (params) => (
+                      <DeleteAction
+                          onClick={(event) => {
+                              event.stopPropagation()
+                              event.currentTarget.blur()
+                              onDelete(params.row)
+                          }}
+                      />
+                  ),
+              },
+          ]
+        : []),
 ]
