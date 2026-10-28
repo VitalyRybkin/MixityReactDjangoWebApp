@@ -400,9 +400,9 @@ class TestOrderUpdUploadAPIView(
             f"{self.COLOR['END']}"
         )
 
-    def test_upload_with_change_order_permission_returns_200(self) -> None:
+    def test_upload_with_manage_order_upd_permission_returns_200(self) -> None:
         """
-        Upload a PDF file with change order permission.
+        Upload a PDF file with manage_order_upd permission.
         """
         self._logger_header(
             "PDF VALIDATION:  Upload a PDF file with change order permission."
@@ -416,7 +416,7 @@ class TestOrderUpdUploadAPIView(
 
         permission = Permission.objects.get(
             content_type__app_label="order",
-            codename="change_order",
+            codename="manage_order_upd",
         )
         user.user_permissions.add(permission)
 

@@ -121,5 +121,6 @@ class Order(models.Model):
         ]
 
         permissions = [
-            ("export_order", "Can export orders"),
+            ("export_order", "Can export order"),
+            ("manage_order_upd", "Can manage order UPD"),
         ]

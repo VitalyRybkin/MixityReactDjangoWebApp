@@ -15,6 +15,7 @@ export default function OrderProductsList({
     onChange,
     onAdd,
     onRemove,
+    readOnly = false,
 }) {
     const selectedProductIds = useMemo(() => rows.map((row) => row.productId).filter(Boolean), [rows])
 
@@ -25,7 +26,7 @@ export default function OrderProductsList({
                     Продукция
                 </Typography>
 
-                <AddAction onClick={onAdd} />
+                {!readOnly && <AddAction onClick={onAdd} />}
             </Box>
 
             <Divider sx={sx.divider} />
@@ -74,6 +75,7 @@ export default function OrderProductsList({
                                         />
                                     )}
                                     sx={sx.productField}
+                                    disabled={readOnly}
                                 />
 
                                 <Box sx={sx.quantityGroup}>
@@ -110,6 +112,7 @@ export default function OrderProductsList({
                                             },
                                         }}
                                         sx={sx.quantityField}
+                                        disabled={readOnly}
                                     />
 
                                     <Typography variant="body1" sx={sx.unit}>
@@ -133,11 +136,13 @@ export default function OrderProductsList({
                                         <TextField {...params} label="Тип упаковки" placeholder="Выберите упаковку" />
                                     )}
                                     sx={sx.packField}
+                                    disabled={readOnly}
                                 />
-
-                                <Box sx={sx.deleteAction}>
-                                    <DeleteAction onClick={() => onRemove(row.id)} />
-                                </Box>
+                                {!readOnly && (
+                                    <Box sx={sx.deleteAction}>
+                                        <DeleteAction onClick={() => onRemove(row.id)} />
+                                    </Box>
+                                )}
                             </Box>
                         </Box>
                     )

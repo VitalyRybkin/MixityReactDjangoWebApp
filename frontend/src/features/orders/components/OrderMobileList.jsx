@@ -39,7 +39,15 @@ const sx = {
     },
 }
 
-export default function OrderMobileList({ orders = [], loading = false, onOpen, onDelete, onUploadUpd }) {
+export default function OrderMobileList({
+    orders = [],
+    loading = false,
+    onOpen,
+    onDelete,
+    onUploadUpd,
+    canDelete = false,
+    canManageUpd = false,
+}) {
     const [page, setPage] = useState(1)
 
     const pageCount = Math.max(1, Math.ceil(orders.length / PAGE_SIZE))
@@ -81,6 +89,8 @@ export default function OrderMobileList({ orders = [], loading = false, onOpen, 
                         onOpen={onOpen}
                         onDelete={onDelete}
                         onUploadUpd={onUploadUpd}
+                        canDelete={canDelete}
+                        canManageUpd={canManageUpd}
                     />
                 ))}
             </Stack>
