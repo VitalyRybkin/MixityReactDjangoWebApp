@@ -3,7 +3,6 @@ from rest_framework import serializers
 
 from order.models import ConstructionObject
 from order.serializers.customer_serializers import BaseCustomerObjectsSerializer
-from order.services.order_items import sync_order_items
 from repairs.models import RepairCompany
 from repairs.models.repair_request_models import (
     RepairRequest,
