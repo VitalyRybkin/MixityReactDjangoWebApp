@@ -61,10 +61,12 @@ class RepairRequestSerializer(serializers.ModelSerializer):
 
 class RepairRequestListSerializer(RepairRequestSerializer):
     has_rebillable_items = serializers.BooleanField(read_only=True)
+    request_sum = serializers.DecimalField(read_only=True, max_digits=10, decimal_places=2)
 
     class Meta(RepairRequestSerializer.Meta):
         fields = RepairRequestSerializer.Meta.fields + [
             "has_rebillable_items",
+            "request_sum",
         ]
 
 

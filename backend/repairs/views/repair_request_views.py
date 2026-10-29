@@ -1,6 +1,7 @@
 from typing import Any
 
-from django.db.models import Exists, OuterRef, QuerySet
+from django.db.models import Exists, OuterRef, QuerySet, Sum, F, Subquery, DecimalField
+from django.db.models.functions import Coalesce
 from drf_spectacular.types import OpenApiTypes
 from drf_spectacular.utils import OpenApiParameter
 from rest_framework import status
@@ -120,6 +121,12 @@ class RepairRequestListAPIView(BaseListCreateAPIView):
         return paginator.get_paginated_response(serializer.data)
 
     def get_queryset(self) -> QuerySet[RepairRequest]:
+        specs_subquery = RepairSpecification._default_manager.filter(
+            repair_request_id=OuterRef("pk")
+        ).values("repair_request_id").annotate(
+            total_cost=Sum(F("quantity") * F("price_per_item"))
+        ).values("total_cost")
+
         queryset = RepairRequest._default_manager.select_related(
             "construction_object",
             "construction_object__customer",
@@ -129,6 +136,11 @@ class RepairRequestListAPIView(BaseListCreateAPIView):
                     repair_request_id=OuterRef("pk"),
                     is_rebillable=True,
                 )
+            ),
+            request_sum=Coalesce(
+                Subquery(specs_subquery),
+                0,
+                output_field=DecimalField(max_digits=10, decimal_places=2)
             )
         )
 
