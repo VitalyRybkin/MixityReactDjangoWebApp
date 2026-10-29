@@ -15,20 +15,16 @@ import { entityTableListSx as listSx } from '../../styles/entityTableList.styles
 import { firstError } from '../../utils/apiError.js'
 import { useGetCustomerObjects, useGetCustomers } from '../customers/utils/customers.queries.js'
 import { useLoadingError } from '../orders/hooks/useLoadingError.js'
+import { useUnsavedGuard } from '../orders/hooks/useUnsavedGuard.js'
 
 import { repairRequestFormSx as sx } from './RepairRequestForm.styles.js'
 import RepairRequestDescription from './components/RepairRequestDescription.jsx'
 import RepairRequestExecutionFields from './components/RepairRequestExecutionFields.jsx'
 import RepairRequestMainFields from './components/RepairRequestMainFields.jsx'
 import RepairSpecificationPartsList from './components/RepairSpecificationPartsList.jsx'
+import RepairSpecificationServicesList from './components/RepairSpecificationServicesList.jsx'
 import { useRepairRequestFormData } from './hooks/useRepairRequestFormData.js'
 import { useRepairSpecifications } from './hooks/useRepairSpecifications.js'
-import {
-    useCreateRepairRequest,
-    useGetRepairCompanies,
-    useGetRepairRequest,
-    useUpdateRepairRequest,
-} from './utils/repair.queries.js'
 import {
     useDeleteClosingFile,
     useDeleteRequestFile,
@@ -36,11 +32,15 @@ import {
     useUploadClosingFile,
     useUploadRequestFile,
 } from './utils/repair.files.queries.js'
-import { emptyRequestForm } from './utils/request.form.constants.js'
-import {useUnsavedGuard} from "../orders/hooks/useUnsavedGuard.js"
 import { useGetSpareParts } from './utils/repair.parts.queries.js'
+import {
+    useCreateRepairRequest,
+    useGetRepairCompanies,
+    useGetRepairRequest,
+    useUpdateRepairRequest,
+} from './utils/repair.queries.js'
 import { useGetRepairServices } from './utils/repair.services.queries.js'
-import RepairSpecificationServicesList from "./components/RepairSpecificationServicesList.jsx";
+import { emptyRequestForm } from './utils/request.form.constants.js'
 
 export default function RepairRequestFormPage() {
     const { id } = useParams()
@@ -156,7 +156,6 @@ export default function RepairRequestFormPage() {
         updateMutation: updateRepairRequest,
         createMutation: createRepairRequest,
         redirectPath: '/repair/requests',
-        redirectToCreated: true,
 
         toPayload: (form) => ({
             request_date: form.request_date,
@@ -188,8 +187,7 @@ export default function RepairRequestFormPage() {
 
     markCleanRef.current = markClean
 
-    const { confirmOpen, handleConfirm, handleCancel } =
-        useUnsavedGuard(isDirty && !saving)
+    const { confirmOpen, handleConfirm, handleCancel } = useUnsavedGuard(isDirty && !saving)
 
     const { data: customerObjects = [] } = useGetCustomerObjects(form.customerId)
 
@@ -331,21 +329,13 @@ export default function RepairRequestFormPage() {
             </Box>
 
             <Box sx={sx.specificationGrandTotal}>
-                <Typography variant="h6">
-                    ИТОГО ПО ЗАЯВКЕ:
-                </Typography>
+                <Typography variant="h6">ИТОГО ПО ЗАЯВКЕ:</Typography>
 
-                <Typography
-                    variant="h6"
-                    sx={sx.specificationGrandTotalValue}
-                >
+                <Typography variant="h6" sx={sx.specificationGrandTotalValue}>
                     {formatPrice(totalPrice)} руб.
                 </Typography>
 
-                <Typography
-                    variant="body2"
-                    color="text.secondary"
-                >
+                <Typography variant="body2" color="text.secondary">
                     (в том числе клиенту: {formatPrice(totalRebillablePrice)} руб.)
                 </Typography>
             </Box>
