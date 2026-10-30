@@ -25,7 +25,7 @@ from repairs.views.repair_request_views import (
     RepairRequestListAPIView,
     RepairRequestRetrieveUpdateDestroyAPIView,
     RepairServicesListAPIView,
-    RepairServicesRetrieveUpdateDestroyAPIView,
+    RepairServicesRetrieveUpdateDestroyAPIView, RepairRequestsDownloadAPIView,
 )
 
 app_name = "repairs"
@@ -57,6 +57,11 @@ urlpatterns = [
         RepairRequestRoutes.DETAIL.path,
         RepairRequestRetrieveUpdateDestroyAPIView.as_view(),
         name=RepairRequestRoutes.DETAIL.name,
+    ),
+    path(
+        RepairRequestRoutes.DOWNLOAD.path,
+        RepairRequestsDownloadAPIView.as_view(),
+        name=RepairRequestRoutes.DOWNLOAD.name,
     ),
     # Part
     path(

@@ -6,13 +6,14 @@ from drf_spectacular.types import OpenApiTypes
 from drf_spectacular.utils import OpenApiParameter
 from rest_framework import status
 from rest_framework.pagination import PageNumberPagination
+from rest_framework.permissions import IsAuthenticated
 from rest_framework.request import Request
 from rest_framework.response import Response
 
 from core.openapi import ERRORS_DETAIL, ERRORS_DETAIL_WRITE
 from core.openapi.base_views import (
     BaseListCreateAPIView,
-    BaseRetrieveUpdateDestroyAPIView,
+    BaseRetrieveUpdateDestroyAPIView, BaseListAPIView,
 )
 from repairs.models.repair_request_models import (
     RepairPart,
@@ -23,7 +24,7 @@ from repairs.models.repair_request_models import (
 from repairs.serializers.repair_request_serializers import (
     RepairRequestListSerializer,
     RepairRequestReadSerializer,
-    RepairRequestWriteSerializer,
+    RepairRequestWriteSerializer, RepairRequestSerializer,
 )
 from repairs.serializers.repair_specification_serializer import (
     PartItemSerializer,
@@ -273,3 +274,61 @@ class RepairServicesRetrieveUpdateDestroyAPIView(BaseRetrieveUpdateDestroyAPIVie
     write_serializer_class = ServiceItemSerializer
 
     serializer_class = ServiceItemSerializer
+
+
+class RepairRequestsDownloadAPIView(BaseListAPIView):
+    """
+    API view for downloading RepairRequests.
+    """
+
+    resource_name = "RepairRequests"
+    schema_tags = ["Requests Export"]
+    errors_read = ERRORS_DETAIL
+    errors_write = ERRORS_DETAIL_WRITE
+
+    queryset = RepairRequest._default_manager.all()
+    serializer_class = RepairRequestSerializer
+
+    schema_parameters = [
+        OpenApiParameter("date_from", OpenApiTypes.DATE, OpenApiParameter.QUERY),
+        OpenApiParameter("date_to", OpenApiTypes.DATE, OpenApiParameter.QUERY),
+        OpenApiParameter("status", OpenApiTypes.STR, OpenApiParameter.QUERY),
+        OpenApiParameter("customer", OpenApiTypes.INT, OpenApiParameter.QUERY),
+        OpenApiParameter("construction_object", OpenApiTypes.INT, OpenApiParameter.QUERY),
+        OpenApiParameter("location", OpenApiTypes.STR, OpenApiParameter.QUERY),
+    ]
+
+    permission_classes = [
+        IsAuthenticated,
+        # OrderExportPermission,
+    ]
+
+    def get_queryset(self) -> QuerySet[RepairRequest]:
+        queryset = RepairRequest._default_manager.all()
+
+        date_from = self.request.query_params.get("date_from")
+        date_to = self.request.query_params.get("date_to")
+        request_status = self.request.query_params.get("status")
+        construction_object_id = self.request.query_params.get("construction_object")
+        customer_id = self.request.query_params.get("customer")
+        location = self.request.query_params.get("location")
+
+        if date_from:
+            queryset = queryset.filter(delivery_date__gte=date_from)
+
+        if date_to:
+            queryset = queryset.filter(delivery_date__lte=date_to)
+
+        if request_status:
+            queryset = queryset.filter(status=request_status)
+
+        if customer_id:
+            queryset = queryset.filter(customer_id=customer_id)
+
+        if construction_object_id:
+            queryset = queryset.filter(construction_object_id=construction_object_id)
+
+        if location:
+            queryset = queryset.filter(location=location)
+
+        return queryset.order_by("-request_date")

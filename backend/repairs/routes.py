@@ -18,6 +18,7 @@ class RepairRequestRoutes:
 
     LIST_CREATE = ApiRoute("requests/", "repair_request_list_create")
     DETAIL = ApiRoute("requests/<int:pk>/", "repair_request_detail")
+    DOWNLOAD = ApiRoute("requests/download/", "requests_download")
 
 
 class RepairPartRoutes:
