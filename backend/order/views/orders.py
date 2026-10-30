@@ -10,6 +10,7 @@ from rest_framework.exceptions import NotFound
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.request import Request
 from rest_framework.response import Response
+from django_filters.rest_framework import DjangoFilterBackend
 
 from catalog.models import Product
 from core.api.permissions import (
@@ -24,6 +25,7 @@ from core.openapi.base_views import (
     BaseRetrieveUpdateDestroyAPIView,
 )
 from order.api.permissions import OrderExportPermission, OrderFormAccessPermission
+from order.filters.order_filter import OrderFilter
 from order.models import Client, Customer, Order, PackType
 from order.serializers.order_serializers.create_order_serializers import (
     OrderReadSerializer,
@@ -114,8 +116,15 @@ class OrderListCreateAPIView(BaseListCreateAPIView):
     schema_tags = ["Order"]
     read_serializer_class = OrderReadSerializer
     write_serializer_class = OrderWriteSerializer
+
+    filter_backends = [
+        DjangoFilterBackend,
+    ]
+    filterset_class = OrderFilter
+
     errors_read = ERRORS_DETAIL
     errors_write = ERRORS_DETAIL_WRITE
+
     query_parameters = [
         OpenApiParameter("date_from", OpenApiTypes.DATE, OpenApiParameter.QUERY),
         OpenApiParameter("date_to", OpenApiTypes.DATE, OpenApiParameter.QUERY),
@@ -127,48 +136,16 @@ class OrderListCreateAPIView(BaseListCreateAPIView):
         OpenApiParameter("samples", OpenApiTypes.BOOL, OpenApiParameter.QUERY),
     ]
 
-    def get_queryset(self) -> QuerySet[Order]:
-        queryset = Order.objects.select_related(
-            "client",
-            "customer",
-            "warehouse",
-        ).prefetch_related("order_products")
-
-        date_from = self.request.query_params.get("date_from")
-        date_to = self.request.query_params.get("date_to")
-        order_status = self.request.query_params.get("status")
-        customer_id = self.request.query_params.get("customer_id")
-        warehouse_id = self.request.query_params.get("warehouse_id")
-        no_upd = self.request.query_params.get("no_upd")
-        product_id = self.request.query_params.get("product_id")
-
-        if date_from:
-            queryset = queryset.filter(delivery_date__gte=date_from)
-
-        if date_to:
-            queryset = queryset.filter(delivery_date__lte=date_to)
-
-        if order_status:
-            queryset = queryset.filter(status=order_status)
-
-        if customer_id:
-            queryset = queryset.filter(customer_id=customer_id)
-
-        if warehouse_id:
-            queryset = queryset.filter(warehouse_id=warehouse_id)
-
-        if "samples" in self.request.query_params:
-            queryset = queryset.filter(samples=True)
-
-        if no_upd in {"true", "1"}:
-            queryset = queryset.filter(Q(upd_pdf__isnull=True) | Q(upd_pdf=""))
-
-        if product_id:
-            queryset = queryset.filter(order_products__id=product_id)
-
-        return queryset.distinct().order_by(
-            "-delivery_date",
-            "-created_at",
+    def get_queryset(self):
+        return (
+            Order.objects
+            .select_related(
+                "client",
+                "customer",
+                "warehouse",
+            )
+            .prefetch_related("order_products")
+            .order_by("-delivery_date", "-created_at")
         )
 
     def get_serializer_class(self) -> Any:
@@ -221,7 +198,7 @@ class OrderRetrieveUpdateDestroyAPIView(BaseRetrieveUpdateDestroyAPIView):
         return Response(status=status.HTTP_204_NO_CONTENT)
 
 
-class OrdersDownloadAPIView(BaseListAPIView):
+class OrdersExportAPIView(BaseListAPIView):
     """
     Represents a view that provides a way to download a list of orders.
 
@@ -242,9 +219,24 @@ class OrdersDownloadAPIView(BaseListAPIView):
 
     resource_name = "Orders export"
     schema_tags = ["Order"]
+
     read_serializer_class = OrdersExportReadSerializer
+
     errors_read = ERRORS_DETAIL
     errors_write = ERRORS_DETAIL_WRITE
+
+    permission_classes = [
+        IsAuthenticated,
+        OrderExportPermission,
+    ]
+
+    filter_backends = [
+        DjangoFilterBackend,
+    ]
+    filterset_class = OrderFilter
+
+    pagination_class = None
+
     schema_parameters = [
         OpenApiParameter("date_from", OpenApiTypes.DATE, OpenApiParameter.QUERY),
         OpenApiParameter("date_to", OpenApiTypes.DATE, OpenApiParameter.QUERY),
@@ -255,36 +247,15 @@ class OrdersDownloadAPIView(BaseListAPIView):
 
     serializer_class = OrdersExportReadSerializer
 
-    permission_classes = [
-        IsAuthenticated,
-        OrderExportPermission,
-    ]
-
-    def get_queryset(self) -> QuerySet[Order]:
-        queryset = Order.objects.select_related("client", "delivery__driver")
-
-        date_from = self.request.query_params.get("date_from")
-        date_to = self.request.query_params.get("date_to")
-        order_status = self.request.query_params.get("status")
-        customer_id = self.request.query_params.get("customer")
-        warehouse_id = self.request.query_params.get("warehouse")
-
-        if date_from:
-            queryset = queryset.filter(delivery_date__gte=date_from)
-
-        if date_to:
-            queryset = queryset.filter(delivery_date__lte=date_to)
-
-        if order_status:
-            queryset = queryset.filter(status=order_status)
-
-        if customer_id:
-            queryset = queryset.filter(customer_id=customer_id)
-
-        if warehouse_id:
-            queryset = queryset.filter(warehouse_id=warehouse_id)
-
-        return queryset.order_by("-delivery_date", "-created_at")
+    def get_queryset(self):
+        return (
+            Order.objects
+            .select_related(
+                "client",
+                "delivery__driver",
+            )
+            .order_by("-delivery_date", "-created_at")
+        )
 
 
 class OrderUpdUploadAPIView(generics.UpdateAPIView):

@@ -5,7 +5,7 @@ from order.views.orders import (
     OrderListCreateAPIView,
     OrderResourcesAPIView,
     OrderRetrieveUpdateDestroyAPIView,
-    OrdersDownloadAPIView,
+    OrdersExportAPIView,
     OrderUpdUploadAPIView,
     OrderUpdViewAPIView,
 )
@@ -29,9 +29,9 @@ urlpatterns = [
         name=OrderRoutes.DETAIL.name,
     ),
     path(
-        OrderRoutes.DOWNLOAD.path,
-        OrdersDownloadAPIView.as_view(),
-        name=OrderRoutes.DOWNLOAD.name,
+        OrderRoutes.EXPORT.path,
+        OrdersExportAPIView.as_view(),
+        name=OrderRoutes.EXPORT.name,
     ),
     path(
         OrderRoutes.UPLOAD_UPD.path,
