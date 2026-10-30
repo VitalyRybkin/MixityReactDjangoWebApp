@@ -12,6 +12,7 @@ import {
     TableContainer,
     TableHead,
     TableRow,
+    Tooltip,
 } from '@mui/material'
 
 import AppBreadcrumbs from '../../components/AppBreadcrumbs.jsx'
@@ -317,7 +318,11 @@ export default function RepairRequestListPage() {
 
                                 <TableCell>{request.construction_object?.customer_name ?? '—'}</TableCell>
 
-                                <TableCell>{request.construction_object?.name ?? '—'}</TableCell>
+                                <TableCell>
+                                    <Tooltip title={request.construction_object?.address ?? 'Адрес не указан'}>
+                                        {request.construction_object?.name ?? '—'}
+                                    </Tooltip>
+                                </TableCell>
 
                                 <TableCell>{statusOptions[request.status] ?? request.status}</TableCell>
 
