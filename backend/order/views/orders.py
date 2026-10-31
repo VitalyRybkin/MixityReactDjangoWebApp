@@ -1,8 +1,9 @@
 from pathlib import Path
 from typing import Any
 
-from django.db.models import Q, QuerySet
+from django.db.models import QuerySet
 from django.http import FileResponse
+from django_filters.rest_framework import DjangoFilterBackend
 from drf_spectacular.types import OpenApiTypes
 from drf_spectacular.utils import OpenApiParameter
 from rest_framework import generics, status
@@ -10,7 +11,6 @@ from rest_framework.exceptions import NotFound
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.request import Request
 from rest_framework.response import Response
-from django_filters.rest_framework import DjangoFilterBackend
 
 from catalog.models import Product
 from core.api.permissions import (
@@ -24,9 +24,9 @@ from core.openapi.base_views import (
     BaseListCreateAPIView,
     BaseRetrieveUpdateDestroyAPIView,
 )
-from order.api.permissions import OrderExportPermission, OrderFormAccessPermission
 from order.filters.order_filter import OrderFilter
 from order.models import Client, Customer, Order, PackType
+from order.permissions import OrderExportPermission, OrderFormAccessPermission
 from order.serializers.order_serializers.create_order_serializers import (
     OrderReadSerializer,
     OrderResourcesSerializer,
@@ -136,10 +136,9 @@ class OrderListCreateAPIView(BaseListCreateAPIView):
         OpenApiParameter("samples", OpenApiTypes.BOOL, OpenApiParameter.QUERY),
     ]
 
-    def get_queryset(self):
+    def get_queryset(self) -> QuerySet[Any, Any]:
         return (
-            Order.objects
-            .select_related(
+            Order.objects.select_related(
                 "client",
                 "customer",
                 "warehouse",
@@ -247,15 +246,11 @@ class OrdersExportAPIView(BaseListAPIView):
 
     serializer_class = OrdersExportReadSerializer
 
-    def get_queryset(self):
-        return (
-            Order.objects
-            .select_related(
-                "client",
-                "delivery__driver",
-            )
-            .order_by("-delivery_date", "-created_at")
-        )
+    def get_queryset(self) -> QuerySet[Any, Any]:
+        return Order.objects.select_related(
+            "client",
+            "delivery__driver",
+        ).order_by("-delivery_date", "-created_at")
 
 
 class OrderUpdUploadAPIView(generics.UpdateAPIView):
