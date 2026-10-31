@@ -1,6 +1,6 @@
-from typing import Any
+from typing import Any, Protocol
 
-from django.db.models import Exists, OuterRef, QuerySet, Sum, F, Subquery, DecimalField
+from django.db.models import DecimalField, Exists, F, OuterRef, QuerySet, Subquery, Sum
 from django.db.models.functions import Coalesce
 from drf_spectacular.types import OpenApiTypes
 from drf_spectacular.utils import OpenApiParameter
@@ -12,8 +12,9 @@ from rest_framework.response import Response
 
 from core.openapi import ERRORS_DETAIL, ERRORS_DETAIL_WRITE
 from core.openapi.base_views import (
+    BaseListAPIView,
     BaseListCreateAPIView,
-    BaseRetrieveUpdateDestroyAPIView, BaseListAPIView,
+    BaseRetrieveUpdateDestroyAPIView,
 )
 from repairs.models.repair_request_models import (
     RepairPart,
@@ -21,15 +22,102 @@ from repairs.models.repair_request_models import (
     RepairService,
     RepairSpecification,
 )
+from repairs.permissions import RepairRequestExportPermission
 from repairs.serializers.repair_request_serializers import (
+    RepairRequestExportReadSerializer,
     RepairRequestListSerializer,
     RepairRequestReadSerializer,
-    RepairRequestWriteSerializer, RepairRequestSerializer,
+    RepairRequestWriteSerializer,
 )
 from repairs.serializers.repair_specification_serializer import (
     PartItemSerializer,
     ServiceItemSerializer,
 )
+
+
+class RepairRequestViewProtocol(Protocol):
+    request: Request
+    ordering: str
+    include_rebillable: bool
+
+
+class RepairRequestQuerySetMixin:
+    ordering = "-id"
+    include_rebillable = False
+
+    filter_parameters = [
+        OpenApiParameter("date_from", OpenApiTypes.DATE, OpenApiParameter.QUERY),
+        OpenApiParameter("date_to", OpenApiTypes.DATE, OpenApiParameter.QUERY),
+        OpenApiParameter("status", OpenApiTypes.STR, OpenApiParameter.QUERY),
+        OpenApiParameter("location", OpenApiTypes.STR, OpenApiParameter.QUERY),
+        OpenApiParameter("customer_id", OpenApiTypes.INT, OpenApiParameter.QUERY),
+        OpenApiParameter("object_id", OpenApiTypes.INT, OpenApiParameter.QUERY),
+        OpenApiParameter(
+            "repair_company_id",
+            OpenApiTypes.INT,
+            OpenApiParameter.QUERY,
+        ),
+    ]
+
+    def get_queryset(self: RepairRequestViewProtocol) -> QuerySet[RepairRequest]:
+        specs_subquery = (
+            RepairSpecification._default_manager.filter(
+                repair_request_id=OuterRef("pk")
+            )
+            .values("repair_request_id")
+            .annotate(total_cost=Sum(F("quantity") * F("price_per_item")))
+            .values("total_cost")
+        )
+
+        queryset = RepairRequest._default_manager.select_related(
+            "repair_company",
+            "construction_object",
+            "construction_object__customer",
+        ).annotate(
+            request_sum=Coalesce(
+                Subquery(specs_subquery),
+                0,
+                output_field=DecimalField(
+                    max_digits=12,
+                    decimal_places=2,
+                ),
+            )
+        )
+
+        if self.include_rebillable:
+            queryset = queryset.annotate(
+                has_rebillable_items=Exists(
+                    RepairSpecification._default_manager.filter(
+                        repair_request_id=OuterRef("pk"),
+                        is_rebillable=True,
+                    )
+                )
+            )
+
+        params = self.request.query_params
+
+        if date_from := params.get("date_from"):
+            queryset = queryset.filter(request_date__gte=date_from)
+
+        if date_to := params.get("date_to"):
+            queryset = queryset.filter(request_date__lte=date_to)
+
+        if request_status := params.get("status"):
+            queryset = queryset.filter(status=request_status)
+
+        if location := params.get("location"):
+            queryset = queryset.filter(location=location)
+
+        if customer_id := params.get("customer_id"):
+            queryset = queryset.filter(construction_object__customer_id=customer_id)
+
+        if object_id := params.get("object_id"):
+            queryset = queryset.filter(construction_object_id=object_id)
+
+        if repair_company_id := params.get("repair_company_id"):
+            queryset = queryset.filter(repair_company_id=repair_company_id)
+
+        return queryset.order_by(self.ordering)
 
 
 class CustomPagination(PageNumberPagination):
@@ -42,7 +130,7 @@ class CustomPagination(PageNumberPagination):
     max_page_size = 100
 
 
-class RepairRequestListAPIView(BaseListCreateAPIView):
+class RepairRequestListAPIView(RepairRequestQuerySetMixin, BaseListCreateAPIView):
     """
     API view for listing and creating RepairRequests.
     """
@@ -54,55 +142,14 @@ class RepairRequestListAPIView(BaseListCreateAPIView):
     write_serializer_class = RepairRequestWriteSerializer
     pagination_class = CustomPagination
 
-    # serializer_class = RepairRequestReadSerializer
+    ordering = "-id"
+    include_rebillable = True
+
+    query_parameters = RepairRequestQuerySetMixin.filter_parameters
     queryset = RepairRequest._default_manager.all()
 
     errors_read = ERRORS_DETAIL
     errors_write = ERRORS_DETAIL_WRITE
-    query_parameters = [
-        OpenApiParameter(
-            "date_from",
-            OpenApiTypes.DATE,
-            OpenApiParameter.QUERY,
-            description="Filter by date from",
-        ),
-        OpenApiParameter(
-            "date_to",
-            OpenApiTypes.DATE,
-            OpenApiParameter.QUERY,
-            description="Filter by date to",
-        ),
-        OpenApiParameter(
-            "status",
-            OpenApiTypes.STR,
-            OpenApiParameter.QUERY,
-            description="Filter by status",
-        ),
-        OpenApiParameter(
-            "location",
-            OpenApiTypes.STR,
-            OpenApiParameter.QUERY,
-            description="Filter by location",
-        ),
-        OpenApiParameter(
-            "customer_id",
-            OpenApiTypes.INT,
-            OpenApiParameter.QUERY,
-            description="Filter by customer",
-        ),
-        OpenApiParameter(
-            "object_id",
-            OpenApiTypes.INT,
-            OpenApiParameter.QUERY,
-            description="Filter by object",
-        ),
-        OpenApiParameter(
-            "repair_company_id",
-            OpenApiTypes.INT,
-            OpenApiParameter.QUERY,
-            description="Filter by repair company",
-        ),
-    ]
 
     def get_serializer_class(self) -> Any:
         if self.request.method == "POST":
@@ -120,55 +167,6 @@ class RepairRequestListAPIView(BaseListCreateAPIView):
             result_page, many=True, context={"request": request}
         )
         return paginator.get_paginated_response(serializer.data)
-
-    def get_queryset(self) -> QuerySet[RepairRequest]:
-        specs_subquery = RepairSpecification._default_manager.filter(
-            repair_request_id=OuterRef("pk")
-        ).values("repair_request_id").annotate(
-            total_cost=Sum(F("quantity") * F("price_per_item"))
-        ).values("total_cost")
-
-        queryset = RepairRequest._default_manager.select_related(
-            "construction_object",
-            "construction_object__customer",
-        ).annotate(
-            has_rebillable_items=Exists(
-                RepairSpecification._default_manager.filter(
-                    repair_request_id=OuterRef("pk"),
-                    is_rebillable=True,
-                )
-            ),
-            request_sum=Coalesce(
-                Subquery(specs_subquery),
-                0,
-                output_field=DecimalField(max_digits=10, decimal_places=2)
-            )
-        )
-
-        params = self.request.query_params
-
-        if date_from := params.get("date_from"):
-            queryset = queryset.filter(request_date__gte=date_from)
-
-        if date_to := params.get("date_to"):
-            queryset = queryset.filter(request_date__lte=date_to)
-
-        if status := params.get("status"):
-            queryset = queryset.filter(status=status)
-
-        if location := params.get("location"):
-            queryset = queryset.filter(location=location)
-
-        if customer_id := params.get("customer_id"):
-            queryset = queryset.filter(construction_object__customer_id=customer_id)
-
-        if object_id := params.get("object_id"):
-            queryset = queryset.filter(construction_object_id=object_id)
-
-        if repair_company_id := params.get("repair_company_id"):
-            queryset = queryset.filter(repair_company_id=repair_company_id)
-
-        return queryset.order_by("-id")
 
 
 class RepairRequestRetrieveUpdateDestroyAPIView(
@@ -276,59 +274,26 @@ class RepairServicesRetrieveUpdateDestroyAPIView(BaseRetrieveUpdateDestroyAPIVie
     serializer_class = ServiceItemSerializer
 
 
-class RepairRequestsDownloadAPIView(BaseListAPIView):
+class RepairRequestsExportAPIView(RepairRequestQuerySetMixin, BaseListAPIView):
     """
-    API view for downloading RepairRequests.
+    API view for exporting RepairRequests.
     """
 
     resource_name = "RepairRequests"
     schema_tags = ["Requests Export"]
+
+    read_serializer_class = RepairRequestExportReadSerializer
+    ordering = "-request_date"
+    include_rebillable = False
+
+    schema_parameters = RepairRequestQuerySetMixin.filter_parameters
+
     errors_read = ERRORS_DETAIL
     errors_write = ERRORS_DETAIL_WRITE
 
-    queryset = RepairRequest._default_manager.all()
-    serializer_class = RepairRequestSerializer
-
-    schema_parameters = [
-        OpenApiParameter("date_from", OpenApiTypes.DATE, OpenApiParameter.QUERY),
-        OpenApiParameter("date_to", OpenApiTypes.DATE, OpenApiParameter.QUERY),
-        OpenApiParameter("status", OpenApiTypes.STR, OpenApiParameter.QUERY),
-        OpenApiParameter("customer", OpenApiTypes.INT, OpenApiParameter.QUERY),
-        OpenApiParameter("construction_object", OpenApiTypes.INT, OpenApiParameter.QUERY),
-        OpenApiParameter("location", OpenApiTypes.STR, OpenApiParameter.QUERY),
-    ]
+    serializer_class = RepairRequestExportReadSerializer
 
     permission_classes = [
         IsAuthenticated,
-        # OrderExportPermission,
+        RepairRequestExportPermission,
     ]
-
-    def get_queryset(self) -> QuerySet[RepairRequest]:
-        queryset = RepairRequest._default_manager.all()
-
-        date_from = self.request.query_params.get("date_from")
-        date_to = self.request.query_params.get("date_to")
-        request_status = self.request.query_params.get("status")
-        construction_object_id = self.request.query_params.get("construction_object")
-        customer_id = self.request.query_params.get("customer")
-        location = self.request.query_params.get("location")
-
-        if date_from:
-            queryset = queryset.filter(delivery_date__gte=date_from)
-
-        if date_to:
-            queryset = queryset.filter(delivery_date__lte=date_to)
-
-        if request_status:
-            queryset = queryset.filter(status=request_status)
-
-        if customer_id:
-            queryset = queryset.filter(customer_id=customer_id)
-
-        if construction_object_id:
-            queryset = queryset.filter(construction_object_id=construction_object_id)
-
-        if location:
-            queryset = queryset.filter(location=location)
-
-        return queryset.order_by("-request_date")

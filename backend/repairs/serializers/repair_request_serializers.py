@@ -54,14 +54,14 @@ class RepairRequestSerializer(serializers.ModelSerializer):
             "location",
             "status",
             "construction_object",
-            "description",
-            "closing_description",
         ]
 
 
 class RepairRequestListSerializer(RepairRequestSerializer):
     has_rebillable_items = serializers.BooleanField(read_only=True)
-    request_sum = serializers.DecimalField(read_only=True, max_digits=10, decimal_places=2)
+    request_sum = serializers.DecimalField(
+        read_only=True, max_digits=10, decimal_places=2
+    )
 
     class Meta(RepairRequestSerializer.Meta):
         fields = RepairRequestSerializer.Meta.fields + [
@@ -81,6 +81,9 @@ class RepairRequestReadSerializer(RepairRequestSerializer):
 
     class Meta(RepairRequestSerializer.Meta):
         fields = RepairRequestSerializer.Meta.fields + [
+            "description",
+            "inspection_description",
+            "closing_description",
             "request_files",
             "closing_files",
             "specifications",
@@ -124,6 +127,7 @@ class RepairRequestWriteSerializer(serializers.ModelSerializer):
             "repair_company",
             "construction_object",
             "description",
+            "inspection_description",
             "closing_description",
             "specifications",
         ]
@@ -180,3 +184,40 @@ class RepairRequestWriteSerializer(serializers.ModelSerializer):
         Deletes the repair request and associated request items.
         """
         instance.delete()
+
+
+class RepairRequestExportReadSerializer(serializers.ModelSerializer):
+    customer = serializers.CharField(
+        source="construction_object.customer.name",
+        read_only=True,
+    )
+    repair_company = serializers.CharField(
+        source="repair_company.name",
+        read_only=True,
+    )
+    construction_object = serializers.CharField(
+        source="construction_object.name",
+        read_only=True,
+    )
+    request_sum = serializers.DecimalField(
+        max_digits=12,
+        decimal_places=2,
+        read_only=True,
+    )
+
+    class Meta:
+        model = RepairRequest
+        fields = [
+            "id",
+            "request_date",
+            "closing_date",
+            "status",
+            "location",
+            "customer",
+            "construction_object",
+            "repair_company",
+            "request_sum",
+            "description",
+            "inspection_description",
+            "closing_description",
+        ]

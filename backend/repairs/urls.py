@@ -24,8 +24,9 @@ from repairs.views.repair_request_views import (
     RepairPartsRetrieveUpdateDestroyAPIView,
     RepairRequestListAPIView,
     RepairRequestRetrieveUpdateDestroyAPIView,
+    RepairRequestsExportAPIView,
     RepairServicesListAPIView,
-    RepairServicesRetrieveUpdateDestroyAPIView, RepairRequestsDownloadAPIView,
+    RepairServicesRetrieveUpdateDestroyAPIView,
 )
 
 app_name = "repairs"
@@ -59,9 +60,9 @@ urlpatterns = [
         name=RepairRequestRoutes.DETAIL.name,
     ),
     path(
-        RepairRequestRoutes.DOWNLOAD.path,
-        RepairRequestsDownloadAPIView.as_view(),
-        name=RepairRequestRoutes.DOWNLOAD.name,
+        RepairRequestRoutes.EXPORT.path,
+        RepairRequestsExportAPIView.as_view(),
+        name=RepairRequestRoutes.EXPORT.name,
     ),
     # Part
     path(
