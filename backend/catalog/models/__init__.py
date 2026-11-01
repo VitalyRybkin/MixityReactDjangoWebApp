@@ -7,6 +7,7 @@ from .product_pallet import ProductPallet
 from .product_spec_name import ProductSpecName
 from .product_specification import ProductSpecification
 from .product_unit import ProductUnit
+from .quality_passport import QualityPassport
 from .specification_group import SpecificationGroup
 from .unit import AppUnit
 
@@ -23,4 +24,5 @@ __all__ = [
     "SalesPriceHistory",
     "ProductPallet",
     "ProductSpecName",
+    "QualityPassport",
 ]
