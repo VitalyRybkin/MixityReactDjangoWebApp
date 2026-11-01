@@ -7,6 +7,7 @@ export const repairCompaniesApiPaths = {
 export const repairRequestsApiPaths = {
     listCreate: () => '/api/repair/requests/',
     detail: (id) => `/api/repair/requests/${id}/`,
+    export: () => '/api/repair/requests/export/'
 }
 
 export const repairRequestPartsApiPaths = {

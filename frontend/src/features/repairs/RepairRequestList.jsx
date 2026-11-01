@@ -29,14 +29,21 @@ import PrintAction from '../../components/ui/buttons/PrintAction.jsx'
 import ResetAction from '../../components/ui/buttons/ResetAction.jsx'
 import ConfirmDialog from '../../components/ui/feedback/ConfirmDialog.jsx'
 import { useFilters } from '../../hooks/useFilters.js'
-import { formatFilteringDate } from '../../pages/utils/exportOrders.js'
+import {formatFilteringDate} from '../../pages/utils/exportOrders.js'
 import { formatDate } from '../../pages/utils/orders.date-filters.js'
 import { filteriSummarySx as sx } from '../../styles/filterSummary.styles.js'
 import { formatDateYear } from '../../utils/DateTimeFormatting.js'
 import { useGetCustomerObjects, useGetCustomers } from '../customers/utils/customers.queries.js'
 
-import { useDeleteRepairRequest, useGetRepairCompanies, useGetRepairRequests } from './utils/repair.queries.js'
+import {
+    useDeleteRepairRequest,
+    useExportRequests,
+    useGetRepairCompanies,
+    useGetRepairRequests
+} from './utils/repair.queries.js'
 import { locationOptions, statusOptions } from './utils/request.form.constants.js'
+import AppSnackbar from "../../components/ui/feedback/AppSnackbar.jsx";
+import {exportRequestsToExcel} from "./utils/exportRequests.js";
 
 const PAGE_SIZE = 10
 const STORAGE_KEY = 'repair_requests_filters'
@@ -71,10 +78,26 @@ export default function RepairRequestListPage() {
     const { data: repairCompanies = [] } = useGetRepairCompanies()
     const deleteRepairRequest = useDeleteRepairRequest()
 
+    const [snackbar, setSnackbar] = useState({
+        open: false,
+        message: '',
+        severity: 'success',
+    })
+
+    const showSnackbar = (message, severity = 'success') => {
+        setSnackbar({
+            open: true,
+            message,
+            severity,
+        })
+    }
+
     const { filters, draftFilters, applyFilters, resetFilters, handleDraftFilterChange } = useFilters(
         initialDefaults,
         STORAGE_KEY,
     )
+
+    const { refetch: fetchExport, isFetching: isExporting } = useExportRequests(filters)
 
     const { data: customerObjects = [] } = useGetCustomerObjects(draftFilters.customerId)
     const { data: repairRequests, isLoading: loadingRepairRequests } = useGetRepairRequests({
@@ -150,6 +173,39 @@ export default function RepairRequestListPage() {
     const locationInputValue = locationOptions[filters.location] || '-'
     const statusInputValue = statusOptions[filters.status] || '-'
 
+    const handleExport = async () => {
+        try {
+            const { data, error, isError } = await fetchExport()
+
+            if (isError) {
+                console.error('Ошибка получения заявок:', error)
+                showSnackbar('Ошибка получения заявок.', 'error')
+                return
+            }
+
+            const exportRequests = Array.isArray(data)
+                ? data
+                : Array.isArray(data?.results)
+                    ? data.results
+                    : []
+
+            if (!exportRequests.length) {
+                showSnackbar('Нет заявок для экспорта.', 'info')
+                return
+            }
+
+            await exportRequestsToExcel(exportRequests, filters)
+
+            showSnackbar(
+                `Экспортировано заявок: ${exportRequests.length}`,
+                'success',
+            )
+        } catch (error) {
+            console.error('Ошибка экспорта заявок:', error)
+            showSnackbar('Ошибка при экспорте заявок.', 'error')
+        }
+    }
+
     return (
         <Box sx={sx.page}>
             <AppBreadcrumbs dynamicLabels={entity ? { id: entity.name } : {}} />
@@ -160,8 +216,9 @@ export default function RepairRequestListPage() {
                     <>
                         <DownloadAction
                             title="Экспорт в Excel"
-                            disabled={loadingRepairRequests}
-                            loading={loadingRepairRequests}
+                            onClick={handleExport}
+                            disabled={isExporting}
+                            loading={isExporting}
                         />
                         <AddAction
                             onClick={() =>
@@ -378,6 +435,18 @@ export default function RepairRequestListPage() {
                 onClose={handleCancelDelete}
                 onConfirm={handleConfirmDelete}
                 loading={deleteRepairRequest.isPending}
+            />
+
+            <AppSnackbar
+                open={snackbar.open}
+                message={snackbar.message}
+                severity={snackbar.severity}
+                onClose={() =>
+                    setSnackbar((prev) => ({
+                        ...prev,
+                        open: false,
+                    }))
+                }
             />
         </Box>
     )
