@@ -12,6 +12,7 @@ export const emptyRequestForm = {
     construction_object: '',
 
     description: '',
+    inspection_description: '',
     closing_description: '',
 }
 

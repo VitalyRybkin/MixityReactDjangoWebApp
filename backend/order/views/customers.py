@@ -18,8 +18,8 @@ from core.openapi.base_views import (
     BaseListCreateAPIView,
     BaseRetrieveUpdateDestroyAPIView,
 )
-from order.api.permissions import OrderFormAccessPermission
 from order.models import ConstructionObject, Customer
+from order.permissions import OrderFormAccessPermission
 from order.serializers.customer_serializers import (
     CustomerObjectsSerializer,
     CustomerPriceSerializer,

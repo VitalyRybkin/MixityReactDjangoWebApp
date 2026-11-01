@@ -49,6 +49,7 @@ export function useRepairRequestFormData({
             construction_object:
                 repairRequest.construction_object?.id ?? '',
             description: repairRequest.description ?? '',
+            inspection_description: repairRequest.inspection_description ?? '',
             closing_description:
                 repairRequest.closing_description ?? '',
         }

@@ -14,7 +14,7 @@ from core.openapi.base_views import (
     BaseRetrieveUpdateDestroyAPIView,
     BaseUpdateGenericAPIView,
 )
-from order.api.permissions import OrderFormAccessPermission
+from order.permissions import OrderFormAccessPermission
 from stock.models import Warehouse
 from stock.warehouse_serializers import (
     WarehouseListCreateSerializer,

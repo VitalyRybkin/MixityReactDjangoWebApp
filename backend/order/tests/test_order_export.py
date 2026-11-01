@@ -23,7 +23,7 @@ class TestOrdersDownloadPermissions(
     def setUp(self) -> None:
         super().setUp()
 
-        self.url = reverse(f"order_orders:{OrderRoutes.DOWNLOAD.name}")
+        self.url = reverse(f"order_orders:{OrderRoutes.EXPORT.name}")
 
     def test_without_export_permission_returns_403(self) -> None:
         """

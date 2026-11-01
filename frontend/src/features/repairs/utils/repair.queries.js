@@ -27,6 +27,19 @@ export const repairRequestsKeys = {
     list: (filters) => [...repairRequestsKeys.lists(), filters],
     details: () => [...repairRequestsKeys.all, 'detail'],
     detail: (id) => [...repairRequestsKeys.details(), String(id)],
+    requests_export: (filters = {}) => [
+        ...repairRequestsKeys.all,
+        'requests_export',
+        {
+            dateFrom: filters.dateFrom || '',
+            dateTo: filters.dateTo || '',
+            status: filters.status || '',
+            location: filters.location || '',
+            repairCompanyId: filters.repairCompanyId || '',
+            customerId: filters.customerId || '',
+            constructionObjectId: filters.constructionObjectId || '',
+        },
+    ],
 }
 
 // --- API FUNCTIONS FOR COMPANY ---
@@ -121,6 +134,21 @@ export const updateRepairRequest = async ({ id, payload }) => {
 export const deleteRepairRequest = async (id) => {
     await api.delete(repairRequestsApiPaths.detail(id))
     return id
+}
+
+export const fetchExportRequests = async ({ dateFrom, dateTo, status, location, repairCompanyId, customerId, constructionObjectId } = {}) => {
+    const params = {}
+
+    if (dateFrom) params.date_from = dateFrom
+    if (dateTo) params.date_to = dateTo
+    if (status) params.status = status
+    if (location) params.location = location
+    if (customerId) params.customer = customerId
+    if (repairCompanyId) params.warehouse = repairCompanyId
+    if (constructionObjectId) params.construction_object = constructionObjectId
+
+    const res = await api.get(repairRequestsApiPaths.export(), { params })
+    return unwrapList(res.data)
 }
 
 // --- HOOKS FOR COMPANIES ---
@@ -239,5 +267,22 @@ export function useDeleteRepairRequest() {
                 queryKey: repairRequestsKeys.lists(),
             })
         },
+    })
+}
+
+export function useExportRequests(filters = {}) {
+    return useQuery({
+        queryKey: repairRequestsKeys.requests_export(filters),
+        queryFn: () =>
+            fetchExportRequests({
+                dateFrom: filters.dateFrom || '',
+                dateTo: filters.dateTo || '',
+                status: filters.status || '',
+                location: filters.location || '',
+                repairCompanyId: filters.repairCompanyId || '',
+                customerId: filters.customerId || '',
+                constructionObjectId: filters.constructionObjectId || '',
+            }),
+        enabled: false,
     })
 }
