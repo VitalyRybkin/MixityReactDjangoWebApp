@@ -165,6 +165,7 @@ export default function RepairRequestFormPage() {
             repair_company: form.repair_company,
             construction_object: form.construction_object,
             description: form.description,
+            inspection_description: form.inspection_description,
             closing_description: form.closing_description,
             specifications: buildSpecificationsPayload(specifications),
         }),

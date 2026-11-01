@@ -8,7 +8,16 @@ export default function RepairRequestDescription({ form, onChange }) {
             <TextField
                 value={form.description || ''}
                 onChange={onChange('description')}
-                label="Описание"
+                label="Описание заявки"
+                multiline
+                fullWidth
+                sx={sx.descriptionHalf}
+            />
+
+            <TextField
+                value={form.inspection_description || ''}
+                onChange={onChange('inspection_description')}
+                label="Описание после выезда мастера"
                 multiline
                 fullWidth
                 sx={sx.descriptionHalf}
