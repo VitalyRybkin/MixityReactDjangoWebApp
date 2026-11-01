@@ -199,6 +199,10 @@ class RepairRequestExportReadSerializer(serializers.ModelSerializer):
         source="construction_object.name",
         read_only=True,
     )
+    construction_object_address = serializers.CharField(
+        source="construction_object.address",
+        read_only=True,
+    )
     request_sum = serializers.DecimalField(
         max_digits=12,
         decimal_places=2,
@@ -215,6 +219,7 @@ class RepairRequestExportReadSerializer(serializers.ModelSerializer):
             "location",
             "customer",
             "construction_object",
+            "construction_object_address",
             "repair_company",
             "request_sum",
             "description",
