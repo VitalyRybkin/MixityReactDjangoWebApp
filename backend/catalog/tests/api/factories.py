@@ -1,4 +1,5 @@
 import datetime
+from decimal import Decimal
 
 import factory.fuzzy
 from factory import fuzzy
@@ -133,3 +134,23 @@ class ProductPaletteFactory(factory.django.DjangoModelFactory):
     product = factory.SubFactory(ProductFactory)
     warehouse = factory.SubFactory(WarehouseFactory)
     items_per_pallet = factory.Iterator([40, 48])
+
+
+class QualityPassportFactory(factory.django.DjangoModelFactory):
+    class Meta:
+        model = "catalog.QualityPassport"
+
+    product = factory.SubFactory(ProductFactory)
+
+    @factory.lazy_attribute
+    def quantity(self) -> Decimal:
+        ProductUnitFactory(
+            product=self.product,
+            value=25,
+        )
+        return Decimal("20000.000")
+
+    number = factory.Sequence(lambda n: f"QPP-{n}")
+    issue_date = factory.Faker("date")
+    batch_number = factory.Sequence(lambda n: f"Batch-{n}")
+    production_date = factory.Faker("date")

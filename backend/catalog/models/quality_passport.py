@@ -118,7 +118,7 @@ class QualityPassport(models.Model):
 
         if self.quantity % step != 0:
             raise ValidationError(
-                {"quantity": (f"Количество должно быть кратно {step:.3f} т.")}
+                {"quantity": f"Количество должно быть кратно {step:.3f} т."}
             )
 
     def save(self, *args: Any, **kwargs: Any) -> None:

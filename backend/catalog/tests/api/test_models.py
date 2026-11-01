@@ -1,3 +1,5 @@
+from decimal import Decimal
+
 import pytest
 
 from catalog.models import (
@@ -9,6 +11,7 @@ from catalog.models import (
     ProductSpecName,
     ProductUnit,
     PurchasePriceHistory,
+    QualityPassport,
     SalesPriceHistory,
     SpecificationGroup,
 )
@@ -22,6 +25,7 @@ from catalog.tests.api.factories import (
     ProductSpecNameFactory,
     ProductUnitFactory,
     PurchasePriceHistoryFactory,
+    QualityPassportFactory,
     SalePriceHistoryFactory,
     SpecificationGroupFactory,
     UnitFactory,
@@ -218,4 +222,35 @@ class TestProductPaletteModel(BaseModelTestCase):
 
     def test_str_with_description(self) -> None:
         expected = f"{self.obj.product.name} @ {self.obj.warehouse.name}: {self.obj.items_per_pallet} шт"
+        self._str_method(expected)
+
+
+class TestQualityPassportModel(BaseModelTestCase):
+    __test__ = True
+    _model = QualityPassport
+    _factory = QualityPassportFactory
+
+    invalid_fields_map = [
+        ValidationFieldSpec(field_name="quantity", invalid_value=123456789101),
+        ValidationFieldSpec(
+            field_name="quantity", invalid_value=Decimal("1234568.1234")
+        ),
+        ValidationFieldSpec(field_name="quantity", invalid_value=-1),
+    ]
+
+    valid_fields_map = [
+        ValidationFieldSpec(
+            field_name="quantity",
+            invalid_value=Decimal("30.000"),
+        ),
+    ]
+
+    def test_invalid_field_validation(self) -> None:
+        self._validate_model_invalid_fields()
+
+    def test_valid_field_validation(self) -> None:
+        self._validate_model_valid_fields()
+
+    def test_str_method(self) -> None:
+        expected = f"Паспорт № {self.obj.number} — {self.obj.product.name}"
         self._str_method(expected)
