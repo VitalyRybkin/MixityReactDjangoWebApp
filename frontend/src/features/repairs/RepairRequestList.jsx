@@ -12,7 +12,9 @@ import {
     TableContainer,
     TableHead,
     TableRow,
+    Tooltip,
 } from '@mui/material'
+
 import AppBreadcrumbs from '../../components/AppBreadcrumbs.jsx'
 import AppSelectField from '../../components/AppSelectField.jsx'
 import DateRangeFields from '../../components/DateRangeFields.jsx'
@@ -20,20 +22,28 @@ import FilterSummary from '../../components/FilterSummary.jsx'
 import PageHeader from '../../components/PageHeader.jsx'
 import AddAction from '../../components/ui/buttons/AddAction.jsx'
 import ApplyAction from '../../components/ui/buttons/ApplyAction.jsx'
+import DeleteAction from '../../components/ui/buttons/DeleteAction.jsx'
 import DownloadAction from '../../components/ui/buttons/DownloadAction.jsx'
 import ExpandAction from '../../components/ui/buttons/ExpandAction.jsx'
+import PrintAction from '../../components/ui/buttons/PrintAction.jsx'
 import ResetAction from '../../components/ui/buttons/ResetAction.jsx'
 import ConfirmDialog from '../../components/ui/feedback/ConfirmDialog.jsx'
-import DeleteAction from '../../components/ui/buttons/DeleteAction.jsx'
-import PrintAction from '../../components/ui/buttons/PrintAction.jsx'
 import { useFilters } from '../../hooks/useFilters.js'
-import { formatFilteringDate } from '../../pages/utils/exportOrders.js'
+import {formatFilteringDate} from '../../pages/utils/exportOrders.js'
 import { formatDate } from '../../pages/utils/orders.date-filters.js'
 import { filteriSummarySx as sx } from '../../styles/filterSummary.styles.js'
+import { formatDateYear } from '../../utils/DateTimeFormatting.js'
 import { useGetCustomerObjects, useGetCustomers } from '../customers/utils/customers.queries.js'
 
-import { useGetRepairCompanies, useGetRepairRequests, useDeleteRepairRequest } from './utils/repair.queries.js'
+import {
+    useDeleteRepairRequest,
+    useExportRequests,
+    useGetRepairCompanies,
+    useGetRepairRequests
+} from './utils/repair.queries.js'
 import { locationOptions, statusOptions } from './utils/request.form.constants.js'
+import AppSnackbar from "../../components/ui/feedback/AppSnackbar.jsx";
+import {exportRequestsToExcel} from "./utils/exportRequests.js";
 
 const PAGE_SIZE = 10
 const STORAGE_KEY = 'repair_requests_filters'
@@ -64,15 +74,30 @@ export default function RepairRequestListPage() {
     const [filtersOpen, setFiltersOpen] = useState(false)
     const [deleteTarget, setDeleteTarget] = useState(null)
 
-
     const { data: customers = [] } = useGetCustomers()
     const { data: repairCompanies = [] } = useGetRepairCompanies()
     const deleteRepairRequest = useDeleteRepairRequest()
+
+    const [snackbar, setSnackbar] = useState({
+        open: false,
+        message: '',
+        severity: 'success',
+    })
+
+    const showSnackbar = (message, severity = 'success') => {
+        setSnackbar({
+            open: true,
+            message,
+            severity,
+        })
+    }
 
     const { filters, draftFilters, applyFilters, resetFilters, handleDraftFilterChange } = useFilters(
         initialDefaults,
         STORAGE_KEY,
     )
+
+    const { refetch: fetchExport, isFetching: isExporting } = useExportRequests(filters)
 
     const { data: customerObjects = [] } = useGetCustomerObjects(draftFilters.customerId)
     const { data: repairRequests, isLoading: loadingRepairRequests } = useGetRepairRequests({
@@ -148,6 +173,39 @@ export default function RepairRequestListPage() {
     const locationInputValue = locationOptions[filters.location] || '-'
     const statusInputValue = statusOptions[filters.status] || '-'
 
+    const handleExport = async () => {
+        try {
+            const { data, error, isError } = await fetchExport()
+
+            if (isError) {
+                console.error('Ошибка получения заявок:', error)
+                showSnackbar('Ошибка получения заявок.', 'error')
+                return
+            }
+
+            const exportRequests = Array.isArray(data)
+                ? data
+                : Array.isArray(data?.results)
+                    ? data.results
+                    : []
+
+            if (!exportRequests.length) {
+                showSnackbar('Нет заявок для экспорта.', 'info')
+                return
+            }
+
+            await exportRequestsToExcel(exportRequests, filters)
+
+            showSnackbar(
+                `Экспортировано заявок: ${exportRequests.length}`,
+                'success',
+            )
+        } catch (error) {
+            console.error('Ошибка экспорта заявок:', error)
+            showSnackbar('Ошибка при экспорте заявок.', 'error')
+        }
+    }
+
     return (
         <Box sx={sx.page}>
             <AppBreadcrumbs dynamicLabels={entity ? { id: entity.name } : {}} />
@@ -158,8 +216,9 @@ export default function RepairRequestListPage() {
                     <>
                         <DownloadAction
                             title="Экспорт в Excel"
-                            disabled={loadingRepairRequests}
-                            loading={loadingRepairRequests}
+                            onClick={handleExport}
+                            disabled={isExporting}
+                            loading={isExporting}
                         />
                         <AddAction
                             onClick={() =>
@@ -297,6 +356,7 @@ export default function RepairRequestListPage() {
                             <TableCell sx={headerCellSx}>Объект</TableCell>
                             <TableCell sx={headerCellSx}>Статус</TableCell>
                             <TableCell sx={headerCellSx}>Место</TableCell>
+                            <TableCell sx={headerCellSx}>Сумма</TableCell>
                             <TableCell sx={headerCellSx}>Действия</TableCell>
                         </TableRow>
                     </TableHead>
@@ -311,20 +371,23 @@ export default function RepairRequestListPage() {
                             >
                                 <TableCell>{request.id}</TableCell>
 
-                                <TableCell>{request.request_date}</TableCell>
+                                <TableCell>{formatDateYear(request.request_date)}</TableCell>
 
                                 <TableCell>{request.construction_object?.customer_name ?? '—'}</TableCell>
 
-                                <TableCell>{request.construction_object?.name ?? '—'}</TableCell>
+                                <TableCell>
+                                    <Tooltip title={request.construction_object?.address ?? 'Адрес не указан'}>
+                                        {request.construction_object?.name ?? '—'}
+                                    </Tooltip>
+                                </TableCell>
 
                                 <TableCell>{statusOptions[request.status] ?? request.status}</TableCell>
 
                                 <TableCell>{locationOptions[request.location] ?? request.location}</TableCell>
 
-                                <TableCell
-                                    align="right"
-                                    onClick={(event) => event.stopPropagation()}
-                                >
+                                <TableCell>{request.request_sum} руб.</TableCell>
+
+                                <TableCell align="right" onClick={(event) => event.stopPropagation()}>
                                     <Box
                                         sx={{
                                             display: 'flex',
@@ -337,12 +400,8 @@ export default function RepairRequestListPage() {
                                         />
 
                                         <DeleteAction
-                                            loading={
-                                                deleteRepairRequest.isPending &&
-                                                deleteTarget?.id === request.id
-                                            }
-                                            onClick={(event) =>handleDeleteClick(event, request)
-                                            }
+                                            loading={deleteRepairRequest.isPending && deleteTarget?.id === request.id}
+                                            onClick={(event) => handleDeleteClick(event, request)}
                                         />
                                     </Box>
                                 </TableCell>
@@ -370,16 +429,24 @@ export default function RepairRequestListPage() {
             <ConfirmDialog
                 open={Boolean(deleteTarget)}
                 title="Удалить заявку?"
-                text={
-                    deleteTarget
-                        ? `Заявка №${deleteTarget.id} будет удалена без возможности восстановления.`
-                        : ''
-                }
+                text={deleteTarget ? `Заявка №${deleteTarget.id} будет удалена без возможности восстановления.` : ''}
                 confirmText="Удалить"
                 cancelText="Отмена"
                 onClose={handleCancelDelete}
                 onConfirm={handleConfirmDelete}
                 loading={deleteRepairRequest.isPending}
+            />
+
+            <AppSnackbar
+                open={snackbar.open}
+                message={snackbar.message}
+                severity={snackbar.severity}
+                onClose={() =>
+                    setSnackbar((prev) => ({
+                        ...prev,
+                        open: false,
+                    }))
+                }
             />
         </Box>
     )

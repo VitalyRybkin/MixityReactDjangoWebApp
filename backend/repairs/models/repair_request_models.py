@@ -58,6 +58,11 @@ class RepairRequest(models.Model):
         blank=True,
         verbose_name="Описание запроса на ремонт",
     )
+    inspection_description = models.TextField(
+        null=True,
+        blank=True,
+        verbose_name="Отчет по итогам выезда",
+    )
     closing_description = models.TextField(
         null=True,
         blank=True,
@@ -76,6 +81,17 @@ class RepairRequest(models.Model):
                 ]
             )
         ]
+
+    permissions = [
+        (
+            "export_repairrequest",
+            "Can export repair request",
+        ),
+        (
+            "print_repairrequest_claim",
+            "Can print repair request claim",
+        ),
+    ]
 
 
 class RequestFile(models.Model):
@@ -211,16 +227,6 @@ class RepairSpecification(models.Model):
                 ),
                 name="repair_specification_service_or_part",
             )
-        ]
-        permissions = [
-            (
-                "export_repairrequest",
-                "Can export repair request",
-            ),
-            (
-                "print_repairrequest_claim",
-                "Can print repair request claim",
-            ),
         ]
 
     def __str__(self) -> str:
