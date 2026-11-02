@@ -37,6 +37,7 @@ class ProductRoutes:
         "sales_price_detail",
     )
 
+
 class QualityPassportRoutes:
     CREATE = ApiRoute("quality-passports/", "quality_passport_create")
     DETAIL = ApiRoute("quality-passports/<int:pk>/", "quality_passport_detail")

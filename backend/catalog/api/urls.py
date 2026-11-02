@@ -1,6 +1,10 @@
 from django.urls import path
 
-from .routes import ProductRoutes, UnitRoutes, QualityPassportRoutes
+from ..views.quality_passport_views import (
+    QualityPassportCreateAPIView,
+    QualityPassportRetrieveUpdateDestroyAPIView,
+)
+from .routes import ProductRoutes, QualityPassportRoutes, UnitRoutes
 from .views.products import (
     ProductListAPIView,
     ProductPurchasePriceListCreateAPIView,
@@ -10,7 +14,6 @@ from .views.products import (
     ProductSalesPriceRetrieveUpdateDestroyAPIView,
 )
 from .views.units import UnitListCreateAPIView, UnitRetrieveUpdateDestroyAPIView
-from ..views.quality_passport_views import QualityPassportCreateAPIView, QualityPassportRetrieveUpdateDestroyAPIView
 
 app_name = "catalog"
 
@@ -67,5 +70,5 @@ urlpatterns = [
         QualityPassportRoutes.DETAIL.path,
         QualityPassportRetrieveUpdateDestroyAPIView.as_view(),
         name=QualityPassportRoutes.DETAIL.name,
-    )
+    ),
 ]

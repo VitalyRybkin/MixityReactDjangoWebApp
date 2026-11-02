@@ -18,6 +18,8 @@ class QualityPassportCreateAPIView(BaseCreateAPIView):
 
     errors_write = ERRORS_DETAIL_WRITE
 
+    queryset = QualityPassport.objects.all()
+
     def perform_create(
         self,
         serializer: serializers.BaseSerializer,
@@ -35,7 +37,7 @@ class QualityPassportRetrieveUpdateDestroyAPIView(BaseRetrieveUpdateDestroyAPIVi
     queryset = QualityPassport.objects.select_related(
         "product",
         "created_by",
-    )
+    ).order_by("id")
 
     errors_read = ERRORS_DETAIL
     errors_write = ERRORS_DETAIL_WRITE

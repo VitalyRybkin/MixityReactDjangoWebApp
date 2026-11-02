@@ -1,6 +1,7 @@
-from typing import Any
+from copy import copy
 
 from django.core.exceptions import ValidationError as DjangoValidationError
+from mypy.fastparse import Any
 from rest_framework import serializers
 
 from catalog.models import Product, QualityPassport
@@ -47,6 +48,7 @@ class QualityPassportWriteSerializer(serializers.ModelSerializer):
     class Meta:
         model = QualityPassport
         fields = [
+            "id",
             "product",
             "number",
             "issue_date",
@@ -54,39 +56,24 @@ class QualityPassportWriteSerializer(serializers.ModelSerializer):
             "production_date",
             "quantity",
         ]
+        read_only_fields = ["id"]
 
-    def validate(self, attrs: Any) -> dict[str, Any]:
+    def validate(self, attrs: Any) -> dict:
         attrs = super().validate(attrs)
 
-        instance = self.instance or QualityPassport()
-
-        passport = QualityPassport(
-            pk=instance.pk,
-            product=attrs.get("product", getattr(instance, "product", None)),
-            number=attrs.get("number", getattr(instance, "number", "")),
-            issue_date=attrs.get(
-                "issue_date",
-                getattr(instance, "issue_date", None),
-            ),
-            batch_number=attrs.get(
-                "batch_number",
-                getattr(instance, "batch_number", ""),
-            ),
-            production_date=attrs.get(
-                "production_date",
-                getattr(instance, "production_date", None),
-            ),
-            quantity=attrs.get(
-                "quantity",
-                getattr(instance, "quantity", None),
-            ),
+        passport = (
+            copy(self.instance) if self.instance is not None else QualityPassport()
         )
+
+        for field, value in attrs.items():
+            setattr(passport, field, value)
 
         try:
             passport.full_clean()
         except DjangoValidationError as exc:
             if hasattr(exc, "message_dict"):
                 raise serializers.ValidationError(exc.message_dict) from exc
+
             raise serializers.ValidationError(exc.messages) from exc
 
         return attrs
