@@ -1,11 +1,24 @@
 from decimal import Decimal
+from typing import Any, Dict
 
 from django.core.exceptions import ValidationError
 
+from catalog.api.routes import QualityPassportRoutes
 from catalog.models import AppUnit, ProductUnit, QualityPassport
+from catalog.serializers.passport_serializers import (
+    QualityPassportReadSerializer,
+    QualityPassportWriteSerializer,
+)
 from catalog.tests.api.factories import QualityPassportFactory
 from catalog.utils.unit_choices import TitleChoices
+from catalog.views.quality_passport_views import (
+    QualityPassportRetrieveUpdateDestroyAPIView,
+)
 from core.tests.base_model_test_case import BaseModelTestCase
+from core.tests.base_test_case import BaseAPIMixin
+from core.tests.base_view_test_case import BaseQuerysetTestCase, BaseViewTestCase
+from core.tests.serializer_tests import SerializerSelectionContractMixin
+from core.tests.utils import FieldSpec
 
 
 class TestQualityPassportModel(BaseModelTestCase):
@@ -263,3 +276,94 @@ class TestQualityPassportModel(BaseModelTestCase):
             "product",
             "Multiple passports for the same product accepted",
         )
+
+
+class TestQualityPassportView(SerializerSelectionContractMixin, BaseViewTestCase):
+    __test__ = True
+
+    _view_class = QualityPassportRetrieveUpdateDestroyAPIView
+    _cases = [
+        ("GET", QualityPassportReadSerializer),
+        ("PUT", QualityPassportWriteSerializer),
+        ("PATCH", QualityPassportWriteSerializer),
+    ]
+
+    def test_serializer_classes(self) -> None:
+        """
+        Tests that the GET, PUT, PATCH, and DELETE methods use the expected serializers.
+        """
+        self._logger_header("SERIALIZERS: QUALITY PASSPORT DETAIL")
+        self._serializer_classes_logic()
+        self._logger_success(
+            "serializers",
+            "GET / PUT / PATCH use expected serializers",
+        )
+
+
+class TestQualityPassportDetailQueryset(BaseQuerysetTestCase):
+    __test__ = True
+    _factory = QualityPassportFactory
+    _view_class = QualityPassportRetrieveUpdateDestroyAPIView
+
+    def test_queryset_contract(self) -> None:
+        self._factory.create_batch(3)
+
+        self._assert_queryset_contract(
+            expected_selects=["product", "created_by"],
+        )
+
+
+class TestQualityPassportAPI(BaseAPIMixin):
+    __test__ = True
+    model = QualityPassport
+    factory = QualityPassportFactory
+    check_get_permissions = False
+
+    serializer_class = QualityPassportWriteSerializer
+
+    fields_map = {
+        "id": FieldSpec("id", int),
+        "product": FieldSpec("product", dict, required=True),
+        "number": FieldSpec("number", str, required=True, unique=True),
+        "issue_date": FieldSpec("issue_date", str, required=False),
+        "batch_number": FieldSpec("batch_number", str, required=True),
+        "production_date": FieldSpec("production_date", str, required=True),
+        "quantity": FieldSpec("quantity", str, required=True),
+        "created_at": FieldSpec("created_at", str),
+        "updated_at": FieldSpec("updated_at", str),
+    }
+
+    url_name = f"catalog:{QualityPassportRoutes.CREATE.name}"
+
+    def test_creating_item_logic(self) -> None:
+        """Test the logic for creating a new passport."""
+        payload = self.payload_generator()
+        self._create_logic(payload)
+
+    def test_item_unique_fields(self) -> None:
+        """Test the logic for ensuring unique fields in passport creation."""
+        payload = self.payload_generator()
+        self._test_all_unique_fields(payload)
+
+    def test_item_mandatory_fields(self) -> None:
+        """Test the logic for ensuring mandatory fields in passport creation."""
+        payload = self.payload_generator()
+        self._test_all_mandatory_fields(payload)
+
+    def test_str_method(self) -> None:
+        """Test the string representation of a passport."""
+        passport = self.obj
+        self._str_method_logic(f"Паспорт № {passport.number} — {passport.product.name}")
+
+    def payload_generator(self) -> Dict[str, Any]:
+        """Generate a payload for quality passport creation tests."""
+        passport = self.obj
+
+        return {
+            "product": passport.product_id,
+            "number": f"{passport.number}-NEW",
+            "issue_date": passport.issue_date.isoformat(),
+            "batch_number": passport.batch_number,
+            "production_date": passport.production_date.isoformat(),
+            "quantity": str(passport.quantity),
+        }
