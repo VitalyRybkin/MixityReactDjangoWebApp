@@ -81,11 +81,13 @@ help:
 	@echo "  make bootstrap            Pull dev env + seed users from Bitwarden and prepare local DB"
 	@echo
 	@echo "Development:"
-	@echo "  make run                  Run Django development server"
-	@echo "  make shell                Open Django shell"
-	@echo "  make migrations [app=x]  Create migrations"
-	@echo "  make migrate [app=x]      Apply migrations"
-	@echo "  make show                 Show migration status"
+	@echo "  make run                       Run Django development server"
+	@echo "  make shell                     Open Django shell"
+	@echo "  make migrations [app=x]        Create migrations"
+	@echo "  make migrate                   Apply all outstanding migrations"
+	@echo "  make migrate [app=x]           Apply migrations for a specific app"
+	@echo "  make migrate [app=x] [mig=x]   Apply or rollback to a specific migration number (e.g., mig=0021)"
+	@echo "  make show                      Show migration status"
 	@echo
 	@echo "Quality:"
 	@echo "  make test [app=x]         Run tests"
