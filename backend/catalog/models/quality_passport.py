@@ -20,6 +20,15 @@ class QualityPassport(models.Model):
         verbose_name="Продукция",
     )
 
+    quality_passport = models.ForeignKey(
+        "catalog.QualityPassport",
+        on_delete=models.PROTECT,
+        related_name="order_items",
+        null=True,
+        blank=True,
+        verbose_name="Паспорт качества",
+    )
+
     number = models.CharField(
         max_length=50,
         verbose_name="Номер паспорта",
