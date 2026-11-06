@@ -9,7 +9,21 @@ from django.utils import timezone
 
 from catalog.utils.unit_choices import TitleChoices
 
+from . import Product
 from .product_unit import ProductUnit
+
+
+class LastIssuedPassportManager(models.Manager):
+    def get_queryset(self) -> models.QuerySet:
+        return super().get_queryset()
+
+    def get_latest_for_product(self, product_obj: Product) -> Any | None:
+        return (
+            self.get_queryset()
+            .filter(product=product_obj)
+            .order_by("-issue_date")
+            .first()
+        )
 
 
 class QualityPassport(models.Model):
@@ -18,15 +32,6 @@ class QualityPassport(models.Model):
         on_delete=models.PROTECT,
         related_name="quality_passports",
         verbose_name="Продукция",
-    )
-
-    quality_passport = models.ForeignKey(
-        "catalog.QualityPassport",
-        on_delete=models.PROTECT,
-        related_name="order_items",
-        null=True,
-        blank=True,
-        verbose_name="Паспорт качества",
     )
 
     number = models.CharField(
@@ -73,6 +78,9 @@ class QualityPassport(models.Model):
         auto_now=True,
         verbose_name="Дата обновления",
     )
+
+    objects = models.Manager()
+    last_issued_passport = LastIssuedPassportManager()
 
     class Meta:
         ordering = ["-issue_date", "-id"]

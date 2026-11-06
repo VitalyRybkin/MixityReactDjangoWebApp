@@ -24,6 +24,7 @@ from order.serializers.customer_serializers import (
 )
 from order.services.delivery_data import sync_delivery_data
 from order.services.order_items import sync_order_items
+from order.services.quality_passports import QualityPassportsService
 from stock.models import Warehouse
 from stock.warehouse_serializers import (
     BaseWarehouseSerializer,
@@ -182,6 +183,7 @@ class OrderReadSerializer(serializers.ModelSerializer):
     )
     order_delivery = OrderDeliveryInfoSerializer(source="delivery", read_only=True)
     warehouse = BaseWarehouseSerializer()
+    passports_with_limit_exceeded = serializers.SerializerMethodField()
 
     class Meta:
         model = Order
@@ -205,7 +207,11 @@ class OrderReadSerializer(serializers.ModelSerializer):
             "order_products",
             "order_delivery",
             "warehouse",
+            "passports_with_limit_exceeded",
         ]
+
+    def get_passports_with_limit_exceeded(self, obj: Order) -> list[dict]:
+        return getattr(obj, "passports_with_limit_exceeded", [])
 
 
 class OrderProductWriteSerializer(serializers.Serializer):
@@ -373,6 +379,8 @@ class OrderWriteSerializer(serializers.ModelSerializer):
         allow_null=True,
     )
 
+    passports_with_limit_exceeded = serializers.SerializerMethodField()
+
     class Meta:
         model = Order
         fields = [
@@ -393,6 +401,7 @@ class OrderWriteSerializer(serializers.ModelSerializer):
             "samples",
             "created_at",
             "updated_at",
+            "passports_with_limit_exceeded",
         ]
 
         read_only_fields = [
@@ -400,6 +409,9 @@ class OrderWriteSerializer(serializers.ModelSerializer):
             "created_at",
             "updated_at",
         ]
+
+    def get_passports_with_limit_exceeded(self, obj: Order) -> list[dict]:
+        return getattr(obj, "passports_with_limit_exceeded", [])
 
     def validate(self, attrs: dict) -> dict:
         """
@@ -533,6 +545,14 @@ class OrderWriteSerializer(serializers.ModelSerializer):
 
         sync_delivery_data(order, delivery_data)
         sync_order_items(order, products_data)
+
+        setattr(order, "passports_with_limit_exceeded", [])
+
+        if order.status != Order.Status.DRAFT:
+            check_result = QualityPassportsService.check_passport_quantity(
+                products_data
+            )
+            setattr(order, "passports_with_limit_exceeded", check_result)
 
         return order
 

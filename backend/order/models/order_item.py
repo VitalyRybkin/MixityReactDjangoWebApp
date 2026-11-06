@@ -16,6 +16,15 @@ class OrderItem(models.Model):
         related_name="order_entries",
     )
 
+    quality_passport = models.ForeignKey(
+        "catalog.QualityPassport",
+        on_delete=models.PROTECT,
+        related_name="order_items",
+        null=True,
+        blank=True,
+        verbose_name="Паспорт качества",
+    )
+
     pack_type = models.ForeignKey(
         "order.PackType",
         on_delete=models.SET_NULL,
