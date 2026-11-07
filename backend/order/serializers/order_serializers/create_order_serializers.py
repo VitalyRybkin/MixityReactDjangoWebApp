@@ -575,6 +575,7 @@ class OrderWriteSerializer(serializers.ModelSerializer):
         else:
             QualityPassportsService.passport_quantity_check(
                 order=order,
+                products_data=products_data,
                 confirmed_passport_ids=confirmed_ids,
             )
 
@@ -612,6 +613,7 @@ class OrderWriteSerializer(serializers.ModelSerializer):
         else:
             QualityPassportsService.passport_quantity_check(
                 order=instance,
+                products_data=products_data,
                 confirmed_passport_ids=confirmed_ids,
             )
 

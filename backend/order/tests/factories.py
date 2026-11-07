@@ -2,6 +2,7 @@ from datetime import date, timedelta
 
 import factory.fuzzy
 
+from catalog.models import QualityPassport
 from order.models import (
     Client,
     ConstructionObject,
@@ -86,3 +87,17 @@ class OrderItemFactory(factory.django.DjangoModelFactory):
 class OrderDeliveryDataFactory(factory.django.DjangoModelFactory):
     class Meta:
         model = OrderDelivery
+
+
+class QualityPassportDataFactory(factory.django.DjangoModelFactory):
+    class Meta:
+        model = QualityPassport
+
+    product = factory.SubFactory("catalog.tests.api.factories.ProductFactory")
+    number = factory.Sequence(lambda n: f"word-{n}")
+    issue_date = factory.fuzzy.FuzzyDate(start_date=date.today(), end_date=date.today())
+    batch_number = factory.Sequence(lambda n: f"word-{n}")
+    production_date = factory.fuzzy.FuzzyDate(
+        start_date=date.today(),
+    )
+    quantity = factory.fuzzy.FuzzyDecimal(low=1, high=100, precision=3)

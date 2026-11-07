@@ -1,4 +1,5 @@
 from datetime import date
+from decimal import Decimal
 from typing import Any
 
 from django.contrib.auth import get_user_model
@@ -6,7 +7,9 @@ from django.contrib.auth.models import User
 from django.core.files.uploadedfile import SimpleUploadedFile
 from rest_framework import status
 
-from catalog.tests.api.factories import ProductFactory
+from catalog.models import AppUnit, Product, ProductUnit
+from catalog.tests.api.factories import ProductFactory, QualityPassportFactory
+from catalog.utils.unit_choices import TitleChoices
 from contacts.factories import ContactFactory
 from core.tests.base_test_case import BaseAPIMixin
 from logistic.tests.factories import CarrierFactory, DriverFactory, TruckFactory
@@ -33,6 +36,40 @@ class TestOrderAPIList(BaseAPIMixin):
     factory = OrderFactory
     model = Order
 
+    @staticmethod
+    def create_passports_for_products(
+        products_data: list[dict],
+    ) -> None:
+        product_ids = {item["product"] for item in products_data}
+
+        for product_id in product_ids:
+            product = Product.objects.get(pk=product_id)
+
+            is_piece = product.is_piece_based
+
+            unit_title = TitleChoices.PIECE if is_piece else TitleChoices.TON
+
+            unit, _ = AppUnit.objects.get_or_create(
+                title=unit_title,
+                defaults={
+                    "is_weight_based": not is_piece,
+                    "to_kg_factor": 1 if is_piece else 1000,
+                },
+            )
+
+            ProductUnit.objects.update_or_create(
+                product=product,
+                defaults={
+                    "unit": unit,
+                    "value": 25 if is_piece else 1,
+                },
+            )
+
+            QualityPassportFactory.create(
+                product=product,
+                quantity=Decimal("300.000"),
+            )
+
     def test_create_order_with_minimal_payload(self) -> None:
         """Test creating an order with minimal payload."""
         self._create_logic(self.payload_generator()[0])
@@ -41,6 +78,7 @@ class TestOrderAPIList(BaseAPIMixin):
         """Test creating an order with valid data."""
 
         payload, temp_order = self.payload_generator()
+
         delivery_data = OrderDeliveryDataFactory.create(order=temp_order)
         delivery = {
             "order": delivery_data.order.id,
@@ -59,6 +97,8 @@ class TestOrderAPIList(BaseAPIMixin):
             }
             for item in products
         ]
+
+        self.create_passports_for_products(payload["products"])
 
         self._create_logic(payload)
 
@@ -95,6 +135,7 @@ class TestOrderAPIList(BaseAPIMixin):
         )
 
         payload, temp_order = self.payload_generator()
+
         delivery_data = OrderDeliveryDataFactory.create(order=temp_order)
         delivery = {"order": delivery_data.order.id}
         payload["delivery"] = delivery
@@ -123,6 +164,9 @@ class TestOrderAPIList(BaseAPIMixin):
                 "price_at_purchase": str(product_2.price_at_purchase),
             },
         ]
+
+        self.create_passports_for_products(payload["products"])
+
         self._create_logic(payload)
 
     def test_create_with_inactive_customer_object_returns_400(self) -> None:
