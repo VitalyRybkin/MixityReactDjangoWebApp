@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 from decimal import Decimal
 from typing import Any
 
@@ -13,15 +15,16 @@ from . import Product
 from .product_unit import ProductUnit
 
 
-class LastIssuedPassportManager(models.Manager):
-    def get_queryset(self) -> models.QuerySet:
-        return super().get_queryset()
+class LastIssuedPassportManager(models.Manager["QualityPassport"]):
 
-    def get_latest_for_product(self, product_obj: Product) -> Any | None:
+    def get_latest_for_product(
+        self,
+        product_obj: Product,
+    ) -> QualityPassport | None:
         return (
             self.get_queryset()
             .filter(product=product_obj)
-            .order_by("-issue_date")
+            .order_by("-issue_date", "-id")
             .first()
         )
 
@@ -80,7 +83,7 @@ class QualityPassport(models.Model):
     )
 
     objects = models.Manager()
-    last_issued_passport = LastIssuedPassportManager()
+    last_issued = LastIssuedPassportManager()
 
     class Meta:
         ordering = ["-issue_date", "-id"]
