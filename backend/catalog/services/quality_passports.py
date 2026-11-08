@@ -181,7 +181,6 @@ class QualityPassportsService:
     def passport_quantity_check(
         cls,
         order: Order,
-        products_data: list[dict] | None = None,
         confirmed_passport_ids: set[int] | None = None,
     ) -> None:
         """Assign passports and reject unconfirmed overruns on latest passports.
@@ -224,16 +223,9 @@ class QualityPassportsService:
 
         passports: dict[int, QualityPassport] = {}
 
-        selected_passports = {
-            data["product"].pk: data["quality_passport"]
-            for data in (products_data or [])
-            if "quality_passport" in data
-        }
-
         for item in items:
             passport = (
-                selected_passports.get(item.product_id)
-                or item.quality_passport
+                item.quality_passport
                 or QualityPassport.last_issued.get_latest_for_product(item.product)
             )
 

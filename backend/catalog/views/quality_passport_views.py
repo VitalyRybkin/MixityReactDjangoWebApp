@@ -1,4 +1,4 @@
-from rest_framework import serializers
+"""Expose read-only quality-passport detail endpoints."""
 
 from catalog.models import QualityPassport
 from catalog.serializers.passport_serializers import (
@@ -6,28 +6,16 @@ from catalog.serializers.passport_serializers import (
     QualityPassportWriteSerializer,
 )
 from core.openapi import ERRORS_DETAIL, ERRORS_DETAIL_WRITE
-from core.openapi.base_views import BaseCreateAPIView, BaseRetrieveUpdateDestroyAPIView
-
-
-class QualityPassportCreateAPIView(BaseCreateAPIView):
-    resource_name = "Quality passport"
-    schema_tags = ["QualityPassport"]
-
-    serializer_class = QualityPassportWriteSerializer
-    read_serializer_class = QualityPassportReadSerializer
-
-    errors_write = ERRORS_DETAIL_WRITE
-
-    queryset = QualityPassport.objects.all()
-
-    def perform_create(
-        self,
-        serializer: serializers.BaseSerializer,
-    ) -> None:
-        serializer.save(created_by=self.request.user)
+from core.openapi.base_views import BaseRetrieveUpdateDestroyAPIView
 
 
 class QualityPassportRetrieveUpdateDestroyAPIView(BaseRetrieveUpdateDestroyAPIView):
+    """Retrieve passport details with related product and creator data.
+
+    Allow GET, HEAD, and OPTIONS requests. Updates and deletion remain disabled
+    despite the CRUD base class and the retained write-serializer configuration.
+    """
+
     http_method_names = ["get", "head", "options"]
 
     resource_name = "Quality passport"
@@ -47,6 +35,10 @@ class QualityPassportRetrieveUpdateDestroyAPIView(BaseRetrieveUpdateDestroyAPIVi
     def get_serializer_class(
         self,
     ) -> type[QualityPassportWriteSerializer | QualityPassportReadSerializer]:
+        """Select the read serializer, retaining write selection for PUT and PATCH.
+
+        PUT and PATCH requests are rejected by the view's allowed-method list.
+        """
         if self.request.method in ("PUT", "PATCH"):
             return self.write_serializer_class
 

@@ -1,3 +1,5 @@
+"""Shared role-based contracts for model permissions and API access."""
+
 from io import StringIO
 from typing import Any, ClassVar
 
@@ -13,8 +15,15 @@ from core.tests.utils import TestLoggerMixin
 
 
 class BasePermissionMatrixTestCase(TestLoggerMixin, APITestCase):
+    """Compare role grants and API responses with a configured permission matrix.
+
+    Subclasses provide resource fixtures, endpoint URLs, request payloads, and
+    expected role grants. Override api_actions for the supported API operations.
+    """
+
     __test__ = False
 
+    permission_matrix_label: ClassVar[str] = ""
     app_label: ClassVar[str] = ""
     role_matrix: ClassVar[dict[str, dict[str, bool]]] = {}
     permission_codenames: ClassVar[dict[str, str]] = {}
@@ -36,6 +45,7 @@ class BasePermissionMatrixTestCase(TestLoggerMixin, APITestCase):
 
     @classmethod
     def setUpTestData(cls) -> None:
+        """Synchronize role permissions once before running the matrix tests."""
         super().setUpTestData()
 
         call_command(
@@ -44,6 +54,7 @@ class BasePermissionMatrixTestCase(TestLoggerMixin, APITestCase):
         )
 
     def create_user_for_role(self, role: str) -> Any:
+        """Create a user and assign the group matching the requested role."""
         user_model = get_user_model()
 
         user = user_model.objects.create_user(
@@ -57,21 +68,27 @@ class BasePermissionMatrixTestCase(TestLoggerMixin, APITestCase):
         return user
 
     def create_object(self) -> Any:
+        """Return a resource fixture; subclasses must implement this hook."""
         raise NotImplementedError
 
     def get_create_url(self) -> str:
+        """Return the creation endpoint; subclasses must implement this hook."""
         raise NotImplementedError
 
     def get_detail_url(self, obj: Any) -> str:
+        """Return the fixture detail endpoint; subclasses must implement this hook."""
         raise NotImplementedError
 
     def get_create_payload(self) -> dict[str, Any]:
+        """Return valid creation data; subclasses must implement this hook."""
         raise NotImplementedError
 
     def get_update_payload(self) -> dict[str, Any]:
+        """Return valid update data; subclasses must implement this hook."""
         raise NotImplementedError
 
     def request_action(self, action: str) -> Response:
+        """Send an add, view, change, or delete request; reject unsupported actions."""
         if action == "add":
             return self.client.post(
                 self.get_create_url(),
@@ -102,6 +119,7 @@ class BasePermissionMatrixTestCase(TestLoggerMixin, APITestCase):
         action: str,
         allowed: bool,
     ) -> int:
+        """Return HTTP 403 for denied access or the action-specific success code."""
         if not allowed:
             return status.HTTP_403_FORBIDDEN
 
@@ -113,9 +131,12 @@ class BasePermissionMatrixTestCase(TestLoggerMixin, APITestCase):
         }[action]
 
     def test_group_permission_matrix(self) -> None:
-        self._logger_header(f"{self.app_label.upper()} GROUP PERMISSION MATRIX")
+        """Verify each role has exactly the model grants specified in the matrix."""
+        label = self.permission_matrix_label or self.app_label.upper()
+        self._logger_header(f"{label}: GROUP PERMISSIONS")
 
         for role, permissions in self.role_matrix.items():
+            self._logger_header(f"ROLE: {role}", level=1)
             user = self.create_user_for_role(role)
 
             for action, expected in permissions.items():
@@ -154,9 +175,12 @@ class BasePermissionMatrixTestCase(TestLoggerMixin, APITestCase):
                         )
 
     def test_api_permission_matrix(self) -> None:
-        self._logger_header(f"{self.app_label.upper()} API PERMISSION MATRIX")
+        """Verify API status codes match each role grant for configured actions."""
+        label = self.permission_matrix_label or self.app_label.upper()
+        self._logger_header(f"{label}: API PERMISSIONS")
 
         for role, permissions in self.role_matrix.items():
+            self._logger_header(f"ROLE: {role}", level=1)
             user = self.create_user_for_role(role)
 
             self.client.force_authenticate(user=user)

@@ -9,6 +9,13 @@ class TestSalePriceAPIListCreate(
     SalePricesBaseTest,
     BasePriceContractMixin,
 ):
+    """
+    Tests the list and create operations for sale price records within the
+    catalog API test suite. Combines sale price test fixtures with shared API
+    assertions to ensure that sale price records are handled consistently for
+    retrieval, creation, and string representation checks.
+    """
+
     __test__ = True
 
     pk_url_name = f"catalog:{ProductRoutes.PRODUCT_SALES_PRICES.name}"
@@ -90,6 +97,13 @@ class TestSalePriceAPIListCreate(
 
 
 class TestSalePriceRetrieveUpdate(SalePricesBaseTest, BaseAPIMixin):
+    """
+    Tests the retrieve and update operations for sale price records within the
+    catalog API test suite. Combines sale price test fixtures with shared API
+    assertions to ensure that sale price records are handled consistently for
+    retrieval, update, and string representation checks.
+    """
+
     __test__ = True
 
     pk_url_name = f"catalog:{ProductRoutes.SALES_PRICE_DETAIL.name}"

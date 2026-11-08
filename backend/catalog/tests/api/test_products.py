@@ -9,6 +9,12 @@ from core.tests.utils import FieldSpec
 
 
 class TestProductAPIList(BaseAPIMixin):
+    """
+    Tests the list operations for product records within the catalog API test suite.
+    Combines product test fixtures with shared API assertions to ensure that product
+    records are handled consistently for retrieval and string representation checks.
+    """
+
     __test__ = True
     url_name = f"catalog:{ProductRoutes.LIST.name}"
     model = Product
@@ -35,6 +41,14 @@ class TestProductAPIList(BaseAPIMixin):
 
 
 class PriceHistoryTestHost(Protocol):
+    """
+    Defines the public contract for a price history test host.
+
+    Represents a structural protocol for objects that provide the shared factory
+    dependency required by price history test host implementations. Implementations
+    can conform to this protocol by exposing the documented public attribute.
+    """
+
     factory: Any
 
     def _get_latest_price(
@@ -52,6 +66,16 @@ class PriceHistoryTestHost(Protocol):
 
 
 class BaseTestPriceHistory:
+    """
+    Provides a reusable base for price history tests that verify retrieval of the
+    most recent sales price for a product within a configured context.
+
+    Centralizes shared assertions for implementations that
+    store price history records by contextual entity, product, and date. Subclasses
+    are expected to provide the required factory and context field configuration
+    before the inherited tests are executed.
+    """
+
     price_context_factory: ClassVar[Any | None] = None
     context_field: ClassVar[str | None] = None
 

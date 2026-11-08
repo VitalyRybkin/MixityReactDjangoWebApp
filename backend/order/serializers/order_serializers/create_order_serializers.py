@@ -4,7 +4,7 @@ from typing import Any, cast
 from django.db import transaction
 from rest_framework import serializers
 
-from catalog.models import Product, QualityPassport
+from catalog.models import Product
 from catalog.serializers.product_serializers import ProductSerializer
 from catalog.services.quality_passports import QualityPassportsService
 from contacts.models import Contact
@@ -241,6 +241,7 @@ class OrderProductWriteSerializer(serializers.Serializer):
         "null": "Укажите количество.",
         "required": "Укажите количество.",
         "invalid": "Введите корректное число.",
+        "min_value": "Количество должно быть больше нуля.",
     }
 
     product = serializers.PrimaryKeyRelatedField(
@@ -254,6 +255,7 @@ class OrderProductWriteSerializer(serializers.Serializer):
     quantity = serializers.DecimalField(
         max_digits=10,
         decimal_places=2,
+        min_value=Decimal("0.01"),
         error_messages=QUANTITY_ERROR_MESSAGES,
     )
     package = serializers.PrimaryKeyRelatedField(
@@ -272,15 +274,22 @@ class OrderProductWriteSerializer(serializers.Serializer):
         required=False,
     )
 
-    quality_passport = serializers.PrimaryKeyRelatedField(
-        queryset=QualityPassport.objects.all(),
-        required=False,
-    )
-
     new_quality_passport = NewQualityPassportSerializer(
         required=False,
         write_only=True,
     )
+
+    def to_internal_value(self, data: Any) -> dict[str, Any]:
+        if isinstance(data, dict) and "quality_passport" in data:
+            raise serializers.ValidationError(
+                {
+                    "quality_passport": (
+                        "Manual assignment of quality passport is prohibited."
+                    )
+                }
+            )
+
+        return super().to_internal_value(data)
 
     def validate(self, attrs: dict[str, Any]) -> dict[str, Any]:
 
@@ -613,7 +622,6 @@ class OrderWriteSerializer(serializers.ModelSerializer):
 
             QualityPassportsService.passport_quantity_check(
                 order=order,
-                products_data=products_data,
                 confirmed_passport_ids=confirmed_ids,
             )
 
@@ -662,7 +670,6 @@ class OrderWriteSerializer(serializers.ModelSerializer):
 
             QualityPassportsService.passport_quantity_check(
                 order=instance,
-                products_data=products_data,
                 confirmed_passport_ids=confirmed_ids,
             )
 

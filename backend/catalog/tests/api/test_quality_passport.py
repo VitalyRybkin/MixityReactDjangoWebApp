@@ -1,14 +1,18 @@
+"""Verify quality-passport validation, issuance, and read-only API contracts."""
+
 from datetime import date, timedelta
 from decimal import Decimal
-from typing import Any, Dict
 
+from django.contrib.auth import get_user_model
 from django.core.exceptions import ValidationError
+from django.urls import reverse
+from rest_framework import status
+from rest_framework.test import APITestCase
 
 from catalog.api.routes import QualityPassportRoutes
 from catalog.models import AppUnit, ProductUnit, QualityPassport
 from catalog.serializers.passport_serializers import (
     QualityPassportReadSerializer,
-    QualityPassportWriteSerializer,
 )
 from catalog.services.quality_passport_issue import (
     PassportChanged,
@@ -20,10 +24,9 @@ from catalog.views.quality_passport_views import (
     QualityPassportRetrieveUpdateDestroyAPIView,
 )
 from core.tests.base_model_test_case import BaseModelTestCase
-from core.tests.base_test_case import BaseAPIMixin
 from core.tests.base_view_test_case import BaseQuerysetTestCase, BaseViewTestCase
 from core.tests.serializer_tests import SerializerSelectionContractMixin
-from core.tests.utils import FieldSpec
+from core.tests.utils import TestLoggerMixin
 
 
 class TestQualityPassportModel(BaseModelTestCase):
@@ -115,7 +118,7 @@ class TestQualityPassportModel(BaseModelTestCase):
                     exc.exception.message_dict,
                 )
 
-                self._logger_error(
+                self._logger_success(
                     "quantity",
                     f"Rejected {quantity} t for {pack_weight} kg bags",
                 )
@@ -169,7 +172,7 @@ class TestQualityPassportModel(BaseModelTestCase):
                         exc.exception.message_dict,
                     )
 
-                    self._logger_error(
+                    self._logger_success(
                         "quantity",
                         f"Rejected bulk quantity {quantity} t",
                     )
@@ -193,7 +196,7 @@ class TestQualityPassportModel(BaseModelTestCase):
 
         self.assertIn("product", exc.exception.message_dict)
 
-        self._logger_error(
+        self._logger_success(
             "product",
             "Rejected product without unit configuration",
         )
@@ -219,7 +222,7 @@ class TestQualityPassportModel(BaseModelTestCase):
 
         self.assertIn("number", exc.exception.message_dict)
 
-        self._logger_error(
+        self._logger_success(
             "number",
             f"Rejected duplicate passport number {self.obj.number}",
         )
@@ -262,7 +265,7 @@ class TestQualityPassportModel(BaseModelTestCase):
 
         self.assertIn("quantity", exc.exception.message_dict)
 
-        self._logger_error(
+        self._logger_success(
             "quantity",
             "Rejected zero quantity",
         )
@@ -363,6 +366,7 @@ class TestQualityPassportModel(BaseModelTestCase):
         )
 
     def test_issue_new_passport_keeps_previous_unchanged(self) -> None:
+        """Verify issuance selects a new passport and preserves the previous one."""
         self._logger_header("PASSPORT: AUTOMATIC ISSUE")
 
         old_passport = self.obj
@@ -393,6 +397,7 @@ class TestQualityPassportModel(BaseModelTestCase):
         )
 
     def test_issue_rejects_stale_latest_passport(self) -> None:
+        """Reject a stale latest-passport reference without creating a passport."""
         self._logger_header("PASSPORT: STALE ISSUE REQUEST")
 
         count_before = QualityPassport.objects.count()
@@ -419,33 +424,23 @@ class TestQualityPassportModel(BaseModelTestCase):
 
 
 class TestQualityPassportView(SerializerSelectionContractMixin, BaseViewTestCase):
-    """
-    Validate serializer selection for the quality passport detail view test case.
-
-    Provides a test case that checks whether the quality passport detail API view
-    selects the expected serializers for the supported request methods. This class
-    is intended to participate in the view test suite and focuses on confirming
-    serializer configuration consistency for retrieve and modification operations.
-    """
+    """Verify serializer selection for the read-only passport detail view."""
 
     __test__ = True
 
     _view_class = QualityPassportRetrieveUpdateDestroyAPIView
+
     _cases = [
         ("GET", QualityPassportReadSerializer),
-        ("PUT", QualityPassportWriteSerializer),
-        ("PATCH", QualityPassportWriteSerializer),
     ]
 
     def test_serializer_classes(self) -> None:
-        """
-        Tests that the GET, PUT, PATCH, and DELETE methods use the expected serializers.
-        """
+        """Verify GET selects the passport read serializer."""
         self._logger_header("SERIALIZERS: QUALITY PASSPORT DETAIL")
         self._serializer_classes_logic()
         self._logger_success(
             "serializers",
-            "GET / PUT / PATCH use expected serializers",
+            "GET uses the expected read serializer",
         )
 
 
@@ -464,77 +459,74 @@ class TestQualityPassportDetailQueryset(BaseQuerysetTestCase):
     _view_class = QualityPassportRetrieveUpdateDestroyAPIView
 
     def test_queryset_contract(self) -> None:
-        """
-        Validate that the product queryset satisfies the expected contract.
-        """
-        """"""
+        """Verify passport ordering and eager loading of product and creator."""
+        self._logger_header("QUERYSET: QUALITY PASSPORT DETAIL")
         self._factory.create_batch(3)
 
         self._assert_queryset_contract(
             expected_selects=["product", "created_by"],
         )
+        self._logger_success(
+            "queryset",
+            "Passports are ordered and load product and creator relations",
+        )
 
 
-class TestQualityPassportAPI(BaseAPIMixin):
-    """
-    Test API behavior for quality passport creation and validation.
+class TestQualityPassportReadOnlyAPI(TestLoggerMixin, APITestCase):
+    """Verify passport retrieval, missing resources, and rejected write methods."""
 
-    Provides integration-style coverage for quality passport creation through the
-    configured API endpoint. The test case validates successful object creation,
-    unique-field enforcement, mandatory-field enforcement, string conversion
-    behavior, and request payload construction for quality passport data.
-    """
+    def setUp(self) -> None:
+        """Authenticate an administrator and create a passport detail fixture."""
+        super().setUp()
 
-    __test__ = True
-    model = QualityPassport
-    factory = QualityPassportFactory
-    check_get_permissions = False
+        user = get_user_model().objects.create_superuser(
+            username="passport_readonly_admin",
+            password="test_password",
+        )
+        self.client.force_authenticate(user=user)
 
-    serializer_class = QualityPassportWriteSerializer
+        self.passport = QualityPassportFactory.create()
+        self.url = reverse(
+            f"catalog:{QualityPassportRoutes.DETAIL.name}",
+            args=[self.passport.pk],
+        )
 
-    fields_map = {
-        "id": FieldSpec("id", int),
-        "product": FieldSpec("product", dict, required=True),
-        "number": FieldSpec("number", str, required=True, unique=True),
-        "issue_date": FieldSpec("issue_date", str, required=False),
-        "batch_number": FieldSpec("batch_number", str, required=True),
-        "production_date": FieldSpec("production_date", str, required=True),
-        "quantity": FieldSpec("quantity", str, required=True),
-        "created_at": FieldSpec("created_at", str),
-        "updated_at": FieldSpec("updated_at", str),
-    }
+    def test_retrieve(self) -> None:
+        """Verify GET returns the requested passport with HTTP 200."""
+        self._logger_header("ENDPOINT GET: QUALITY PASSPORT DETAIL")
+        response = self.client.get(self.url)
 
-    url_name = f"catalog:{QualityPassportRoutes.CREATE.name}"
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data["id"], self.passport.pk)
+        self._logger_success("quality_passport", "Requested passport retrieved | 200")
 
-    def test_creating_item_logic(self) -> None:
-        """Test the logic for creating a new passport."""
-        payload = self.payload_generator()
-        self._create_logic(payload)
+    def test_not_found(self) -> None:
+        """Verify GET returns HTTP 404 for a nonexistent passport."""
+        self._logger_header("ENDPOINT GET: QUALITY PASSPORT NOT FOUND")
+        url = reverse(
+            f"catalog:{QualityPassportRoutes.DETAIL.name}",
+            args=[999999999],
+        )
 
-    def test_item_unique_fields(self) -> None:
-        """Test the logic for ensuring unique fields in passport creation."""
-        payload = self.payload_generator()
-        self._test_all_unique_fields(payload)
+        response = self.client.get(url)
 
-    def test_item_mandatory_fields(self) -> None:
-        """Test the logic for ensuring mandatory fields in passport creation."""
-        payload = self.payload_generator()
-        self._test_all_mandatory_fields(payload)
+        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
+        self._logger_success("quality_passport", "Missing passport rejected | 404")
 
-    def test_str_method(self) -> None:
-        """Test the string representation of a passport."""
-        passport = self.obj
-        self._str_method_logic(f"Паспорт № {passport.number} — {passport.product.name}")
+    def test_disallowed_methods(self) -> None:
+        """Verify POST, PUT, PATCH, and DELETE are rejected with HTTP 405."""
+        self._logger_header("HTTP METHODS: QUALITY PASSPORT READ-ONLY DETAIL")
+        for method in ("post", "put", "patch", "delete"):
+            with self.subTest(method=method):
+                response = getattr(self.client, method)(
+                    self.url,
+                    {},
+                    format="json",
+                )
 
-    def payload_generator(self) -> Dict[str, Any]:
-        """Generate a payload for quality passport creation tests."""
-        passport = self.obj
-
-        return {
-            "product": passport.product_id,
-            "number": f"{passport.number}-NEW",
-            "issue_date": passport.issue_date.isoformat(),
-            "batch_number": passport.batch_number,
-            "production_date": passport.production_date.isoformat(),
-            "quantity": str(passport.quantity),
-        }
+                self.assertEqual(
+                    response.status_code,
+                    status.HTTP_405_METHOD_NOT_ALLOWED,
+                    response.data,
+                )
+                self._logger_success(method.upper(), "Write method rejected | 405")

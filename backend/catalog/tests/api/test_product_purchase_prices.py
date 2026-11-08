@@ -9,6 +9,17 @@ class TestPurchasePriceAPIListCreate(
     PurchasePricesBaseTest,
     BasePriceContractMixin,
 ):
+    """
+    Validate purchase price list and creation API behavior for warehouse-specific
+    price history records.
+
+    Verifies the API behavior for listing, creating, validating, and
+    filtering purchase price records associated with products and warehouses. Covers uniqueness,
+    mandatory field validation, duplicate record rejection,
+    cross-product allowance for shared dates and warehouses, and string
+    representation expectations.
+    """
+
     __test__ = True
 
     pk_url_name = f"catalog:{ProductRoutes.PRODUCT_PURCHASE_PRICES.name}"
@@ -93,6 +104,16 @@ class TestPurchasePriceRetrieveUpdate(
     PurchasePricesBaseTest,
     BaseAPIMixin,
 ):
+    """
+    Test case for purchase price detail endpoint behavior.
+
+    Validates the expected behavior of purchase price detail operations within the
+    catalog API test suite. Combines purchase price test fixtures with
+    shared API assertions to ensure that purchase price records are handled
+    consistently for retrieval, update, deletion, missing-resource handling,
+    parent visibility constraints, and string representation checks.
+    """
+
     __test__ = True
 
     pk_url_name = f"catalog:{ProductRoutes.PURCHASE_PRICE_DETAIL.name}"
