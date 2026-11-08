@@ -6,6 +6,7 @@ from rest_framework import serializers
 
 from catalog.models import Product, QualityPassport
 from catalog.serializers.product_serializers import ProductSerializer
+from catalog.services.quality_passports import QualityPassportsService
 from contacts.models import Contact
 from contacts.serializers import ContactSerializer
 from logistic.models import Carrier
@@ -25,7 +26,6 @@ from order.serializers.customer_serializers import (
 )
 from order.services.delivery_data import sync_delivery_data
 from order.services.order_items import sync_order_items
-from order.services.quality_passports import QualityPassportsService
 from stock.models import Warehouse
 from stock.warehouse_serializers import (
     BaseWarehouseSerializer,

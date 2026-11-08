@@ -1,0 +1,82 @@
+"""Expose quality-passport state previews for order products."""
+
+from django.shortcuts import get_object_or_404
+from rest_framework.exceptions import PermissionDenied
+from rest_framework.permissions import IsAuthenticated
+from rest_framework.request import Request
+from rest_framework.response import Response
+from rest_framework.views import APIView
+
+from catalog.api.serializers.quality_passport_serializers import (
+    QualityPassportStateQuerySerializer,
+)
+from catalog.models import Product
+from catalog.services.quality_passport_state import QualityPassportStateService
+from order.models import Order
+
+
+class QualityPassportStateAPIView(APIView):
+    """Provide authenticated users with a read-only passport-state preview.
+
+    Require order-view permission and restrict passport-issuance availability
+    according to the user's permission to add or change the target order.
+    """
+
+    permission_classes = [IsAuthenticated]
+    http_method_names = ["get", "head", "options"]
+
+    def get(self, request: Request) -> Response:
+        """Validate query parameters and return the projected passport state.
+
+        Resolve the requested product and optional order. Use the supplied
+        target status, falling back to the existing order status or draft for
+        a new order. Limit the returned can_issue_new_passport flag using
+        change-order permission for an existing order or add-order permission
+        for a new one. This endpoint does not issue or assign passports.
+
+        Raises:
+            PermissionDenied: If the user lacks order-view permission.
+            ValidationError: If query parameters are invalid.
+            Http404: If the requested product or order does not exist.
+        """
+        if not request.user.has_perm("order.view_order"):
+            raise PermissionDenied()
+
+        query = QualityPassportStateQuerySerializer(data=request.query_params)
+        query.is_valid(raise_exception=True)
+        params = query.validated_data
+
+        product = get_object_or_404(
+            Product,
+            pk=params["product_id"],
+        )
+
+        order = None
+
+        if "order_id" in params:
+            order = get_object_or_404(
+                Order,
+                pk=params["order_id"],
+            )
+
+        target_status = params.get(
+            "target_status",
+            order.status if order is not None else Order.Status.DRAFT,
+        )
+
+        state = QualityPassportStateService.get_state(
+            product=product,
+            quantity=params.get("quantity"),
+            order=order,
+            target_status=target_status,
+        )
+
+        write_permission = (
+            "order.change_order" if order is not None else "order.add_order"
+        )
+
+        state["can_issue_new_passport"] = state[
+            "can_issue_new_passport"
+        ] and request.user.has_perm(write_permission)
+
+        return Response(state)

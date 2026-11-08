@@ -8,12 +8,13 @@ from django.urls import reverse
 from rest_framework import status
 from rest_framework.test import APITestCase
 
+from catalog.api.routes import QualityPassportRoutes
 from catalog.models import QualityPassport
+from catalog.services.quality_passports import QualityPassportsService
 from catalog.tests.api.factories import QualityPassportFactory
 from core.tests.utils import TestLoggerMixin
 from order.models import Order, OrderItem
 from order.routes import OrderRoutes
-from order.services.quality_passports import QualityPassportsService
 
 
 class TestOrderQualityPassports(
@@ -64,6 +65,7 @@ class TestOrderQualityPassports(
         )
 
     def _new_passport_data(self, quantity: Decimal) -> dict:
+        """Build passport-issuance input referencing the expected latest passport."""
         return {
             "expected_latest_passport_id": self.passport.pk,
             "number": f"{self.passport.number}-NEW",
@@ -587,6 +589,7 @@ class TestOrderQualityPassports(
         )
 
     def test_issue_new_passport_during_order_update(self) -> None:
+        """Verify an order update issues, links, and makes a new passport latest."""
         self._logger_header("ORDER: ISSUE NEW QUALITY PASSPORT")
 
         self._activate_order()
@@ -656,6 +659,7 @@ class TestOrderQualityPassports(
         )
 
     def test_failed_passport_issue_rolls_back_order(self) -> None:
+        """Verify a duplicate passport number leaves passport count and order data unchanged."""
         self._logger_header("ORDER: PASSPORT ISSUE ROLLBACK")
 
         self._activate_order()
@@ -702,4 +706,124 @@ class TestOrderQualityPassports(
         self._logger_success(
             "quality_passport",
             "Failed issue rolled back passport and order changes",
+        )
+
+    def test_passport_state_preview_new_position(self) -> None:
+        """Verify a new-position preview adds consumption to the latest passport."""
+        self._logger_header("PASSPORT STATE: NEW POSITION")
+
+        self._activate_order()
+
+        quantity = self._exceeding_quantity()
+        used = QualityPassportsService.used_quantity(self.passport)
+
+        response = self.client.get(
+            reverse(f"catalog:{QualityPassportRoutes.STATE.name}"),
+            {
+                "product_id": self.product.pk,
+                "quantity": str(quantity),
+                "target_status": Order.Status.CREATED,
+            },
+        )
+
+        self.assertEqual(response.status_code, 200, response.data)
+        self.assertEqual(
+            response.data["passport"]["id"],
+            self.passport.pk,
+        )
+
+        self.assertGreater(
+            Decimal(response.data["projected_used_quantity"]),
+            used,
+        )
+
+        self.assertTrue(response.data["is_latest"])
+
+        self._logger_success(
+            "passport_state",
+            "New position preview calculated",
+        )
+
+    def test_passport_state_preview_replaces_old_quantity(self) -> None:
+        """Verify an existing-position preview replaces its quantity and preserves its link."""
+        self._logger_header("PASSPORT STATE: REPLACE QUANTITY")
+
+        self._activate_order()
+        self.item.refresh_from_db()
+
+        quantity = self._exceeding_quantity()
+
+        used = QualityPassportsService.used_quantity(self.passport)
+        old_tons = QualityPassportsService.item_quantity_tons(self.item)
+
+        new_tons = Decimal(str(quantity))
+
+        if self.product.is_piece_based:
+            new_tons = (
+                new_tons * Decimal(self.product.unit_config.value) / Decimal("1000")
+            )
+
+        expected = used - old_tons + new_tons
+
+        response = self.client.get(
+            reverse(f"catalog:{QualityPassportRoutes.STATE.name}"),
+            {
+                "product_id": self.product.pk,
+                "order_id": self.order.pk,
+                "quantity": str(quantity),
+                "target_status": Order.Status.CREATED,
+            },
+        )
+
+        self.assertEqual(response.status_code, 200, response.data)
+
+        self.assertEqual(
+            Decimal(response.data["projected_used_quantity"]),
+            expected,
+        )
+
+        self.item.refresh_from_db()
+        self.assertEqual(
+            self.item.quality_passport_id,
+            self.passport.pk,
+        )
+
+        self._logger_success(
+            "passport_state",
+            "Existing quantity replaced without double counting",
+        )
+
+    def test_historical_passport_cannot_be_updated(self) -> None:
+        """Verify a historical passport preview identifies the latest and disallows renewal."""
+        self._logger_header("PASSPORT STATE: HISTORICAL")
+
+        self._activate_order()
+        new_passport = self._issue_new_passport()
+
+        response = self.client.get(
+            reverse(f"catalog:{QualityPassportRoutes.STATE.name}"),
+            {
+                "product_id": self.product.pk,
+                "order_id": self.order.pk,
+                "quantity": str(self._exceeding_quantity()),
+                "target_status": Order.Status.CREATED,
+            },
+        )
+
+        self.assertEqual(response.status_code, 200, response.data)
+
+        self.assertEqual(
+            response.data["passport"]["id"],
+            self.passport.pk,
+        )
+        self.assertEqual(
+            response.data["latest_passport_id"],
+            new_passport.pk,
+        )
+        self.assertFalse(response.data["is_latest"])
+        self.assertFalse(response.data["can_issue_new_passport"])
+
+        self._logger_success(
+            "passport_state",
+            "Historical passport remains visible and cannot be renewed",
         )

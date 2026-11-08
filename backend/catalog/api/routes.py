@@ -41,3 +41,4 @@ class ProductRoutes:
 class QualityPassportRoutes:
     CREATE = ApiRoute("quality-passports/", "quality_passport_create")
     DETAIL = ApiRoute("quality-passports/<int:pk>/", "quality_passport_detail")
+    STATE = ApiRoute("quality-passports/state/", "quality_passport_state")
