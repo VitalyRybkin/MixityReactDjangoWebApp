@@ -153,4 +153,4 @@ class QualityPassportFactory(factory.django.DjangoModelFactory):
     number = factory.Sequence(lambda n: f"QPP-{n}")
     issue_date = factory.Faker("date")
     batch_number = factory.Sequence(lambda n: f"Batch-{n}")
-    production_date = factory.Faker("date")
+    production_date = factory.SelfAttribute("issue_date")

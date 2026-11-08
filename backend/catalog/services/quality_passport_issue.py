@@ -30,6 +30,7 @@ class QualityPassportIssueService:
         batch_number: str,
         production_date: date,
         quantity: Decimal,
+        issue_date: date | None = None,
         created_by: Any | None = None,
     ) -> QualityPassport:
 
@@ -42,10 +43,12 @@ class QualityPassportIssueService:
         if latest_id != expected_latest_passport_id:
             raise PassportChanged()
 
-        issue_date = timezone.localdate()
-
-        if latest and latest.issue_date > issue_date:
-            issue_date = latest.issue_date
+        # Preserve the previous auto-date behavior for clients that omit issue_date.
+        # An explicitly supplied date is never silently changed.
+        if issue_date is None:
+            issue_date = timezone.localdate()
+            if latest and latest.issue_date > issue_date:
+                issue_date = latest.issue_date
 
         passport = QualityPassport(
             product=product,

@@ -6,6 +6,7 @@ from decimal import Decimal
 from django.contrib.auth import get_user_model
 from django.core.exceptions import ValidationError
 from django.urls import reverse
+from django.utils import timezone
 from rest_framework import status
 from rest_framework.test import APITestCase
 
@@ -50,7 +51,7 @@ class TestQualityPassportModel(BaseModelTestCase):
             product=self.obj.product,
             number=f"{self.obj.number}-NEW",
             issue_date=issue_date,
-            production_date=self.obj.production_date,
+            production_date=min(self.obj.production_date, issue_date),
             batch_number=self.obj.batch_number,
             quantity=self.obj.quantity,
         )
@@ -270,6 +271,42 @@ class TestQualityPassportModel(BaseModelTestCase):
             "Rejected zero quantity",
         )
 
+    def test_production_date_same_or_before_issue_date(self) -> None:
+        """Production may occur on or before the passport issue date."""
+        self._logger_header("PASSPORT: VALID PRODUCTION DATES")
+
+        for production_date in (
+            self.obj.issue_date,
+            self.obj.issue_date - timedelta(days=1),
+        ):
+            with self.subTest(production_date=production_date):
+                self.obj.production_date = production_date
+                self.obj.full_clean()
+
+        self._logger_success(
+            "production_date",
+            "Same or earlier production date accepted",
+        )
+
+    def test_production_date_after_issue_date_rejected(self) -> None:
+        """Reject a later production date and preserve the stored passport."""
+        self._logger_header("PASSPORT: LATER PRODUCTION DATE")
+
+        original_production_date = self.obj.production_date
+        self.obj.production_date = self.obj.issue_date + timedelta(days=1)
+
+        with self.assertRaises(ValidationError) as exc:
+            self.obj.save()
+
+        self.assertIn("production_date", exc.exception.message_dict)
+        self.obj.refresh_from_db()
+        self.assertEqual(self.obj.production_date, original_production_date)
+
+        self._logger_success(
+            "production_date",
+            "Later production date rejected; stored passport unchanged",
+        )
+
     def test_multiple_passports_for_same_product(self) -> None:
         """
         Validate that multiple quality passports can be associated with the same product.
@@ -395,6 +432,45 @@ class TestQualityPassportModel(BaseModelTestCase):
             "quality_passport",
             "New passport issued; previous passport preserved",
         )
+
+    def test_issue_service_accepts_explicit_issue_date(self) -> None:
+        """An explicitly supplied issue date must be stored unchanged."""
+        self._logger_header("PASSPORT: EXPLICIT ISSUE DATE")
+
+        requested_date = self.obj.issue_date + timedelta(days=2)
+        production_date = requested_date - timedelta(days=1)
+
+        new_passport = QualityPassportIssueService.issue(
+            product_id=self.obj.product_id,
+            expected_latest_passport_id=self.obj.pk,
+            number=f"{self.obj.number}-DATED",
+            batch_number=self.obj.batch_number,
+            issue_date=requested_date,
+            production_date=production_date,
+            quantity=self.obj.quantity,
+        )
+        new_passport.refresh_from_db()
+
+        self.assertEqual(new_passport.issue_date, requested_date)
+        self.assertEqual(new_passport.production_date, production_date)
+        self._logger_success("issue_date", "Explicit issue date persisted")
+
+    def test_issue_service_defaults_issue_date_when_omitted(self) -> None:
+        """Without issue_date, use today or the later previous passport date."""
+        self._logger_header("PASSPORT: DEFAULT ISSUE DATE")
+
+        expected_date = max(timezone.localdate(), self.obj.issue_date)
+        new_passport = QualityPassportIssueService.issue(
+            product_id=self.obj.product_id,
+            expected_latest_passport_id=self.obj.pk,
+            number=f"{self.obj.number}-DEFAULT",
+            batch_number=self.obj.batch_number,
+            production_date=self.obj.production_date,
+            quantity=self.obj.quantity,
+        )
+
+        self.assertEqual(new_passport.issue_date, expected_date)
+        self._logger_success("issue_date", "Default issue date preserved")
 
     def test_issue_rejects_stale_latest_passport(self) -> None:
         """Reject a stale latest-passport reference without creating a passport."""

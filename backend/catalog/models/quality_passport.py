@@ -112,6 +112,17 @@ class QualityPassport(models.Model):
     def clean(self) -> None:
         super().clean()
 
+        if (
+            self.issue_date is not None
+            and self.production_date is not None
+            and self.production_date > self.issue_date
+        ):
+            raise ValidationError(
+                {
+                    "production_date": "Дата изготовления не может быть позже даты паспорта."
+                }
+            )
+
         if self._state.adding and self.product_id and self.issue_date:
             previous = (
                 QualityPassport.objects.filter(product_id=self.product_id)

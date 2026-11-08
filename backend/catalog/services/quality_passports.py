@@ -131,6 +131,7 @@ class QualityPassportsService:
                     batch_number=data["batch_number"],
                     production_date=data["production_date"],
                     quantity=data["quantity"],
+                    issue_date=data.get("issue_date"),
                     created_by=created_by,
                 )
             except DjangoValidationError as exc:
