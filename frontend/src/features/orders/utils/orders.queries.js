@@ -4,6 +4,7 @@ import api from '../../../api.js'
 import { LIST_STALE_TIME, REFERENCE_STALE_TIME } from '../../../utils/query.constants.js'
 
 import { orderApiPaths } from './orderApiPaths.js'
+import { qualityPassportKeys } from './qualityPassports.queries.js'
 
 // --- UTILS ---
 const unwrapList = (data) => {
@@ -206,6 +207,7 @@ export function useCreateOrder() {
         mutationFn: createOrder,
         onSuccess: async () => {
             await queryClient.invalidateQueries({ queryKey: orderKeys.all })
+            await queryClient.invalidateQueries({ queryKey: qualityPassportKeys.all })
         },
     })
 }
@@ -224,6 +226,8 @@ export function useUpdateOrder() {
             await queryClient.invalidateQueries({
                 queryKey: orderKeys.detail(variables.id),
             })
+
+            await queryClient.invalidateQueries({ queryKey: qualityPassportKeys.all })
         },
     })
 }

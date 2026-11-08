@@ -5,8 +5,9 @@ import { Autocomplete, Box, Divider, Stack, TextField, Typography } from '@mui/m
 import AddAction from '../../../components/ui/buttons/AddAction.jsx'
 import DeleteAction from '../../../components/ui/buttons/DeleteAction.jsx'
 
-import { orderProductsListSx as sx } from './OrderProductsList.styles.js'
 import QualityPassportInfo from './QualityPassportInfo.jsx'
+
+import { orderProductsListSx as sx } from './OrderProductsList.styles.js'
 
 export default function OrderProductsList({
     rows,
@@ -25,7 +26,7 @@ export default function OrderProductsList({
     return (
         <>
             <Box sx={sx.header}>
-                <Typography variant="h5" color="text.primary">
+                <Typography variant="h5" color="text.secondary">
                     Продукция
                 </Typography>
 
@@ -122,35 +123,31 @@ export default function OrderProductsList({
                                         <Typography variant="body1" sx={sx.unit}>
                                             {unitTitle}
                                         </Typography>
-                                    </Box>
+                                </Box>
 
-                                    <Autocomplete
-                                        fullWidth
-                                        size="small"
-                                        options={packsList}
-                                        value={selectedPack}
-                                        getOptionLabel={(option) => option?.name || ''}
-                                        isOptionEqualToValue={(option, value) => option.id === value.id}
-                                        onChange={(_, newValue) =>
-                                            onChange(row.id, {
-                                                packId: newValue?.id || '',
-                                            })
-                                        }
-                                        renderInput={(params) => (
-                                            <TextField
-                                                {...params}
-                                                label="Тип упаковки"
-                                                placeholder="Выберите упаковку"
-                                            />
-                                        )}
-                                        sx={sx.packField}
-                                        disabled={readOnly}
-                                    />
-                                    {!readOnly && (
-                                        <Box sx={sx.deleteAction}>
-                                            <DeleteAction onClick={() => onRemove(row.id)} />
-                                        </Box>
+                                <Autocomplete
+                                    fullWidth
+                                    size="small"
+                                    options={packsList}
+                                    value={selectedPack}
+                                    getOptionLabel={(option) => option?.name || ''}
+                                    isOptionEqualToValue={(option, value) => option.id === value.id}
+                                    onChange={(_, newValue) =>
+                                        onChange(row.id, {
+                                            packId: newValue?.id || '',
+                                        })
+                                    }
+                                    renderInput={(params) => (
+                                        <TextField {...params} label="Тип упаковки" placeholder="Выберите упаковку" />
                                     )}
+                                    sx={sx.packField}
+                                    disabled={readOnly}
+                                />
+                                {!readOnly && (
+                                    <Box sx={sx.deleteAction}>
+                                        <DeleteAction onClick={() => onRemove(row.id)} />
+                                    </Box>
+                                )}
                                 </Box>
                             </Box>
 
@@ -158,8 +155,14 @@ export default function OrderProductsList({
                                 <QualityPassportInfo
                                     productId={row.productId}
                                     quantity={row.quantity}
+                                    product={selectedProduct}
                                     orderId={orderId}
                                     targetStatus={targetStatus}
+                                    readOnly={readOnly}
+                                    pendingPassport={row.new_quality_passport}
+                                    onPassportChange={(nextPassport) =>
+                                        onChange(row.id, { new_quality_passport: nextPassport })
+                                    }
                                 />
                             )}
                         </Box>

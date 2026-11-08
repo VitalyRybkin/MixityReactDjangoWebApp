@@ -45,6 +45,7 @@ export function useOrderProducts(products = []) {
                 package: row.packId || null,
                 price_at_sale: Number(row.price_at_sale) || 0,
                 price_at_purchase: Number(row.price_at_purchase) || 0,
+                ...(row.new_quality_passport ? { new_quality_passport: row.new_quality_passport } : {}),
             }))
 
     const validate = () => {
@@ -63,7 +64,19 @@ export function useOrderProducts(products = []) {
     }
 
     const handleChange = (rowId, updates) => {
-        setOrderProducts((prev) => prev.map((row) => (row.id === rowId ? { ...row, ...updates } : row)))
+        setOrderProducts((prev) =>
+            prev.map((row) => {
+                if (row.id !== rowId) return row
+
+                // A passport prepared for one product must not follow another product.
+                const productChanged = 'productId' in updates && updates.productId !== row.productId
+                return {
+                    ...row,
+                    ...(productChanged ? { new_quality_passport: undefined } : {}),
+                    ...updates,
+                }
+            }),
+        )
         if ('quantity' in updates && updates.quantity !== '') {
             setProductErrors((prev) => {
                 const next = { ...prev }

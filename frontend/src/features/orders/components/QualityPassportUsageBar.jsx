@@ -15,7 +15,6 @@ export const formatPassportTons = (value) => {
     })} т`
 }
 
-/** Одна компактная шкала: расход / остаток / превышение. */
 export default function QualityPassportUsageBar({ issued, used }) {
     const issuedValue = safeQuantity(issued)
     const usedValue = safeQuantity(used)
