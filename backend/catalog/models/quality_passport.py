@@ -112,6 +112,24 @@ class QualityPassport(models.Model):
     def clean(self) -> None:
         super().clean()
 
+        if self._state.adding and self.product_id and self.issue_date:
+            previous = (
+                QualityPassport.objects.filter(product_id=self.product_id)
+                .order_by("-issue_date", "-id")
+                .first()
+            )
+
+            if previous and self.issue_date < previous.issue_date:
+                raise ValidationError(
+                    {
+                        "issue_date": (
+                            "Дата нового паспорта не может быть раньше "
+                            f"даты предыдущего паспорта №{previous.number} "
+                            f"({previous.issue_date:%d.%m.%Y})."
+                        )
+                    }
+                )
+
         if not self.product_id or self.quantity is None:
             return
 

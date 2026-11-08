@@ -1,3 +1,4 @@
+from datetime import date, timedelta
 from decimal import Decimal
 from typing import Any, Dict
 
@@ -8,6 +9,10 @@ from catalog.models import AppUnit, ProductUnit, QualityPassport
 from catalog.serializers.passport_serializers import (
     QualityPassportReadSerializer,
     QualityPassportWriteSerializer,
+)
+from catalog.services.quality_passport_issue import (
+    PassportChanged,
+    QualityPassportIssueService,
 )
 from catalog.tests.api.factories import QualityPassportFactory
 from catalog.utils.unit_choices import TitleChoices
@@ -22,16 +27,35 @@ from core.tests.utils import FieldSpec
 
 
 class TestQualityPassportModel(BaseModelTestCase):
+    """
+    Test validation behavior for quality passport model instances.
+
+    Provides a database-backed test case for verifying quality passport data
+    integrity, persistence behavior, and model-level validation rules.
+    """
+
     __test__ = True
 
     _model = QualityPassport
     _factory = QualityPassportFactory
 
+    def _make_passport(self, issue_date: date) -> QualityPassport:
+        """
+        Creates a new quality passport instance with the specified issue date.
+        """
+        return QualityPassport(
+            product=self.obj.product,
+            number=f"{self.obj.number}-NEW",
+            issue_date=issue_date,
+            production_date=self.obj.production_date,
+            batch_number=self.obj.batch_number,
+            quantity=self.obj.quantity,
+        )
+
     def test_valid_piece_quantity(self) -> None:
         """
         Test case for validating the quantity of pieces based on different configurations of package
-        weight and quantity. This method ensures that the system correctly accepts or validates specific
-        quantity values for corresponding package weights.
+        weight and quantity.
         """
         self._logger_header("VALIDATION: Valid piece quantity")
 
@@ -63,11 +87,7 @@ class TestQualityPassportModel(BaseModelTestCase):
     def test_invalid_piece_quantity(self) -> None:
         """
         Validates scenarios with invalid piece quantities to ensure proper constraint
-        enforcement. This method uses various test cases, where each case represents
-        a combination of pack weight and quantity, and asserts that the quantity
-        fails validation for the configured unit. The `full_clean` method is tested
-        to confirm that it raises a `ValidationError` for incorrect values. Logging
-        functions are used to log the validation and errors during the test.
+        enforcement.
         """
         self._logger_header("VALIDATION: Invalid piece quantity")
 
@@ -103,8 +123,7 @@ class TestQualityPassportModel(BaseModelTestCase):
     def test_bulk_quantity(self) -> None:
         """
         Validates if the quantity of the bulk product meets the specified
-        unit configuration rules. It ensures that only valid quantities are accepted
-        and invalid ones raise validation errors as expected.
+        unit configuration rules.
         """
         self._logger_header("VALIDATION: Bulk product quantity")
 
@@ -232,9 +251,7 @@ class TestQualityPassportModel(BaseModelTestCase):
     def test_zero_quantity(self) -> None:
         """
         Ensures that setting the quantity attribute to zero leads to
-        a validation failure when calling the object's `full_clean` method. It
-        checks if the generated validation error includes the "quantity" field
-        and logs the corresponding information.
+        a validation failure when calling the object's `full_clean` method.
         """
         self._logger_header("VALIDATION: Zero quantity")
 
@@ -251,6 +268,9 @@ class TestQualityPassportModel(BaseModelTestCase):
         )
 
     def test_multiple_passports_for_same_product(self) -> None:
+        """
+        Validate that multiple quality passports can be associated with the same product.
+        """
         self._logger_header("VALIDATION: Multiple passports per product")
 
         passport = QualityPassport(
@@ -277,8 +297,137 @@ class TestQualityPassportModel(BaseModelTestCase):
             "Multiple passports for the same product accepted",
         )
 
+    def test_new_passport_cannot_have_earlier_issue_date(self) -> None:
+        """
+        Validate that a new passport is rejected when its issue date is earlier than the
+        existing passport issue date.
+        """
+        self._logger_header("PASSPORT: EARLIER ISSUE DATE")
+
+        passport = self._make_passport(self.obj.issue_date - timedelta(days=1))
+
+        with self.assertRaises(ValidationError) as exc:
+            passport.full_clean()
+
+        self.assertIn("issue_date", exc.exception.message_dict)
+
+        self._logger_success(
+            "issue_date",
+            "Earlier issue date rejected",
+        )
+
+    def test_new_passport_with_same_date_becomes_latest(self) -> None:
+        """
+        Validate that a newly saved passport with the same issue date as an existing
+        passport is treated as the latest issued passport for the product. Confirms
+        that equal issue dates are accepted and that the newest persisted record is
+        selected when issue dates match.
+        """
+        self._logger_header("PASSPORT: SAME ISSUE DATE")
+
+        passport = self._make_passport(self.obj.issue_date)
+        passport.save()
+
+        latest = QualityPassport.last_issued.get_latest_for_product(self.obj.product)
+
+        self.assertIsNotNone(latest)
+        self.assertIsNotNone(latest)
+        assert latest is not None
+
+        self.assertEqual(latest.pk, passport.pk)
+
+        self._logger_success(
+            "issue_date",
+            "Same date allowed; higher ID becomes latest",
+        )
+
+    def test_new_passport_with_later_date(self) -> None:
+        """
+        Verify that a passport with a later issue date is selected as the latest.
+        """
+        self._logger_header("PASSPORT: LATER ISSUE DATE")
+
+        passport = self._make_passport(self.obj.issue_date + timedelta(days=1))
+        passport.save()
+
+        latest = QualityPassport.last_issued.get_latest_for_product(self.obj.product)
+
+        self.assertIsNotNone(latest)
+        assert latest is not None
+
+        self.assertEqual(latest.pk, passport.pk)
+
+        self._logger_success(
+            "issue_date",
+            "Later issue date accepted",
+        )
+
+    def test_issue_new_passport_keeps_previous_unchanged(self) -> None:
+        self._logger_header("PASSPORT: AUTOMATIC ISSUE")
+
+        old_passport = self.obj
+
+        new_passport = QualityPassportIssueService.issue(
+            product_id=old_passport.product_id,
+            expected_latest_passport_id=old_passport.pk,
+            number=f"{old_passport.number}-NEW",
+            batch_number=old_passport.batch_number,
+            production_date=old_passport.production_date,
+            quantity=old_passport.quantity,
+        )
+
+        latest = QualityPassport.last_issued.get_latest_for_product(
+            old_passport.product
+        )
+
+        old_passport.refresh_from_db()
+
+        self.assertNotEqual(new_passport.pk, old_passport.pk)
+        assert latest is not None
+        self.assertEqual(latest.pk, new_passport.pk)
+        self.assertEqual(old_passport.number, self.obj.number)
+
+        self._logger_success(
+            "quality_passport",
+            "New passport issued; previous passport preserved",
+        )
+
+    def test_issue_rejects_stale_latest_passport(self) -> None:
+        self._logger_header("PASSPORT: STALE ISSUE REQUEST")
+
+        count_before = QualityPassport.objects.count()
+
+        with self.assertRaises(PassportChanged):
+            QualityPassportIssueService.issue(
+                product_id=self.obj.product_id,
+                expected_latest_passport_id=None,
+                number=f"{self.obj.number}-NEW",
+                batch_number=self.obj.batch_number,
+                production_date=self.obj.production_date,
+                quantity=self.obj.quantity,
+            )
+
+        self.assertEqual(
+            QualityPassport.objects.count(),
+            count_before,
+        )
+
+        self._logger_success(
+            "quality_passport",
+            "Stale issue rejected; no passport created",
+        )
+
 
 class TestQualityPassportView(SerializerSelectionContractMixin, BaseViewTestCase):
+    """
+    Validate serializer selection for the quality passport detail view test case.
+
+    Provides a test case that checks whether the quality passport detail API view
+    selects the expected serializers for the supported request methods. This class
+    is intended to participate in the view test suite and focuses on confirming
+    serializer configuration consistency for retrieve and modification operations.
+    """
+
     __test__ = True
 
     _view_class = QualityPassportRetrieveUpdateDestroyAPIView
@@ -301,11 +450,24 @@ class TestQualityPassportView(SerializerSelectionContractMixin, BaseViewTestCase
 
 
 class TestQualityPassportDetailQueryset(BaseQuerysetTestCase):
+    """
+    Validate queryset behavior for the quality passport detail API test case.
+
+    Ensures that quality passport detail queries satisfy the expected queryset
+    contract for the associated API view. The test case focuses on public queryset
+    behavior and verifies that required related objects are selected efficiently for
+    detail operations.
+    """
+
     __test__ = True
     _factory = QualityPassportFactory
     _view_class = QualityPassportRetrieveUpdateDestroyAPIView
 
     def test_queryset_contract(self) -> None:
+        """
+        Validate that the product queryset satisfies the expected contract.
+        """
+        """"""
         self._factory.create_batch(3)
 
         self._assert_queryset_contract(
@@ -314,6 +476,15 @@ class TestQualityPassportDetailQueryset(BaseQuerysetTestCase):
 
 
 class TestQualityPassportAPI(BaseAPIMixin):
+    """
+    Test API behavior for quality passport creation and validation.
+
+    Provides integration-style coverage for quality passport creation through the
+    configured API endpoint. The test case validates successful object creation,
+    unique-field enforcement, mandatory-field enforcement, string conversion
+    behavior, and request payload construction for quality passport data.
+    """
+
     __test__ = True
     model = QualityPassport
     factory = QualityPassportFactory

@@ -1,3 +1,4 @@
+from decimal import Decimal
 from typing import Any, cast
 
 from django.db import transaction
@@ -216,23 +217,24 @@ class OrderReadSerializer(serializers.ModelSerializer):
         return getattr(obj, "passports_with_limit_exceeded", [])
 
 
+class NewQualityPassportSerializer(serializers.Serializer):
+    expected_latest_passport_id = serializers.IntegerField(
+        min_value=1,
+    )
+    number = serializers.CharField(max_length=50)
+    batch_number = serializers.CharField(max_length=100)
+    production_date = serializers.DateField()
+    quantity = serializers.DecimalField(
+        max_digits=12,
+        decimal_places=3,
+        min_value=Decimal("0.001"),
+    )
+
+
 class OrderProductWriteSerializer(serializers.Serializer):
     """
     Serializer for handling order product data, including product selection,
     quantity, and optional package.
-
-    Attributes:
-        product: The product selected for the order. Must be related to an
-            existing product in the Product model.
-        quantity: The quantity of the product. For piece-based products, this
-            must be a whole number.
-        package: The optional packaging type selected for the product, relates
-            to an existing package in the PackType model.
-
-    Methods:
-        validate(data: dict) -> dict:
-            Validates the given data against rules for piece-based and
-            weight-based products and adjusts the serialized output accordingly.
     """
 
     QUANTITY_ERROR_MESSAGES: dict[str, Any] = {
@@ -275,7 +277,24 @@ class OrderProductWriteSerializer(serializers.Serializer):
         required=False,
     )
 
+    new_quality_passport = NewQualityPassportSerializer(
+        required=False,
+        write_only=True,
+    )
+
     def validate(self, attrs: dict[str, Any]) -> dict[str, Any]:
+
+        if "new_quality_passport" in attrs and "quality_passport" in attrs:
+            raise serializers.ValidationError(
+                "Нельзя одновременно выбирать существующий "
+                "и выпускать новый паспорт качества."
+            )
+
+        attrs = super().validate(attrs)
+
+        product = attrs["product"]
+        quantity = attrs["quantity"]
+
         attrs = super().validate(attrs)
 
         product = attrs["product"]
@@ -444,6 +463,19 @@ class OrderWriteSerializer(serializers.ModelSerializer):
         self._validate_contacts(attrs)
         self._validate_delivery(attrs)
 
+        products = attrs.get("products", [])
+
+        if any("new_quality_passport" in item for item in products):
+            new_status = attrs.get(
+                "status",
+                getattr(self.instance, "status", Order.Status.DRAFT),
+            )
+
+            if new_status == Order.Status.DRAFT:
+                raise serializers.ValidationError(
+                    {"products": "Нельзя выпускать паспорт для черновика."}
+                )
+
         return attrs
 
     def _validate_customer_object(self, attrs: dict) -> None:
@@ -571,8 +603,14 @@ class OrderWriteSerializer(serializers.ModelSerializer):
         sync_order_items(order, products_data)
 
         if order.status == Order.Status.DRAFT:
-            OrderItem.objects.filter(order=order).update(quality_passport=None)
+            order.order_items.update(quality_passport=None)
         else:
+            QualityPassportsService.issue_requested_passports(
+                order=order,
+                products_data=products_data,
+                created_by=validated_data.get("user"),
+            )
+
             QualityPassportsService.passport_quantity_check(
                 order=order,
                 products_data=products_data,
@@ -611,6 +649,17 @@ class OrderWriteSerializer(serializers.ModelSerializer):
         if instance.status == Order.Status.DRAFT:
             OrderItem.objects.filter(order=instance).update(quality_passport=None)
         else:
+            request = self.context.get("request")
+            created_by = (
+                request.user if request and request.user.is_authenticated else None
+            )
+
+            QualityPassportsService.issue_requested_passports(
+                order=instance,
+                products_data=products_data,
+                created_by=created_by,
+            )
+
             QualityPassportsService.passport_quantity_check(
                 order=instance,
                 products_data=products_data,

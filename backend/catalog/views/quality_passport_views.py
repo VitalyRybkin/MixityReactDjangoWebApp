@@ -28,6 +28,8 @@ class QualityPassportCreateAPIView(BaseCreateAPIView):
 
 
 class QualityPassportRetrieveUpdateDestroyAPIView(BaseRetrieveUpdateDestroyAPIView):
+    http_method_names = ["get", "head", "options"]
+
     resource_name = "Quality passport"
     schema_tags = ["QualityPassport"]
 
