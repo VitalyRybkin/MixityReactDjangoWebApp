@@ -147,9 +147,12 @@ class TestQualityPassportModel(BaseModelTestCase):
 
         test_cases = [
             (Decimal("10.000"), True),
+            (Decimal("10.010"), True),
+            (Decimal("10.050"), True),
             (Decimal("10.100"), True),
             (Decimal("10.200"), True),
-            (Decimal("10.050"), False),
+            (Decimal("10.001"), False),
+            (Decimal("10.015"), False),
             (Decimal("10.125"), False),
         ]
 

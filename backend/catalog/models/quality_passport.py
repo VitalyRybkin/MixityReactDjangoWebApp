@@ -158,7 +158,7 @@ class QualityPassport(models.Model):
             step = Decimal(config.value) / Decimal("1000")
 
         elif config.unit.title == TitleChoices.TON:
-            step = Decimal("0.100")
+            step = Decimal("0.010")
 
         else:
             raise ValidationError(
