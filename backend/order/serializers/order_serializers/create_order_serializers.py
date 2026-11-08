@@ -5,6 +5,7 @@ from django.db import transaction
 from rest_framework import serializers
 
 from catalog.models import Product
+from catalog.serializers.passport_serializers import NewQualityPassportSerializer
 from catalog.serializers.product_serializers import ProductSerializer
 from catalog.services.quality_passports import QualityPassportsService
 from contacts.models import Contact
@@ -215,20 +216,6 @@ class OrderReadSerializer(serializers.ModelSerializer):
 
     def get_passports_with_limit_exceeded(self, obj: Order) -> list[dict]:
         return getattr(obj, "passports_with_limit_exceeded", [])
-
-
-class NewQualityPassportSerializer(serializers.Serializer):
-    expected_latest_passport_id = serializers.IntegerField(
-        min_value=1,
-    )
-    number = serializers.CharField(max_length=50)
-    batch_number = serializers.CharField(max_length=100)
-    production_date = serializers.DateField()
-    quantity = serializers.DecimalField(
-        max_digits=12,
-        decimal_places=3,
-        min_value=Decimal("0.001"),
-    )
 
 
 class OrderProductWriteSerializer(serializers.Serializer):

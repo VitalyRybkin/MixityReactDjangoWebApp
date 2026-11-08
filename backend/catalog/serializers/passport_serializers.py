@@ -1,4 +1,5 @@
 from copy import copy
+from decimal import Decimal
 
 from django.core.exceptions import ValidationError as DjangoValidationError
 from mypy.fastparse import Any
@@ -77,3 +78,17 @@ class QualityPassportWriteSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError(exc.messages) from exc
 
         return attrs
+
+
+class NewQualityPassportSerializer(serializers.Serializer):
+    expected_latest_passport_id = serializers.IntegerField(
+        min_value=1,
+    )
+    number = serializers.CharField(max_length=50)
+    batch_number = serializers.CharField(max_length=100)
+    production_date = serializers.DateField()
+    quantity = serializers.DecimalField(
+        max_digits=12,
+        decimal_places=3,
+        min_value=Decimal("0.001"),
+    )
