@@ -2,6 +2,7 @@ from datetime import date
 from decimal import Decimal
 from typing import Any
 
+from django.core.exceptions import ValidationError as DjangoValidationError
 from django.db import transaction
 from django.utils import timezone
 from rest_framework import status
@@ -31,6 +32,7 @@ class QualityPassportIssueService:
         production_date: date,
         quantity: Decimal,
         issue_date: date | None = None,
+        delivery_date: date | None = None,
         created_by: Any | None = None,
     ) -> QualityPassport:
 
@@ -49,6 +51,15 @@ class QualityPassportIssueService:
             issue_date = timezone.localdate()
             if latest and latest.issue_date > issue_date:
                 issue_date = latest.issue_date
+
+        if delivery_date is not None and issue_date > delivery_date:
+            raise DjangoValidationError(
+                {
+                    "issue_date": (
+                        "Дата паспорта не может быть позже даты доставки заявки."
+                    )
+                }
+            )
 
         passport = QualityPassport(
             product=product,

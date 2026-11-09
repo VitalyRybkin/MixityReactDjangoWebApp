@@ -132,6 +132,7 @@ class QualityPassportsService:
                     production_date=data["production_date"],
                     quantity=data["quantity"],
                     issue_date=data.get("issue_date"),
+                    delivery_date=order.delivery_date,
                     created_by=created_by,
                 )
             except DjangoValidationError as exc:
