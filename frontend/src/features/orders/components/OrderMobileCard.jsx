@@ -120,7 +120,7 @@ export default function OrderMobileCard({
                                 Дата заявки
                             </Typography>
                             <Typography variant="body2" sx={sx.value}>
-                                {formatDateTime(order.created_at)}
+                                {formatDateTime(order.order_date)}
                             </Typography>
                         </Box>
 

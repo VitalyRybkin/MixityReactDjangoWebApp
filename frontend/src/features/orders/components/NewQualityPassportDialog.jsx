@@ -21,13 +21,21 @@ const todayLocal = () => {
     return `${year}-${month}-${day}`
 }
 
-const newEmptyForm = (currentPassport) => {
+// Use local calendar dates throughout. A past delivery date must not cause
+// the default passport date to be later than the delivery date.
+const newEmptyForm = (currentPassport, deliveryDate) => {
     const today = todayLocal()
+    const upperBound = deliveryDate && isValidISODate(deliveryDate) ? deliveryDate : today
+    const proposedDate = upperBound < today ? upperBound : today
+    const issueDate = currentPassport?.issue_date > proposedDate
+        ? currentPassport.issue_date
+        : proposedDate
+
     return {
         number: '',
         batch_number: '',
-        issue_date: currentPassport?.issue_date > today ? currentPassport.issue_date : today,
-        production_date: today,
+        issue_date: issueDate,
+        production_date: issueDate,
         quantity: '',
     }
 }
@@ -106,13 +114,14 @@ export default function NewQualityPassportDialog({
     initialValue,
     product,
     orderQuantity,
+    deliveryDate = null,
     isDraft = false,
     onClose,
     onConfirm,
     onRemove,
 }) {
     const [form, setForm] = useState(() => ({
-        ...newEmptyForm(currentPassport),
+        ...newEmptyForm(currentPassport, deliveryDate),
         ...(initialValue || {}),
     }))
     const [errors, setErrors] = useState({})
@@ -120,6 +129,15 @@ export default function NewQualityPassportDialog({
     const suggestedPassportNumber = suggestNextNumber(currentPassport?.number)
     const suggestedBatchNumber = suggestNextNumber(currentPassport?.batch_number)
     const quantityRule = getQuantityRule(product)
+    const hasDeliveryDate = deliveryDate && isValidISODate(deliveryDate)
+    const impossibleDateRange = hasDeliveryDate && currentPassport?.issue_date > deliveryDate
+    const issueDateHelper = currentPassport?.issue_date && hasDeliveryDate
+        ? `С ${formatPassportDate(currentPassport.issue_date)} по ${formatPassportDate(deliveryDate)}`
+        : currentPassport?.issue_date
+            ? `Не ранее ${formatPassportDate(currentPassport.issue_date)}`
+            : hasDeliveryDate
+                ? `Не позднее ${formatPassportDate(deliveryDate)}`
+                : 'Дата выдачи паспорта'
 
     const handleChange = (field) => (event) => {
         setForm((prev) => ({ ...prev, [field]: event.target.value }))
@@ -137,6 +155,7 @@ export default function NewQualityPassportDialog({
 
         if (!number) nextErrors.number = 'Укажите номер паспорта.'
         else if (number.length > 50) nextErrors.number = 'Максимум 50 символов.'
+        else if (number === currentPassport?.number) nextErrors.number = 'Новый номер должен отличаться от предыдущего.'
 
         if (!batchNumber) nextErrors.batch_number = 'Укажите номер партии.'
         else if (batchNumber.length > 100) nextErrors.batch_number = 'Максимум 100 символов.'
@@ -145,6 +164,8 @@ export default function NewQualityPassportDialog({
             nextErrors.issue_date = 'Укажите корректную дату паспорта.'
         } else if (currentPassport?.issue_date && issueDate < currentPassport.issue_date) {
             nextErrors.issue_date = `Дата не может быть раньше ${formatPassportDate(currentPassport.issue_date)}.`
+        } else if (deliveryDate && isValidISODate(deliveryDate) && issueDate > deliveryDate) {
+            nextErrors.issue_date = `Дата не может быть позже доставки ${formatPassportDate(deliveryDate)}.`
         }
 
         if (!isValidISODate(productionDate)) {
@@ -210,6 +231,9 @@ export default function NewQualityPassportDialog({
                         </Alert>
                     )}
                     {errors.general && <Alert severity="error">{errors.general}</Alert>}
+                    {impossibleDateRange && (
+                        <Alert severity="error">Дата предыдущего паспорта позже даты доставки заявки. Создать новый паспорт с такими датами нельзя.</Alert>
+                    )}
                     <Box sx={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1fr) auto minmax(0, 1fr)', gap: 1, alignItems: 'start' }}>
                         <TextField
                             size="small"
@@ -234,14 +258,15 @@ export default function NewQualityPassportDialog({
                             value={form.issue_date}
                             onChange={handleChange('issue_date')}
                             error={Boolean(errors.issue_date)}
-                            helperText={
-                                currentPassport?.issue_date
-                                    ? `Не ранее ${formatPassportDate(currentPassport.issue_date)}`
-                                    : 'Дата выдачи паспорта'
-                            }
+                            helperText={issueDateHelper}
                             slotProps={{
                                 inputLabel: { shrink: true },
-                                htmlInput: { min: currentPassport?.issue_date || undefined, 'aria-label': 'Дата паспорта', required: true },
+                                htmlInput: {
+                                    min: currentPassport?.issue_date || undefined,
+                                    max: hasDeliveryDate ? deliveryDate : undefined,
+                                    'aria-label': 'Дата паспорта',
+                                    required: true,
+                                },
                             }}
                         />
                     </Box>
@@ -267,7 +292,11 @@ export default function NewQualityPassportDialog({
                             value={form.production_date}
                             onChange={handleChange('production_date')}
                             error={Boolean(errors.production_date)}
-                            helperText="Не позже даты нового паспорта"
+                            helperText={
+                                isValidISODate(form.issue_date)
+                                    ? `Не позднее ${formatPassportDate(form.issue_date)}`
+                                    : 'Укажите дату нового паспорта'
+                            }
                             slotProps={{
                                 inputLabel: { shrink: true },
                                 htmlInput: { max: form.issue_date || undefined },
@@ -290,12 +319,12 @@ export default function NewQualityPassportDialog({
             </DialogContent>
             <DialogActions sx={{ px: 3, pb: 2 }}>
                 {initialValue && (
-                    <Button type="button" color="error" onClick={onRemove} sx={{ mr: 'auto' }}>
-                        Убрать
+                    <Button type="button" color="error" onClick={onRemove} sx={{ mr: 'auto', fontWeight: 400 }}>
+                        Удалить
                     </Button>
                 )}
                 <Button type="button" onClick={onClose}>Отмена</Button>
-                <Button type="button" variant="contained" onClick={handleConfirm} disabled={isDraft}>
+                <Button type="button" variant="contained" onClick={handleConfirm} disabled={isDraft || impossibleDateRange}>
                     Применить
                 </Button>
             </DialogActions>

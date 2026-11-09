@@ -1,18 +1,10 @@
 import { useState } from 'react'
 
-import {
-    Box,
-    Button,
-    CircularProgress,
-    Dialog,
-    DialogActions,
-    DialogContent,
-    DialogTitle,
-    Typography,
-} from '@mui/material'
+import { Box, Button, CircularProgress, Dialog, DialogActions, DialogContent, DialogTitle, Typography } from '@mui/material'
 
 import RenewAction from '../../../components/ui/buttons/RenewAction.jsx'
 import ViewAction from '../../../components/ui/buttons/ViewAction.jsx'
+
 import { useGetQualityPassportState } from '../utils/qualityPassports.queries.js'
 
 import NewQualityPassportDialog from './NewQualityPassportDialog.jsx'
@@ -36,6 +28,7 @@ export default function QualityPassportInfo({
     product,
     orderId,
     targetStatus,
+    deliveryDate = null,
     readOnly = false,
     pendingPassport = null,
     onPassportChange,
@@ -78,14 +71,27 @@ export default function QualityPassportInfo({
     }
 
     const passport = data.passport
-    const issued = safeQuantity(passport.quantity)
+    const isHistorical = data.is_latest === false
+    const isDraft = targetStatus === 'draft'
+    const showPrepared = Boolean(pendingPassport) && !isDraft
+
+    // До сохранения в БД показываем реквизиты подготовленного паспорта.
+    // Он предназначен только для этой позиции, поэтому расход равен её весу.
+    const displayedPassport = showPrepared ? { ...passport, ...pendingPassport } : passport
+    const issued = safeQuantity(displayedPassport.quantity)
     const used = safeQuantity(data.used_quantity)
     const projectedUsed = data.projected_used_quantity == null ? used : safeQuantity(data.projected_used_quantity)
     const isProjection = Math.abs(projectedUsed - used) > 0.000001
-    const displayedUsed = isProjection ? projectedUsed : used
-    const displayedRemaining = isProjection ? issued - projectedUsed : Number(data.remaining_quantity ?? issued - used)
-    const isHistorical = data.is_latest === false
-    const isDraft = targetStatus === 'draft'
+    const orderQuantityValue = Number(String(quantity ?? '').replace(',', '.'))
+    const rowQuantityTons = Number.isFinite(orderQuantityValue)
+        ? Math.max(0, product?.is_piece_based
+            ? (orderQuantityValue * Number(product?.product_unit?.value || 0)) / 1000
+            : orderQuantityValue)
+        : 0
+    const displayedUsed = showPrepared ? rowQuantityTons : (isProjection ? projectedUsed : used)
+    const displayedRemaining = showPrepared
+        ? issued - rowQuantityTons
+        : (isProjection ? issued - projectedUsed : Number(data.remaining_quantity ?? issued - used))
     const canRenew = !readOnly && !isHistorical && !isDraft && data.can_issue_new_passport !== false
 
     return (
@@ -93,11 +99,10 @@ export default function QualityPassportInfo({
             {/* Первая строка: реквизиты и остаток (фактический или с учётом формы). */}
             <Box sx={{ display: 'flex', alignItems: 'center', columnGap: 2.5, rowGap: 0.5, flexWrap: 'wrap' }}>
                 <Typography variant="caption" sx={{ fontWeight: 600, whiteSpace: 'nowrap' }}>
-                    Паспорт № {passport.number}
-                    {isHistorical ? ' (исторический)' : ''}
+                    {showPrepared ? 'Новый паспорт № ' : 'Паспорт № '}{displayedPassport.number}
                 </Typography>
                 <Typography variant="caption" color="text.secondary" sx={{ whiteSpace: 'nowrap' }}>
-                    Дата: {formatPassportDate(passport.issue_date)}
+                    Дата: {formatPassportDate(displayedPassport.issue_date)}
                 </Typography>
                 <Typography variant="caption" color="text.secondary" sx={{ whiteSpace: 'nowrap' }}>
                     Количество: {formatPassportTons(issued)}
@@ -107,7 +112,7 @@ export default function QualityPassportInfo({
                     color={displayedRemaining < 0 ? 'error.main' : 'text.secondary'}
                     sx={{ whiteSpace: 'nowrap' }}
                 >
-                    {displayedRemaining < 0 ? 'Перерасход по паспорту' : 'Остаток по паспорту'}:{' '}
+                    {displayedRemaining < 0 ? 'Перерасход' : 'Остаток'}:{' '}
                     {formatPassportTons(Math.abs(displayedRemaining))}
                 </Typography>
             </Box>
@@ -130,13 +135,10 @@ export default function QualityPassportInfo({
             </Box>
 
             {pendingPassport && (
-                <Typography
-                    variant="caption"
-                    color={isDraft ? 'error.main' : 'primary.main'}
-                    sx={{ display: 'block', mt: 0.5 }}
-                >
-                    Новый паспорт № {pendingPassport.number} будет создан при сохранении заявки.
-                    {isDraft ? ' Для создания паспорта измените статус с «Черновик».' : ''}
+                <Typography variant="caption" color={isDraft ? 'error.main' : 'primary.main'} sx={{ display: 'block', mt: 0.5 }}>
+                    {isDraft
+                        ? 'Для создания нового паспорта измените статус заявки с «Черновик».'
+                        : 'Будет создан при сохранении заявки.'}
                 </Typography>
             )}
 
@@ -147,6 +149,7 @@ export default function QualityPassportInfo({
                     initialValue={pendingPassport}
                     product={product}
                     orderQuantity={quantity}
+                    deliveryDate={deliveryDate}
                     isDraft={isDraft}
                     onClose={() => setRenewOpen(false)}
                     onConfirm={(details) => {
@@ -161,41 +164,30 @@ export default function QualityPassportInfo({
             )}
 
             <Dialog open={viewOpen} onClose={() => setViewOpen(false)} fullWidth maxWidth="xs">
-                <DialogTitle>Паспорт качества № {passport.number}</DialogTitle>
+                <DialogTitle>{showPrepared ? 'Подготовленный паспорт № ' : 'Паспорт качества № '}{displayedPassport.number}</DialogTitle>
                 <DialogContent>
+                    {showPrepared && (
+                        <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mt: 0.5 }}>
+                            Паспорт пока не выпущен. Он будет создан после сохранения заявки.
+                        </Typography>
+                    )}
                     <Box sx={{ display: 'grid', gridTemplateColumns: 'auto 1fr', columnGap: 2, rowGap: 1, mt: 1 }}>
-                        <Typography variant="body2" color="text.secondary">
-                            Дата выдачи
-                        </Typography>
-                        <Typography variant="body2">{formatPassportDate(passport.issue_date)}</Typography>
-                        <Typography variant="body2" color="text.secondary">
-                            Номер партии
-                        </Typography>
-                        <Typography variant="body2">{passport.batch_number || '—'}</Typography>
-                        <Typography variant="body2" color="text.secondary">
-                            Дата изготовления
-                        </Typography>
-                        <Typography variant="body2">{formatPassportDate(passport.production_date)}</Typography>
-                        <Typography variant="body2" color="text.secondary">
-                            Количество
-                        </Typography>
+                        <Typography variant="body2" color="text.secondary">Дата выдачи</Typography>
+                        <Typography variant="body2">{formatPassportDate(displayedPassport.issue_date)}</Typography>
+                        <Typography variant="body2" color="text.secondary">Номер партии</Typography>
+                        <Typography variant="body2">{displayedPassport.batch_number || '—'}</Typography>
+                        <Typography variant="body2" color="text.secondary">Дата изготовления</Typography>
+                        <Typography variant="body2">{formatPassportDate(displayedPassport.production_date)}</Typography>
+                        <Typography variant="body2" color="text.secondary">Количество</Typography>
                         <Typography variant="body2">{formatPassportTons(issued)}</Typography>
-                        <Typography variant="body2" color="text.secondary">
-                            Использовано
-                        </Typography>
-                        <Typography variant="body2">{formatPassportTons(used)}</Typography>
-                        <Typography variant="body2" color="text.secondary">
-                            Остаток
-                        </Typography>
-                        <Typography variant="body2">
-                            {formatPassportTons(data.remaining_quantity ?? issued - used)}
-                        </Typography>
+                        <Typography variant="body2" color="text.secondary">Использовано</Typography>
+                        <Typography variant="body2">{formatPassportTons(showPrepared ? displayedUsed : used)}</Typography>
+                        <Typography variant="body2" color="text.secondary">Остаток</Typography>
+                        <Typography variant="body2">{formatPassportTons(showPrepared ? displayedRemaining : (data.remaining_quantity ?? issued - used))}</Typography>
                     </Box>
                 </DialogContent>
                 <DialogActions>
-                    <Button type="button" onClick={() => setViewOpen(false)}>
-                        Закрыть
-                    </Button>
+                    <Button type="button" onClick={() => setViewOpen(false)}>Закрыть</Button>
                 </DialogActions>
             </Dialog>
         </Box>

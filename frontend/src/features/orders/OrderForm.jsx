@@ -279,6 +279,7 @@ export default function OrderFormPage({ readOnly = false }) {
                                         packsList={orderResources?.pack_types || []}
                                         orderId={isEdit ? id : null}
                                         targetStatus={form.status}
+                                        deliveryDate={form.delivery_date}
                                         onAdd={handleAddProductRow}
                                         onChange={handleProductChange}
                                         onRemove={handleRemoveProductRow}

@@ -11,11 +11,11 @@ export const getHomeGridOrderColumns = ({ onDelete, onUploadUpd, canDelete = fal
         minWidth: 70,
     },
     {
-        field: 'created_at',
+        field: 'order_date',
         headerName: 'Дата заявки',
         flex: 0.7,
         minWidth: 140,
-        valueGetter: (_, row) => formatDateTime(row.created_at),
+        valueGetter: (_, row) => formatDateTime(row.order_date),
     },
     {
         field: 'client_name',

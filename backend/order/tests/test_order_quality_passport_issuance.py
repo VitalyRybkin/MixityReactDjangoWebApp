@@ -95,6 +95,9 @@ class TestOrderQualityPassportIssuance(QualityPassportTestBase):
         new_quantity = self._passport_quantity_covering(quantity)
         requested_issue_date = self.passport.issue_date + timedelta(days=2)
         requested_production_date = requested_issue_date - timedelta(days=1)
+        # Boundary case: the passport may be issued on the delivery date.
+        self.order.delivery_date = requested_issue_date
+        self.order.save(update_fields=["delivery_date"])
         new_passport_data = self._new_passport_data(new_quantity)
         new_passport_data["issue_date"] = requested_issue_date.isoformat()
         new_passport_data["production_date"] = requested_production_date.isoformat()
@@ -141,6 +144,85 @@ class TestOrderQualityPassportIssuance(QualityPassportTestBase):
         self._logger_success(
             "quality_passport",
             "New passport issued and linked to order item",
+        )
+
+    def test_passport_date_after_delivery_rejected_and_order_rolled_back(self) -> None:
+        """Reject an explicitly chosen date after delivery without partial writes."""
+        self._logger_header("ORDER: PASSPORT AFTER DELIVERY DATE")
+        self._activate_order()
+        delivery_date = self.passport.issue_date + timedelta(days=1)
+        self.order.delivery_date = delivery_date
+        self.order.save(update_fields=["delivery_date"])
+
+        passport_data = self._new_passport_data(
+            self._passport_quantity_covering(self._exceeding_quantity())
+        )
+        passport_data["issue_date"] = (delivery_date + timedelta(days=1)).isoformat()
+        passport_data["production_date"] = delivery_date.isoformat()
+
+        self._assert_failed_issue_preserves_order(passport_data, "issue_date")
+        self._logger_success(
+            "issue_date", "Later date rejected; order and passport unchanged"
+        )
+
+    def test_automatic_issue_date_after_delivery_is_rejected(self) -> None:
+        """Legacy clients omitting issue_date must respect the delivery date."""
+        from django.utils import timezone
+
+        self._logger_header("ORDER: AUTO PASSPORT DATE AFTER DELIVERY")
+        self._activate_order()
+        self.order.delivery_date = timezone.localdate() - timedelta(days=1)
+        self.order.save(update_fields=["delivery_date"])
+        passport_data = self._new_passport_data(
+            self._passport_quantity_covering(self._exceeding_quantity())
+        )
+        passport_data.pop("issue_date", None)
+
+        self._assert_failed_issue_preserves_order(passport_data, "issue_date")
+        self._logger_success(
+            "issue_date", "Automatic date validated against delivery date"
+        )
+
+    def test_passport_date_checked_against_updated_delivery_date(self) -> None:
+        """Check the newly submitted delivery date, not the old order value."""
+        self._logger_header("ORDER: PASSPORT WITH RESCHEDULED DELIVERY")
+        self._activate_order()
+        issue_date = self.passport.issue_date + timedelta(days=2)
+        self.order.delivery_date = issue_date + timedelta(days=1)
+        self.order.save(update_fields=["delivery_date"])
+        count_before = QualityPassport.objects.count()
+        original_description = self.order.description
+        old_delivery_date = self.order.delivery_date
+
+        passport_data = self._new_passport_data(
+            self._passport_quantity_covering(self._exceeding_quantity())
+        )
+        passport_data["issue_date"] = issue_date.isoformat()
+        passport_data["production_date"] = issue_date.isoformat()
+        response = self.client.patch(
+            self.url,
+            {
+                "delivery_date": (issue_date - timedelta(days=1)).isoformat(),
+                "description": "Should be rolled back",
+                "products": [
+                    {
+                        **self._product_payload(self._exceeding_quantity()),
+                        "new_quality_passport": passport_data,
+                    }
+                ],
+            },
+            format="json",
+        )
+
+        self.assertEqual(response.status_code, 400, response.data)
+        self.assertIn("issue_date", str(response.data))
+        self.assertEqual(QualityPassport.objects.count(), count_before)
+        self.order.refresh_from_db()
+        self.assertEqual(self.order.delivery_date, old_delivery_date)
+        self.assertEqual(self.order.description, original_description)
+
+        self._logger_success(
+            "delivery_date", "Changed date validated; updates rolled back"
         )
 
     def test_earlier_issue_date_rejected_and_order_rolled_back(self) -> None:

@@ -20,6 +20,7 @@ export default function OrderProductsList({
     readOnly = false,
     orderId = null,
     targetStatus = null,
+    deliveryDate = null,
 }) {
     const selectedProductIds = useMemo(() => rows.map((row) => row.productId).filter(Boolean), [rows])
 
@@ -158,6 +159,7 @@ export default function OrderProductsList({
                                     product={selectedProduct}
                                     orderId={orderId}
                                     targetStatus={targetStatus}
+                                    deliveryDate={deliveryDate}
                                     readOnly={readOnly}
                                     pendingPassport={row.new_quality_passport}
                                     onPassportChange={(nextPassport) =>
