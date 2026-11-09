@@ -13,6 +13,14 @@ const unwrapList = (data) => {
     return []
 }
 
+// A failed save does not change the order form; refresh only passport availability.
+const handlePassportSaveError = (queryClient, error, onPassportConflict) => {
+    if (error?.response?.status !== 409) return
+
+    onPassportConflict?.(error)
+    return queryClient.invalidateQueries({ queryKey: qualityPassportKeys.all })
+}
+
 // --- QUERY KEYS ---
 export const orderKeys = {
     all: ['orders'],
@@ -201,10 +209,11 @@ export function useGetOrder(id, options = {}) {
     })
 }
 
-export function useCreateOrder() {
+export function useCreateOrder({ onPassportConflict } = {}) {
     const queryClient = useQueryClient()
     return useMutation({
         mutationFn: createOrder,
+        onError: (error) => handlePassportSaveError(queryClient, error, onPassportConflict),
         onSuccess: async () => {
             await queryClient.invalidateQueries({ queryKey: orderKeys.all })
             await queryClient.invalidateQueries({ queryKey: qualityPassportKeys.all })
@@ -212,11 +221,12 @@ export function useCreateOrder() {
     })
 }
 
-export function useUpdateOrder() {
+export function useUpdateOrder({ onPassportConflict } = {}) {
     const queryClient = useQueryClient()
 
     return useMutation({
         mutationFn: updateOrder,
+        onError: (error) => handlePassportSaveError(queryClient, error, onPassportConflict),
 
         onSuccess: async (_, variables) => {
             await queryClient.invalidateQueries({

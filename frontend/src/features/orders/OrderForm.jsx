@@ -70,8 +70,18 @@ export default function OrderFormPage({ readOnly = false }) {
         refetch: refetchOrder,
     } = useGetOrder(id, { enabled: isEdit })
 
-    const createOrder = useCreateOrder()
-    const updateOrder = useUpdateOrder()
+    const showPassportSaveConflict = (error) => {
+        const code = error.response?.data?.code ?? error.response?.data?.detail?.code
+        const message =
+            code === 'passport_limit_exceeded'
+                ? 'Количество по действующему паспорту превышено. Создайте новый паспорт и повторите сохранение.'
+                : 'Действующий паспорт изменился. Проверьте данные паспорта и повторите сохранение.'
+
+        showSnackbar(message, 'warning')
+    }
+
+    const createOrder = useCreateOrder({ onPassportConflict: showPassportSaveConflict })
+    const updateOrder = useUpdateOrder({ onPassportConflict: showPassportSaveConflict })
     const uploadUpd = useUploadUpd()
 
     const handleUploadUpd = useFileUpload(uploadUpd, showSnackbar, {
