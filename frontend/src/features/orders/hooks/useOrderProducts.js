@@ -68,7 +68,6 @@ export function useOrderProducts(products = []) {
             prev.map((row) => {
                 if (row.id !== rowId) return row
 
-                // A passport prepared for one product must not follow another product.
                 const productChanged = 'productId' in updates && updates.productId !== row.productId
                 return {
                     ...row,

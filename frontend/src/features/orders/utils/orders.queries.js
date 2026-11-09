@@ -13,7 +13,6 @@ const unwrapList = (data) => {
     return []
 }
 
-// A failed save does not change the order form; refresh only passport availability.
 const handlePassportSaveError = (queryClient, error, onPassportConflict) => {
     if (error?.response?.status !== 409) return
 

@@ -165,7 +165,6 @@ export default function ContactCreateUpdate({ open, mode, ownerType, ownerId, in
 
             await onSaved?.(savedContact)
         } catch (err) {
-            // твой текущий catch
         } finally {
             setSaving(false)
         }

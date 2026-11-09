@@ -75,8 +75,6 @@ export default function QualityPassportInfo({
     const isDraft = targetStatus === 'draft'
     const showPrepared = Boolean(pendingPassport) && !isDraft
 
-    // До сохранения в БД показываем реквизиты подготовленного паспорта.
-    // Он предназначен только для этой позиции, поэтому расход равен её весу.
     const displayedPassport = showPrepared ? { ...passport, ...pendingPassport } : passport
     const issued = safeQuantity(displayedPassport.quantity)
     const used = safeQuantity(data.used_quantity)

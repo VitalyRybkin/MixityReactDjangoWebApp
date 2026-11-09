@@ -15,7 +15,6 @@ function ProtectedRoute({ children }) {
     const ranRef = useRef(false)
 
     useEffect(() => {
-        // Helps avoid duplicate authentication runs in development StrictMode.
         if (ranRef.current) return
 
         ranRef.current = true

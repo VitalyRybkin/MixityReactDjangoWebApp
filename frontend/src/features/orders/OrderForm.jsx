@@ -1,7 +1,19 @@
 import { useMemo, useRef, useState } from 'react'
 import { useParams } from 'react-router-dom'
 
-import { Box, CircularProgress, Container, Divider, TextField, Typography } from '@mui/material'
+import {
+    Box,
+    Button,
+    CircularProgress,
+    Container,
+    Dialog,
+    DialogActions,
+    DialogContent,
+    DialogTitle,
+    Divider,
+    TextField,
+    Typography,
+} from '@mui/material'
 
 import AppBreadcrumbs from '../../components/AppBreadcrumbs.jsx'
 import PageHeaderCreateUpdate from '../../components/PageHeaderCreateUpdate.jsx'
@@ -39,6 +51,13 @@ import {
 
 const EMPTY_PRICES = []
 
+const formatTons = (value) => {
+    const number = Number(value)
+    return Number.isFinite(number)
+        ? `${number.toLocaleString('ru-RU', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} т`
+        : '—'
+}
+
 const getEntityId = (value) => {
     if (value == null) {
         return null
@@ -53,6 +72,9 @@ export default function OrderFormPage({ readOnly = false }) {
 
     const [open, setOpen] = useState(false)
     const [orderDelivery, setOrderDelivery] = useState(emptyDeliveryInfo)
+    const [passportConflict, setPassportConflict] = useState(null)
+    const formRef = useRef(null)
+    const confirmedPassportIdsRef = useRef([])
 
     const { snack, showSnackbar, closeSnackbar } = useSnackbar()
 
@@ -71,13 +93,45 @@ export default function OrderFormPage({ readOnly = false }) {
     } = useGetOrder(id, { enabled: isEdit })
 
     const showPassportSaveConflict = (error) => {
-        const code = error.response?.data?.code ?? error.response?.data?.detail?.code
-        const message =
-            code === 'passport_limit_exceeded'
-                ? 'Количество по действующему паспорту превышено. Создайте новый паспорт и повторите сохранение.'
-                : 'Действующий паспорт изменился. Проверьте данные паспорта и повторите сохранение.'
+        const response = error?.response?.data
+        const conflict = response?.errors ?? response?.detail ?? response
+        const code = conflict?.code ?? conflict?.detail?.code
 
-        showSnackbar(message, 'warning')
+        if (code === 'passport_limit_exceeded') {
+            const passports = conflict?.passports ?? conflict?.detail?.passports ?? []
+            if (Array.isArray(passports) && passports.length) {
+                setPassportConflict(passports)
+                return
+            }
+            showSnackbar('Количество паспорта превышено. Проверьте данные и повторите сохранение.', 'warning')
+            return
+        }
+
+        if (code === 'passport_changed') {
+            showSnackbar('Действующий паспорт изменился. Проверьте данные паспорта и повторите сохранение.', 'warning')
+            return
+        }
+
+        showSnackbar(
+            'Не удалось сохранить заявку из-за конфликта данных. Обновите информацию и повторите сохранение.',
+            'warning',
+        )
+    }
+
+    const handleKeepOverrun = () => {
+        const ids = (passportConflict ?? [])
+            .map((passport) => Number(passport.passport_id))
+            .filter((passportId) => Number.isInteger(passportId) && passportId > 0)
+
+        if (!ids.length) {
+            showSnackbar('Не удалось определить паспорта для подтверждения.', 'error')
+            return
+        }
+
+        setPassportConflict(null)
+        confirmedPassportIdsRef.current = [...new Set(ids)]
+
+        formRef.current?.requestSubmit()
     }
 
     const createOrder = useCreateOrder({ onPassportConflict: showPassportSaveConflict })
@@ -93,6 +147,7 @@ export default function OrderFormPage({ readOnly = false }) {
     const handleViewUpd = useViewUpd(showSnackbar)
 
     const saving = createOrder.isPending || updateOrder.isPending || uploadUpd.isPending
+    const controlsReadOnly = readOnly || saving
 
     const {
         orderProducts,
@@ -116,16 +171,22 @@ export default function OrderFormPage({ readOnly = false }) {
         updateMutation: updateOrder,
         createMutation: createOrder,
         redirectPath: '/',
-        toPayload: (form) => ({
-            ...toOrderPayload(form),
-            products: buildProductsPayload(orderProducts),
-            delivery: {
-                ...orderDelivery,
-                carrier: getEntityId(orderDelivery.carrier),
-                driver: getEntityId(orderDelivery.driver),
-                truck: getEntityId(orderDelivery.truck),
-            },
-        }),
+        toPayload: (currentForm) => {
+            const confirmedIds = confirmedPassportIdsRef.current
+            confirmedPassportIdsRef.current = []
+
+            return {
+                ...toOrderPayload(currentForm),
+                ...(confirmedIds.length ? { confirmed_passport_ids: confirmedIds } : {}),
+                products: buildProductsPayload(orderProducts),
+                delivery: {
+                    ...orderDelivery,
+                    carrier: getEntityId(orderDelivery.carrier),
+                    driver: getEntityId(orderDelivery.driver),
+                    truck: getEntityId(orderDelivery.truck),
+                },
+            }
+        },
         validate: validateProducts,
         onSuccess: () => markCleanRef.current?.(),
     })
@@ -186,9 +247,9 @@ export default function OrderFormPage({ readOnly = false }) {
 
     return (
         <DeliveryContext.Provider value={deliveryContextValue}>
-            <Box sx={sidebarPageSx.page}>
+            <Box sx={sidebarPageSx.page} inert={saving ? '' : undefined} aria-busy={saving}>
                 <OrderDetailSideBar
-                    readOnly={readOnly}
+                    readOnly={controlsReadOnly}
                     isEdit={isEdit}
                     open={open}
                     setOpen={setOpen}
@@ -209,8 +270,15 @@ export default function OrderFormPage({ readOnly = false }) {
 
                         <Box
                             component="form"
+                            ref={formRef}
                             noValidate
-                            onSubmit={readOnly ? (event) => event.preventDefault() : onSubmit}
+                            onSubmit={(event) => {
+                                if (readOnly || saving) {
+                                    event.preventDefault()
+                                    return
+                                }
+                                onSubmit(event)
+                            }}
                             sx={sx.form}
                         >
                             <Box sx={sx.header}>
@@ -245,7 +313,7 @@ export default function OrderFormPage({ readOnly = false }) {
                                 <>
                                     <Box sx={sx.mainFields}>
                                         <OrderMainFields
-                                            readOnly={readOnly}
+                                            readOnly={controlsReadOnly}
                                             form={form}
                                             setForm={setForm}
                                             onChange={onChange}
@@ -257,7 +325,7 @@ export default function OrderFormPage({ readOnly = false }) {
                                         />
 
                                         <OrderCustomerFields
-                                            readOnly={readOnly}
+                                            readOnly={controlsReadOnly}
                                             form={form}
                                             setForm={setForm}
                                             orderResources={orderResources}
@@ -266,7 +334,7 @@ export default function OrderFormPage({ readOnly = false }) {
                                     </Box>
 
                                     <TextField
-                                        disabled={readOnly}
+                                        disabled={controlsReadOnly}
                                         size="small"
                                         label="Примечание"
                                         value={form.description || ''}
@@ -282,7 +350,7 @@ export default function OrderFormPage({ readOnly = false }) {
                             {!pageLoadError && !isLoadingPage && (
                                 <Box sx={sx.products}>
                                     <OrderProductsList
-                                        readOnly={readOnly}
+                                        readOnly={controlsReadOnly}
                                         rows={orderProducts}
                                         productErrors={productErrors}
                                         productsList={orderResources?.products || []}
@@ -319,6 +387,51 @@ export default function OrderFormPage({ readOnly = false }) {
                             onClose={handleCancel}
                             onConfirm={handleConfirm}
                         />
+
+                        <Dialog
+                            open={Boolean(passportConflict)}
+                            onClose={() => setPassportConflict(null)}
+                            maxWidth="sm"
+                            fullWidth
+                        >
+                            <DialogTitle sx={{ pb: 2, fontSize: '1.2rem', fontWeight: 600 }}>
+                                Превышение количества по паспортам:
+                            </DialogTitle>
+                            <DialogContent sx={{ pt: '8px !important', pb: '4px !important' }}>
+                                <Box component="ul" sx={{ pl: 3.5, my: 0, '& > li:not(:last-child)': { mb: 1.5 } }}>
+                                    {(passportConflict ?? []).map((passport) => (
+                                        <Box
+                                            component="li"
+                                            key={`${passport.product_id}-${passport.passport_id}`}
+                                            sx={{ pl: 0.5, '&::marker': { color: 'text.secondary' } }}
+                                        >
+                                            <Box sx={{ display: 'flex', flexWrap: 'wrap', columnGap: 1, rowGap: 0.5 }}>
+                                                <Typography variant="body2">
+                                                    {passport.product_title} · Паспорт № {passport.passport_number}
+                                                </Typography>
+                                                <Typography
+                                                    variant="body2"
+                                                    sx={{ color: 'error.light', opacity: 0.85, fontWeight: 400 }}
+                                                >
+                                                    · Превышение: {formatTons(passport.exceeded_quantity)}
+                                                </Typography>
+                                            </Box>
+                                        </Box>
+                                    ))}
+                                </Box>
+                                <Typography color="text.secondary" sx={{ mt: 3, fontSize: '0.9rem', lineHeight: 1.45 }}>
+                                    Вернуться для создания новых паспортов или сохранить с указанными превышениями?
+                                </Typography>
+                            </DialogContent>
+                            <DialogActions sx={{ px: 3, pt: 0, pb: 2, gap: 1 }}>
+                                <Button type="button" color="inherit" onClick={() => setPassportConflict(null)}>
+                                    Вернуться
+                                </Button>
+                                <Button type="button" variant="contained" disabled={saving} onClick={handleKeepOverrun}>
+                                    Сохранить
+                                </Button>
+                            </DialogActions>
+                        </Dialog>
 
                         <AppSnackbar
                             open={snack.open}

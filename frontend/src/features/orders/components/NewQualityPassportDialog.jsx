@@ -21,15 +21,11 @@ const todayLocal = () => {
     return `${year}-${month}-${day}`
 }
 
-// Use local calendar dates throughout. A past delivery date must not cause
-// the default passport date to be later than the delivery date.
 const newEmptyForm = (currentPassport, deliveryDate) => {
     const today = todayLocal()
     const upperBound = deliveryDate && isValidISODate(deliveryDate) ? deliveryDate : today
     const proposedDate = upperBound < today ? upperBound : today
-    const issueDate = currentPassport?.issue_date > proposedDate
-        ? currentPassport.issue_date
-        : proposedDate
+    const issueDate = currentPassport?.issue_date > proposedDate ? currentPassport.issue_date : proposedDate
 
     return {
         number: '',
@@ -63,10 +59,11 @@ const isValidISODate = (value) => {
     return !Number.isNaN(parsed.getTime()) && parsed.toISOString().slice(0, 10) === value
 }
 
-// Use integer grams to avoid floating-point errors when checking multiples.
-// Passport quantities have 3 decimal places in tonnes (1 kg precision).
 const parseTonsToGrams = (value) => {
-    const match = String(value ?? '').trim().replace(',', '.').match(/^(\d{1,9})(?:\.(\d{1,3}))?$/)
+    const match = String(value ?? '')
+        .trim()
+        .replace(',', '.')
+        .match(/^(\d{1,9})(?:\.(\d{1,3}))?$/)
     if (!match) return null
 
     const kilograms = BigInt(match[1]) * 1000n + BigInt((match[2] || '').padEnd(3, '0') || '0')
@@ -74,7 +71,10 @@ const parseTonsToGrams = (value) => {
 }
 
 const parseKgToGrams = (value) => {
-    const match = String(value ?? '').trim().replace(',', '.').match(/^(\d+)(?:\.(\d{1,3}))?$/)
+    const match = String(value ?? '')
+        .trim()
+        .replace(',', '.')
+        .match(/^(\d+)(?:\.(\d{1,3}))?$/)
     if (!match) return null
 
     return BigInt(match[1]) * 1000n + BigInt((match[2] || '').padEnd(3, '0') || '0')
@@ -131,11 +131,12 @@ export default function NewQualityPassportDialog({
     const quantityRule = getQuantityRule(product)
     const hasDeliveryDate = deliveryDate && isValidISODate(deliveryDate)
     const impossibleDateRange = hasDeliveryDate && currentPassport?.issue_date > deliveryDate
-    const issueDateHelper = currentPassport?.issue_date && hasDeliveryDate
-        ? `С ${formatPassportDate(currentPassport.issue_date)} по ${formatPassportDate(deliveryDate)}`
-        : currentPassport?.issue_date
-            ? `Не ранее ${formatPassportDate(currentPassport.issue_date)}`
-            : hasDeliveryDate
+    const issueDateHelper =
+        currentPassport?.issue_date && hasDeliveryDate
+            ? `С ${formatPassportDate(currentPassport.issue_date)} по ${formatPassportDate(deliveryDate)}`
+            : currentPassport?.issue_date
+              ? `Не ранее ${formatPassportDate(currentPassport.issue_date)}`
+              : hasDeliveryDate
                 ? `Не позднее ${formatPassportDate(deliveryDate)}`
                 : 'Дата выдачи паспорта'
 
@@ -227,24 +228,38 @@ export default function NewQualityPassportDialog({
                     )}
                     {isDraft && (
                         <Alert severity="warning">
-                            Создание паспорта для черновика запрещено. Смените статус заявки или уберите введённый новый паспорт.
+                            Создание паспорта для черновика запрещено. Смените статус заявки или уберите введённый новый
+                            паспорт.
                         </Alert>
                     )}
                     {errors.general && <Alert severity="error">{errors.general}</Alert>}
                     {impossibleDateRange && (
-                        <Alert severity="error">Дата предыдущего паспорта позже даты доставки заявки. Создать новый паспорт с такими датами нельзя.</Alert>
+                        <Alert severity="error">
+                            Дата предыдущего паспорта позже даты доставки заявки. Создать новый паспорт с такими датами
+                            нельзя.
+                        </Alert>
                     )}
-                    <Box sx={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1fr) auto minmax(0, 1fr)', gap: 1, alignItems: 'start' }}>
+                    <Box
+                        sx={{
+                            display: 'grid',
+                            gridTemplateColumns: 'minmax(0, 1fr) auto minmax(0, 1fr)',
+                            gap: 1,
+                            alignItems: 'start',
+                        }}
+                    >
                         <TextField
                             size="small"
                             fullWidth
                             required
                             label="Паспорт №"
-                            placeholder={suggestedPassportNumber ? `Номер паспорта (${suggestedPassportNumber})` : 'Номер паспорта'}
+                            placeholder={
+                                suggestedPassportNumber
+                                    ? `Номер паспорта (${suggestedPassportNumber})`
+                                    : 'Номер паспорта'
+                            }
                             value={form.number}
                             onChange={handleChange('number')}
                             error={Boolean(errors.number)}
-
                             slotProps={{ inputLabel: { shrink: true }, htmlInput: { maxLength: 50 } }}
                         />
                         <Typography variant="body2" sx={{ alignSelf: 'center', color: 'text.secondary', pb: 0.5 }}>
@@ -279,7 +294,6 @@ export default function NewQualityPassportDialog({
                         value={form.batch_number}
                         onChange={handleChange('batch_number')}
                         error={Boolean(errors.batch_number)}
-
                         slotProps={{ inputLabel: { shrink: true }, htmlInput: { maxLength: 100 } }}
                     />
                     <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', sm: '1fr 1fr' }, gap: 2 }}>
@@ -323,8 +337,15 @@ export default function NewQualityPassportDialog({
                         Удалить
                     </Button>
                 )}
-                <Button type="button" onClick={onClose}>Отмена</Button>
-                <Button type="button" variant="contained" onClick={handleConfirm} disabled={isDraft || impossibleDateRange}>
+                <Button type="button" onClick={onClose}>
+                    Отмена
+                </Button>
+                <Button
+                    type="button"
+                    variant="contained"
+                    onClick={handleConfirm}
+                    disabled={isDraft || impossibleDateRange}
+                >
                     Применить
                 </Button>
             </DialogActions>
