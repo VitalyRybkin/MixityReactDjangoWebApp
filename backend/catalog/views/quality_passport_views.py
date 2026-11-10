@@ -1,12 +1,20 @@
 """Expose read-only quality-passport detail endpoints."""
 
-from catalog.models import QualityPassport
+from django.db.models import Prefetch
+
+from catalog.models import Product, ProductSpecification, QualityPassport
 from catalog.serializers.passport_serializers import (
     QualityPassportReadSerializer,
     QualityPassportWriteSerializer,
 )
+from catalog.serializers.prodcut_specification_serializer import (
+    ProductSpecificationReadSerializer,
+)
 from core.openapi import ERRORS_DETAIL, ERRORS_DETAIL_WRITE
-from core.openapi.base_views import BaseRetrieveUpdateDestroyAPIView
+from core.openapi.base_views import (
+    BaseRetrieveAPIView,
+    BaseRetrieveUpdateDestroyAPIView,
+)
 
 
 class QualityPassportRetrieveUpdateDestroyAPIView(BaseRetrieveUpdateDestroyAPIView):
@@ -16,9 +24,9 @@ class QualityPassportRetrieveUpdateDestroyAPIView(BaseRetrieveUpdateDestroyAPIVi
     despite the CRUD base class and the retained write-serializer configuration.
     """
 
-    http_method_names = ["get", "head", "options"]
+    # http_method_names = ["get", "head", "options"]
 
-    resource_name = "Quality passport"
+    resource_name = "quality_passport"
     schema_tags = ["QualityPassport"]
 
     read_serializer_class = QualityPassportReadSerializer
@@ -43,3 +51,17 @@ class QualityPassportRetrieveUpdateDestroyAPIView(BaseRetrieveUpdateDestroyAPIVi
             return self.write_serializer_class
 
         return self.read_serializer_class
+
+
+class ProductSpecificationDetailAPIView(BaseRetrieveAPIView):
+    resource_name = "product_specification"
+    schema_tags = ["Product"]
+
+    serializer_class = ProductSpecificationReadSerializer
+
+    queryset = Product.objects.prefetch_related(
+        Prefetch(
+            "specs",
+            queryset=ProductSpecification.objects.select_related("unit", "name"),
+        )
+    )

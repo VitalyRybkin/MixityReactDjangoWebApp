@@ -5,25 +5,29 @@ from rest_framework.exceptions import PermissionDenied
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.request import Request
 from rest_framework.response import Response
-from rest_framework.views import APIView
 
 from catalog.api.serializers.quality_passport_serializers import (
     QualityPassportStateQuerySerializer,
 )
 from catalog.models import Product
 from catalog.services.quality_passport_state import QualityPassportStateService
+from core.openapi.base_views import BaseGenericAPIView
 from order.models import Order
 
 
-class QualityPassportStateAPIView(APIView):
+class QualityPassportStateAPIView(BaseGenericAPIView):
     """Provide authenticated users with a read-only passport-state preview.
 
     Require order-view permission and restrict passport-issuance availability
     according to the user's permission to add or change the target order.
     """
 
+    resource_name = "quality_passport_state"
+    schema_tags = ["QualityPassport"]
     permission_classes = [IsAuthenticated]
-    http_method_names = ["get", "head", "options"]
+    read_serializer_class = QualityPassportStateQuerySerializer
+
+    serializer_class = QualityPassportStateQuerySerializer
 
     def get(self, request: Request) -> Response:
         """Validate query parameters and return the projected passport state.

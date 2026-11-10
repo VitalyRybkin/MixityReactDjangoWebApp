@@ -174,7 +174,7 @@ class PurchasePriceHistoryUpdateSerializer(serializers.ModelSerializer):
         model = SalesPriceHistory
         fields = [
             "date",
-            "purchase_price",
+            "sale_price",
         ]
 
     def validate(self, attrs: dict) -> dict:

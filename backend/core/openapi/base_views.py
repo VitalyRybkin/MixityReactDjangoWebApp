@@ -185,3 +185,22 @@ class BaseListAPIView(generics.ListAPIView):
         )(cls)
 
         return super(BaseListAPIView, decorated).as_view(**kwargs)
+
+class BaseRetrieveAPIView(generics.RetrieveAPIView):
+    resource_name: ClassVar[str] = ""
+    schema_tags: ClassVar[list[str]] = []
+    schema_parameters: ClassVar[Sequence[OpenApiParameter]] = ()
+
+    read_serializer_class: ClassVar[Type[serializers.BaseSerializer]] = serializers.Serializer
+
+    @classmethod
+    def as_view(cls, **kwargs: Any) -> Any:
+        decorated = list_schema(
+            resource=cls.resource_name,
+            tags=cls.schema_tags,
+            read_serializer=cls.read_serializer_class,
+            errors_read=ERRORS_DETAIL,
+            parameters=list(cls.schema_parameters),
+        )(cls)
+
+        return super(BaseRetrieveAPIView, decorated).as_view(**kwargs)

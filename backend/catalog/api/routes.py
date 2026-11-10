@@ -36,6 +36,10 @@ class ProductRoutes:
         "sales-prices/<int:pk>/",
         "sales_price_detail",
     )
+    SPECIFICATION = ApiRoute(
+        "products/<int:pk>/specification/",
+        "product_specification",
+    )
 
 
 class QualityPassportRoutes:
