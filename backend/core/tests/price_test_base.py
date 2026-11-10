@@ -3,7 +3,7 @@ import logging
 from rest_framework import status
 from rest_framework.reverse import reverse
 
-from catalog.api.serializers.product_serializers import (
+from catalog.api.serializers.product_price_serializers import (
     PurchasePriceHistoryReadSerializer,
     SalesPriceHistoryReadSerializer,
 )

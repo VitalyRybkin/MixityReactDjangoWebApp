@@ -11,19 +11,19 @@ from rest_framework import status
 from rest_framework.test import APITestCase
 
 from catalog.api.routes import QualityPassportRoutes
-from catalog.models import AppUnit, ProductUnit, QualityPassport
-from catalog.serializers.passport_serializers import (
+from catalog.api.serializers.passport_serializers import (
     QualityPassportReadSerializer,
 )
+from catalog.api.views.quality_passports import (
+    QualityPassportRetrieveUpdateDestroyAPIView,
+)
+from catalog.models import AppUnit, ProductUnit, QualityPassport
 from catalog.services.quality_passport_issue import (
     PassportChanged,
     QualityPassportIssueService,
 )
 from catalog.tests.api.factories import QualityPassportFactory
 from catalog.utils.unit_choices import TitleChoices
-from catalog.views.quality_passport_views import (
-    QualityPassportRetrieveUpdateDestroyAPIView,
-)
 from core.tests.base_model_test_case import BaseModelTestCase
 from core.tests.base_view_test_case import BaseQuerysetTestCase, BaseViewTestCase
 from core.tests.serializer_tests import SerializerSelectionContractMixin

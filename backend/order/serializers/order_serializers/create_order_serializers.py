@@ -4,8 +4,8 @@ from typing import Any, cast
 from django.db import transaction
 from rest_framework import serializers
 
+from catalog.api.serializers.product_serializers import ProductSerializer
 from catalog.models import Product
-from catalog.serializers.product_serializers import ProductSerializer
 from catalog.services.quality_passports import QualityPassportsService
 from contacts.models import Contact
 from contacts.serializers import ContactSerializer

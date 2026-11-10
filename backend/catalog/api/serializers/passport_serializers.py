@@ -5,8 +5,8 @@ from django.core.exceptions import ValidationError as DjangoValidationError
 from mypy.fastparse import Any
 from rest_framework import serializers
 
+from catalog.api.serializers.product_serializers import ProductSerializer
 from catalog.models import Product, QualityPassport
-from catalog.serializers.product_serializers import ProductSerializer
 
 
 class QualityPassportReadSerializer(serializers.ModelSerializer):

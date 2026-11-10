@@ -1,9 +1,5 @@
 from django.urls import path
 
-from ..views.quality_passport_views import (
-    ProductSpecificationDetailAPIView,
-    QualityPassportRetrieveUpdateDestroyAPIView,
-)
 from .routes import ProductRoutes, QualityPassportRoutes, UnitRoutes
 from .views.products import (
     ProductListAPIView,
@@ -13,7 +9,11 @@ from .views.products import (
     ProductSalesPriceListCreateAPIView,
     ProductSalesPriceRetrieveUpdateDestroyAPIView,
 )
-from .views.qaulity_passport import QualityPassportStateAPIView
+from .views.quality_passports import (
+    ProductSpecificationDetailAPIView,
+    QualityPassportRetrieveUpdateDestroyAPIView,
+    QualityPassportStateAPIView,
+)
 from .views.units import UnitListCreateAPIView, UnitRetrieveUpdateDestroyAPIView
 
 app_name = "catalog"

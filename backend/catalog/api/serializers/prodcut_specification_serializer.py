@@ -31,6 +31,7 @@ class ProductSpecificationReadSerializer(serializers.ModelSerializer):
     class Meta:
         model = Product
         fields = [
+            "id",
             "title",
             "specs",
         ]

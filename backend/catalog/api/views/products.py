@@ -7,7 +7,7 @@ from rest_framework.request import Request
 from rest_framework.serializers import BaseSerializer
 
 from catalog.api.pagination import PriceHistoryPagination
-from catalog.api.serializers.product_serializers import (
+from catalog.api.serializers.product_price_serializers import (
     ProductListAPISerializer,
     PurchasePriceHistoryReadSerializer,
     PurchasePriceHistoryUpdateSerializer,
