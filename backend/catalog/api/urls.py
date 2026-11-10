@@ -11,7 +11,7 @@ from .views.products import (
 )
 from .views.quality_passports import (
     ProductSpecificationDetailAPIView,
-    QualityPassportRetrieveUpdateDestroyAPIView,
+    QualityPassportRetrieveAPIView,
     QualityPassportStateAPIView,
 )
 from .views.units import UnitListCreateAPIView, UnitRetrieveUpdateDestroyAPIView
@@ -69,7 +69,7 @@ urlpatterns = [
     # Quality passport routes
     path(
         QualityPassportRoutes.DETAIL.path,
-        QualityPassportRetrieveUpdateDestroyAPIView.as_view(),
+        QualityPassportRetrieveAPIView.as_view(),
         name=QualityPassportRoutes.DETAIL.name,
     ),
     path(

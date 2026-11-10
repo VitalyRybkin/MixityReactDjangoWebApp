@@ -1,6 +1,6 @@
 from rest_framework import serializers
 
-from catalog.models import AppUnit, ProductUnit, Product
+from catalog.models import AppUnit, Product, ProductUnit
 from order.models import PackType
 
 

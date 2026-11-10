@@ -2,27 +2,24 @@ from copy import copy
 from decimal import Decimal
 
 from django.core.exceptions import ValidationError as DjangoValidationError
-from mypy.fastparse import Any
+from typing import Any
 from rest_framework import serializers
 
 from catalog.api.serializers.product_serializers import ProductSerializer
 from catalog.models import Product, QualityPassport
+from order.models import Order
 
 
 class QualityPassportReadSerializer(serializers.ModelSerializer):
+    """
+    Serialize quality passport records for read-only API responses.
+
+    Provides a representation of a quality passport with its identifying
+    information, associated product, issue details, production details, and
+    quantity information.
+    """
+
     product = ProductSerializer(read_only=True)
-    # used_quantity = serializers.DecimalField(
-    #     max_digits=12,
-    #     decimal_places=3,
-    #     read_only=True,
-    # )
-    #
-    # remaining_quantity = serializers.DecimalField(
-    #     max_digits=13,
-    #     decimal_places=3,
-    #     read_only=True,
-    # )
-    # is_exceeded = serializers.BooleanField(read_only=True)
 
     class Meta:
         model = QualityPassport
@@ -34,13 +31,19 @@ class QualityPassportReadSerializer(serializers.ModelSerializer):
             "batch_number",
             "production_date",
             "quantity",
-            # 'used_quantity',
-            # 'remaining_quantity',
-            # 'is_exceeded',
         ]
 
 
 class QualityPassportWriteSerializer(serializers.ModelSerializer):
+    """
+    Serializes quality passport data for write operations.
+
+    Validates incoming data for creating or updating quality passports and delegates
+    model-level validation to the associated model instance before saving. The
+    serializer accepts a product reference and writable passport fields while keeping
+    the identifier read-only.
+    """
+
     product = serializers.PrimaryKeyRelatedField(
         queryset=Product.objects.all(),
         error_messages={"does_not_exist": "Материал не найден"},
@@ -80,15 +83,64 @@ class QualityPassportWriteSerializer(serializers.ModelSerializer):
         return attrs
 
 
+class QualityPassportStateQuerySerializer(serializers.Serializer):
+    """
+    Validate data required to query quality passport states.
+
+    Ensures that the submitted query data contains a reference to the product and
+    order IDs, and optionally a quantity and target status.
+    """
+
+    product_id = serializers.IntegerField(min_value=1)
+    order_id = serializers.IntegerField(
+        min_value=1,
+        required=False,
+    )
+    quantity = serializers.DecimalField(
+        max_digits=10,
+        decimal_places=2,
+        min_value=Decimal("0.01"),
+        required=False,
+    )
+    target_status = serializers.ChoiceField(
+        choices=Order.Status.choices,
+        required=False,
+    )
+
+
 class NewQualityPassportSerializer(serializers.Serializer):
+    """
+    Validate data required to create a new quality passport.
+
+    Ensures that the submitted passport data contains a reference to the expected
+    latest passport, identifying numbers, relevant dates, and a positive quantity.
+    The validation enforces chronological consistency between the production date
+    and the optional issue date.
+    """
+
     expected_latest_passport_id = serializers.IntegerField(
         min_value=1,
     )
     number = serializers.CharField(max_length=50)
     batch_number = serializers.CharField(max_length=100)
+    issue_date = serializers.DateField(required=False)
     production_date = serializers.DateField()
     quantity = serializers.DecimalField(
         max_digits=12,
         decimal_places=3,
         min_value=Decimal("0.001"),
     )
+
+    def validate(self, attrs: dict[str, Any]) -> dict[str, Any]:
+        attrs = super().validate(attrs)
+        issue_date = attrs.get("issue_date")
+        production_date = attrs["production_date"]
+
+        if issue_date is not None and production_date > issue_date:
+            raise serializers.ValidationError(
+                {
+                    "production_date": "Дата изготовления не может быть позже даты паспорта."
+                }
+            )
+
+        return attrs

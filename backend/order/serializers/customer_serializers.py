@@ -8,6 +8,7 @@ from catalog.models import SalesPriceHistory
 from core.validators.validators import validate_ru_phone
 from order.models import ConstructionObject, Customer
 
+
 class BaseCustomerSerializer(serializers.ModelSerializer):
     class Meta:
         model = Customer

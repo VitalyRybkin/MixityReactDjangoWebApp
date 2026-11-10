@@ -15,7 +15,7 @@ from catalog.api.serializers.passport_serializers import (
     QualityPassportReadSerializer,
 )
 from catalog.api.views.quality_passports import (
-    QualityPassportRetrieveUpdateDestroyAPIView,
+    QualityPassportRetrieveAPIView,
 )
 from catalog.models import AppUnit, ProductUnit, QualityPassport
 from catalog.services.quality_passport_issue import (
@@ -507,7 +507,7 @@ class TestQualityPassportView(SerializerSelectionContractMixin, BaseViewTestCase
 
     __test__ = True
 
-    _view_class = QualityPassportRetrieveUpdateDestroyAPIView
+    _view_class = QualityPassportRetrieveAPIView
 
     _cases = [
         ("GET", QualityPassportReadSerializer),
@@ -535,7 +535,7 @@ class TestQualityPassportDetailQueryset(BaseQuerysetTestCase):
 
     __test__ = True
     _factory = QualityPassportFactory
-    _view_class = QualityPassportRetrieveUpdateDestroyAPIView
+    _view_class = QualityPassportRetrieveAPIView
 
     def test_queryset_contract(self) -> None:
         """Verify passport ordering and eager loading of product and creator."""

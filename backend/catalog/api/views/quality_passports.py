@@ -9,21 +9,17 @@ from rest_framework.response import Response
 
 from catalog.api.serializers.passport_serializers import (
     QualityPassportReadSerializer,
-    QualityPassportWriteSerializer,
+    QualityPassportStateQuerySerializer,
 )
 from catalog.api.serializers.prodcut_specification_serializer import (
     ProductSpecificationReadSerializer,
 )
-from catalog.api.serializers.quality_passport_serializers import (
-    QualityPassportStateQuerySerializer,
-)
 from catalog.models import Product, ProductSpecification, QualityPassport
 from catalog.services.quality_passport_state import QualityPassportStateService
-from core.openapi import ERRORS_DETAIL, ERRORS_DETAIL_WRITE
+from core.openapi import ERRORS_DETAIL
 from core.openapi.base_views import (
     BaseGenericAPIView,
     BaseRetrieveAPIView,
-    BaseRetrieveUpdateDestroyAPIView,
 )
 from order.models import Order
 
@@ -101,20 +97,20 @@ class QualityPassportStateAPIView(BaseGenericAPIView):
         return Response(state)
 
 
-class QualityPassportRetrieveUpdateDestroyAPIView(BaseRetrieveUpdateDestroyAPIView):
-    """Retrieve passport details with related product and creator data.
-
-    Allow GET, HEAD, and OPTIONS requests. Updates and deletion remain disabled
-    despite the CRUD base class and the retained write-serializer configuration.
+class QualityPassportRetrieveAPIView(BaseRetrieveAPIView):
     """
+    Retrieve a quality passport resource through the API.
 
-    http_method_names = ["get", "head", "options"]
+    Provides a class-based API view for working with a single quality passport
+    record. The view is intended for detail-level operations and relies on the
+    configured base behavior to resolve the target resource, serialize response
+    data, and apply standardized API error handling.
+    """
 
     resource_name = "quality_passport"
     schema_tags = ["QualityPassport"]
 
     read_serializer_class = QualityPassportReadSerializer
-    write_serializer_class = QualityPassportWriteSerializer
 
     queryset = QualityPassport.objects.select_related(
         "product",
@@ -122,19 +118,6 @@ class QualityPassportRetrieveUpdateDestroyAPIView(BaseRetrieveUpdateDestroyAPIVi
     ).order_by("id")
 
     errors_read = ERRORS_DETAIL
-    errors_write = ERRORS_DETAIL_WRITE
-
-    def get_serializer_class(
-        self,
-    ) -> type[QualityPassportWriteSerializer | QualityPassportReadSerializer]:
-        """Select the read serializer, retaining write selection for PUT and PATCH.
-
-        PUT and PATCH requests are rejected by the view's allowed-method list.
-        """
-        if self.request.method in ("PUT", "PATCH"):
-            return self.write_serializer_class
-
-        return self.read_serializer_class
 
 
 class ProductSpecificationDetailAPIView(BaseRetrieveAPIView):
@@ -151,7 +134,7 @@ class ProductSpecificationDetailAPIView(BaseRetrieveAPIView):
     resource_name = "product_specification"
     schema_tags = ["Product"]
 
-    serializer_class = ProductSpecificationReadSerializer
+    read_serializer_class = ProductSpecificationReadSerializer
 
     queryset = Product.objects.prefetch_related(
         Prefetch(
