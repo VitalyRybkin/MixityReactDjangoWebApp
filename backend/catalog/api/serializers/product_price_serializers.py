@@ -5,7 +5,7 @@ from catalog.models import (
     PurchasePriceHistory,
     SalesPriceHistory,
 )
-from order.models import Customer
+from order.serializers.customer_serializers import BaseCustomerSerializer
 from stock.warehouse_serializers import BaseWarehouseSerializer
 
 
@@ -16,15 +16,6 @@ class ProductListAPISerializer(serializers.ModelSerializer):
             "id",
             "name",
             "title",
-        ]
-
-
-class CustomerSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Customer
-        fields = [
-            "id",
-            "name",
         ]
 
 
@@ -42,7 +33,7 @@ class PurchasePriceHistoryReadSerializer(serializers.ModelSerializer):
 
 
 class SalesPriceHistoryReadSerializer(serializers.ModelSerializer):
-    customer = CustomerSerializer(read_only=True)
+    customer = BaseCustomerSerializer(read_only=True)
 
     class Meta:
         model = SalesPriceHistory

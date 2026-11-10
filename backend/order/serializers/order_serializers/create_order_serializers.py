@@ -4,6 +4,7 @@ from typing import Any, cast
 from django.db import transaction
 from rest_framework import serializers
 
+from catalog.api.serializers.passport_serializers import NewQualityPassportSerializer
 from catalog.api.serializers.product_serializers import ProductSerializer
 from catalog.models import Product
 from catalog.services.quality_passports import QualityPassportsService
@@ -215,35 +216,6 @@ class OrderReadSerializer(serializers.ModelSerializer):
 
     def get_passports_with_limit_exceeded(self, obj: Order) -> list[dict]:
         return getattr(obj, "passports_with_limit_exceeded", [])
-
-
-class NewQualityPassportSerializer(serializers.Serializer):
-    expected_latest_passport_id = serializers.IntegerField(
-        min_value=1,
-    )
-    number = serializers.CharField(max_length=50)
-    batch_number = serializers.CharField(max_length=100)
-    issue_date = serializers.DateField(required=False)
-    production_date = serializers.DateField()
-    quantity = serializers.DecimalField(
-        max_digits=12,
-        decimal_places=3,
-        min_value=Decimal("0.001"),
-    )
-
-    def validate(self, attrs: dict[str, Any]) -> dict[str, Any]:
-        attrs = super().validate(attrs)
-        issue_date = attrs.get("issue_date")
-        production_date = attrs["production_date"]
-
-        if issue_date is not None and production_date > issue_date:
-            raise serializers.ValidationError(
-                {
-                    "production_date": "Дата изготовления не может быть позже даты паспорта."
-                }
-            )
-
-        return attrs
 
 
 class OrderProductWriteSerializer(serializers.Serializer):
