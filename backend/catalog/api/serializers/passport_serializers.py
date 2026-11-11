@@ -1,12 +1,14 @@
 from copy import copy
 from decimal import Decimal
+from typing import Any
 
 from django.core.exceptions import ValidationError as DjangoValidationError
-from typing import Any
+from django.db.models import Subquery, OuterRef
 from rest_framework import serializers
 
+from catalog.api.serializers.prodcut_specification_serializer import ProductSpecificationItemSerializer
 from catalog.api.serializers.product_serializers import ProductSerializer
-from catalog.models import Product, QualityPassport
+from catalog.models import Product, QualityPassport, ProductSpecification
 from order.models import Order
 
 
@@ -20,6 +22,7 @@ class QualityPassportReadSerializer(serializers.ModelSerializer):
     """
 
     product = ProductSerializer(read_only=True)
+    specifications = serializers.SerializerMethodField()
 
     class Meta:
         model = QualityPassport
@@ -31,7 +34,39 @@ class QualityPassportReadSerializer(serializers.ModelSerializer):
             "batch_number",
             "production_date",
             "quantity",
+            "specifications",
         ]
+
+    def get_specifications(self, obj: QualityPassport) -> Any:
+        latest = (
+            ProductSpecification.objects.filter(
+                product_id=OuterRef("product_id"),
+                name_id=OuterRef("name_id"),
+                effective_from__lte=obj.issue_date,
+            )
+            .order_by("-effective_from", "-pk")
+            .values("pk")[:1]
+        )
+
+        specifications = (
+            ProductSpecification.objects.filter(
+                product_id=obj.product_id,
+                name__to_passport=True,
+                effective_from__lte=obj.issue_date,
+                pk=Subquery(latest),
+            )
+            .select_related("name", "unit")
+            .order_by(
+                "name__group__order",
+                "name__order",
+                "pk",
+            )
+        )
+
+        return ProductSpecificationItemSerializer(
+            specifications,
+            many=True,
+        ).data
 
 
 class QualityPassportWriteSerializer(serializers.ModelSerializer):

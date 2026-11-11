@@ -1,7 +1,11 @@
 """Expose quality-passport state previews for order products."""
 
-from django.db.models import Prefetch
+from django.db.models import OuterRef, Prefetch, Subquery
 from django.shortcuts import get_object_or_404
+from django.utils import timezone
+from drf_spectacular.types import OpenApiTypes
+from drf_spectacular.utils import OpenApiParameter
+from rest_framework import serializers
 from rest_framework.exceptions import PermissionDenied
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.request import Request
@@ -111,6 +115,7 @@ class QualityPassportRetrieveAPIView(BaseRetrieveAPIView):
     schema_tags = ["QualityPassport"]
 
     read_serializer_class = QualityPassportReadSerializer
+    serializer_class = QualityPassportReadSerializer
 
     queryset = QualityPassport.objects.select_related(
         "product",
@@ -135,10 +140,36 @@ class ProductSpecificationDetailAPIView(BaseRetrieveAPIView):
     schema_tags = ["Product"]
 
     read_serializer_class = ProductSpecificationReadSerializer
+    serializer_class = ProductSpecificationReadSerializer
+    errors_read = ERRORS_DETAIL
+    schema_parameters = [
+        OpenApiParameter("as_of", OpenApiTypes.DATE, OpenApiParameter.QUERY),
+    ]
 
-    queryset = Product.objects.prefetch_related(
-        Prefetch(
-            "specs",
-            queryset=ProductSpecification.objects.select_related("unit", "name"),
+    def get_queryset(self):
+        as_of_param = self.request.query_params.get("as_of")
+
+        as_of = (
+            serializers.DateField().run_validation(as_of_param)
+            if as_of_param is not None
+            else timezone.localdate()
         )
-    )
+
+        latest = (
+            ProductSpecification.objects.filter(
+                product_id=OuterRef("product_id"),
+                name_id=OuterRef("name_id"),
+                effective_from__lte=as_of,
+            )
+            .order_by("-effective_from", "-pk")
+            .values("pk")[:1]
+        )
+
+        return Product.objects.prefetch_related(
+            Prefetch(
+                "specs",
+                queryset=ProductSpecification.objects.filter(
+                    pk=Subquery(latest),
+                ).select_related("unit", "name"),
+            )
+        )

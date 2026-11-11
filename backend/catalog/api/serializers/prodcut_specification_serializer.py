@@ -14,6 +14,22 @@ class ProductSpecificationItemSerializer(serializers.ModelSerializer):
         read_only=True,
     )
 
+    unit_display = serializers.CharField(
+        source="unit.get_title_display",
+        read_only=True,
+        allow_null=True,
+    )
+
+    to_web = serializers.BooleanField(
+        source="name.to_web",
+        read_only=True,
+    )
+
+    to_passport = serializers.BooleanField(
+        source="name.to_passport",
+        read_only=True,
+    )
+
     class Meta:
         model = ProductSpecification
         fields = [
@@ -21,6 +37,9 @@ class ProductSpecificationItemSerializer(serializers.ModelSerializer):
             "name",
             "value",
             "unit",
+            "unit_display",
+            "to_web",
+            "to_passport",
         ]
 
 
