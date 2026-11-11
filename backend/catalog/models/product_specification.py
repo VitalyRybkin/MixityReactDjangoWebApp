@@ -36,15 +36,16 @@ class ProductSpecification(models.Model):
         blank=True,
         on_delete=models.PROTECT,
     )
+    effective_from = models.DateField()
 
     class Meta:
         ordering = ("name__group__order", "name__order", "pk")
         indexes = [models.Index(fields=("product",))]
         constraints = [
             models.UniqueConstraint(
-                fields=("product", "name"),
-                name="uniq_product_spec_row",
-            )
+                fields=("product", "name", "effective_from"),
+                name="uniq_product_spec_version",
+            ),
         ]
         db_table = "catalog_specification"
         verbose_name = "Значение показателя спецификации"
