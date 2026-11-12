@@ -57,7 +57,7 @@ class QualityPassportReadSerializer(serializers.ModelSerializer):
             )
             .select_related("name", "unit")
             .order_by(
-                "name__group__order",
+                # "name__group__order",
                 "name__order",
                 "pk",
             )

@@ -50,6 +50,7 @@ class ProductSerializer(serializers.ModelSerializer):
         fields = (
             "id",
             "name",
+            "title",
             "is_piece_based",
             "product_unit",
             "default_package",
