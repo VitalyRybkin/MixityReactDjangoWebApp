@@ -1,12 +1,17 @@
 // Defines order grid columns with optional UPD upload and deletion controls.
-
 import FileUploadAction from '../../components/FileUploadAction.jsx'
 import DeleteAction from '../../components/ui/buttons/DeleteAction.jsx'
 import { formatDateTime, formatTime } from '../../utils/DateTimeFormatting.js'
 import { ORDER_STATUS_LABELS } from '../../utils/localeDataGridText.js'
 
 // Builds display columns and includes actions allowed by the caller.
-export const getHomeGridOrderColumns = ({ onDelete, onUploadUpd, canDelete = false, canManageUpd = false }) => [
+export const getHomeGridOrderColumns = ({
+    onDelete,
+    onUploadUpd,
+    onViewUpd,
+    canDelete = false,
+    canManageUpd = false,
+}) => [
     {
         field: 'id',
         headerName: '№',
@@ -84,6 +89,7 @@ export const getHomeGridOrderColumns = ({ onDelete, onUploadUpd, canDelete = fal
                           entityId={row.id}
                           fileUrl={row.upd_pdf}
                           onUpload={onUploadUpd}
+                          onView={onViewUpd}
                           uploadTitle="Загрузить"
                           viewTitle="Просмотр"
                       />

@@ -29,7 +29,7 @@ import { useGetCustomers } from '../features/customers/utils/customers.queries.j
 import OrderMobileList from '../features/orders/components/OrderMobileList.jsx'
 import { useDeleteOrderFlow } from '../features/orders/hooks/useDeleteOrderFlow.js'
 import { useOrdersFilters } from '../features/orders/hooks/useOrdersFilters.js'
-import { useExportOrders, useGetOrders, useUploadUpd } from '../features/orders/utils/orders.queries.js'
+import { useExportOrders, useGetOrders, useUploadUpd, viewUpd } from '../features/orders/utils/orders.queries.js'
 import { useGetWarehouses } from '../features/warehouses/utils/stocks.queries.js'
 import { useFileUpload } from '../hooks/useUploadFile.js'
 import { sidebarPageSx } from '../layouts/AppSidebar.jsx'
@@ -158,10 +158,11 @@ const Home = () => {
           )?.name || '-'
         : '-'
 
-    const selectedStatus = ORDER_STATUS_OPTIONS.find(
-        // Finds the label for the applied status filter.
-        (status) => status.value === formattedFilters.status,
-    )?.label || '-'
+    const selectedStatus =
+        ORDER_STATUS_OPTIONS.find(
+            // Finds the label for the applied status filter.
+            (status) => status.value === formattedFilters.status,
+        )?.label || '-'
 
     const handleUploadUpd = useFileUpload(uploadUpd, showSnackbar, {
         successMessage: 'УПД успешно загружен.',
@@ -169,16 +170,50 @@ const Home = () => {
         errorMessage: 'Не удалось изменить УПД.',
     })
 
+    // Open the preview tab in the click event, then load a protected PDF as a Blob.
+    const handleViewUpd = async (orderId) => {
+        const previewTab = window.open('', '_blank')
+        if (!previewTab) {
+            showSnackbar('Браузер заблокировал окно просмотра УПД. Разрешите всплывающие окна.', 'warning')
+            return
+        }
+
+        previewTab.opener = null
+        previewTab.document.title = `УПД заявки № ${orderId}`
+        previewTab.document.body.textContent = 'Загрузка УПД…'
+
+        try {
+            const blob = await viewUpd(orderId)
+            if (!(blob instanceof Blob) || !blob.size) {
+                throw new Error('Пустой ответ УПД')
+            }
+
+            const pdfUrl = URL.createObjectURL(blob)
+            if (previewTab.closed) {
+                URL.revokeObjectURL(pdfUrl)
+                return
+            }
+
+            previewTab.location.replace(pdfUrl)
+            window.setTimeout(() => URL.revokeObjectURL(pdfUrl), 5 * 60 * 1000)
+        } catch (error) {
+            if (!previewTab.closed) previewTab.close()
+            console.error('Ошибка просмотра УПД:', error)
+            showSnackbar('Не удалось открыть УПД.', 'error')
+        }
+    }
+
     const columns = useMemo(
         // Builds grid columns with actions allowed by permissions and export state.
         () =>
             getHomeGridOrderColumns({
                 onDelete: setOrderToDelete,
                 onUploadUpd: handleUploadUpd,
+                onViewUpd: handleViewUpd,
                 canDelete: canDeleteOrders && !exportLocked,
                 canManageUpd: canManageOrderUpd && !exportLocked,
             }),
-        [handleUploadUpd, canDeleteOrders, canManageOrderUpd, exportLocked],
+        [handleUploadUpd, handleViewUpd, canDeleteOrders, canManageOrderUpd, exportLocked],
     )
 
     // Validates filters and prepares documents for orders with the created status.
@@ -396,6 +431,7 @@ const Home = () => {
                         onOpen={handleOpenOrder}
                         onDelete={setOrderToDelete}
                         onUploadUpd={handleUploadUpd}
+                        onViewUpd={handleViewUpd}
                         canDelete={canDeleteOrders && !exportLocked}
                         canManageUpd={canManageOrderUpd && !exportLocked}
                     />
