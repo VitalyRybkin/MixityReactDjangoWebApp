@@ -10,9 +10,9 @@ import {
 
 import { useQueryClient } from '@tanstack/react-query'
 
+import { endAuthSession } from './api.js'
 import ProtectedRoute from './components/routing/ProtectedRoute.jsx'
 import GlobalApiErrorSnackbar from './components/ui/feedback/GlobalApiErrorSnackbar.jsx'
-import { ACCESS_TOKEN, REFRESH_TOKEN } from './constants.js'
 import CatalogPage from './features/catalog/Catalog.jsx'
 import CatalogPrices from './features/catalog/CatalogPrices.jsx'
 import ClientDetailPage from './features/clients/ClientDetail.jsx'
@@ -54,8 +54,7 @@ function Logout() {
 
     useEffect(() => {
         // Revoke local credentials before leaving the private area.
-        localStorage.removeItem(ACCESS_TOKEN)
-        localStorage.removeItem(REFRESH_TOKEN)
+        endAuthSession()
 
         // Stop background reads and discard everything cached for this session.
         void queryClient.cancelQueries()

@@ -53,7 +53,9 @@ export const orderKeys = {
             status: filters.status || '',
             customerId: filters.customerId || '',
             warehouseId: filters.warehouseId || '',
+            productId: filters.productId || '',
             samples: filters.samples === true,
+            noUpd: filters.no_upd === true,
         },
     ],
 }
@@ -93,11 +95,11 @@ export async function fetchOrders(filters = {}) {
     }
 
     if (filters.samples === true) {
-        params.samples = ''
+        params.samples = true
     }
 
     if (filters.no_upd === true) {
-        params.no_upd = ''
+        params.no_upd = true
     }
 
     const res = await api.get(orderApiPaths.listCreate(), {
@@ -107,7 +109,7 @@ export async function fetchOrders(filters = {}) {
     return res.data
 }
 
-export const fetchExportOrders = async ({ dateFrom, dateTo, status, customerId, warehouseId } = {}) => {
+export const fetchExportOrders = async ({ dateFrom, dateTo, status, customerId, warehouseId, productId, samples, no_upd } = {}) => {
     const params = {}
 
     if (dateFrom) params.date_from = dateFrom
@@ -115,6 +117,9 @@ export const fetchExportOrders = async ({ dateFrom, dateTo, status, customerId, 
     if (status) params.status = status
     if (customerId) params.customer_id = customerId
     if (warehouseId) params.warehouse_id = warehouseId
+    if (productId) params.product_id = productId
+    if (samples === true) params.samples = true
+    if (no_upd === true) params.no_upd = true
 
     const res = await api.get(orderApiPaths.download(), { params })
     return unwrapList(res.data)
@@ -194,6 +199,9 @@ export function useExportOrders(filters = {}) {
                 status: filters.status || '',
                 customerId: filters.customerId || '',
                 warehouseId: filters.warehouseId || '',
+                productId: filters.productId || '',
+                samples: filters.samples === true,
+                no_upd: filters.no_upd === true,
             }),
         enabled: false,
     })

@@ -2,13 +2,12 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 
-import { Alert, Box, Button, Container, Paper, TextField, Typography } from '@mui/material'
-
 import { useQueryClient } from '@tanstack/react-query'
 
-import api from '../api.js'
+import { Alert, Box, Button, Container, Paper, TextField, Typography } from '@mui/material'
+
+import api, { startAuthSession } from '../api.js'
 import ThemeToggle from '../components/ThemeToggle.jsx'
-import { ACCESS_TOKEN, REFRESH_TOKEN } from '../constants.js'
 
 const sx = {
     page: { minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center' },
@@ -39,14 +38,10 @@ const Login = () => {
                 password,
             })
 
-            // No data from the previous authenticated session may survive the account change.
+            // Invalidate old in-flight API responses before cancelling the old cache.
+            startAuthSession(res.data.access, res.data.refresh)
             await queryClient.cancelQueries()
             queryClient.clear()
-
-            localStorage.removeItem(ACCESS_TOKEN)
-            localStorage.removeItem(REFRESH_TOKEN)
-            localStorage.setItem(ACCESS_TOKEN, res.data.access)
-            localStorage.setItem(REFRESH_TOKEN, res.data.refresh)
 
             navigate('/', { replace: true })
         } catch (err) {

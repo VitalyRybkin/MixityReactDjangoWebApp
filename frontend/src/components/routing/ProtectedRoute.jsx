@@ -2,11 +2,12 @@ import { useEffect, useState } from 'react'
 import { Navigate } from 'react-router-dom'
 
 import { Box, CircularProgress, Typography } from '@mui/material'
+
 import { useQueryClient } from '@tanstack/react-query'
 import { jwtDecode } from 'jwt-decode'
 
-import { refreshAccessToken } from '../../api.js'
-import { ACCESS_TOKEN, REFRESH_TOKEN } from '../../constants.js'
+import { endAuthSession, getAuthSessionGeneration, refreshAccessToken } from '../../api.js'
+import { ACCESS_TOKEN } from '../../constants.js'
 
 const SKEW_SECONDS = 30
 
@@ -17,18 +18,17 @@ function ProtectedRoute({ children }) {
     useEffect(() => {
         let cancelled = false
 
-        const refreshAtStart = localStorage.getItem(REFRESH_TOKEN)
+        const generationAtStart = getAuthSessionGeneration()
 
         const invalidateSession = () => {
             if (cancelled) return
             // The session could have changed while an old token was refreshing.
-            if (localStorage.getItem(REFRESH_TOKEN) !== refreshAtStart) {
+            if (getAuthSessionGeneration() !== generationAtStart) {
                 if (!localStorage.getItem(REFRESH_TOKEN)) setIsAuthorized(false)
                 return
             }
 
-            localStorage.removeItem(ACCESS_TOKEN)
-            localStorage.removeItem(REFRESH_TOKEN)
+            endAuthSession()
             void queryClient.cancelQueries()
             queryClient.clear()
             setIsAuthorized(false)
@@ -51,7 +51,7 @@ function ProtectedRoute({ children }) {
                     await refreshAccessToken()
                 }
 
-                if (!cancelled) {
+                if (!cancelled && getAuthSessionGeneration() === generationAtStart) {
                     setIsAuthorized(true)
                 }
             } catch {
