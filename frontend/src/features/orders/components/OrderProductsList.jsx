@@ -6,6 +6,7 @@ import AddAction from '../../../components/ui/buttons/AddAction.jsx'
 import DeleteAction from '../../../components/ui/buttons/DeleteAction.jsx'
 
 import QualityPassportInfo from './QualityPassportInfo.jsx'
+import OrderPassportPreviewAction from './OrderPassportPreviewAction.jsx'
 
 import { orderProductsListSx as sx } from './OrderProductsList.styles.js'
 
@@ -153,19 +154,30 @@ export default function OrderProductsList({
                             </Box>
 
                             {row.productId && (
-                                <QualityPassportInfo
-                                    productId={row.productId}
-                                    quantity={row.quantity}
-                                    product={selectedProduct}
-                                    orderId={orderId}
-                                    targetStatus={targetStatus}
-                                    deliveryDate={deliveryDate}
-                                    readOnly={readOnly}
-                                    pendingPassport={row.new_quality_passport}
-                                    onPassportChange={(nextPassport) =>
-                                        onChange(row.id, { new_quality_passport: nextPassport })
-                                    }
-                                />
+                                <>
+                                    <QualityPassportInfo
+                                        productId={row.productId}
+                                        quantity={row.quantity}
+                                        product={selectedProduct}
+                                        orderId={orderId}
+                                        targetStatus={targetStatus}
+                                        deliveryDate={deliveryDate}
+                                        readOnly={readOnly}
+                                        pendingPassport={row.new_quality_passport}
+                                        onPassportChange={(nextPassport) =>
+                                            onChange(row.id, { new_quality_passport: nextPassport })
+                                        }
+                                    />
+                                    <Box sx={{ display: 'flex', justifyContent: 'flex-end', mt: 0.25 }}>
+                                        <OrderPassportPreviewAction
+                                            productId={row.productId}
+                                            quantity={row.quantity}
+                                            orderId={orderId}
+                                            targetStatus={targetStatus}
+                                            pendingPassport={row.new_quality_passport}
+                                        />
+                                    </Box>
+                                </>
                             )}
                         </Box>
                     )

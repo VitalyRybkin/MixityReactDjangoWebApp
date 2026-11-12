@@ -59,7 +59,7 @@ export default function CatalogPage() {
                                 <ChevronRightOutlinedIcon fontSize="small" sx={sx.chevron} />
                             </ButtonBase>
                             <Box sx={sx.passportCell}>
-                                <CatalogPassportStatus productId={product.id} />
+                                <CatalogPassportStatus productId={product.id} productName={product.name} />
                             </Box>
                         </Box>
                     ))}

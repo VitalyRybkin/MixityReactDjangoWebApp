@@ -1,9 +1,9 @@
 import { useState } from 'react'
 
-import { Box, Button, CircularProgress, Dialog, DialogActions, DialogContent, DialogTitle, Typography } from '@mui/material'
+import { Box, Button, ButtonBase, CircularProgress, Dialog, DialogActions, DialogContent, DialogTitle, Typography } from '@mui/material'
 
 import RenewAction from '../../../components/ui/buttons/RenewAction.jsx'
-import ViewAction from '../../../components/ui/buttons/ViewAction.jsx'
+import CatalogPassportActions from './CatalogPassportActions.jsx'
 import QualityPassportUsageBar, { formatPassportTons } from '../../orders/components/QualityPassportUsageBar.jsx'
 import { useGetQualityPassportState } from '../../orders/utils/qualityPassports.queries.js'
 
@@ -17,7 +17,7 @@ const toQuantity = (value) => {
     return Number.isFinite(number) ? number : 0
 }
 
-export default function CatalogPassportStatus({ productId }) {
+export default function CatalogPassportStatus({ productId, productName }) {
     const [viewOpen, setViewOpen] = useState(false)
 
     const { data, isPending, isError } = useGetQualityPassportState({
@@ -63,9 +63,21 @@ export default function CatalogPassportStatus({ productId }) {
     return (
         <Box sx={{ minWidth: 0 }}>
             <Box sx={{ display: 'flex', flexWrap: 'wrap', columnGap: 2, rowGap: 0.25, alignItems: 'center' }}>
-                <Typography variant="caption" sx={{ fontWeight: 600, whiteSpace: 'nowrap' }}>
-                    Паспорт № {passport.number}
-                </Typography>
+                <ButtonBase
+                    type="button"
+                    onClick={() => setViewOpen(true)}
+                    aria-label={`Сведения о паспорте качества № ${passport.number}`}
+                    sx={{
+                        borderRadius: 0.5,
+                        textAlign: 'left',
+                        '&:hover': { textDecoration: 'underline' },
+                        '&:focus-visible': { outline: '2px solid', outlineColor: 'primary.main' },
+                    }}
+                >
+                    <Typography variant="caption" sx={{ fontWeight: 600, whiteSpace: 'nowrap' }}>
+                        Паспорт № {passport.number}
+                    </Typography>
+                </ButtonBase>
                 <Typography variant="caption" color="text.secondary" sx={{ whiteSpace: 'nowrap' }}>
                     от {formatDate(passport.issue_date)}
                 </Typography>
@@ -82,7 +94,7 @@ export default function CatalogPassportStatus({ productId }) {
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mt: 0.5 }}>
                 <QualityPassportUsageBar issued={issued} used={used} />
                 <Box sx={{ display: 'flex', gap: 0.25, flexShrink: 0 }}>
-                    <ViewAction size="small" onClick={() => setViewOpen(true)} />
+                    <CatalogPassportActions passportId={passport.id} passportSummary={passport} productName={productName} />
                     <RenewAction
                         size="small"
                         disabled

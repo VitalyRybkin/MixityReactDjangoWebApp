@@ -3,7 +3,7 @@ import { createRoot } from 'react-dom/client'
 
 import html2pdf from 'html2pdf.js'
 
-import PowerOfAttorneyTemplate from '../../components/PowerOfAttorneyTemplate'
+import PowerOfAttorneyTemplate from '../components/PowerOfAttorneyTemplate.jsx'
 
 export async function exportPowerOfAttorney(orders) {
     for (const order of orders) {
