@@ -44,8 +44,6 @@ function CustomPagination() {
                 // Formats the visible row range and total in Russian.
                 ({ from, to, count }) => `${from}–${to} из ${count !== -1 ? count : `более ${to}`}`
             }
-            backIconButtonProps={{ disabled: page === 0 }}
-            nextIconButtonProps={{ disabled: page >= pageCount - 1 }}
         />
     )
 }

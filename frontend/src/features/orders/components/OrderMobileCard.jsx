@@ -81,6 +81,7 @@ export default function OrderMobileCard({
     onOpen,
     onDelete,
     onUploadUpd,
+    onViewUpd,
     canDelete = false,
     canManageUpd = false,
 }) {
@@ -179,6 +180,7 @@ export default function OrderMobileCard({
                             entityId={order.id}
                             fileUrl={order.upd_pdf}
                             onUpload={onUploadUpd}
+                            onView={onViewUpd}
                             uploadTitle="Загрузить УПД"
                             viewTitle="Просмотр УПД"
                         />
