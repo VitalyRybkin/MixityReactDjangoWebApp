@@ -1,7 +1,20 @@
 import React, { useMemo, useState } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
 
-import { Alert, Backdrop, Box, Button, CircularProgress, Container, Dialog, DialogActions, DialogContent, DialogTitle, Divider, Typography } from '@mui/material'
+import {
+    Alert,
+    Backdrop,
+    Box,
+    Button,
+    CircularProgress,
+    Container,
+    Dialog,
+    DialogActions,
+    DialogContent,
+    DialogTitle,
+    Divider,
+    Typography,
+} from '@mui/material'
 import { DataGrid } from '@mui/x-data-grid'
 
 import AppBreadcrumbs from '../components/AppBreadcrumbs.jsx'
@@ -30,9 +43,16 @@ import FilterSidebar from './components/FilterSidebar.jsx'
 import { formatFilteringDate, prepareOrdersExcelFile } from './utils/exportOrders.js'
 import { getAssignedDriverName, preparePowerOfAttorneyFiles } from './utils/exportPowerOfAttorney.jsx'
 import { prepareQualityPassportFiles } from './utils/exportQualityPassports.jsx'
-import { buildExportFolderName, buildZipBlob, canChooseExportDirectory, downloadPreparedZip, saveFilesInChosenFolder, validateExportFileNames } from './utils/saveExportFiles.js'
 import { getHomeGridOrderColumns } from './utils/home_order.columns.jsx'
 import { formatDate } from './utils/orders.date-filters.js'
+import {
+    buildExportFolderName,
+    buildZipBlob,
+    canChooseExportDirectory,
+    downloadPreparedZip,
+    saveFilesInChosenFolder,
+    validateExportFileNames,
+} from './utils/saveExportFiles.js'
 
 const ORDER_STATUS_OPTIONS = [
     { value: 'draft', label: 'Черновик' },
@@ -135,7 +155,6 @@ const Home = () => {
         errorMessage: 'Не удалось изменить УПД.',
     })
 
-
     const columns = useMemo(
         () =>
             getHomeGridOrderColumns({
@@ -144,7 +163,7 @@ const Home = () => {
                 canDelete: canDeleteOrders && !exportLocked,
                 canManageUpd: canManageOrderUpd && !exportLocked,
             }),
-        [setOrderToDelete, handleUploadUpd, canDeleteOrders, canManageOrderUpd, exportLocked],
+        [handleUploadUpd, canDeleteOrders, canManageOrderUpd, exportLocked],
     )
 
     const handleExport = async () => {
@@ -164,20 +183,26 @@ const Home = () => {
         setSavedCount(0)
         try {
             const { data, error } = await fetchDownload()
-            if (error) throw error
+            if (error) {
+                console.error('Ошибка получения заявок для экспорта:', error)
+                showSnackbar('Не удалось получить заявки для экспорта.', 'error')
+                return
+            }
             const received = Array.isArray(data) ? data : Array.isArray(data?.results) ? data.results : []
-            // Never include orders of another status, even if backend filtering changes.
+
             const selected = received.filter((order) => order.status === 'created')
             if (!selected.length) {
                 showSnackbar('Нет заявок для выгрузки.', 'info')
                 return
             }
 
-            const missingDriverIds = selected
-                .filter((order) => !getAssignedDriverName(order))
-                .map((order) => order.id)
+            const missingDriverIds = selected.filter((order) => !getAssignedDriverName(order)).map((order) => order.id)
 
-            const excel = await prepareOrdersExcelFile(selected, { ...formattedFilters, status: 'created' }, warehouseList)
+            const excel = await prepareOrdersExcelFile(
+                selected,
+                { ...formattedFilters, status: 'created' },
+                warehouseList,
+            )
             const powersOfAttorney = await preparePowerOfAttorneyFiles(selected)
             const qualityPassports = await prepareQualityPassportFiles(selected)
             const files = [excel, ...powersOfAttorney, ...qualityPassports]
@@ -383,18 +408,25 @@ const Home = () => {
                                     </Typography>
                                     <Box sx={{ display: 'grid', gap: 0.5 }}>
                                         <Typography variant="body2">Заявки (Excel) — 1</Typography>
-                                        <Typography variant="body2">Доверенности — {preparedExport.powerCount}</Typography>
+                                        <Typography variant="body2">
+                                            Доверенности — {preparedExport.powerCount}
+                                        </Typography>
                                         <Typography variant="body2">
                                             Паспорта качества — {preparedExport.passportCount}
                                         </Typography>
                                     </Box>
                                     {preparedExport.missingDriverIds.length > 0 && (
                                         <Alert severity="warning" sx={{ mt: 2.5 }}>
-                                            Не назначен водитель в заявках — № {preparedExport.missingDriverIds.join(', № ')}.
+                                            Не назначен водитель в заявках — №{' '}
+                                            {preparedExport.missingDriverIds.join(', № ')}.
                                         </Alert>
                                     )}
                                     {exportingDocuments && canChooseExportDirectory() && (
-                                        <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mt: 2 }}>
+                                        <Typography
+                                            variant="caption"
+                                            color="text.secondary"
+                                            sx={{ display: 'block', mt: 2 }}
+                                        >
                                             Сохранено файлов: {savedCount} из {preparedExport.files.length}
                                         </Typography>
                                     )}
@@ -405,7 +437,11 @@ const Home = () => {
                             <Button disabled={exportingDocuments} onClick={() => setPreparedExport(null)}>
                                 Отмена
                             </Button>
-                            <Button variant="contained" disabled={exportingDocuments} onClick={handleSavePreparedExport}>
+                            <Button
+                                variant="contained"
+                                disabled={exportingDocuments}
+                                onClick={handleSavePreparedExport}
+                            >
                                 {canChooseExportDirectory() ? 'Выбрать папку и сохранить' : 'Скачать ZIP'}
                             </Button>
                         </DialogActions>

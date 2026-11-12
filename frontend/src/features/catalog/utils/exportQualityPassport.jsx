@@ -24,6 +24,17 @@ function passportDateForFilename(value) {
         : safeFilenamePart(value, 'без_даты')
 }
 
+/**
+ * Validate complete passport data before rendering a PDF.
+ * Used by both catalog and order preview actions.
+ */
+export function requireCompleteQualityPassport(passport) {
+    if (!passport?.id || !Array.isArray(passport.specifications)) {
+        throw new Error('INCOMPLETE_PASSPORT_DATA')
+    }
+    return passport
+}
+
 export function qualityPassportPdfFilename(passport) {
     const number = safeFilenamePart(passport.number ?? passport.id, 'без_номера')
     const productName = safeFilenamePart(passport.product?.name, 'без_названия')
@@ -60,9 +71,7 @@ export async function exportQualityPassport(
     container.style.width = '210mm'
     container.style.background = '#fff'
     container.style.pointerEvents = 'none'
-    // Keep the page in the viewport but behind the app. html2canvas can
-    // fail to capture content positioned far outside the viewport.
-    // Avoid overflow:hidden, display:none, visibility:hidden and opacity:0.
+
     document.body.appendChild(container)
 
     const root = createRoot(container)
@@ -84,10 +93,8 @@ export async function exportQualityPassport(
         const options = {
             filename,
             margin: 0,
-            // PNG без потерь: линии и текст не размываются JPEG-сжатием.
             image: { type: 'png' },
             html2canvas: {
-                // Целочисленный масштаб в сочетании с border: 1px.
                 scale: 3,
                 backgroundColor: '#ffffff',
                 scrollX: 0,
@@ -103,8 +110,6 @@ export async function exportQualityPassport(
 
         const worker = html2pdf().set(options).from(page)
         const pdf = await worker.toPdf().get('pdf')
-        // Может помочь PDF-просмотрщику предложить осмысленное имя
-        // при выборе «Сохранить как» из окна просмотра.
         pdf.setProperties({
             title: filename.replace(/\.pdf$/i, ''),
             subject: 'Паспорт качества продукции',
@@ -119,13 +124,10 @@ export async function exportQualityPassport(
             const blob = pdf.output('blob')
             const url = URL.createObjectURL(blob)
             previewWindow.location.href = url
-            // Keep the URL available while the PDF viewer is open.
             window.addEventListener('pagehide', () => URL.revokeObjectURL(url), {
                 once: true,
             })
         } else if (fileHandle) {
-            // Chrome/Edge: write directly to the file selected with showSaveFilePicker.
-            // No temporary PDF tab and no browser download-preview step.
             const writable = await fileHandle.createWritable()
             try {
                 await writable.write(pdf.output('blob'))
@@ -134,12 +136,10 @@ export async function exportQualityPassport(
                 try {
                     await writable.abort()
                 } catch {
-                    // Preserve the original write failure.
                 }
                 throw error
             }
         } else {
-            // Fallback for browsers without showSaveFilePicker.
             const blob = pdf.output('blob')
             const url = URL.createObjectURL(blob)
             const link = document.createElement('a')
@@ -151,14 +151,10 @@ export async function exportQualityPassport(
                 link.click()
             } finally {
                 link.remove()
-                // Allow browsers to finish consuming the download URL.
                 setTimeout(() => URL.revokeObjectURL(url), 60_000)
             }
         }
         completed = true
-    } catch (error) {
-        console.error('Quality passport PDF export failed:', error)
-        throw error
     } finally {
         root.unmount()
         container.remove()

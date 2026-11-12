@@ -5,7 +5,7 @@ import { Box, CircularProgress } from '@mui/material'
 import api from '../../../api.js'
 import ViewAction from '../../../components/ui/buttons/ViewAction.jsx'
 import AppSnackbar from '../../../components/ui/feedback/AppSnackbar.jsx'
-import { exportQualityPassport } from '../../catalog/utils/exportQualityPassport.jsx'
+import { exportQualityPassport, requireCompleteQualityPassport } from '../../catalog/utils/exportQualityPassport.jsx'
 import { useGetQualityPassportState } from '../utils/qualityPassports.queries.js'
 
 /**
@@ -31,7 +31,6 @@ export default function OrderPassportPreviewAction({ productId, quantity, orderI
         event?.stopPropagation()
         if (!passportId || loading) return
 
-
         const previewWindow = window.open('', '_blank')
         if (!previewWindow) {
             setSnackbar({ open: true, message: 'Браузер заблокировал окно просмотра паспорта.' })
@@ -44,11 +43,7 @@ export default function OrderPassportPreviewAction({ productId, quantity, orderI
         setLoading(true)
         try {
             const response = await api.get(`/api/catalog/quality-passports/${passportId}/`)
-            const passport = response.data
-
-            if (!passport?.id || !Array.isArray(passport.specifications)) {
-                throw new Error('INCOMPLETE_PASSPORT_DATA')
-            }
+            const passport = requireCompleteQualityPassport(response.data)
 
             await exportQualityPassport(passport, {
                 mode: 'preview',
@@ -81,7 +76,7 @@ export default function OrderPassportPreviewAction({ productId, quantity, orderI
                 <ViewAction
                     type="button"
                     size="small"
-                    title="Просмотр паспорта качества"
+                    title="Просмотр PDF паспорта качества"
                     aria-label="Просмотр PDF паспорта качества"
                     onClick={handlePreview}
                 />

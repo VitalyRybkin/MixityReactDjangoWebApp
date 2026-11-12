@@ -6,8 +6,17 @@ import api from '../../../api.js'
 import DownAction from '../../../components/ui/buttons/DownloadAction.jsx'
 import ViewAction from '../../../components/ui/buttons/ViewAction.jsx'
 import AppSnackbar from '../../../components/ui/feedback/AppSnackbar.jsx'
-import { exportQualityPassport, qualityPassportPdfFilename } from '../utils/exportQualityPassport.jsx'
+import {
+    exportQualityPassport,
+    qualityPassportPdfFilename,
+    requireCompleteQualityPassport,
+} from '../utils/exportQualityPassport.jsx'
 
+/**
+ * Actions for the passport already selected by CatalogPassportStatus.
+ * Pass the ID of state.passport, not state.latest_passport_id:
+ * the selected passport may differ in order-related contexts.
+ */
 export default function CatalogPassportActions({ passportId, passportSummary, productName }) {
     const [loading, setLoading] = useState(false)
     const [snackbar, setSnackbar] = useState({ open: false, message: '', severity: 'error' })
@@ -42,7 +51,6 @@ export default function CatalogPassportActions({ passportId, passportSummary, pr
                 })
             } catch (error) {
                 if (error.name === 'AbortError') return
-
                 console.warn('Native PDF saving unavailable; using browser download', error)
             }
         }
@@ -60,11 +68,7 @@ export default function CatalogPassportActions({ passportId, passportSummary, pr
         setLoading(true)
         try {
             const response = await api.get(`/api/catalog/quality-passports/${passportId}/`)
-            const passport = response.data
-
-            if (!passport?.id || !Array.isArray(passport.specifications)) {
-                throw new Error('INCOMPLETE_PASSPORT_DATA')
-            }
+            const passport = requireCompleteQualityPassport(response.data)
 
             await exportQualityPassport(passport, { mode, previewWindow, fileHandle })
         } catch (error) {

@@ -5,7 +5,9 @@ const zipDate = 0
 
 const crcTable = Array.from({ length: 256 }, (_, i) => {
     let crc = i
-    for (let j = 0; j < 8; j += 1) crc = crc & 1 ? 0xedb88320 ^ (crc >>> 1) : crc >>> 1
+    for (let j = 0; j < 8; j += 1) {
+        crc = crc & 1 ? 0xedb88320 ^ (crc >>> 1) : crc >>> 1
+    }
     return crc >>> 0
 })
 
@@ -116,7 +118,9 @@ export async function saveFilesInChosenFolder(files, folderName, onProgress = ()
         } catch (error) {
             try {
                 await writable.abort()
-            } catch {}
+            } catch {
+                /* ignore secondary cleanup error */
+            }
             throw error
         }
         saved += 1
