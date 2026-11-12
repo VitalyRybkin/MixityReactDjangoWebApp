@@ -1,10 +1,7 @@
 from urllib.parse import urlencode
 
 from django.contrib import admin
-from django.db.models import OuterRef, QuerySet, Subquery
-from django.http import HttpRequest
 from django.urls import reverse
-from django.utils import timezone
 from django.utils.html import format_html
 
 from catalog.models import (
@@ -96,22 +93,6 @@ class ProductSpecificationAdmin(BaseAdmin):
         "-effective_from",
     )
 
-    def has_change_permission(
-        self,
-        request: HttpRequest,
-        obj: ProductSpecification | None = None,
-    ) -> bool:
-        if obj is not None:
-            return False
-        return super().has_change_permission(request, obj)
-
-    def has_delete_permission(
-        self,
-        request: HttpRequest,
-        obj: ProductSpecification | None = None,
-    ) -> bool:
-        return False
-
 
 class ProductSpecificationInline(admin.TabularInline):
     model = ProductSpecification
@@ -126,35 +107,13 @@ class ProductSpecificationInline(admin.TabularInline):
         "new_version",
     )
 
-    readonly_fields = fields
+    readonly_fields = ("new_version",)
 
-    can_delete = False
+    can_delete = True
     show_change_link = True
 
-    def has_add_permission(
-        self,
-        request: HttpRequest,
-        obj: Product | None = None,
-    ) -> bool:
-        return False
-
-    def get_queryset(
-        self,
-        request: HttpRequest,
-    ) -> QuerySet[ProductSpecification]:
-        queryset = super().get_queryset(request)
-
-        latest = (
-            ProductSpecification.objects.filter(
-                product_id=OuterRef("product_id"),
-                name_id=OuterRef("name_id"),
-                effective_from__lte=timezone.localdate(),
-            )
-            .order_by("-effective_from", "-pk")
-            .values("pk")[:1]
-        )
-
-        return queryset.filter(pk=Subquery(latest)).select_related("name", "unit")
+    # Показываем все версии: старые даты тоже можно редактировать и удалять.
+    ordering = ("name__group__order", "name__order", "-effective_from", "-pk")
 
     @admin.display(description="Новая версия")
     def new_version(

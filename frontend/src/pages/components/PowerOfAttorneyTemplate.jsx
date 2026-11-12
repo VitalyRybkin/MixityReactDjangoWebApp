@@ -1,4 +1,4 @@
-import '../pages/utils/PowerOfAttorney.css'
+import '../utils/PowerOfAttorney.css'
 
 function getQuantity(item) {
     return item.piece_based_quantity ?? item.weight_quantity ?? ''
