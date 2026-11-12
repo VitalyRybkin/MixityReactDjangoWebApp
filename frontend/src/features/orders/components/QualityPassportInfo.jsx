@@ -1,13 +1,12 @@
 import { useState } from 'react'
 
-import { Box, Button, CircularProgress, Dialog, DialogActions, DialogContent, DialogTitle, Typography } from '@mui/material'
+import { Box, CircularProgress, Typography } from '@mui/material'
 
 import RenewAction from '../../../components/ui/buttons/RenewAction.jsx'
-import ViewAction from '../../../components/ui/buttons/ViewAction.jsx'
-
 import { useGetQualityPassportState } from '../utils/qualityPassports.queries.js'
 
 import NewQualityPassportDialog from './NewQualityPassportDialog.jsx'
+import OrderPassportPreviewAction from './OrderPassportPreviewAction.jsx'
 import QualityPassportUsageBar, { formatPassportTons } from './QualityPassportUsageBar.jsx'
 
 const safeQuantity = (value) => {
@@ -33,7 +32,6 @@ export default function QualityPassportInfo({
     pendingPassport = null,
     onPassportChange,
 }) {
-    const [viewOpen, setViewOpen] = useState(false)
     const [renewOpen, setRenewOpen] = useState(false)
 
     const { data, isPending, isError } = useGetQualityPassportState({
@@ -82,22 +80,27 @@ export default function QualityPassportInfo({
     const isProjection = Math.abs(projectedUsed - used) > 0.000001
     const orderQuantityValue = Number(String(quantity ?? '').replace(',', '.'))
     const rowQuantityTons = Number.isFinite(orderQuantityValue)
-        ? Math.max(0, product?.is_piece_based
-            ? (orderQuantityValue * Number(product?.product_unit?.value || 0)) / 1000
-            : orderQuantityValue)
+        ? Math.max(
+              0,
+              product?.is_piece_based
+                  ? (orderQuantityValue * Number(product?.product_unit?.value || 0)) / 1000
+                  : orderQuantityValue,
+          )
         : 0
-    const displayedUsed = showPrepared ? rowQuantityTons : (isProjection ? projectedUsed : used)
+    const displayedUsed = showPrepared ? rowQuantityTons : isProjection ? projectedUsed : used
     const displayedRemaining = showPrepared
         ? issued - rowQuantityTons
-        : (isProjection ? issued - projectedUsed : Number(data.remaining_quantity ?? issued - used))
+        : isProjection
+          ? issued - projectedUsed
+          : Number(data.remaining_quantity ?? issued - used)
     const canRenew = !readOnly && !isHistorical && !isDraft && data.can_issue_new_passport !== false
 
     return (
         <Box sx={{ mt: 0.75, mb: 0.5, px: 1, maxWidth: 900 }}>
-            {/* Первая строка: реквизиты и остаток (фактический или с учётом формы). */}
             <Box sx={{ display: 'flex', alignItems: 'center', columnGap: 2.5, rowGap: 0.5, flexWrap: 'wrap' }}>
                 <Typography variant="caption" sx={{ fontWeight: 600, whiteSpace: 'nowrap' }}>
-                    {showPrepared ? 'Новый паспорт № ' : 'Паспорт № '}{displayedPassport.number}
+                    {showPrepared ? 'Новый паспорт № ' : 'Паспорт № '}
+                    {displayedPassport.number}
                 </Typography>
                 <Typography variant="caption" color="text.secondary" sx={{ whiteSpace: 'nowrap' }}>
                     Дата: {formatPassportDate(displayedPassport.issue_date)}
@@ -115,11 +118,16 @@ export default function QualityPassportInfo({
                 </Typography>
             </Box>
 
-            {/* Вторая строка: шкала и действия. «Обновить» = выпуск нового паспорта, не refetch. */}
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mt: 0.25, flexWrap: 'wrap' }}>
                 <QualityPassportUsageBar issued={issued} used={displayedUsed} />
                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5, ml: 'auto' }}>
-                    <ViewAction size="small" onClick={() => setViewOpen(true)} />
+                    <OrderPassportPreviewAction
+                        productId={productId}
+                        quantity={quantity}
+                        orderId={orderId}
+                        targetStatus={targetStatus}
+                        pendingPassport={pendingPassport}
+                    />
                     {!readOnly && !isHistorical && (
                         <RenewAction
                             size="small"
@@ -133,7 +141,11 @@ export default function QualityPassportInfo({
             </Box>
 
             {pendingPassport && (
-                <Typography variant="caption" color={isDraft ? 'error.main' : 'primary.main'} sx={{ display: 'block', mt: 0.5 }}>
+                <Typography
+                    variant="caption"
+                    color={isDraft ? 'error.main' : 'primary.main'}
+                    sx={{ display: 'block', mt: 0.5 }}
+                >
                     {isDraft
                         ? 'Для создания нового паспорта измените статус заявки с «Черновик».'
                         : 'Будет создан при сохранении заявки.'}
@@ -160,34 +172,6 @@ export default function QualityPassportInfo({
                     }}
                 />
             )}
-
-            <Dialog open={viewOpen} onClose={() => setViewOpen(false)} fullWidth maxWidth="xs">
-                <DialogTitle>{showPrepared ? 'Подготовленный паспорт № ' : 'Паспорт качества № '}{displayedPassport.number}</DialogTitle>
-                <DialogContent>
-                    {showPrepared && (
-                        <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mt: 0.5 }}>
-                            Паспорт пока не выпущен. Он будет создан после сохранения заявки.
-                        </Typography>
-                    )}
-                    <Box sx={{ display: 'grid', gridTemplateColumns: 'auto 1fr', columnGap: 2, rowGap: 1, mt: 1 }}>
-                        <Typography variant="body2" color="text.secondary">Дата выдачи</Typography>
-                        <Typography variant="body2">{formatPassportDate(displayedPassport.issue_date)}</Typography>
-                        <Typography variant="body2" color="text.secondary">Номер партии</Typography>
-                        <Typography variant="body2">{displayedPassport.batch_number || '—'}</Typography>
-                        <Typography variant="body2" color="text.secondary">Дата изготовления</Typography>
-                        <Typography variant="body2">{formatPassportDate(displayedPassport.production_date)}</Typography>
-                        <Typography variant="body2" color="text.secondary">Количество</Typography>
-                        <Typography variant="body2">{formatPassportTons(issued)}</Typography>
-                        <Typography variant="body2" color="text.secondary">Использовано</Typography>
-                        <Typography variant="body2">{formatPassportTons(showPrepared ? displayedUsed : used)}</Typography>
-                        <Typography variant="body2" color="text.secondary">Остаток</Typography>
-                        <Typography variant="body2">{formatPassportTons(showPrepared ? displayedRemaining : (data.remaining_quantity ?? issued - used))}</Typography>
-                    </Box>
-                </DialogContent>
-                <DialogActions>
-                    <Button type="button" onClick={() => setViewOpen(false)}>Закрыть</Button>
-                </DialogActions>
-            </Dialog>
         </Box>
     )
 }

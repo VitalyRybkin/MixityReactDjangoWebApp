@@ -14,10 +14,19 @@ function getName(value) {
     return value.organization || value.name || ''
 }
 
-function formatDate(date) {
+function formatDate(date, addDays = 0) {
     if (!date) return ''
 
-    return new Date(date).toLocaleDateString('ru-RU')
+    // ISO date from the order API. Use UTC arithmetic so the result does not
+    // shift when users in different time zones generate the same document.
+    const match = String(date).match(/^(\d{4})-(\d{2})-(\d{2})/)
+    if (!match) return ''
+
+    const [, year, month, day] = match
+    const value = new Date(Date.UTC(Number(year), Number(month) - 1, Number(day)))
+    value.setUTCDate(value.getUTCDate() + addDays)
+
+    return `${String(value.getUTCDate()).padStart(2, '0')}.${String(value.getUTCMonth() + 1).padStart(2, '0')}.${value.getUTCFullYear()}`
 }
 
 export default function PowerOfAttorney({ order }) {
@@ -42,7 +51,7 @@ export default function PowerOfAttorney({ order }) {
                     </div>
                     <div>
                         <span>Действительна до:</span>
-                        <b>{formatDate(order.delivery_date)}</b>
+                        <b>{formatDate(order.delivery_date, 3)}</b>
                     </div>
                 </div>
 

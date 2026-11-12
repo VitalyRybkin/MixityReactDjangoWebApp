@@ -10,7 +10,7 @@ export function formatFilteringDate(dateStr, includeYear = false) {
     return `${day}.${month}`
 }
 
-export async function exportOrdersToExcel(orders, filters, warehouses) {
+export async function prepareOrdersExcelFile(orders, filters, warehouses) {
     const jsonData = Array.isArray(orders) ? orders : Array.isArray(orders?.results) ? orders.results : []
 
     if (!jsonData.length) {
@@ -170,8 +170,14 @@ export async function exportOrdersToExcel(orders, filters, warehouses) {
 
     const warehouseStr = warehouseName ? `_склад_${warehouseName}` : '_ВСЕ_СКЛАДЫ'
 
-    saveAs(
-        new Blob([buffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' }),
-        `заявки${warehouseStr}_${dateStr}.xlsx`,
-    )
+    return {
+        filename: `заявки${warehouseStr}_${dateStr}.xlsx`,
+        blob: new Blob([buffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' }),
+    }
+}
+
+// Keep the existing individual Excel download available to other screens.
+export async function exportOrdersToExcel(orders, filters, warehouses) {
+    const file = await prepareOrdersExcelFile(orders, filters, warehouses)
+    saveAs(file.blob, file.filename)
 }

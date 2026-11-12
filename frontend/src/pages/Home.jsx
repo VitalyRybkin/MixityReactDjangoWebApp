@@ -1,7 +1,7 @@
 import React, { useMemo, useState } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
 
-import { Box, Container, Divider } from '@mui/material'
+import { Alert, Backdrop, Box, Button, CircularProgress, Container, Dialog, DialogActions, DialogContent, DialogTitle, Divider, Typography } from '@mui/material'
 import { DataGrid } from '@mui/x-data-grid'
 
 import AppBreadcrumbs from '../components/AppBreadcrumbs.jsx'
@@ -27,8 +27,10 @@ import { useAuth } from './auth/context/AuthContext.jsx'
 import { PERMISSIONS } from './auth/permissions.js'
 import CustomPagination from './components/CustomPagination.jsx'
 import FilterSidebar from './components/FilterSidebar.jsx'
-import { exportOrdersToExcel, formatFilteringDate } from './utils/exportOrders.js'
-import { exportPowerOfAttorney } from './utils/exportPowerOfAttorney.jsx'
+import { formatFilteringDate, prepareOrdersExcelFile } from './utils/exportOrders.js'
+import { getAssignedDriverName, preparePowerOfAttorneyFiles } from './utils/exportPowerOfAttorney.jsx'
+import { prepareQualityPassportFiles } from './utils/exportQualityPassports.jsx'
+import { buildExportFolderName, buildZipBlob, canChooseExportDirectory, downloadPreparedZip, saveFilesInChosenFolder, validateExportFileNames } from './utils/saveExportFiles.js'
 import { getHomeGridOrderColumns } from './utils/home_order.columns.jsx'
 import { formatDate } from './utils/orders.date-filters.js'
 
@@ -62,19 +64,31 @@ const Home = () => {
     const location = useLocation()
 
     const [sidebarOpen, setSidebarOpen] = useState(false)
+    const [exportingDocuments, setExportingDocuments] = useState(false)
+    const [preparedExport, setPreparedExport] = useState(null)
+    const [savedCount, setSavedCount] = useState(0)
 
-    const [snackbar, setSnackbar] = useState({
-        open: false,
-        message: '',
-        severity: 'success',
-    })
+    const [snackbarQueue, setSnackbarQueue] = useState([])
+    const currentSnackbar = snackbarQueue[0] ?? null
 
     const showSnackbar = (message, severity = 'success') => {
-        setSnackbar({
-            open: true,
-            message,
-            severity,
-        })
+        setSnackbarQueue([{ id: crypto.randomUUID(), message, severity }])
+    }
+
+    const showExportSnackbars = ({ orderCount, fileCount, missingDriverIds, usedDirectory }) => {
+        const successMessage = usedDirectory
+            ? `Выгрузка завершена. Заявок: ${orderCount}, сохранено файлов: ${fileCount}.`
+            : `Выгрузка подготовлена. Заявок: ${orderCount}, файлов в ZIP: ${fileCount}.`
+
+        const notifications = [{ id: crypto.randomUUID(), message: successMessage, severity: 'success' }]
+        if (missingDriverIds.length) {
+            notifications.push({
+                id: crypto.randomUUID(),
+                message: `Не назначен водитель в заявках — № ${missingDriverIds.join(', № ')}.`,
+                severity: 'warning',
+            })
+        }
+        setSnackbarQueue(notifications)
     }
 
     const {
@@ -90,7 +104,12 @@ const Home = () => {
     const { data: orders, isPending: loadingOrders, isError: ordersError } = useGetOrders(formattedFilters)
     const { data: customers } = useGetCustomers()
     const { data: warehouses } = useGetWarehouses()
-    const { refetch: fetchDownload, isFetching: isDownloading } = useExportOrders(formattedFilters)
+
+    const { refetch: fetchDownload, isFetching: isDownloading } = useExportOrders({
+        ...formattedFilters,
+        status: 'created',
+    })
+    const exportLocked = exportingDocuments || isDownloading || Boolean(preparedExport)
     const uploadUpd = useUploadUpd()
     const { orderToDelete, setOrderToDelete, handleConfirmDelete, isDeleting } = useDeleteOrderFlow(() =>
         showSnackbar('Заявка удалена'),
@@ -122,48 +141,111 @@ const Home = () => {
             getHomeGridOrderColumns({
                 onDelete: setOrderToDelete,
                 onUploadUpd: handleUploadUpd,
-                canDelete: canDeleteOrders,
-                canManageUpd: canManageOrderUpd,
+                canDelete: canDeleteOrders && !exportLocked,
+                canManageUpd: canManageOrderUpd && !exportLocked,
             }),
-        [setOrderToDelete, handleUploadUpd, canDeleteOrders, canManageOrderUpd],
+        [setOrderToDelete, handleUploadUpd, canDeleteOrders, canManageOrderUpd, exportLocked],
     )
 
     const handleExport = async () => {
-        const warehouseList = warehouses ?? []
+        if (exportingDocuments || preparedExport) return
 
-        if (!warehouseList.some((warehouse) => warehouse.id === formattedFilters.warehouseId)) {
+        const warehouseList = warehouses ?? []
+        if (!warehouseList.some((warehouse) => String(warehouse.id) === String(formattedFilters.warehouseId))) {
             showSnackbar('Склад не выбран!', 'error')
             return
         }
-
-        if (formattedFilters.status !== 'in_progress') {
-            showSnackbar('Экспорт только для заявок в статусе "В работе"', 'error')
+        if (formattedFilters.status && formattedFilters.status !== 'created') {
+            showSnackbar('Неправильная фильтрация заявок: выберите статус «Создана» или «Все».', 'error')
             return
         }
 
+        setExportingDocuments(true)
+        setSavedCount(0)
         try {
-            const { data } = await fetchDownload()
-
-            const exportOrders = Array.isArray(data) ? data : Array.isArray(data?.results) ? data.results : []
-
-            if (!exportOrders.length) {
-                showSnackbar('Нет заявок для экспорта.', 'info')
+            const { data, error } = await fetchDownload()
+            if (error) throw error
+            const received = Array.isArray(data) ? data : Array.isArray(data?.results) ? data.results : []
+            // Never include orders of another status, even if backend filtering changes.
+            const selected = received.filter((order) => order.status === 'created')
+            if (!selected.length) {
+                showSnackbar('Нет заявок для выгрузки.', 'info')
                 return
             }
 
-            await exportOrdersToExcel(exportOrders, formattedFilters, warehouseList)
-            await exportPowerOfAttorney(exportOrders)
-        } catch {
-            showSnackbar('Ошибка при экспорте.', 'error')
+            const missingDriverIds = selected
+                .filter((order) => !getAssignedDriverName(order))
+                .map((order) => order.id)
+
+            const excel = await prepareOrdersExcelFile(selected, { ...formattedFilters, status: 'created' }, warehouseList)
+            const powersOfAttorney = await preparePowerOfAttorneyFiles(selected)
+            const qualityPassports = await prepareQualityPassportFiles(selected)
+            const files = [excel, ...powersOfAttorney, ...qualityPassports]
+            validateExportFileNames(files)
+
+            const zipBlob = canChooseExportDirectory() ? null : await buildZipBlob(files)
+            setPreparedExport({
+                files,
+                zipBlob,
+                folderName: buildExportFolderName(),
+                orderCount: selected.length,
+                powerCount: powersOfAttorney.length,
+                passportCount: qualityPassports.length,
+                missingDriverIds,
+            })
+        } catch (error) {
+            console.error('Ошибка подготовки документов заявок:', error)
+            showSnackbar('Не удалось подготовить документы. Файлы не сохранялись.', 'error')
+        } finally {
+            setExportingDocuments(false)
+        }
+    }
+
+    const handleSavePreparedExport = async () => {
+        if (!preparedExport || exportingDocuments) return
+        setSavedCount(0)
+        const { files, folderName, missingDriverIds, zipBlob, orderCount } = preparedExport
+        const useDirectory = canChooseExportDirectory()
+        setExportingDocuments(true)
+
+        try {
+            if (useDirectory) {
+                await saveFilesInChosenFolder(files, folderName, setSavedCount)
+            } else {
+                downloadPreparedZip(zipBlob, folderName)
+            }
+
+            setPreparedExport(null)
+            showExportSnackbars({
+                orderCount,
+                fileCount: files.length,
+                missingDriverIds,
+                usedDirectory: useDirectory,
+            })
+        } catch (error) {
+            if (error?.name !== 'AbortError') {
+                console.error('Ошибка сохранения документов:', error)
+                showSnackbar('Ошибка записи документов. Проверьте выбранную папку и повторите сохранение.', 'error')
+            }
+        } finally {
+            setExportingDocuments(false)
         }
     }
 
     const handleOpenOrder = (id) => {
+        if (exportLocked) return
         navigate(canChangeOrders ? `/orders/${id}/edit` : `/orders/${id}`)
     }
 
     return (
         <Box sx={sidebarPageSx.page}>
+            <Backdrop
+                open={exportingDocuments && !preparedExport}
+                sx={{ zIndex: (theme) => theme.zIndex.modal + 1, color: '#fff', flexDirection: 'column', gap: 1.5 }}
+            >
+                <CircularProgress color="inherit" />
+                <Typography variant="body2">Подготовка документов…</Typography>
+            </Backdrop>
             <FilterSidebar
                 open={sidebarOpen}
                 setOpen={setSidebarOpen}
@@ -191,10 +273,10 @@ const Home = () => {
                                 <Can permission={PERMISSIONS.orders.export}>
                                     <Box sx={sx.exportAction}>
                                         <DownloadAction
-                                            title="Экспорт заявок и доверенностей"
+                                            title="Экспорт заявок, доверенностей и паспортов качества"
                                             onClick={handleExport}
-                                            disabled={isDownloading || loadingOrders || uploadUpd.isPending}
-                                            loading={isDownloading || loadingOrders}
+                                            disabled={exportLocked || loadingOrders || uploadUpd.isPending}
+                                            loading={exportingDocuments || isDownloading || loadingOrders}
                                         />
                                     </Box>
                                 </Can>
@@ -208,7 +290,7 @@ const Home = () => {
                                                 },
                                             })
                                         }
-                                        disabled={loadingOrders || uploadUpd.isPending}
+                                        disabled={exportLocked || loadingOrders || uploadUpd.isPending}
                                         loading={loadingOrders}
                                     />
                                 </Can>
@@ -247,8 +329,8 @@ const Home = () => {
                         onOpen={handleOpenOrder}
                         onDelete={setOrderToDelete}
                         onUploadUpd={handleUploadUpd}
-                        canDelete={canDeleteOrders}
-                        canManageUpd={canManageOrderUpd}
+                        canDelete={canDeleteOrders && !exportLocked}
+                        canManageUpd={canManageOrderUpd && !exportLocked}
                     />
 
                     <Box sx={sx.desktopGrid}>
@@ -279,6 +361,56 @@ const Home = () => {
                         />
                     </Box>
 
+                    <Dialog
+                        open={Boolean(preparedExport)}
+                        onClose={() => {
+                            if (!exportingDocuments) setPreparedExport(null)
+                        }}
+                        maxWidth="sm"
+                        fullWidth
+                    >
+                        <DialogTitle sx={{ px: { xs: 3, sm: 5 }, pt: 3, pb: 1 }}>
+                            Подготовлено для выгрузки:
+                        </DialogTitle>
+                        <DialogContent sx={{ px: { xs: 3, sm: 5 }, pt: 1, pb: 1 }}>
+                            {preparedExport && (
+                                <>
+                                    <Typography variant="body2" sx={{ mb: 2 }}>
+                                        Количество заявок — {preparedExport.orderCount}
+                                    </Typography>
+                                    <Typography variant="body2" sx={{ fontWeight: 600, mb: 0.75 }}>
+                                        Файлы для выгрузки:
+                                    </Typography>
+                                    <Box sx={{ display: 'grid', gap: 0.5 }}>
+                                        <Typography variant="body2">Заявки (Excel) — 1</Typography>
+                                        <Typography variant="body2">Доверенности — {preparedExport.powerCount}</Typography>
+                                        <Typography variant="body2">
+                                            Паспорта качества — {preparedExport.passportCount}
+                                        </Typography>
+                                    </Box>
+                                    {preparedExport.missingDriverIds.length > 0 && (
+                                        <Alert severity="warning" sx={{ mt: 2.5 }}>
+                                            Не назначен водитель в заявках — № {preparedExport.missingDriverIds.join(', № ')}.
+                                        </Alert>
+                                    )}
+                                    {exportingDocuments && canChooseExportDirectory() && (
+                                        <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mt: 2 }}>
+                                            Сохранено файлов: {savedCount} из {preparedExport.files.length}
+                                        </Typography>
+                                    )}
+                                </>
+                            )}
+                        </DialogContent>
+                        <DialogActions sx={{ px: { xs: 3, sm: 5 }, pt: 1.5, pb: 3, gap: 1 }}>
+                            <Button disabled={exportingDocuments} onClick={() => setPreparedExport(null)}>
+                                Отмена
+                            </Button>
+                            <Button variant="contained" disabled={exportingDocuments} onClick={handleSavePreparedExport}>
+                                {canChooseExportDirectory() ? 'Выбрать папку и сохранить' : 'Скачать ZIP'}
+                            </Button>
+                        </DialogActions>
+                    </Dialog>
+
                     <ConfirmDialog
                         open={Boolean(orderToDelete)}
                         title="Удалить заявку?"
@@ -291,15 +423,11 @@ const Home = () => {
                     />
 
                     <AppSnackbar
-                        open={snackbar.open}
-                        message={snackbar.message}
-                        severity={snackbar.severity}
-                        onClose={() =>
-                            setSnackbar((prev) => ({
-                                ...prev,
-                                open: false,
-                            }))
-                        }
+                        key={currentSnackbar?.id ?? 'none'}
+                        open={Boolean(currentSnackbar)}
+                        message={currentSnackbar?.message ?? ''}
+                        severity={currentSnackbar?.severity ?? 'success'}
+                        onClose={() => setSnackbarQueue((queue) => queue.slice(1))}
                     />
                 </Container>
             </Box>
