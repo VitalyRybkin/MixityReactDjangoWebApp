@@ -1,8 +1,13 @@
+import { useEffect } from 'react'
+
+import { useQueryClient } from '@tanstack/react-query'
+
 import {
     Navigate,
     Outlet,
     Route,
     RouterProvider,
+    useNavigate,
     createBrowserRouter,
     createRoutesFromElements,
 } from 'react-router-dom'
@@ -46,9 +51,22 @@ import { AuthProvider } from './pages/auth/context/AuthContext.jsx'
 import { PERMISSIONS } from './pages/auth/permissions.js'
 
 function Logout() {
-    localStorage.removeItem(ACCESS_TOKEN)
-    localStorage.removeItem(REFRESH_TOKEN)
-    return <Navigate to="/login" replace />
+    const navigate = useNavigate()
+    const queryClient = useQueryClient()
+
+    useEffect(() => {
+        // Revoke local credentials before leaving the private area.
+        localStorage.removeItem(ACCESS_TOKEN)
+        localStorage.removeItem(REFRESH_TOKEN)
+
+        // Stop background reads and discard everything cached for this session.
+        void queryClient.cancelQueries()
+        queryClient.clear()
+
+        navigate('/login', { replace: true })
+    }, [navigate, queryClient])
+
+    return null
 }
 
 function AuthenticatedApp() {

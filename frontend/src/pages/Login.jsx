@@ -1,7 +1,10 @@
+// Login page that exchanges credentials for stored authentication tokens.
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 
 import { Alert, Box, Button, Container, Paper, TextField, Typography } from '@mui/material'
+
+import { useQueryClient } from '@tanstack/react-query'
 
 import api from '../api.js'
 import ThemeToggle from '../components/ThemeToggle.jsx'
@@ -15,13 +18,16 @@ const sx = {
     submit: { py: 1.4, borderRadius: 3, fontWeight: 600, textTransform: 'none' },
 }
 
+// Renders the login form, loading state, and authentication errors.
 const Login = () => {
     const navigate = useNavigate()
+    const queryClient = useQueryClient()
     const [username, setUsername] = useState('')
     const [password, setPassword] = useState('')
     const [error, setError] = useState('')
     const [loading, setLoading] = useState(false)
 
+    // Requests tokens, stores them on success, and redirects home or shows an error.
     const onSubmit = async (e) => {
         e.preventDefault()
         setError('')
@@ -32,6 +38,10 @@ const Login = () => {
                 username,
                 password,
             })
+
+            // No data from the previous authenticated session may survive the account change.
+            await queryClient.cancelQueries()
+            queryClient.clear()
 
             localStorage.removeItem(ACCESS_TOKEN)
             localStorage.removeItem(REFRESH_TOKEN)
@@ -76,7 +86,10 @@ const Login = () => {
                         <TextField
                             label="Логин"
                             value={username}
-                            onChange={(e) => setUsername(e.target.value)}
+                            onChange={
+                                // Keeps the username state in sync with the input.
+                                (e) => setUsername(e.target.value)
+                            }
                             autoComplete="username"
                             fullWidth
                             required
@@ -86,7 +99,10 @@ const Login = () => {
                             label="Пароль"
                             type="password"
                             value={password}
-                            onChange={(e) => setPassword(e.target.value)}
+                            onChange={
+                                // Keeps the password state in sync with the input.
+                                (e) => setPassword(e.target.value)
+                            }
                             autoComplete="current-password"
                             fullWidth
                             required

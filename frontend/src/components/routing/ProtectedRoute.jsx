@@ -1,8 +1,8 @@
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useState } from 'react'
 import { Navigate } from 'react-router-dom'
 
 import { Box, CircularProgress, Typography } from '@mui/material'
-
+import { useQueryClient } from '@tanstack/react-query'
 import { jwtDecode } from 'jwt-decode'
 
 import { refreshAccessToken } from '../../api.js'
@@ -11,60 +11,60 @@ import { ACCESS_TOKEN, REFRESH_TOKEN } from '../../constants.js'
 const SKEW_SECONDS = 30
 
 function ProtectedRoute({ children }) {
+    const queryClient = useQueryClient()
     const [isAuthorized, setIsAuthorized] = useState(null)
-    const ranRef = useRef(false)
 
     useEffect(() => {
-        if (ranRef.current) return
+        let cancelled = false
 
-        ranRef.current = true
-        ;(async () => {
-            try {
-                await auth()
-            } catch {
-                setIsAuthorized(false)
+        const refreshAtStart = localStorage.getItem(REFRESH_TOKEN)
+
+        const invalidateSession = () => {
+            if (cancelled) return
+            // The session could have changed while an old token was refreshing.
+            if (localStorage.getItem(REFRESH_TOKEN) !== refreshAtStart) {
+                if (!localStorage.getItem(REFRESH_TOKEN)) setIsAuthorized(false)
+                return
             }
-        })()
-    }, [])
 
-    const refreshToken = async () => {
-        try {
-            await refreshAccessToken()
-            setIsAuthorized(true)
-        } catch {
-            setIsAuthorized(false)
-        }
-    }
-
-    const auth = async () => {
-        const token = localStorage.getItem(ACCESS_TOKEN)
-
-        if (!token) {
-            setIsAuthorized(false)
-            return
-        }
-
-        let decoded
-
-        try {
-            decoded = jwtDecode(token)
-        } catch {
             localStorage.removeItem(ACCESS_TOKEN)
             localStorage.removeItem(REFRESH_TOKEN)
-
+            void queryClient.cancelQueries()
+            queryClient.clear()
             setIsAuthorized(false)
-            return
         }
 
-        const exp = decoded?.exp
-        const now = Date.now() / 1000
+        const checkAuthorization = async () => {
+            const token = localStorage.getItem(ACCESS_TOKEN)
 
-        if (!exp || exp - now < SKEW_SECONDS) {
-            await refreshToken()
-        } else {
-            setIsAuthorized(true)
+            if (!token) {
+                invalidateSession()
+                return
+            }
+
+            try {
+                const decoded = jwtDecode(token)
+                const expiresAt = decoded?.exp
+                const now = Date.now() / 1000
+
+                if (!expiresAt || expiresAt - now < SKEW_SECONDS) {
+                    await refreshAccessToken()
+                }
+
+                if (!cancelled) {
+                    setIsAuthorized(true)
+                }
+            } catch {
+                invalidateSession()
+            }
         }
-    }
+
+        void checkAuthorization()
+
+        return () => {
+            cancelled = true
+        }
+    }, [queryClient])
 
     if (isAuthorized === null) {
         return (
