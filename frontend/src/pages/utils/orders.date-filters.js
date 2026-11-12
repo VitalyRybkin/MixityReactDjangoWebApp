@@ -1,5 +1,9 @@
+// Builds local date strings and calendar ranges for order filter presets.
+
+// Formats a date as a local YYYY-MM-DD string.
 export const formatDate = (date) => date.toLocaleDateString('en-CA')
 
+// Returns Monday at midnight for the date's week.
 export const getStartOfWeek = (date) => {
     const d = new Date(date)
     const day = d.getDay()
@@ -9,6 +13,7 @@ export const getStartOfWeek = (date) => {
     return d
 }
 
+// Returns Sunday at midnight for the date's week.
 export const getEndOfWeek = (date) => {
     const start = getStartOfWeek(date)
     const end = new Date(start)
@@ -17,18 +22,21 @@ export const getEndOfWeek = (date) => {
     return end
 }
 
+// Returns the first day of the date's month at midnight.
 export const getStartOfMonth = (date) => {
     const d = new Date(date.getFullYear(), date.getMonth(), 1)
     d.setHours(0, 0, 0, 0)
     return d
 }
 
+// Returns the last day of the date's month at midnight.
 export const getEndOfMonth = (date) => {
     const d = new Date(date.getFullYear(), date.getMonth() + 1, 0)
     d.setHours(0, 0, 0, 0)
     return d
 }
 
+// Resolves a named preset into dateFrom and dateTo filter values.
 export const getPresetRange = (preset) => {
     const now = new Date()
 

@@ -113,8 +113,8 @@ export const fetchExportOrders = async ({ dateFrom, dateTo, status, customerId, 
     if (dateFrom) params.date_from = dateFrom
     if (dateTo) params.date_to = dateTo
     if (status) params.status = status
-    if (customerId) params.customer = customerId
-    if (warehouseId) params.warehouse = warehouseId
+    if (customerId) params.customer_id = customerId
+    if (warehouseId) params.warehouse_id = warehouseId
 
     const res = await api.get(orderApiPaths.download(), { params })
     return unwrapList(res.data)

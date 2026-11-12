@@ -1,3 +1,4 @@
+// Permission identifiers used to control access to application features.
 export const PERMISSIONS = {
     orders: {
         view: 'order.view_order',

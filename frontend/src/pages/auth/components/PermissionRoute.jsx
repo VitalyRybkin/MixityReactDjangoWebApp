@@ -1,7 +1,9 @@
+// Protects nested routes using the current user's permissions.
 import { Navigate, Outlet, useLocation } from 'react-router-dom'
 
 import { useAuth } from '../context/AuthContext.jsx'
 
+// Waits for authentication data, then renders the route or redirects denied access to /403.
 export default function PermissionRoute({ permission, any = [], all = [] }) {
     const { hasPermission, hasAnyPermission, hasAllPermissions, isLoading } = useAuth()
 

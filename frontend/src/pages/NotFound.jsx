@@ -1,3 +1,4 @@
+// Missing-page screen with theme-aware styling and a link back home.
 import { Link as RouterLink } from 'react-router-dom'
 
 import { Box, Button, Container, Paper, Typography } from '@mui/material'
@@ -11,6 +12,7 @@ const sx = {
         justifyContent: 'center',
     },
 
+    // Styles the translucent error card using the active theme.
     card: (theme) => ({
         p: { xs: 4, md: 6 },
         textAlign: 'center',
@@ -21,6 +23,7 @@ const sx = {
         boxShadow: theme.shadows[10],
     }),
 
+    // Applies a theme-colored gradient to the 404 heading.
     code: (theme) => ({
         fontWeight: 800,
         fontSize: { xs: '4.5rem', md: '6rem' },
@@ -44,6 +47,7 @@ const sx = {
     },
 }
 
+// Displays the 404 message and a button to return to the home page.
 const NotFound = () => {
     return (
         <Box sx={sx.page}>

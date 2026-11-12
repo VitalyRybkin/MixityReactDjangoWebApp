@@ -1,3 +1,5 @@
+// Renders order power-of-attorney templates into named PDF files for export.
+
 import { flushSync } from 'react-dom'
 import { createRoot } from 'react-dom/client'
 
@@ -5,6 +7,7 @@ import html2pdf from 'html2pdf.js'
 
 import PowerOfAttorneyTemplate from '../components/PowerOfAttorneyTemplate'
 
+// Reads an assigned driver's name and ignores empty placeholder values.
 export function getAssignedDriverName(order) {
     const value = order?.driver
     const raw = typeof value === 'string' ? value : (value?.full_name ?? value?.name ?? '')
@@ -12,18 +15,21 @@ export function getAssignedDriverName(order) {
     return name && name !== '-' && name !== '—' ? name : ''
 }
 
+// Removes unsafe filename characters and limits the name length.
 const safeFilenamePart = (value) =>
     String(value)
         .replace(/[\\/:*?"<>|\x00-\x1F]/g, '_')
         .replace(/\s+/g, '_')
         .slice(0, 90)
 
+// Builds a PDF filename using the order ID and assigned driver.
 export const powerOfAttorneyFilename = (order) => {
     const driver = getAssignedDriverName(order)
     const name = driver ? safeFilenamePart(driver) : 'водитель_не_назначен'
     return `Доверенность_${order.id}_${name}.pdf`
 }
 
+// Renders an order's template offscreen and returns its PDF file.
 export async function preparePowerOfAttorneyFile(order) {
     const container = document.createElement('div')
     container.style.position = 'fixed'
@@ -39,9 +45,15 @@ export async function preparePowerOfAttorneyFile(order) {
     document.body.appendChild(container)
     const root = createRoot(container)
     try {
-        flushSync(() => root.render(<PowerOfAttorneyTemplate order={order} />))
+        flushSync(
+            // Mounts the template synchronously before PDF capture.
+            () => root.render(<PowerOfAttorneyTemplate order={order} />),
+        )
         if (document.fonts?.ready) await document.fonts.ready
-        await new Promise((resolve) => setTimeout(resolve, 300))
+        await new Promise(
+            // Allows the rendered template to settle before capture.
+            (resolve) => setTimeout(resolve, 300),
+        )
 
         const poaPage = container.querySelector('.poa-page')
         if (!poaPage) throw new Error(`Не найден шаблон доверенности заявки № ${order.id}`)
@@ -71,6 +83,7 @@ export async function preparePowerOfAttorneyFile(order) {
     }
 }
 
+// Prepares one power-of-attorney PDF for each order in sequence.
 export async function preparePowerOfAttorneyFiles(orders) {
     const files = []
     for (const order of orders ?? []) {

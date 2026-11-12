@@ -1,16 +1,14 @@
 import { useEffect } from 'react'
-
-import { useQueryClient } from '@tanstack/react-query'
-
 import {
-    Navigate,
     Outlet,
     Route,
     RouterProvider,
-    useNavigate,
     createBrowserRouter,
     createRoutesFromElements,
+    useNavigate,
 } from 'react-router-dom'
+
+import { useQueryClient } from '@tanstack/react-query'
 
 import ProtectedRoute from './components/routing/ProtectedRoute.jsx'
 import GlobalApiErrorSnackbar from './components/ui/feedback/GlobalApiErrorSnackbar.jsx'

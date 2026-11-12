@@ -1,16 +1,24 @@
+// Packages prepared export files as ZIP archives or saves them in a chosen folder.
+
+// Checks whether the browser supports selecting an export directory.
 export const canChooseExportDirectory = () => typeof window.showDirectoryPicker === 'function'
 
 const zipTime = 0
 const zipDate = 0
 
-const crcTable = Array.from({ length: 256 }, (_, i) => {
-    let crc = i
-    for (let j = 0; j < 8; j += 1) {
-        crc = crc & 1 ? 0xedb88320 ^ (crc >>> 1) : crc >>> 1
-    }
-    return crc >>> 0
-})
+const crcTable = Array.from(
+    { length: 256 },
+    // Precomputes a CRC-32 lookup entry for ZIP checksums.
+    (_, i) => {
+        let crc = i
+        for (let j = 0; j < 8; j += 1) {
+            crc = crc & 1 ? 0xedb88320 ^ (crc >>> 1) : crc >>> 1
+        }
+        return crc >>> 0
+    },
+)
 
+// Calculates the CRC-32 checksum required by each ZIP entry.
 function crc32(bytes) {
     let crc = 0xffffffff
     for (const byte of bytes) crc = crcTable[(crc ^ byte) & 0xff] ^ (crc >>> 8)
@@ -88,12 +96,15 @@ export async function buildZipBlob(files) {
     return new Blob([...localParts, ...centralParts, end], { type: 'application/zip' })
 }
 
+// Creates a timestamped folder name for an export batch.
 export function buildExportFolderName() {
     const date = new Date()
+    // Pads a date or time component to two digits.
     const pad = (n) => String(n).padStart(2, '0')
     return `Mixity_документы_${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}_${pad(date.getHours())}-${pad(date.getMinutes())}-${pad(date.getSeconds())}`
 }
 
+// Rejects invalid file objects and duplicate filenames before saving.
 export function validateExportFileNames(files) {
     const names = new Set()
     for (const file of files) {
@@ -105,7 +116,12 @@ export function validateExportFileNames(files) {
 
 // In Chrome this opens *one* folder dialog, then writes all files into a
 // new subfolder, avoiding accidental overwrite on repeated exports.
-export async function saveFilesInChosenFolder(files, folderName, onProgress = () => {}) {
+export async function saveFilesInChosenFolder(
+    files,
+    folderName,
+    // Ignores progress when no callback is supplied.
+    onProgress = () => {},
+) {
     const root = await window.showDirectoryPicker({ id: 'mixity-order-export', mode: 'readwrite' })
     const destination = await root.getDirectoryHandle(folderName, { create: true })
     let saved = 0
@@ -140,6 +156,10 @@ export function downloadPreparedZip(zipBlob, folderName) {
         link.click()
     } finally {
         link.remove()
-        setTimeout(() => URL.revokeObjectURL(url), 60_000)
+        setTimeout(
+            // Releases the temporary download URL after the browser has used it.
+            () => URL.revokeObjectURL(url),
+            60_000,
+        )
     }
 }

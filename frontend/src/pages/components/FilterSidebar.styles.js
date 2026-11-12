@@ -1,3 +1,4 @@
+/** Defines filter sidebar spacing, preset layout, and the sticky apply button. */
 export const filterSidebarSx = {
     title: {
         mt: 3,

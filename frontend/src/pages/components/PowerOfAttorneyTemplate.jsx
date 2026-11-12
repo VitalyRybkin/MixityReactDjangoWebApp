@@ -1,19 +1,24 @@
+/** Renders a printable power of attorney with order, product, and signature details. */
 import '../utils/PowerOfAttorney.css'
 
+// Returns the piece-based quantity, falling back to weight.
 function getQuantity(item) {
     return item.piece_based_quantity ?? item.weight_quantity ?? ''
 }
 
+// Reads the display name of a product's unit of measure.
 function getUnit(item) {
     return item.product?.product_unit?.unit?.display_name ?? ''
 }
 
+// Extracts an organization name from a string or object.
 function getName(value) {
     if (!value) return ''
     if (typeof value === 'string') return value
     return value.organization || value.name || ''
 }
 
+// Formats an ISO date as DD.MM.YYYY with an optional UTC day offset.
 function formatDate(date, addDays = 0) {
     if (!date) return ''
 
@@ -29,6 +34,7 @@ function formatDate(date, addDays = 0) {
     return `${String(value.getUTCDate()).padStart(2, '0')}.${String(value.getUTCMonth() + 1).padStart(2, '0')}.${value.getUTCFullYear()}`
 }
 
+// Builds the printable authorization form for an order and its products.
 export default function PowerOfAttorney({ order }) {
     const products = order.order_products ?? []
 
@@ -90,7 +96,7 @@ export default function PowerOfAttorney({ order }) {
                     </thead>
 
                     <tbody>
-                        {products.map((item, index) => (
+                        {products.map(/* Renders a numbered product row with its unit and quantity. */ (item, index) => (
                             <tr key={item.id}>
                                 <td>{index + 1}</td>
                                 <td>{item.product?.name}</td>

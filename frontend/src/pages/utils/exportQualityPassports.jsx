@@ -1,6 +1,9 @@
+// Collects the quality passports attached to order items and prepares their PDF files.
+
 import api from '../../api.js'
 import { exportQualityPassport } from '../../features/catalog/utils/exportQualityPassport.jsx'
 
+// Extracts a valid passport ID from an item relation or numeric value.
 const passportIdFromItem = (item) => {
     const value = item?.quality_passport
     const candidate = typeof value === 'object' && value !== null ? value.id : value
@@ -8,6 +11,7 @@ const passportIdFromItem = (item) => {
     return candidate != null && Number.isSafeInteger(id) && id > 0 ? id : null
 }
 
+// Collects unique passport IDs explicitly attached to the supplied order items.
 export function collectQualityPassportIds(orders) {
     const ids = new Set()
 
