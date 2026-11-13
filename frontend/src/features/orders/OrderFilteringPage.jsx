@@ -18,15 +18,13 @@ import CustomPagination from '../../pages/components/CustomPagination.jsx'
 import { exportOrdersToExcel } from '../../pages/utils/exportOrders.js'
 import { formatDate } from '../../pages/utils/orders.date-filters.js'
 import { localeText } from '../../utils/localeDataGridText.js'
-import { useGetProducts } from '../catalog/utils/catalog.queries.js'
 import { useGetCustomers } from '../customers/utils/customers.queries.js'
-import { useGetWarehouses } from '../warehouses/utils/stocks.queries.js'
 
 import { orderFilteringPageSx as sx } from './OrderFilteringPage.styles.js'
 import { useOrdersFilters } from './hooks/useOrdersFilters.js'
 import { useViewUpd } from './hooks/useViewUpd.js'
 import { getFilterGridOrderColumns } from './utils/filtering_order.columns.jsx'
-import { useExportOrders, useGetOrders, useUploadUpd } from './utils/orders.queries.js'
+import { useExportOrders, useGetOrderResources, useGetOrders, useUploadUpd } from './utils/orders.queries.js'
 
 const STORAGE_KEY = 'searching_orders_cache'
 
@@ -56,8 +54,9 @@ export default function OrderFilteringPage() {
     const entity = location.state?.entity
 
     const { data: customers = [] } = useGetCustomers()
-    const { data: warehouses = [] } = useGetWarehouses()
-    const { data: products = [] } = useGetProducts()
+    const { data: orderResources } = useGetOrderResources()
+    const warehouses = orderResources?.warehouses ?? []
+    const products = orderResources?.products ?? []
     const uploadUpd = useUploadUpd()
 
     const { formattedFilters, draftFilters, applyFilters, handleDraftFilterChange } = useOrdersFilters(
@@ -103,7 +102,11 @@ export default function OrderFilteringPage() {
 
     const handleExport = async () => {
         try {
-            const { data } = await fetchDownload()
+            const result = await fetchDownload()
+            if (result.isError || !result.isSuccess) {
+                throw result.error ?? new Error('Не удалось обновить данные для экспорта.')
+            }
+            const { data } = result
             const exportOrders = Array.isArray(data) ? data : Array.isArray(data?.results) ? data.results : []
 
             if (!exportOrders.length) {

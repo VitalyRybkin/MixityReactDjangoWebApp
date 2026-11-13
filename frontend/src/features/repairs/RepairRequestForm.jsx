@@ -40,7 +40,7 @@ import {
     useUpdateRepairRequest,
 } from './utils/repair.queries.js'
 import { useGetRepairServices } from './utils/repair.services.queries.js'
-import { emptyRequestForm } from './utils/request.form.constants.js'
+import { createEmptyRequestForm } from './utils/request.form.constants.js'
 
 export default function RepairRequestFormPage() {
     const { id } = useParams()
@@ -152,7 +152,7 @@ export default function RepairRequestFormPage() {
     const { form, setForm, error: formError, setError, onChange, onSubmit } = useFormLogic({
         isEdit,
         id,
-        emptyForm: emptyRequestForm,
+        emptyForm: createEmptyRequestForm,
         updateMutation: updateRepairRequest,
         createMutation: createRepairRequest,
         redirectPath: '/repair/requests',

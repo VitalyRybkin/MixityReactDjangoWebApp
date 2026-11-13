@@ -7,14 +7,6 @@ const api = axios.create({
     baseURL: import.meta.env.VITE_API_URL,
 })
 
-const redirectToUnauthorized = () => {
-    const from = `${window.location.pathname}${window.location.search}`
-
-    if (window.location.pathname !== '/401') {
-        window.location.replace(`/401?from=${encodeURIComponent(from)}`)
-    }
-}
-
 // A session identity must be shared between browser tabs, unlike a module-local
 // generation. Access/refresh rotation does NOT change this identity.
 export const AUTH_SESSION_ID_KEY = 'mixity_auth_session_id'
@@ -53,13 +45,6 @@ export function endAuthSession() {
 
 const sessionChanged = () => Object.assign(new Error('Сессия изменилась.'), { code: 'AUTH_SESSION_CHANGED' })
 const isCurrentSession = (generation) => generation === getAuthSessionGeneration()
-
-const endSessionIfCurrent = (generation) => {
-    if (!isCurrentSession(generation)) return false
-    endAuthSession()
-    redirectToUnauthorized()
-    return true
-}
 
 api.interceptors.request.use(
     (config) => {
@@ -159,26 +144,14 @@ api.interceptors.response.use(
             return Promise.reject(error)
         }
 
-        if (status === 403 && !originalRequest?.url?.includes('/api/auth/token/refresh/')) {
-            if (window.location.pathname !== '/') window.location.replace('/')
-            return Promise.reject(error)
-        }
+        // A resource-specific 403 is not a global login failure. In particular,
+        // users may view orders while lacking access to the stock or catalog API.
 
         if (status !== 401) return Promise.reject(error)
 
         if (originalRequest?.url?.includes('/api/auth/token/refresh/')) {
-            // A parallel tab may already have rotated the token. In that case
-            // this 401 is not evidence that the shared account is invalid.
-            let attemptedRefresh = null
-            try {
-                const data = originalRequest.data
-                attemptedRefresh = (typeof data === 'string' ? JSON.parse(data) : data)?.refresh ?? null
-            } catch {
-                // Unparseable request data: fall through to ordinary rejection.
-            }
-            if (attemptedRefresh && localStorage.getItem(REFRESH_TOKEN) === attemptedRefresh) {
-                endSessionIfCurrent(generation)
-            }
+            // A tab may be rotating the same token right now. Never invalidate
+            // shared credentials on this tab's rejected refresh response.
             return Promise.reject(error)
         }
 
@@ -197,12 +170,9 @@ api.interceptors.response.use(
 
             if (!isCurrentSession(generation)) throw sessionChanged()
         } catch (refreshError) {
-            // Network errors and 5xx refresh failures are transient. Do not
-            // destroy unsaved forms or credentials; allow a later retry.
-            const refreshStatus = refreshError?.response?.status
-            if ([400, 401, 403].includes(refreshStatus)) {
-                endSessionIfCurrent(generation)
-            }
+            // The refresh may be transient or a losing concurrent rotation.
+            // Leave account state intact; explicit logout is the only safe
+            // place to delete shared credentials without cross-tab arbitration.
             return Promise.reject(refreshError)
         }
 

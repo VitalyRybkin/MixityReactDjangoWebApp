@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useRef, useState } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
 
 import { Edit as EditIcon } from '@mui/icons-material'
@@ -81,6 +81,8 @@ export default function ObjectDetailWithContactList({
     const { confirm, askConfirm, closeConfirm, handleConfirm } = useConfirm()
     const { snack, showSnackbar, closeSnackbar } = useSnackbar()
 
+    const phoneDeletionQueuesRef = useRef(new Map())
+
     const [deleting, setDeleting] = useState({
         contactIds: new Set(),
         phoneKeySet: new Set(),
@@ -149,29 +151,37 @@ export default function ObjectDetailWithContactList({
         })
     }
 
-    const onDeletePhone = async (contactId, phoneNumberToDelete) => {
-        const contact = contacts.find((c) => c.id === contactId)
-
-        if (!contact) return
-
-        const nextPhones = (contact.phoneNumbers ?? []).filter((p) => p.phoneNumber !== phoneNumberToDelete)
-
+    const onDeletePhone = (contactId, phoneNumberToDelete) => {
         setDeletingPhone(contactId, phoneNumberToDelete, true)
 
-        try {
-            await api.patch(`/api/contacts/${contactId}/`, {
-                phoneNumbers: nextPhones,
-            })
+        // The API replaces the whole phoneNumbers array. Serialize deletes
+        // per contact and fetch the newest array immediately before PATCH.
+        const previousJob = phoneDeletionQueuesRef.current.get(contactId) ?? Promise.resolve()
+        const job = previousJob.catch(() => {}).then(async () => {
+            try {
+                const { data: latestContact } = await api.get(`/api/contacts/${contactId}/`)
+                const phones = latestContact.phoneNumbers ?? []
+                const nextPhones = phones.filter((p) => p.phoneNumber !== phoneNumberToDelete)
 
-            await contactsQuery.refetch()
-            showSnackbar('Телефон удалён', 'success')
-        } catch (e) {
-            showSnackbar(e?.response?.data?.detail || 'Не удалось удалить телефон', 'error')
-        } finally {
-            setDeletingPhone(contactId, phoneNumberToDelete, false)
-        }
+                if (nextPhones.length !== phones.length) {
+                    await api.patch(`/api/contacts/${contactId}/`, { phoneNumbers: nextPhones })
+                }
+                const refreshed = await contactsQuery.refetch({ throwOnError: true })
+                if (refreshed.error) throw refreshed.error
+                showSnackbar('Телефон удалён', 'success')
+            } catch (error) {
+                showSnackbar(error?.response?.data?.detail || 'Не удалось удалить телефон', 'error')
+            } finally {
+                setDeletingPhone(contactId, phoneNumberToDelete, false)
+            }
+        })
+        phoneDeletionQueuesRef.current.set(contactId, job)
+        void job.finally(() => {
+            if (phoneDeletionQueuesRef.current.get(contactId) === job) {
+                phoneDeletionQueuesRef.current.delete(contactId)
+            }
+        })
     }
-
     const rows = fields(entity)
 
     return (

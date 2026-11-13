@@ -28,8 +28,9 @@ export function useEditablePrices({
     priceSourceField,
     orderProductPriceField,
 }) {
-    // Tracks automatic prices only for newly-added rows. A manually changed
-    // price (including zero) must not be replaced when other products change.
+    // Track the last selection, even for persisted items. An existing item's
+    // stored price belongs to its original product, not its replacement.
+    const selectedProductIdsRef = useRef(new Map())
     const automaticPricesRef = useRef(new Map())
 
     useEffect(() => {
@@ -50,38 +51,64 @@ export function useEditablePrices({
 
     useEffect(() => {
         const previous = automaticPricesRef.current
+        const previousSelections = selectedProductIdsRef.current
+        const nextSelections = new Map()
         const tracked = new Map()
         const updates = new Map()
 
         for (const row of orderProducts) {
             const productId = getProductId(row)
-            if (!productId || (isEdit && isPersistedItem(row))) continue
-
             const rowId = String(row.id)
+            if (!productId) continue
+            nextSelections.set(rowId, productId)
+
             const old = previous.get(rowId)
+            const priorProductId = previousSelections.get(rowId)
+            const selectionChanged = priorProductId != null && priorProductId !== productId
+            const replacementPending = Boolean(old && old.productId !== productId)
+            const replacing = selectionChanged || replacementPending
+            if (isEdit && isPersistedItem(row) && !replacing) continue
+
             const reference = prices.find((price) => Number(price.product?.id) === Number(productId))
             const referenceValue = reference?.[priceSourceField]
             const referencePrice = Number(referenceValue)
 
             if (referenceValue == null || referenceValue === '' || !Number.isFinite(referencePrice)) {
-                if (old && old.productId === productId) tracked.set(rowId, old)
+                if (replacing) {
+                    if (old?.pendingReplacement === productId && hasPrice(row, orderProductPriceField)) {
+                        // After the stale price was cleared, a user typed a
+                        // replacement price before its reference finished loading.
+                        tracked.set(rowId, { productId, price: Number(row[orderProductPriceField]), manual: true })
+                    } else {
+                        // Keep the previous product identity until the new
+                        // reference arrives; otherwise a saved A=100 is mistaken
+                        // for an explicit manual B=100.
+                        tracked.set(rowId, {
+                            productId: old?.productId ?? priorProductId,
+                            price: old?.price ?? Number(row[orderProductPriceField]),
+                            manual: false,
+                            pendingReplacement: productId,
+                        })
+                        if (hasPrice(row, orderProductPriceField)) {
+                            updates.set(rowId, { productId, oldValue: row[orderProductPriceField], price: null })
+                        }
+                    }
+                } else if (old && old.productId === productId) {
+                    tracked.set(rowId, old)
+                }
                 continue
             }
 
-            const newSelection = Boolean(old && old.productId !== productId)
-            if (old && !newSelection) {
-                // Manual edits are inferred by comparing the current product
-                // field with the last automatically applied price.
+            if (old && !replacing) {
+                // Manual edits, including zero, must survive changes to other rows.
                 const manuallyChanged = old.manual ||
                     (hasPrice(row, orderProductPriceField) && Number(row[orderProductPriceField]) !== old.price)
-
                 if (manuallyChanged) {
                     tracked.set(rowId, { ...old, manual: true })
                     continue
                 }
-            } else if (!newSelection && hasPrice(row, orderProductPriceField)) {
-                // Pre-existing explicit values (including zero) win over the
-                // reference; they may have been entered before this effect ran.
+            } else if (!replacing && hasPrice(row, orderProductPriceField)) {
+                // Existing explicit prices are authoritative for the same product.
                 continue
             }
 
@@ -91,6 +118,7 @@ export function useEditablePrices({
             }
         }
 
+        selectedProductIdsRef.current = nextSelections
         automaticPricesRef.current = tracked
         if (!updates.size) return
 
@@ -99,10 +127,9 @@ export function useEditablePrices({
             const nextRows = currentRows.map((row) => {
                 const update = updates.get(String(row.id))
                 if (!update || getProductId(row) !== update.productId) return row
-                // Don't overwrite a newer manual edit made between calculation
-                // and React processing this state update.
+                // Avoid clobbering a more recent user edit / product selection.
                 if (!Object.is(row[orderProductPriceField], update.oldValue)) return row
-                if (hasPrice(row, orderProductPriceField) && Number(row[orderProductPriceField]) === update.price) return row
+                if (Object.is(row[orderProductPriceField], update.price)) return row
                 changed = true
                 return { ...row, [orderProductPriceField]: update.price }
             })

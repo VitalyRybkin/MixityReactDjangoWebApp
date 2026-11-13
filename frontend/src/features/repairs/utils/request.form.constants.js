@@ -1,20 +1,22 @@
-const today = new Date()
-const tomorrow = new Date(today)
-tomorrow.setDate(today.getDate() + 1)
+const localISODate = () => {
+    const date = new Date()
+    const year = date.getFullYear()
+    const month = String(date.getMonth() + 1).padStart(2, '0')
+    const day = String(date.getDate()).padStart(2, '0')
+    return `${year}-${month}-${day}`
+}
 
-export const emptyRequestForm = {
-    request_date: today.toISOString().split('T')[0],
+// Recompute defaults when a new form is mounted, not when the app's JS loads.
+export const createEmptyRequestForm = () => ({
+    request_date: localISODate(),
     closing_date: '',
     status: 'open',
     location: 'site',
-
     customerId: '',
     construction_object: '',
-
     description: '',
-    inspection_description: '',
     closing_description: '',
-}
+})
 
 export const statusOptions = {
     open: 'Открыта',

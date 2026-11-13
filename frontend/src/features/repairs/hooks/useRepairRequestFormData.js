@@ -1,18 +1,18 @@
 import { useEffect, useState } from 'react'
 
-import { emptyRequestForm } from '../utils/request.form.constants.js'
+import { createEmptyRequestForm } from '../utils/request.form.constants.js'
 
 export function useRepairRequestFormData({
-                                             isEdit,
-                                             repairRequest,
-                                             isLoadingPage,
-                                             pageLoadError,
-                                             form,
-                                             specifications,
-                                             setForm,
-                                             setSpecifications,
-                                             normalizeSpecifications,
-                                         }) {
+    isEdit,
+    repairRequest,
+    isLoadingPage,
+    pageLoadError,
+    form,
+    specifications,
+    setForm,
+    setSpecifications,
+    normalizeSpecifications,
+}) {
     const [initialSnapshot, setInitialSnapshot] = useState(null)
     const [isInitialized, setIsInitialized] = useState(false)
     const [isDirty, setIsDirty] = useState(false)
@@ -36,7 +36,7 @@ export function useRepairRequestFormData({
         }
 
         const mappedForm = {
-            ...emptyRequestForm,
+            ...createEmptyRequestForm,
 
             id: repairRequest.id,
             request_date: repairRequest.request_date ?? '',
@@ -44,19 +44,14 @@ export function useRepairRequestFormData({
             status: repairRequest.status ?? 'open',
             location: repairRequest.location ?? 'site',
             repair_company: repairRequest.repair_company ?? '',
-            customerId:
-                repairRequest.construction_object?.customer ?? '',
-            construction_object:
-                repairRequest.construction_object?.id ?? '',
+            customerId: repairRequest.construction_object?.customer ?? '',
+            construction_object: repairRequest.construction_object?.id ?? '',
             description: repairRequest.description ?? '',
             inspection_description: repairRequest.inspection_description ?? '',
-            closing_description:
-                repairRequest.closing_description ?? '',
+            closing_description: repairRequest.closing_description ?? '',
         }
 
-        const mappedSpecifications = normalizeSpecifications(
-            repairRequest.specifications ?? [],
-        )
+        const mappedSpecifications = normalizeSpecifications(repairRequest.specifications ?? [])
 
         setForm(mappedForm)
         setSpecifications(mappedSpecifications)
@@ -72,12 +67,7 @@ export function useRepairRequestFormData({
     }, [isEdit, repairRequest]) // eslint-disable-line react-hooks/exhaustive-deps
 
     useEffect(() => {
-        if (
-            isEdit ||
-            isLoadingPage ||
-            pageLoadError ||
-            initialSnapshot !== null
-        ) {
+        if (isEdit || isLoadingPage || pageLoadError || initialSnapshot !== null) {
             return
         }
 
@@ -89,14 +79,7 @@ export function useRepairRequestFormData({
         )
 
         setIsInitialized(true)
-    }, [
-        isEdit,
-        isLoadingPage,
-        pageLoadError,
-        initialSnapshot,
-        form,
-        specifications,
-    ])
+    }, [isEdit, isLoadingPage, pageLoadError, initialSnapshot, form, specifications])
 
     const markClean = () => {
         setInitialSnapshot(
