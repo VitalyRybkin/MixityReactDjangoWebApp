@@ -19,8 +19,15 @@ export function useCurrencyField(value, onChange) {
     const handleChange = (e) => {
         const raw = e.target.value
         setDisplay(raw)
-        const parsed = parseFloat(raw.replace(/\s/g, '').replace(',', '.'))
-        if (!isNaN(parsed)) onChange(parsed)
+        const normalized = raw.replace(/[\s\u00a0\u202f]/g, '').replace(',', '.')
+        if (normalized === '') {
+            onChange(null)
+            return
+        }
+        // Keep the stored value at the same two-decimal precision as the UI.
+        if (!/^-?\d+(?:\.\d*)?$/.test(normalized)) return
+        const parsed = Number(normalized)
+        if (Number.isFinite(parsed)) onChange(Math.round((parsed + Number.EPSILON) * 100) / 100)
     }
 
     const handleBlur = () => {

@@ -32,6 +32,7 @@ export function useEditablePrices({
     // stored price belongs to its original product, not its replacement.
     const selectedProductIdsRef = useRef(new Map())
     const automaticPricesRef = useRef(new Map())
+    const priceEntityRef = useRef(undefined)
 
     useEffect(() => {
         const rows = orderProducts.map((row) => {
@@ -55,6 +56,9 @@ export function useEditablePrices({
         const nextSelections = new Map()
         const tracked = new Map()
         const updates = new Map()
+        // Prices are scoped to a customer or warehouse as well as a product.
+        const entityKey = String(objectId ?? '')
+        const entityChanged = priceEntityRef.current !== undefined && priceEntityRef.current !== entityKey
 
         for (const row of orderProducts) {
             const productId = getProductId(row)
@@ -79,11 +83,38 @@ export function useEditablePrices({
             const selectionChanged = previousSelections.has(rowId) && priorProductId !== productId
             const replacementPending = Boolean(old && old.productId !== productId)
             const replacing = selectionChanged || replacementPending
-            if (isEdit && isPersistedItem(row) && !replacing) continue
+            // Only clear rows that were already observed under the previous entity.
+            // This avoids dropping persisted prices during initial form hydration.
+            const switchingEntity = entityChanged && previousSelections.has(rowId)
+            const pendingEntity = old?.pendingEntity === entityKey
+            if (isEdit && isPersistedItem(row) && !replacing && !switchingEntity && !pendingEntity) continue
 
             const reference = prices.find((price) => Number(price.product?.id) === Number(productId))
             const referenceValue = reference?.[priceSourceField]
             const referencePrice = Number(referenceValue)
+
+            if (switchingEntity && !replacing) {
+                // A deliberate manual override can survive an entity switch,
+                // but an automatic (or previously persisted) price cannot.
+                const manuallyChanged = old?.manual || (old && hasPrice(row, orderProductPriceField) &&
+                    Number(row[orderProductPriceField]) !== old.price)
+                if (manuallyChanged) {
+                    tracked.set(rowId, { productId, price: Number(row[orderProductPriceField]), manual: true })
+                } else if (referenceValue != null && referenceValue !== '' && Number.isFinite(referencePrice)) {
+                    tracked.set(rowId, { productId, price: referencePrice, manual: false })
+                    if (!hasPrice(row, orderProductPriceField) || Number(row[orderProductPriceField]) !== referencePrice) {
+                        updates.set(rowId, { productId, oldValue: row[orderProductPriceField], price: referencePrice })
+                    }
+                } else {
+                    // NaN is a sentinel: a user-entered price during the new
+                    // entity's fetch must be recognized as a manual override.
+                    tracked.set(rowId, { productId, price: NaN, manual: false, pendingEntity: entityKey })
+                    if (hasPrice(row, orderProductPriceField)) {
+                        updates.set(rowId, { productId, oldValue: row[orderProductPriceField], price: null })
+                    }
+                }
+                continue
+            }
 
             if (referenceValue == null || referenceValue === '' || !Number.isFinite(referencePrice)) {
                 if (replacing) {
@@ -132,6 +163,7 @@ export function useEditablePrices({
 
         selectedProductIdsRef.current = nextSelections
         automaticPricesRef.current = tracked
+        priceEntityRef.current = entityKey
         if (!updates.size) return
 
         setOrderProducts((currentRows) => {

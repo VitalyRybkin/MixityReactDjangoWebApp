@@ -187,7 +187,10 @@ export default function ObjectDetailWithContactList({
     const rows = entity && !loadError ? fields(entity) : []
 
     if (loadError || missingEntity) {
-        const notFound = entityQuery.error?.response?.status === 404 || missingEntity
+        // A network/5xx failure can leave entity empty; only an actual
+        // 404 (or a successful empty response) should say "not found".
+        const notFound = entityQuery.error?.response?.status === 404 ||
+            (!entityQuery.isError && missingEntity)
         const message = notFound
             ? 'Запись не найдена.'
             : entityQuery.isError
