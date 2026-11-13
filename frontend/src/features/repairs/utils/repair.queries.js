@@ -37,7 +37,7 @@ export const repairRequestsKeys = {
             location: filters.location || '',
             repairCompanyId: filters.repairCompanyId || '',
             customerId: filters.customerId || '',
-            constructionObjectId: filters.constructionObjectId || '',
+            objectId: filters.objectId || filters.constructionObjectId || '',
         },
     ],
 }
@@ -136,16 +136,25 @@ export const deleteRepairRequest = async (id) => {
     return id
 }
 
-export const fetchExportRequests = async ({ dateFrom, dateTo, status, location, repairCompanyId, customerId, constructionObjectId } = {}) => {
+export const fetchExportRequests = async ({
+    dateFrom,
+    dateTo,
+    status,
+    location,
+    repairCompanyId,
+    customerId,
+    objectId,
+    constructionObjectId,
+} = {}) => {
     const params = {}
 
     if (dateFrom) params.date_from = dateFrom
     if (dateTo) params.date_to = dateTo
     if (status) params.status = status
     if (location) params.location = location
-    if (customerId) params.customer = customerId
-    if (repairCompanyId) params.warehouse = repairCompanyId
-    if (constructionObjectId) params.construction_object = constructionObjectId
+    if (customerId) params.customer_id = customerId
+    if (repairCompanyId) params.repair_company_id = repairCompanyId
+    if (objectId || constructionObjectId) params.object_id = objectId || constructionObjectId
 
     const res = await api.get(repairRequestsApiPaths.export(), { params })
     return unwrapList(res.data)
@@ -281,7 +290,7 @@ export function useExportRequests(filters = {}) {
                 location: filters.location || '',
                 repairCompanyId: filters.repairCompanyId || '',
                 customerId: filters.customerId || '',
-                constructionObjectId: filters.constructionObjectId || '',
+                objectId: filters.objectId || filters.constructionObjectId || '',
             }),
         enabled: false,
     })

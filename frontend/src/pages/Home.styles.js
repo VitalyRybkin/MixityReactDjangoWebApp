@@ -1,5 +1,5 @@
 // Responsive layout and grid styles for the orders dashboard.
-import { sidebarPageSx } from '../layouts/AppSidebar.jsx'
+import { sidebarPageSx } from '../layouts/AppSidebar.styles.js'
 
 export const homeSx = {
     container: {

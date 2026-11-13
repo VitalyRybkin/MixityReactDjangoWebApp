@@ -7,7 +7,8 @@ import { useGetQualityPassportState } from '../utils/qualityPassports.queries.js
 
 import NewQualityPassportDialog from './NewQualityPassportDialog.jsx'
 import OrderPassportPreviewAction from './OrderPassportPreviewAction.jsx'
-import QualityPassportUsageBar, { formatPassportTons } from './QualityPassportUsageBar.jsx'
+import QualityPassportUsageBar from './QualityPassportUsageBar.jsx'
+import { formatPassportTons } from './qualityPassportTons.js'
 
 const safeQuantity = (value) => {
     const parsed = Number(value)

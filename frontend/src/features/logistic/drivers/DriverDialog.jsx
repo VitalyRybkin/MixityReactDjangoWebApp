@@ -86,13 +86,20 @@ export default function DriverDialog({ open, mode = 'create', carrierId, initial
             return
         }
 
+        const rawPassportDate = String(form.passportIssueDate ?? '').trim()
+        const dateFormat = /^\d{4}-\d{2}-\d{2}$/.test(rawPassportDate) ? 'YYYY-MM-DD' : 'DD.MM.YYYY'
+        const parsedPassportDate = rawPassportDate ? dayjs(rawPassportDate, dateFormat, true) : null
+
+        if (parsedPassportDate && !parsedPassportDate.isValid()) {
+            setError('Укажите корректную дату выдачи паспорта.')
+            return
+        }
+
         const payload = {
             carrier: Number(carrierId),
             fullName: form.fullName.trim(),
             passportNumber: emptyToNull(form.passportNumber),
-            passport_issue_date: form.passportIssueDate
-                ? dayjs(form.passportIssueDate, 'DD.MM.YYYY', true).format('YYYY-MM-DD')
-                : null,
+            passportIssueDate: parsedPassportDate ? parsedPassportDate.format('YYYY-MM-DD') : null,
             passportEmittedBy: emptyToNull(form.passportEmittedBy),
             phone: emptyToNull(form.phone),
         }
@@ -106,10 +113,7 @@ export default function DriverDialog({ open, mode = 'create', carrierId, initial
                     payload,
                 })
             } else {
-                savedDriver = await createDriver.mutateAsync({
-                    carrierId,
-                    payload,
-                })
+                savedDriver = await createDriver.mutateAsync(payload)
             }
 
             await onSaved?.(savedDriver)

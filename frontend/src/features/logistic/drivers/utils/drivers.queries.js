@@ -41,7 +41,9 @@ const updateDriver = async ({ id, payload }) => {
     return res.data
 }
 
-const deleteDriver = async ({ id }) => {
+// The confirmation flow supplies a numeric ID; also accept { id } for other callers.
+const deleteDriver = async (idOrOptions) => {
+    const id = typeof idOrOptions === 'object' && idOrOptions !== null ? idOrOptions.id : idOrOptions
     await api.delete(driverApiPaths.detail(id))
     return id
 }

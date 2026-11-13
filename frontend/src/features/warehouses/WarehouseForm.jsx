@@ -1,4 +1,4 @@
-import { useEffect } from 'react'
+import { useEffect, useRef } from 'react'
 import { useLocation, useNavigate, useParams } from 'react-router-dom'
 
 import { Alert, Box, CircularProgress, Paper, Stack, TextField, Typography } from '@mui/material'
@@ -36,7 +36,15 @@ export default function WarehouseFormPage() {
 
     const { renderActions } = useLoadImage()
 
+    const initializedFormRef = useRef(null)
+
     useEffect(() => {
+        const formKey = isEdit ? `edit:${id}` : 'create'
+        if (initializedFormRef.current === formKey) return
+
+        if (isEdit && (!warehouse || String(warehouse.id) !== String(id))) return
+
+        initializedFormRef.current = formKey
         if (!isEdit) {
             setForm(emptyForm)
             setPhoneError('')
@@ -57,13 +65,13 @@ export default function WarehouseFormPage() {
             setPhoneError('')
             setEmailError('')
         }
-    }, [warehouse, isEdit])
+    }, [warehouse, isEdit, id, setForm, setPhoneError, setEmailError])
 
     useEffect(() => {
         if (loadError) {
             setError(loadError?.response?.data?.detail || 'Ошибка загрузки данных')
         }
-    }, [loadError])
+    }, [loadError, setError])
 
     const { form, setForm, error, setError, phoneError, setPhoneError, emailError, setEmailError, onChange, onSubmit } =
         useFormLogic({

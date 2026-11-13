@@ -1,4 +1,4 @@
-import { sidebarPageSx } from '../../layouts/AppSidebar.jsx'
+import { sidebarPageSx } from '../../layouts/AppSidebar.styles.js'
 import { commonLayoutSx } from '../../styles/layout.styles.js'
 
 export const orderFormSx = {

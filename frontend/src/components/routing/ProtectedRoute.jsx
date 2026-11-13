@@ -7,7 +7,7 @@ import { useQueryClient } from '@tanstack/react-query'
 import { jwtDecode } from 'jwt-decode'
 
 import { endAuthSession, getAuthSessionGeneration, refreshAccessToken } from '../../api.js'
-import { ACCESS_TOKEN } from '../../constants.js'
+import { ACCESS_TOKEN, REFRESH_TOKEN } from '../../constants.js'
 
 const SKEW_SECONDS = 30
 

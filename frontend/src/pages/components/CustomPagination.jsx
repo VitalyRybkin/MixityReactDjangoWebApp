@@ -3,7 +3,6 @@ import * as React from 'react'
 
 import TablePagination from '@mui/material/TablePagination'
 import {
-    gridPageCountSelector,
     gridPageSelector,
     gridPaginationModelSelector,
     gridPaginationRowCountSelector,
@@ -16,7 +15,6 @@ function CustomPagination() {
     const apiRef = useGridApiContext()
 
     const page = useGridSelector(apiRef, gridPageSelector)
-    const pageCount = useGridSelector(apiRef, gridPageCountSelector)
     const paginationModel = useGridSelector(apiRef, gridPaginationModelSelector)
     const rowCount = useGridSelector(apiRef, gridPaginationRowCountSelector)
 

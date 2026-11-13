@@ -9,7 +9,7 @@ import QualityPassportTemplate from '../components/QualityPassportTemplate.jsx'
 function safeFilenamePart(value, fallback) {
     const cleaned = String(value ?? '')
         .trim()
-        .replace(/[\\/:*?"<>|\x00-\x1F]/g, '_')
+        .replace(/[\\/:*?"<>|\p{Cc}]/gu, '_')
         .replace(/\s+/g, '_')
         .replace(/_+/g, '_')
         .replace(/^[. _]+|[. _]+$/g, '')
@@ -135,8 +135,7 @@ export async function exportQualityPassport(
             } catch (error) {
                 try {
                     await writable.abort()
-                } catch {
-                }
+                } catch { /* Do not mask the original write failure with an abort error. */ }
                 throw error
             }
         } else {

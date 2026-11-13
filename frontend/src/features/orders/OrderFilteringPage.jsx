@@ -12,7 +12,7 @@ import ApplyAction from '../../components/ui/buttons/ApplyAction.jsx'
 import DownloadAction from '../../components/ui/buttons/DownloadAction.jsx'
 import AppSnackbar from '../../components/ui/feedback/AppSnackbar.jsx'
 import { useFileUpload } from '../../hooks/useUploadFile.js'
-import { useAuth } from '../../pages/auth/context/AuthContext.jsx'
+import { useAuth } from '../../pages/auth/context/useAuth.js'
 import { PERMISSIONS } from '../../pages/auth/permissions.js'
 import CustomPagination from '../../pages/components/CustomPagination.jsx'
 import { exportOrdersToExcel } from '../../pages/utils/exportOrders.js'
@@ -60,11 +60,6 @@ export default function OrderFilteringPage() {
     const { data: products = [] } = useGetProducts()
     const uploadUpd = useUploadUpd()
 
-    const handleUploadUpd = useFileUpload(uploadUpd, {
-        successMessage: 'УПД успешно загружен.',
-        errorMessage: 'Не удалось загрузить УПД.',
-    })
-
     const { formattedFilters, draftFilters, applyFilters, handleDraftFilterChange } = useOrdersFilters(
         STORAGE_KEY,
         initialDefaults,
@@ -88,6 +83,12 @@ export default function OrderFilteringPage() {
             severity,
         })
     }, [])
+
+    const handleUploadUpd = useFileUpload(uploadUpd, showSnackbar, {
+        successMessage: 'УПД успешно загружен.',
+        deleteSuccessMessage: 'УПД успешно удалён.',
+        errorMessage: 'Не удалось изменить УПД.',
+    })
 
     const handleViewUpd = useViewUpd(showSnackbar)
 

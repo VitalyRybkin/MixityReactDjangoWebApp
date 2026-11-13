@@ -1,7 +1,7 @@
 import React, { useRef } from 'react'
 import { useParams } from 'react-router-dom'
 
-import { Box, CircularProgress, Divider, Stack, Typography } from '@mui/material'
+import { Alert, Box, CircularProgress, Divider, Stack, Typography } from '@mui/material'
 
 import AppBreadcrumbs from '../../components/AppBreadcrumbs.jsx'
 import PageHeaderCreateUpdate from '../../components/PageHeaderCreateUpdate.jsx'
@@ -149,7 +149,7 @@ export default function RepairRequestFormPage() {
 
     const markCleanRef = useRef(null)
 
-    const { form, setForm, setError, onChange, onSubmit } = useFormLogic({
+    const { form, setForm, error: formError, setError, onChange, onSubmit } = useFormLogic({
         isEdit,
         id,
         emptyForm: emptyRequestForm,
@@ -234,6 +234,12 @@ export default function RepairRequestFormPage() {
                 </Box>
 
                 <Divider sx={sx.divider} />
+
+                {formError && !pageLoadError && (
+                    <Alert severity="error" sx={{ mb: 2 }}>
+                        {formError}
+                    </Alert>
+                )}
 
                 {pageLoadError ? (
                     <ErrorState

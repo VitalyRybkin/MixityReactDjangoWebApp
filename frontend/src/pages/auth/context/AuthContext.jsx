@@ -1,11 +1,11 @@
 // Shares the current user, loading state, and access-check helpers through React context.
-import { createContext, useContext, useMemo } from 'react'
+import { useMemo } from 'react'
 
 import { Alert, Box, Button, CircularProgress, Typography } from '@mui/material'
 
 import { useGetUserMe } from '../../../features/common/common.queries.js'
 
-const AuthContext = createContext(null)
+import { AuthContext } from './useAuth.js'
 
 // Loads the current user and provides authentication state and access checks to descendants.
 export function AuthProvider({ children }) {
@@ -50,7 +50,7 @@ export function AuthProvider({ children }) {
             hasAllPermissions,
             hasGroup,
         }
-    }, [user, isLoading, isError, user?.groups, user?.is_superuser])
+    }, [user, isLoading, isError])
 
     // Do not render private pages until /me has been checked. This also covers
     // the home page, which does not pass through PermissionRoute.
@@ -81,15 +81,4 @@ export function AuthProvider({ children }) {
     }
 
     return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>
-}
-
-// Returns the authentication context and rejects use outside its provider.
-export function useAuth() {
-    const context = useContext(AuthContext)
-
-    if (!context) {
-        throw new Error('useAuth must be used inside AuthProvider')
-    }
-
-    return context
 }

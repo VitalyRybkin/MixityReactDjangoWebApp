@@ -4,7 +4,8 @@ import { Box, Button, ButtonBase, CircularProgress, Dialog, DialogActions, Dialo
 
 import RenewAction from '../../../components/ui/buttons/RenewAction.jsx'
 import CatalogPassportActions from './CatalogPassportActions.jsx'
-import QualityPassportUsageBar, { formatPassportTons } from '../../orders/components/QualityPassportUsageBar.jsx'
+import QualityPassportUsageBar from '../../orders/components/QualityPassportUsageBar.jsx'
+import { formatPassportTons } from '../../orders/components/qualityPassportTons.js'
 import { useGetQualityPassportState } from '../../orders/utils/qualityPassports.queries.js'
 
 const formatDate = (value) => {

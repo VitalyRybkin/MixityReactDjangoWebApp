@@ -1,5 +1,5 @@
 // Orders dashboard with saved filters, permission-based actions, and document exports.
-import React, { useMemo, useState } from 'react'
+import React, { useCallback, useMemo, useState } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
 
 import {
@@ -32,12 +32,12 @@ import { useOrdersFilters } from '../features/orders/hooks/useOrdersFilters.js'
 import { useExportOrders, useGetOrders, useUploadUpd, viewUpd } from '../features/orders/utils/orders.queries.js'
 import { useGetWarehouses } from '../features/warehouses/utils/stocks.queries.js'
 import { useFileUpload } from '../hooks/useUploadFile.js'
-import { sidebarPageSx } from '../layouts/AppSidebar.jsx'
+import { sidebarPageSx } from '../layouts/AppSidebar.styles.js'
 import { localeText } from '../utils/localeDataGridText.js'
 
 import { getHomeContentSx, homeSx as sx } from './Home.styles.js'
 import Can from './auth/components/Can.jsx'
-import { useAuth } from './auth/context/AuthContext.jsx'
+import { useAuth } from './auth/context/useAuth.js'
 import { PERMISSIONS } from './auth/permissions.js'
 import CustomPagination from './components/CustomPagination.jsx'
 import FilterSidebar from './components/FilterSidebar.jsx'
@@ -94,9 +94,9 @@ const Home = () => {
     const currentSnackbar = snackbarQueue[0] ?? null
 
     // Replaces queued notifications with a single message.
-    const showSnackbar = (message, severity = 'success') => {
+    const showSnackbar = useCallback((message, severity = 'success') => {
         setSnackbarQueue([{ id: crypto.randomUUID(), message, severity }])
-    }
+    }, [])
 
     // Queues the export result and any missing-driver warning.
     const showExportSnackbars = ({ orderCount, fileCount, missingDriverIds, usedDirectory }) => {
@@ -171,7 +171,7 @@ const Home = () => {
     })
 
     // Open the preview tab in the click event, then load a protected PDF as a Blob.
-    const handleViewUpd = async (orderId) => {
+    const handleViewUpd = useCallback(async (orderId) => {
         const previewTab = window.open('', '_blank')
         if (!previewTab) {
             showSnackbar('Браузер заблокировал окно просмотра УПД. Разрешите всплывающие окна.', 'warning')
@@ -201,7 +201,7 @@ const Home = () => {
             console.error('Ошибка просмотра УПД:', error)
             showSnackbar('Не удалось открыть УПД.', 'error')
         }
-    }
+    }, [showSnackbar])
 
     const columns = useMemo(
         // Builds grid columns with actions allowed by permissions and export state.
@@ -213,7 +213,7 @@ const Home = () => {
                 canDelete: canDeleteOrders && !exportLocked,
                 canManageUpd: canManageOrderUpd && !exportLocked,
             }),
-        [handleUploadUpd, handleViewUpd, canDeleteOrders, canManageOrderUpd, exportLocked],
+        [handleUploadUpd, handleViewUpd, setOrderToDelete, canDeleteOrders, canManageOrderUpd, exportLocked],
     )
 
     // Validates filters and prepares documents for orders with the created status.

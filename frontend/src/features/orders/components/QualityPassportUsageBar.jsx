@@ -1,18 +1,10 @@
 import { Box } from '@mui/material'
 
+import { formatPassportTons } from './qualityPassportTons.js'
+
 const safeQuantity = (value) => {
     const parsed = Number(value)
     return Number.isFinite(parsed) ? Math.max(0, parsed) : 0
-}
-
-export const formatPassportTons = (value) => {
-    const parsed = Number(value)
-    if (value == null || !Number.isFinite(parsed)) return '—'
-
-    return `${parsed.toLocaleString('ru-RU', {
-        minimumFractionDigits: 2,
-        maximumFractionDigits: 2,
-    })} т`
 }
 
 export default function QualityPassportUsageBar({ issued, used }) {

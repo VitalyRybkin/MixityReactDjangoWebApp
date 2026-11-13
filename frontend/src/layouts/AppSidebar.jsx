@@ -2,17 +2,7 @@ import ChevronLeftIcon from '@mui/icons-material/ChevronLeft'
 import ChevronRightIcon from '@mui/icons-material/ChevronRight'
 import { Box, Button, Tooltip } from '@mui/material'
 
-import {
-    COLLAPSED_WIDTH,
-    SIDEBAR_DESKTOP_BREAKPOINT,
-    SIDEBAR_WIDTH,
-    TOPBAR_HEIGHT,
-    getSidebarSx,
-    sidebarPageSx,
-    appSidebarSx as sx,
-} from './AppSidebar.styles.js'
-
-export { COLLAPSED_WIDTH, SIDEBAR_DESKTOP_BREAKPOINT, SIDEBAR_WIDTH, sidebarPageSx, TOPBAR_HEIGHT }
+import { getSidebarSx, appSidebarSx as sx } from './AppSidebar.styles.js'
 
 export default function AppSidebar({ open, setOpen, children }) {
     return (

@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 
 import { mapOrderToForm } from '../utils/order.form.mappers.js'
 
@@ -27,6 +27,10 @@ export function useOrderFormData({
     const [isInitialized, setIsInitialized] = useState(false)
     const [isDirty, setIsDirty] = useState(false)
 
+    // A ref is updated synchronously, so a background query refresh (or a
+    // second effect run in StrictMode) cannot reinitialize the same order.
+    const initializedForRef = useRef(null)
+
     useEffect(() => {
         if (!isInitialized || initialSnapshot === null) {
             return
@@ -42,17 +46,22 @@ export function useOrderFormData({
     }, [form, orderProducts, orderDelivery, initialSnapshot, isInitialized])
 
     useEffect(() => {
-        if (!isEdit) {
+        if (!isEdit || !order?.id || !orderResources || isLoadingPage || pageLoadError) {
             return
         }
 
-        if (!order || !orderResources) {
+        const initializationKey = `order:${order.id}`
+        if (initializedForRef.current === initializationKey) {
             return
         }
 
         const mappedForm = mapOrderToForm(order, orderResources)
         const mappedProducts = normalizeOrderProducts(order.order_products)
         const mappedDelivery = order.order_delivery ?? order.delivery ?? orderDelivery
+
+        // Mark the order as initialized before any state updates. A refetch of
+        // resources/order data must not overwrite unsaved form or passport edits.
+        initializedForRef.current = initializationKey
 
         setForm(mappedForm)
         setOrderProducts(mappedProducts)
@@ -68,12 +77,25 @@ export function useOrderFormData({
 
         setIsDirty(false)
         setIsInitialized(true)
-    }, [isEdit, order, orderResources]) // eslint-disable-line react-hooks/exhaustive-deps
+    }, [
+        isEdit,
+        order,
+        orderResources,
+        isLoadingPage,
+        pageLoadError,
+        normalizeOrderProducts,
+        orderDelivery,
+        setForm,
+        setOrderProducts,
+        setOrderDelivery,
+    ])
 
     useEffect(() => {
-        if (isEdit || isLoadingPage || pageLoadError || initialSnapshot !== null) {
+        if (isEdit || isLoadingPage || pageLoadError || initializedForRef.current === 'create') {
             return
         }
+
+        initializedForRef.current = 'create'
 
         setInitialSnapshot(
             makeSnapshot({
@@ -85,7 +107,7 @@ export function useOrderFormData({
 
         setIsDirty(false)
         setIsInitialized(true)
-    }, [isEdit, isLoadingPage, pageLoadError]) // eslint-disable-line react-hooks/exhaustive-deps
+    }, [isEdit, isLoadingPage, pageLoadError, form, orderProducts, orderDelivery])
 
     const markClean = () => {
         setInitialSnapshot(

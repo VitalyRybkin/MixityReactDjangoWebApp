@@ -27,6 +27,7 @@ function crc32(bytes) {
 
 // Standard ZIP archive, UTF-8 filenames, STORE entries (no external libraries).
 export async function buildZipBlob(files) {
+    validateExportFileNames(files)
     if (files.length > 65535) throw new Error('Слишком много файлов для ZIP')
     const encoder = new TextEncoder()
     const localParts = []
@@ -104,14 +105,78 @@ export function buildExportFolderName() {
     return `Mixity_документы_${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}_${pad(date.getHours())}-${pad(date.getMinutes())}-${pad(date.getSeconds())}`
 }
 
-// Rejects invalid file objects and duplicate filenames before saving.
-export function validateExportFileNames(files) {
-    const names = new Set()
-    for (const file of files) {
-        if (!file?.filename || !(file.blob instanceof Blob)) throw new Error('Некорректный файл экспорта')
-        if (names.has(file.filename)) throw new Error(`Повторное имя экспортируемого файла: ${file.filename}`)
-        names.add(file.filename)
+// Uses filesystem-safe filenames for ZIP and directory exports. Compare names
+// without case or Unicode normalization differences (macOS/Windows behavior).
+const filenameEncoder = new TextEncoder()
+const MAX_FILENAME_BYTES = 240
+const WINDOWS_RESERVED_NAME = /^(?:con|prn|aux|nul|com[1-9]|lpt[1-9])$/i
+
+function exportFilenameParts(filename) {
+    const sanitized = filename
+        .normalize('NFC')
+        .replace(/[<>:"/\\|?*\p{Cc}]/gu, '_')
+        .trim()
+        .replace(/[. ]+$/g, '')
+
+    if (!sanitized) throw new Error('Некорректное имя экспортируемого файла')
+
+    const dot = sanitized.lastIndexOf('.')
+    const extension = dot > 0 ? sanitized.slice(dot) : ''
+    let stem = extension ? sanitized.slice(0, dot) : sanitized
+
+    if (WINDOWS_RESERVED_NAME.test(stem)) stem = `_${stem}`
+    return { stem, extension }
+}
+
+// Keep filenames below common filesystem limits, leaving room for a numeric suffix.
+function fitExportFilename(stem, extension, suffix) {
+    const limit = MAX_FILENAME_BYTES - filenameEncoder.encode(`${suffix}${extension}`).length
+    if (limit < 1) throw new Error('Слишком длинное расширение экспортируемого файла')
+
+    let safeStem = ''
+    let used = 0
+    for (const character of stem) {
+        const size = filenameEncoder.encode(character).length
+        if (used + size > limit) break
+        safeStem += character
+        used += size
     }
+    safeStem = safeStem.replace(/[. ]+$/g, '') || 'Документ'
+    return `${safeStem}${suffix}${extension}`
+}
+
+const filenameComparisonKey = (filename) => filename.normalize('NFD').toLocaleLowerCase('en-US')
+
+// Normalize and uniquely name *all* files, without throwing on collisions.
+// Mutates filenames in place intentionally: Home.jsx already calls this helper
+// before passing the same `files` array to ZIP or folder export.
+export function validateExportFileNames(files) {
+    // Validate the whole batch first, so invalid inputs do not partially rename it.
+    for (const file of files) {
+        if (typeof file?.filename !== 'string' || !file.filename.trim() || !(file.blob instanceof Blob)) {
+            throw new Error('Некорректный файл экспорта')
+        }
+    }
+
+    const used = new Set()
+    const newNames = files.map((file) => {
+        const { stem, extension } = exportFilenameParts(file.filename)
+        let number = 1
+        let filename
+        do {
+            const suffix = number === 1 ? '' : ` (${number})`
+            filename = fitExportFilename(stem, extension, suffix)
+            number += 1
+        } while (used.has(filenameComparisonKey(filename)))
+
+        used.add(filenameComparisonKey(filename))
+        return filename
+    })
+
+    files.forEach((file, index) => {
+        file.filename = newNames[index]
+    })
+    return files
 }
 
 // In Chrome this opens *one* folder dialog, then writes all files into a
@@ -122,6 +187,7 @@ export async function saveFilesInChosenFolder(
     // Ignores progress when no callback is supplied.
     onProgress = () => {},
 ) {
+    validateExportFileNames(files)
     const root = await window.showDirectoryPicker({ id: 'mixity-order-export', mode: 'readwrite' })
     const destination = await root.getDirectoryHandle(folderName, { create: true })
     let saved = 0

@@ -2,6 +2,7 @@ import { useMemo, useRef, useState } from 'react'
 import { useParams } from 'react-router-dom'
 
 import {
+    Alert,
     Box,
     Button,
     CircularProgress,
@@ -23,7 +24,7 @@ import ConfirmDialog from '../../components/ui/feedback/ConfirmDialog.jsx'
 import { useFormLogic } from '../../hooks/useEntityForm.js'
 import useSnackbar from '../../hooks/useSnackbar.js'
 import { useFileUpload } from '../../hooks/useUploadFile.js'
-import { sidebarPageSx } from '../../layouts/AppSidebar.jsx'
+import { sidebarPageSx } from '../../layouts/AppSidebar.styles.js'
 import { useGetCustomerPrices } from '../customers/utils/customers.queries.js'
 import { useGetWarehousePrices } from '../warehouses/utils/stocks.queries.js'
 
@@ -164,7 +165,7 @@ export default function OrderFormPage({ readOnly = false }) {
 
     const markCleanRef = useRef(null)
 
-    const { form, setForm, setError, onChange, onSubmit } = useFormLogic({
+    const { form, setForm, error: formError, setError, onChange, onSubmit } = useFormLogic({
         isEdit,
         id,
         emptyForm: emptyOrderForm,
@@ -293,6 +294,12 @@ export default function OrderFormPage({ readOnly = false }) {
                             </Box>
 
                             <Divider sx={sx.divider} />
+
+                            {formError && !pageLoadError && (
+                                <Alert severity="error" sx={{ mb: 2 }}>
+                                    {formError}
+                                </Alert>
+                            )}
 
                             {pageLoadError ? (
                                 <ErrorState

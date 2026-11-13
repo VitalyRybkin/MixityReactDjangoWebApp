@@ -1,21 +1,31 @@
-const today = new Date()
-const tomorrow = new Date(today)
-tomorrow.setDate(today.getDate() + 1)
+// Formats a calendar date using local components, without converting it to UTC.
+const formatLocalDate = (date) => {
+    const pad = (value) => String(value).padStart(2, '0')
+    return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}`
+}
 
-export const emptyOrderForm = {
-    id: '',
-    order_date: today.toISOString().split('T')[0],
-    delivery_date: tomorrow.toISOString().split('T')[0],
-    delivery_from: null,
-    delivery_to: null,
-    client: null,
-    customer: null,
-    customer_object: null,
-    warehouse: null,
-    contacts: [],
-    status: 'draft',
-    description: '',
-    samples: false,
+// Used as a lazy initializer by useFormLogic: useState(emptyForm).
+// Dates are calculated each time a new order form mounts, not at module import.
+export const emptyOrderForm = () => {
+    const today = new Date()
+    const tomorrow = new Date(today)
+    tomorrow.setDate(today.getDate() + 1)
+
+    return {
+        id: '',
+        order_date: formatLocalDate(today),
+        delivery_date: formatLocalDate(tomorrow),
+        delivery_from: null,
+        delivery_to: null,
+        client: null,
+        customer: null,
+        customer_object: null,
+        warehouse: null,
+        contacts: [],
+        status: 'draft',
+        description: '',
+        samples: false,
+    }
 }
 
 export const emptyDeliveryInfo = {

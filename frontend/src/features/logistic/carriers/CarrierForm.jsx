@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react'
+import React, { useEffect, useRef } from 'react'
 import { useLocation, useNavigate, useParams } from 'react-router-dom'
 
 import { Alert, Box, CircularProgress, Paper, Stack, TextField, Typography } from '@mui/material'
@@ -32,7 +32,15 @@ export default function CarrierFormPage() {
 
     const saving = createCarrier.isPending || updateCarrier.isPending
 
+    const initializedFormRef = useRef(null)
+
     useEffect(() => {
+        const formKey = isEdit ? `edit:${id}` : 'create'
+        if (initializedFormRef.current === formKey) return
+
+        if (isEdit && (!carrier || String(carrier.id) !== String(id))) return
+
+        initializedFormRef.current = formKey
         if (!isEdit) {
             setForm(emptyForm)
             setPhoneError('')
@@ -52,13 +60,13 @@ export default function CarrierFormPage() {
             setPhoneError('')
             setEmailError('')
         }
-    }, [carrier, isEdit])
+    }, [carrier, isEdit, id, setForm, setPhoneError, setEmailError])
 
     useEffect(() => {
         if (loadError) {
             setError(loadError?.response?.data?.detail || 'Ошибка загрузки данных')
         }
-    }, [loadError])
+    }, [loadError, setError])
 
     const { form, setForm, error, setError, phoneError, setPhoneError, emailError, setEmailError, onChange, onSubmit } =
         useFormLogic({

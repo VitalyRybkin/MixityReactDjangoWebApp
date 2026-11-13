@@ -18,7 +18,7 @@ export function getAssignedDriverName(order) {
 // Removes unsafe filename characters and limits the name length.
 const safeFilenamePart = (value) =>
     String(value)
-        .replace(/[\\/:*?"<>|\x00-\x1F]/g, '_')
+        .replace(/[\\/:*?"<>|\p{Cc}]/gu, '_')
         .replace(/\s+/g, '_')
         .slice(0, 90)
 

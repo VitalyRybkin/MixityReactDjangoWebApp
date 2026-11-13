@@ -17,6 +17,7 @@ import {
 } from '@mui/material'
 
 import api from '../api'
+import { firstError } from '../utils/apiError.js'
 import {
     PHONE_ERROR_MESSAGE,
     buildPhonePayload,
@@ -146,6 +147,7 @@ export default function ContactCreateUpdate({ open, mode, ownerType, ownerId, in
             return
         }
 
+        let contactSaved = false
         try {
             let savedContact
 
@@ -163,8 +165,14 @@ export default function ContactCreateUpdate({ open, mode, ownerType, ownerId, in
                 savedContact = response.data
             }
 
+            contactSaved = true
             await onSaved?.(savedContact)
         } catch (err) {
+            setError(
+                contactSaved
+                    ? 'Контакт сохранён, но не удалось обновить данные. Проверьте результат перед повторным сохранением.'
+                    : firstError(err) || 'Не удалось сохранить контакт.',
+            )
         } finally {
             setSaving(false)
         }

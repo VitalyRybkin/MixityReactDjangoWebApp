@@ -1,6 +1,6 @@
 import {useLocation, useNavigate, useParams} from "react-router-dom";
 import {useCreateRepairCompany, useGetRepairCompany, useUpdateRepairCompany} from "./utils/repair.queries.js";
-import React, {useEffect} from "react";
+import React, {useEffect, useRef} from "react";
 import {useFormLogic} from "../../hooks/useEntityForm.js";
 import {Alert, Box, CircularProgress, Paper, Stack, TextField, Typography} from "@mui/material";
 import AppBreadcrumbs from "../../components/AppBreadcrumbs.jsx";
@@ -28,7 +28,15 @@ export default function RepairCompanyFormPage() {
 
     const saving = createCompany.isPending || updateCompany.isPending
 
+    const initializedFormRef = useRef(null)
+
     useEffect(() => {
+        const formKey = isEdit ? `edit:${id}` : 'create'
+        if (initializedFormRef.current === formKey) return
+
+        if (isEdit && (!repairCompany || String(repairCompany.id) !== String(id))) return
+
+        initializedFormRef.current = formKey
         if (!isEdit) {
             setForm(emptyForm)
             setPhoneError('')
@@ -47,13 +55,13 @@ export default function RepairCompanyFormPage() {
             setPhoneError('')
             setEmailError('')
         }
-    }, [repairCompany, isEdit])
+    }, [repairCompany, isEdit, id, setForm, setPhoneError, setEmailError])
 
     useEffect(() => {
         if (loadError) {
             setError(loadError?.response?.data?.detail || 'Ошибка загрузки данных')
         }
-    }, [loadError])
+    }, [loadError, setError])
 
     const { form, setForm, error, setError, phoneError, setPhoneError, emailError, setEmailError, onChange, onSubmit } =
         useFormLogic({

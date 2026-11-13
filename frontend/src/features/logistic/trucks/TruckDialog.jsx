@@ -115,10 +115,7 @@ export default function TruckDialog({ open, mode = 'create', carrierId, initialD
                     payload,
                 })
             } else {
-                savedTruck = await createTruck.mutateAsync({
-                    carrierId,
-                    payload,
-                })
+                savedTruck = await createTruck.mutateAsync(payload)
             }
 
             await onSaved?.(savedTruck)

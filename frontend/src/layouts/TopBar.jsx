@@ -4,7 +4,7 @@ import { AppBar, Box, Button, Toolbar, Typography } from '@mui/material'
 
 import ThemeToggle from '../components/ThemeToggle'
 import { ACCESS_TOKEN, REFRESH_TOKEN } from '../constants.js'
-import { useAuth } from '../pages/auth/context/AuthContext.jsx'
+import { useAuth } from '../pages/auth/context/useAuth.js'
 
 import { topBarSx as sx } from './TopBar.styles.js'
 import TopBarNav from './TopBarNav.jsx'
