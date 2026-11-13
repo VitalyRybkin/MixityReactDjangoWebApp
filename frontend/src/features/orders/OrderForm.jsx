@@ -200,14 +200,26 @@ export default function OrderFormPage({ readOnly = false }) {
     const {
         data: customerPrices = EMPTY_PRICES,
         isLoading: isLoadingCustomerPrices,
+        isFetching: isFetchingCustomerPrices,
         error: loadCustomerPricesError,
     } = useGetCustomerPrices(customerId, productIds)
 
     const {
         data: warehousePrices = EMPTY_PRICES,
         isLoading: isLoadingWarehousePrices,
+        isFetching: isFetchingWarehousePrices,
         error: loadWarehousePricesError,
     } = useGetWarehousePrices(warehouseId, productIds)
+
+    // Never serialize an unresolved reference price as 0. Zero itself remains
+    // valid when explicitly stored in an order item.
+    const missingItemPrices = orderProducts.some((row) =>
+        getProductId(row) &&
+        ['price_at_sale', 'price_at_purchase'].some((field) =>
+            row[field] === null || row[field] === undefined || row[field] === '',
+        ),
+    )
+    const pricesNotReady = isFetchingCustomerPrices || isFetchingWarehousePrices || missingItemPrices
 
     const isLoadingPage = loadingResources || !orderResources || (isEdit && (loadingOrder || !order))
     const pageLoadError = loadResourceError || loadOrderError
@@ -274,8 +286,11 @@ export default function OrderFormPage({ readOnly = false }) {
                             ref={formRef}
                             noValidate
                             onSubmit={(event) => {
-                                if (readOnly || saving) {
+                                if (readOnly || saving || pricesNotReady) {
                                     event.preventDefault()
+                                    if (pricesNotReady) {
+                                        showSnackbar('Дождитесь загрузки цен или заполните отсутствующие цены.', 'warning')
+                                    }
                                     return
                                 }
                                 onSubmit(event)
@@ -287,7 +302,7 @@ export default function OrderFormPage({ readOnly = false }) {
                                     isEdit={isEdit}
                                     orderId={form.id}
                                     saving={saving}
-                                    saveDisabled={readOnly || (isEdit && !isDirty)}
+                                    saveDisabled={readOnly || pricesNotReady || (isEdit && !isDirty)}
                                     newOrder="Создание заявки"
                                     editOrder={readOnly ? 'Просмотр заявки' : 'Редактирование заявки'}
                                 />

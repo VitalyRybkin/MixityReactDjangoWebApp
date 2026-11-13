@@ -5,7 +5,7 @@ import { Edit as EditIcon } from '@mui/icons-material'
 import ConstructionIcon from '@mui/icons-material/Construction'
 import LocalShippingIcon from '@mui/icons-material/LocalShipping'
 import PersonIcon from '@mui/icons-material/Person'
-import { Box, Card, CardContent, CircularProgress, Divider, Stack, Typography } from '@mui/material'
+import { Alert, Box, Button, Card, CardContent, CircularProgress, Divider, Stack, Typography } from '@mui/material'
 
 import { useQuery } from '@tanstack/react-query'
 
@@ -54,6 +54,8 @@ export default function ObjectDetailWithContactList({
     const entity = entityQuery.data ?? null
     const contacts = contactsQuery.data ?? []
     const loading = entityQuery.isPending || contactsQuery.isPending
+    const loadError = entityQuery.isError || contactsQuery.isError
+    const missingEntity = !loading && !entity
 
     const [dialog, setDialog] = useState({
         open: false,
@@ -182,7 +184,36 @@ export default function ObjectDetailWithContactList({
             }
         })
     }
-    const rows = fields(entity)
+    const rows = entity && !loadError ? fields(entity) : []
+
+    if (loadError || missingEntity) {
+        const notFound = entityQuery.error?.response?.status === 404 || missingEntity
+        const message = notFound
+            ? 'Запись не найдена.'
+            : entityQuery.isError
+              ? 'Не удалось загрузить данные записи.'
+              : 'Не удалось загрузить контакты.'
+
+        return (
+            <Box sx={sx.page}>
+                <AppBreadcrumbs />
+                <Alert severity="error" sx={{ mt: 2 }}>{message}</Alert>
+                {!notFound && (
+                    <Button
+                        sx={{ mt: 2 }}
+                        variant="outlined"
+                        disabled={entityQuery.isFetching || contactsQuery.isFetching}
+                        onClick={() => {
+                            if (entityQuery.isError) void entityQuery.refetch()
+                            if (contactsQuery.isError) void contactsQuery.refetch()
+                        }}
+                    >
+                        Повторить
+                    </Button>
+                )}
+            </Box>
+        )
+    }
 
     return (
         <Box sx={sx.page}>
@@ -197,6 +228,7 @@ export default function ObjectDetailWithContactList({
 
                         <Stack direction="row" spacing={1}>
                             <EditAction
+                                disabled={loading || !entity}
                                 onClick={(event) => {
                                     if (renderEditDialog) {
                                         event.currentTarget.blur()
@@ -284,15 +316,17 @@ export default function ObjectDetailWithContactList({
                     </CardContent>
                 </Card>
 
-                <ContactsListView
-                    contacts={contacts}
-                    onAdd={openCreateContact}
-                    onEdit={openEditContact}
-                    onDelete={onDeleteContact}
-                    onDeletePhone={onDeletePhone}
-                    isDeletingPhone={isPhoneDeleting}
-                    isDeletingContact={isContactDeleting}
-                />
+                {!loading && (
+                    <ContactsListView
+                        contacts={contacts}
+                        onAdd={openCreateContact}
+                        onEdit={openEditContact}
+                        onDelete={onDeleteContact}
+                        onDeletePhone={onDeletePhone}
+                        isDeletingPhone={isPhoneDeleting}
+                        isDeletingContact={isContactDeleting}
+                    />
+                )}
             </Stack>
 
             {renderEditDialog?.({

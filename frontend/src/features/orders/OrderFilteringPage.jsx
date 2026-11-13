@@ -126,14 +126,14 @@ export default function OrderFilteringPage() {
 
             <PageHeader
                 title="Поиск заявок"
-                actions={
+                actions={hasPermission(PERMISSIONS.orders.export) ? (
                     <DownloadAction
                         title="Экспорт в Excel"
                         onClick={handleExport}
                         disabled={isDownloading || loadingOrders}
                         loading={isDownloading || loadingOrders}
                     />
-                }
+                ) : null}
             />
 
             <Divider />

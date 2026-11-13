@@ -8,6 +8,12 @@ import EmailLink from './ui/buttons/EmailLink.jsx'
 
 const ContactsListRow = ({ contact, onEdit, onDelete, onDeletePhone, isDeletingContact, isDeletingPhone }) => {
     const contactId = contact.id
+    // Editing snapshots the entire contact, including phoneNumbers. Do not open
+    // Edit while a full-array phone deletion is in flight.
+    const isDeletingAnyPhone = (contact.phoneNumbers ?? []).some((phone) =>
+        isDeletingPhone(contactId, phone.phoneNumber),
+    )
+    const isRowBusy = isDeletingContact(contactId) || isDeletingAnyPhone
 
     return (
         <TableRow hover>
@@ -30,11 +36,11 @@ const ContactsListRow = ({ contact, onEdit, onDelete, onDeletePhone, isDeletingC
             <TableCell align="right">
                 <Stack direction="row" spacing={1} justifyContent="flex-end">
                     <EditAction
-                        disabled={isDeletingContact(contactId)}
+                        disabled={isRowBusy}
                         onClick={() => onEdit(contact)}
                         icon={<EditIcon fontSize="small" />}
                     />
-                    <DeleteAction onClick={() => onDelete(contactId)} disabled={isDeletingContact(contactId)} />
+                    <DeleteAction onClick={() => onDelete(contactId)} disabled={isRowBusy} />
                 </Stack>
             </TableCell>
         </TableRow>

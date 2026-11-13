@@ -22,39 +22,42 @@ function ProtectedRoute({ children }) {
 
         const generationAtStart = getAuthSessionGeneration()
         const onStorage = (event) => {
+            if (cancelled) return
+
             if (event.key === AUTH_SESSION_ID_KEY && getAuthSessionGeneration() !== generationAtStart) {
+                // A different login/logout changed the account. Never end that new session.
                 void queryClient.cancelQueries()
                 queryClient.clear()
                 setIsAuthorized(false)
+                return
+            }
+
+            if (
+                (event.key === ACCESS_TOKEN || event.key === REFRESH_TOKEN) &&
+                event.newValue &&
+                getAuthSessionGeneration() === generationAtStart
+            ) {
+                // A second tab may finish its successful refresh after this tab failed.
+                // Re-check the shared tokens instead of leaving the screen at Retry.
+                setTemporaryError(false)
+                setRetryCount((count) => count + 1)
             }
         }
         window.addEventListener('storage', onStorage)
 
-        const invalidateSession = () => {
-            if (cancelled) return
-            // The session could have changed while an old token was refreshing.
-            if (getAuthSessionGeneration() !== generationAtStart) {
-                if (!localStorage.getItem(REFRESH_TOKEN)) setIsAuthorized(false)
-                return
-            }
-
-            endAuthSession()
-            void queryClient.cancelQueries()
-            queryClient.clear()
-            setIsAuthorized(false)
-        }
-
         const checkAuthorization = async () => {
             const token = localStorage.getItem(ACCESS_TOKEN)
+            const refresh = localStorage.getItem(REFRESH_TOKEN)
 
-            if (!token) {
-                invalidateSession()
+            if (!token && !refresh) {
+                // Nothing to refresh. The user is not authenticated, but do not
+                // mutate shared storage from a route guard.
+                setIsAuthorized(false)
                 return
             }
 
             try {
-                const decoded = jwtDecode(token)
-                const expiresAt = decoded?.exp
+                const expiresAt = token ? jwtDecode(token)?.exp : null
                 const now = Date.now() / 1000
 
                 if (!expiresAt || expiresAt - now < SKEW_SECONDS) {
@@ -62,24 +65,38 @@ function ProtectedRoute({ children }) {
                 }
 
                 if (!cancelled && getAuthSessionGeneration() === generationAtStart) {
+                    setTemporaryError(false)
                     setIsAuthorized(true)
                 }
             } catch (error) {
                 if (cancelled) return
-                if (error?.code === 'AUTH_SESSION_CHANGED') {
-                    // Another tab signed in as a different user. Do not log
-                    // that new account out from this stale tab.
+                if (error?.code === 'AUTH_SESSION_CHANGED' || getAuthSessionGeneration() !== generationAtStart) {
+                    // A different account replaced the one we were checking.
                     void queryClient.cancelQueries()
                     queryClient.clear()
                     setIsAuthorized(false)
                     return
                 }
-                const status = error?.response?.status
-                if ([400, 401, 403].includes(status) || error?.message === 'Refresh token is missing') {
-                    invalidateSession()
-                    return
+
+                // A concurrent refresh might already have written a newer access
+                // token. Its success must win over this tab's rejected refresh.
+                const latestToken = localStorage.getItem(ACCESS_TOKEN)
+                if (latestToken && latestToken !== token) {
+                    try {
+                        const latestExpiry = jwtDecode(latestToken)?.exp
+                        if (latestExpiry && latestExpiry > Date.now() / 1000) {
+                            setTemporaryError(false)
+                            setIsAuthorized(true)
+                            return
+                        }
+                    } catch {
+                        // The new token is unusable; keep storage intact for Retry.
+                    }
                 }
-                // 503/network failures must show Retry, not force a logout.
+
+                // A refresh 400/401/403 does not prove the *shared* session is
+                // invalid: another tab may still be completing a successful refresh.
+                // Do not call endAuthSession() on a background failure.
                 setTemporaryError(true)
             }
         }
@@ -95,7 +112,10 @@ function ProtectedRoute({ children }) {
     if (temporaryError && isAuthorized === null) {
         return (
             <Box sx={{ p: 3, maxWidth: 520, mx: 'auto', mt: 8 }}>
-                <Alert severity="warning">Не удалось обновить сессию. Проверьте соединение и повторите попытку.</Alert>
+                <Alert severity="warning">
+                    Не удалось подтвердить сессию. Другая вкладка может обновлять токен.
+                    Попробуйте повторить запрос или войдите заново.
+                </Alert>
                 <Button
                     sx={{ mt: 2 }}
                     variant="contained"
@@ -105,6 +125,18 @@ function ProtectedRoute({ children }) {
                     }}
                 >
                     Повторить
+                </Button>
+                <Button
+                    sx={{ mt: 2, ml: 1 }}
+                    onClick={() => {
+                        // Only an explicit user action can terminate a shared session.
+                        endAuthSession()
+                        void queryClient.cancelQueries()
+                        queryClient.clear()
+                        setIsAuthorized(false)
+                    }}
+                >
+                    Войти заново
                 </Button>
             </Box>
         )

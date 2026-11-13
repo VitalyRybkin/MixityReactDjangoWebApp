@@ -59,12 +59,24 @@ export function useEditablePrices({
         for (const row of orderProducts) {
             const productId = getProductId(row)
             const rowId = String(row.id)
-            if (!productId) continue
+            if (!productId) {
+                // A price belongs to the selected product. Clearing a selection
+                // invalidates both the stored price and its automatic/manual origin.
+                nextSelections.set(rowId, null)
+                if (hasPrice(row, orderProductPriceField)) {
+                    updates.set(rowId, {
+                        productId,
+                        oldValue: row[orderProductPriceField],
+                        price: null,
+                    })
+                }
+                continue
+            }
             nextSelections.set(rowId, productId)
 
             const old = previous.get(rowId)
             const priorProductId = previousSelections.get(rowId)
-            const selectionChanged = priorProductId != null && priorProductId !== productId
+            const selectionChanged = previousSelections.has(rowId) && priorProductId !== productId
             const replacementPending = Boolean(old && old.productId !== productId)
             const replacing = selectionChanged || replacementPending
             if (isEdit && isPersistedItem(row) && !replacing) continue
