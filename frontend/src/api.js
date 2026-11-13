@@ -15,25 +15,44 @@ const redirectToUnauthorized = () => {
     }
 }
 
-// Refresh-token rotation is NOT an account change. Only an explicit
-// login/logout or invalidation advances this generation.
+// A session identity must be shared between browser tabs, unlike a module-local
+// generation. Access/refresh rotation does NOT change this identity.
+export const AUTH_SESSION_ID_KEY = 'mixity_auth_session_id'
 let sessionGeneration = 0
-export const getAuthSessionGeneration = () => sessionGeneration
+
+const newSessionId = () => crypto.randomUUID()
+
+const sharedSessionId = () => {
+    let id = localStorage.getItem(AUTH_SESSION_ID_KEY)
+    // Upgrade existing logins without forcing everyone to sign in again.
+    if (!id && localStorage.getItem(REFRESH_TOKEN)) {
+        const generated = newSessionId()
+        localStorage.setItem(AUTH_SESSION_ID_KEY, generated)
+        id = localStorage.getItem(AUTH_SESSION_ID_KEY)
+    }
+    return id ?? ''
+}
+
+export const getAuthSessionGeneration = () => `${sessionGeneration}:${sharedSessionId()}`
 
 export function startAuthSession(access, refresh) {
     sessionGeneration += 1
+    // Publish the identity before tokens: pending refreshes in *other* tabs
+    // must become invalid before they can write credentials.
+    localStorage.setItem(AUTH_SESSION_ID_KEY, newSessionId())
     localStorage.setItem(ACCESS_TOKEN, access)
     localStorage.setItem(REFRESH_TOKEN, refresh)
 }
 
 export function endAuthSession() {
     sessionGeneration += 1
+    localStorage.setItem(AUTH_SESSION_ID_KEY, newSessionId())
     localStorage.removeItem(ACCESS_TOKEN)
     localStorage.removeItem(REFRESH_TOKEN)
 }
 
 const sessionChanged = () => Object.assign(new Error('Сессия изменилась.'), { code: 'AUTH_SESSION_CHANGED' })
-const isCurrentSession = (generation) => generation === sessionGeneration
+const isCurrentSession = (generation) => generation === getAuthSessionGeneration()
 
 const endSessionIfCurrent = (generation) => {
     if (!isCurrentSession(generation)) return false
@@ -45,7 +64,7 @@ const endSessionIfCurrent = (generation) => {
 api.interceptors.request.use(
     (config) => {
         // Preserve the original generation when retrying an earlier request.
-        config._authSessionGeneration ??= sessionGeneration
+        config._authSessionGeneration ??= getAuthSessionGeneration()
         const token = localStorage.getItem(ACCESS_TOKEN)
         if (token && !config.headers?.Authorization) {
             config.headers = config.headers ?? {}
@@ -60,7 +79,7 @@ let refreshPromise = null
 let refreshGeneration = null
 
 export async function refreshAccessToken() {
-    const generation = sessionGeneration
+    const generation = getAuthSessionGeneration()
     const refresh = localStorage.getItem(REFRESH_TOKEN)
     if (!refresh) throw new Error('Refresh token is missing')
 
@@ -69,10 +88,29 @@ export async function refreshAccessToken() {
     }
 
     const pending = (async () => {
-        const response = await api.post('/api/auth/token/refresh/', { refresh })
+        let response
+        try {
+            response = await api.post('/api/auth/token/refresh/', { refresh })
+        } catch (error) {
+            if (!isCurrentSession(generation)) throw sessionChanged()
+            // Another tab may have rotated this session's refresh token first.
+            if (localStorage.getItem(REFRESH_TOKEN) !== refresh) {
+                const latestAccess = localStorage.getItem(ACCESS_TOKEN)
+                if (latestAccess) return latestAccess
+            }
+            throw error
+        }
         if (!isCurrentSession(generation)) throw sessionChanged()
 
+        // Do not overwrite another tab's newer refresh result.
+        if (localStorage.getItem(REFRESH_TOKEN) !== refresh) {
+            const latestAccess = localStorage.getItem(ACCESS_TOKEN)
+            if (latestAccess) return latestAccess
+            throw sessionChanged()
+        }
+
         const newAccess = response.data.access
+        if (!newAccess) throw new Error('Refresh returned no access token')
         localStorage.setItem(ACCESS_TOKEN, newAccess)
         if (response.data.refresh) {
             localStorage.setItem(REFRESH_TOKEN, response.data.refresh)
@@ -121,7 +159,7 @@ api.interceptors.response.use(
             return Promise.reject(error)
         }
 
-        if (status === 403) {
+        if (status === 403 && !originalRequest?.url?.includes('/api/auth/token/refresh/')) {
             if (window.location.pathname !== '/') window.location.replace('/')
             return Promise.reject(error)
         }
@@ -129,7 +167,18 @@ api.interceptors.response.use(
         if (status !== 401) return Promise.reject(error)
 
         if (originalRequest?.url?.includes('/api/auth/token/refresh/')) {
-            endSessionIfCurrent(generation)
+            // A parallel tab may already have rotated the token. In that case
+            // this 401 is not evidence that the shared account is invalid.
+            let attemptedRefresh = null
+            try {
+                const data = originalRequest.data
+                attemptedRefresh = (typeof data === 'string' ? JSON.parse(data) : data)?.refresh ?? null
+            } catch {
+                // Unparseable request data: fall through to ordinary rejection.
+            }
+            if (attemptedRefresh && localStorage.getItem(REFRESH_TOKEN) === attemptedRefresh) {
+                endSessionIfCurrent(generation)
+            }
             return Promise.reject(error)
         }
 
@@ -148,8 +197,10 @@ api.interceptors.response.use(
 
             if (!isCurrentSession(generation)) throw sessionChanged()
         } catch (refreshError) {
-            // Only an authentication-refresh failure can invalidate the session.
-            if (refreshError?.code !== 'AUTH_SESSION_CHANGED') {
+            // Network errors and 5xx refresh failures are transient. Do not
+            // destroy unsaved forms or credentials; allow a later retry.
+            const refreshStatus = refreshError?.response?.status
+            if ([400, 401, 403].includes(refreshStatus)) {
                 endSessionIfCurrent(generation)
             }
             return Promise.reject(refreshError)

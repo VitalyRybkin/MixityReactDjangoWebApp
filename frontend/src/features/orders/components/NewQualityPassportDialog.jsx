@@ -260,6 +260,7 @@ export default function NewQualityPassportDialog({
                             value={form.number}
                             onChange={handleChange('number')}
                             error={Boolean(errors.number)}
+                            helperText={errors.number}
                             slotProps={{ inputLabel: { shrink: true }, htmlInput: { maxLength: 50 } }}
                         />
                         <Typography variant="body2" sx={{ alignSelf: 'center', color: 'text.secondary', pb: 0.5 }}>
@@ -273,7 +274,7 @@ export default function NewQualityPassportDialog({
                             value={form.issue_date}
                             onChange={handleChange('issue_date')}
                             error={Boolean(errors.issue_date)}
-                            helperText={issueDateHelper}
+                            helperText={errors.issue_date || issueDateHelper}
                             slotProps={{
                                 inputLabel: { shrink: true },
                                 htmlInput: {
@@ -294,6 +295,7 @@ export default function NewQualityPassportDialog({
                         value={form.batch_number}
                         onChange={handleChange('batch_number')}
                         error={Boolean(errors.batch_number)}
+                        helperText={errors.batch_number}
                         slotProps={{ inputLabel: { shrink: true }, htmlInput: { maxLength: 100 } }}
                     />
                     <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', sm: '1fr 1fr' }, gap: 2 }}>
@@ -307,9 +309,10 @@ export default function NewQualityPassportDialog({
                             onChange={handleChange('production_date')}
                             error={Boolean(errors.production_date)}
                             helperText={
-                                isValidISODate(form.issue_date)
+                                errors.production_date ||
+                                (isValidISODate(form.issue_date)
                                     ? `Не позднее ${formatPassportDate(form.issue_date)}`
-                                    : 'Укажите дату нового паспорта'
+                                    : 'Укажите дату нового паспорта')
                             }
                             slotProps={{
                                 inputLabel: { shrink: true },
@@ -325,7 +328,7 @@ export default function NewQualityPassportDialog({
                             value={form.quantity}
                             onChange={handleChange('quantity')}
                             error={Boolean(errors.quantity)}
-                            helperText={quantityRule?.hint || 'Не удалось определить шаг количества.'}
+                            helperText={errors.quantity || quantityRule?.hint || 'Не удалось определить шаг количества.'}
                             slotProps={{ htmlInput: { inputMode: 'decimal' } }}
                         />
                     </Box>

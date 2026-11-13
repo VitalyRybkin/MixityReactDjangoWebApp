@@ -100,7 +100,7 @@ export default function QualityPassportTemplate({ passport }) {
                             <td>{index + 1}</td>
                             <td>
                                 {spec.name}
-                                {spec.unit_display ? `, ${spec.unit_display}` : ''}
+                                {spec.unit ? `, ${spec.unit}` : ''}
                             </td>
                             <td>{spec.value}</td>
                         </tr>

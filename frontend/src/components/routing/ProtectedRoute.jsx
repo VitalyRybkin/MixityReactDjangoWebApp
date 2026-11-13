@@ -1,12 +1,12 @@
 import { useEffect, useState } from 'react'
 import { Navigate } from 'react-router-dom'
 
-import { Box, CircularProgress, Typography } from '@mui/material'
+import { Alert, Box, Button, CircularProgress, Typography } from '@mui/material'
 
 import { useQueryClient } from '@tanstack/react-query'
 import { jwtDecode } from 'jwt-decode'
 
-import { endAuthSession, getAuthSessionGeneration, refreshAccessToken } from '../../api.js'
+import { AUTH_SESSION_ID_KEY, endAuthSession, getAuthSessionGeneration, refreshAccessToken } from '../../api.js'
 import { ACCESS_TOKEN, REFRESH_TOKEN } from '../../constants.js'
 
 const SKEW_SECONDS = 30
@@ -14,11 +14,21 @@ const SKEW_SECONDS = 30
 function ProtectedRoute({ children }) {
     const queryClient = useQueryClient()
     const [isAuthorized, setIsAuthorized] = useState(null)
+    const [temporaryError, setTemporaryError] = useState(false)
+    const [retryCount, setRetryCount] = useState(0)
 
     useEffect(() => {
         let cancelled = false
 
         const generationAtStart = getAuthSessionGeneration()
+        const onStorage = (event) => {
+            if (event.key === AUTH_SESSION_ID_KEY && getAuthSessionGeneration() !== generationAtStart) {
+                void queryClient.cancelQueries()
+                queryClient.clear()
+                setIsAuthorized(false)
+            }
+        }
+        window.addEventListener('storage', onStorage)
 
         const invalidateSession = () => {
             if (cancelled) return
@@ -54,8 +64,23 @@ function ProtectedRoute({ children }) {
                 if (!cancelled && getAuthSessionGeneration() === generationAtStart) {
                     setIsAuthorized(true)
                 }
-            } catch {
-                invalidateSession()
+            } catch (error) {
+                if (cancelled) return
+                if (error?.code === 'AUTH_SESSION_CHANGED') {
+                    // Another tab signed in as a different user. Do not log
+                    // that new account out from this stale tab.
+                    void queryClient.cancelQueries()
+                    queryClient.clear()
+                    setIsAuthorized(false)
+                    return
+                }
+                const status = error?.response?.status
+                if ([400, 401, 403].includes(status) || error?.message === 'Refresh token is missing') {
+                    invalidateSession()
+                    return
+                }
+                // 503/network failures must show Retry, not force a logout.
+                setTemporaryError(true)
             }
         }
 
@@ -63,8 +88,27 @@ function ProtectedRoute({ children }) {
 
         return () => {
             cancelled = true
+            window.removeEventListener('storage', onStorage)
         }
-    }, [queryClient])
+    }, [queryClient, retryCount])
+
+    if (temporaryError && isAuthorized === null) {
+        return (
+            <Box sx={{ p: 3, maxWidth: 520, mx: 'auto', mt: 8 }}>
+                <Alert severity="warning">Не удалось обновить сессию. Проверьте соединение и повторите попытку.</Alert>
+                <Button
+                    sx={{ mt: 2 }}
+                    variant="contained"
+                    onClick={() => {
+                        setTemporaryError(false)
+                        setRetryCount((count) => count + 1)
+                    }}
+                >
+                    Повторить
+                </Button>
+            </Box>
+        )
+    }
 
     if (isAuthorized === null) {
         return (

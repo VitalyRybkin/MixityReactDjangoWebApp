@@ -18,7 +18,7 @@ const emptyForm = {
     address: '',
     phone: '',
     email: '',
-    descriptions: '',
+    description: '',
 }
 
 export default function WarehouseFormPage() {
@@ -33,18 +33,29 @@ export default function WarehouseFormPage() {
     const updateWarehouse = useUpdateWarehouse()
 
     const saving = createWarehouse.isPending || updateWarehouse.isPending
+    const initializedForRef = useRef(null)
 
     const { renderActions } = useLoadImage()
 
-    const initializedFormRef = useRef(null)
+    const { form, setForm, error, setError, phoneError, setPhoneError, emailError, setEmailError, onChange, onSubmit } =
+        useFormLogic({
+            isEdit,
+            id,
+            emptyForm,
+            updateMutation: updateWarehouse,
+            createMutation: createWarehouse,
+            redirectPath: '/warehouses',
+        })
 
     useEffect(() => {
-        const formKey = isEdit ? `edit:${id}` : 'create'
-        if (initializedFormRef.current === formKey) return
+        const recordKey = isEdit ? `edit:${id}` : 'create'
+        if (initializedForRef.current === recordKey) return
 
-        if (isEdit && (!warehouse || String(warehouse.id) !== String(id))) return
+        // A query can briefly expose previous-record data while the URL changes.
+        // Initialize only once the requested entity is available.
+        if (isEdit && (!warehouse || (warehouse.id != null && String(warehouse.id) !== String(id)))) return
 
-        initializedFormRef.current = formKey
+        initializedForRef.current = recordKey
         if (!isEdit) {
             setForm(emptyForm)
             setPhoneError('')
@@ -59,29 +70,19 @@ export default function WarehouseFormPage() {
                 address: warehouse.address ?? '',
                 phone: warehouse.phone ?? '',
                 email: warehouse.email ?? '',
-                descriptions: warehouse.descriptions ?? '',
+                description: warehouse.description ?? '',
                 directions: warehouse.directions ?? '',
             })
             setPhoneError('')
             setEmailError('')
         }
-    }, [warehouse, isEdit, id, setForm, setPhoneError, setEmailError])
+    }, [warehouse, id, isEdit, setForm, setPhoneError, setEmailError])
 
     useEffect(() => {
         if (loadError) {
             setError(loadError?.response?.data?.detail || 'Ошибка загрузки данных')
         }
     }, [loadError, setError])
-
-    const { form, setForm, error, setError, phoneError, setPhoneError, emailError, setEmailError, onChange, onSubmit } =
-        useFormLogic({
-            isEdit,
-            id,
-            emptyForm,
-            updateMutation: updateWarehouse,
-            createMutation: createWarehouse,
-            redirectPath: '/warehouses',
-        })
 
     if (isEdit && loadingWarehouse) {
         return (
@@ -135,8 +136,8 @@ export default function WarehouseFormPage() {
                         />
                         <TextField
                             label="Примечание"
-                            value={form.descriptions}
-                            onChange={onChange('descriptions')}
+                            value={form.description}
+                            onChange={onChange('description')}
                             fullWidth
                             multiline
                             minRows={3}

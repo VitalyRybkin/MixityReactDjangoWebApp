@@ -27,16 +27,27 @@ export default function RepairCompanyFormPage() {
     const updateCompany = useUpdateRepairCompany()
 
     const saving = createCompany.isPending || updateCompany.isPending
+    const initializedForRef = useRef(null)
 
-    const initializedFormRef = useRef(null)
+    const { form, setForm, error, setError, phoneError, setPhoneError, emailError, setEmailError, onChange, onSubmit } =
+        useFormLogic({
+            isEdit,
+            id,
+            emptyForm,
+            updateMutation: updateCompany,
+            createMutation: createCompany,
+            redirectPath: '/repair/companies',
+        })
 
     useEffect(() => {
-        const formKey = isEdit ? `edit:${id}` : 'create'
-        if (initializedFormRef.current === formKey) return
+        const recordKey = isEdit ? `edit:${id}` : 'create'
+        if (initializedForRef.current === recordKey) return
 
-        if (isEdit && (!repairCompany || String(repairCompany.id) !== String(id))) return
+        // A query can briefly expose previous-record data while the URL changes.
+        // Initialize only once the requested entity is available.
+        if (isEdit && (!repairCompany || (repairCompany.id != null && String(repairCompany.id) !== String(id)))) return
 
-        initializedFormRef.current = formKey
+        initializedForRef.current = recordKey
         if (!isEdit) {
             setForm(emptyForm)
             setPhoneError('')
@@ -55,23 +66,13 @@ export default function RepairCompanyFormPage() {
             setPhoneError('')
             setEmailError('')
         }
-    }, [repairCompany, isEdit, id, setForm, setPhoneError, setEmailError])
+    }, [repairCompany, id, isEdit, setForm, setPhoneError, setEmailError])
 
     useEffect(() => {
         if (loadError) {
             setError(loadError?.response?.data?.detail || 'Ошибка загрузки данных')
         }
     }, [loadError, setError])
-
-    const { form, setForm, error, setError, phoneError, setPhoneError, emailError, setEmailError, onChange, onSubmit } =
-        useFormLogic({
-            isEdit,
-            id,
-            emptyForm,
-            updateMutation: updateCompany,
-            createMutation: createCompany,
-            redirectPath: '/repair/companies',
-        })
 
     if (isEdit && loadingCompany) return <CircularProgress />
 

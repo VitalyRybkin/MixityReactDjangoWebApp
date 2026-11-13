@@ -29,8 +29,7 @@ import { useGetCustomers } from '../features/customers/utils/customers.queries.j
 import OrderMobileList from '../features/orders/components/OrderMobileList.jsx'
 import { useDeleteOrderFlow } from '../features/orders/hooks/useDeleteOrderFlow.js'
 import { useOrdersFilters } from '../features/orders/hooks/useOrdersFilters.js'
-import { useExportOrders, useGetOrders, useUploadUpd, viewUpd } from '../features/orders/utils/orders.queries.js'
-import { useGetWarehouses } from '../features/warehouses/utils/stocks.queries.js'
+import { useExportOrders, useGetOrderResources, useGetOrders, useUploadUpd, viewUpd } from '../features/orders/utils/orders.queries.js'
 import { useFileUpload } from '../hooks/useUploadFile.js'
 import { sidebarPageSx } from '../layouts/AppSidebar.styles.js'
 import { localeText } from '../utils/localeDataGridText.js'
@@ -127,7 +126,9 @@ const Home = () => {
 
     const { data: orders, isPending: loadingOrders, isError: ordersError } = useGetOrders(formattedFilters)
     const { data: customers } = useGetCustomers()
-    const { data: warehouses } = useGetWarehouses()
+    // These are order-form reference data, not the restricted stock management endpoint.
+    const { data: orderResources, error: orderResourcesError } = useGetOrderResources()
+    const warehouses = orderResources?.warehouses ?? []
 
     const { refetch: fetchDownload, isFetching: isDownloading } = useExportOrders({
         ...formattedFilters,
@@ -220,7 +221,12 @@ const Home = () => {
     const handleExport = async () => {
         if (exportingDocuments || preparedExport) return
 
-        const warehouseList = warehouses ?? []
+        if (orderResourcesError) {
+            showSnackbar('Не удалось загрузить склады для выгрузки. Повторите попытку.', 'error')
+            return
+        }
+
+        const warehouseList = warehouses
         if (
             !warehouseList.some(
                 // Checks whether the selected warehouse exists.
