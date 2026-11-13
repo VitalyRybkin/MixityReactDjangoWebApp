@@ -25,7 +25,7 @@ from core.openapi.base_views import (
     BaseGenericAPIView,
     BaseRetrieveAPIView,
 )
-from order.models import Order
+from order.models import Order, OrderItem
 
 
 class QualityPassportStateAPIView(BaseGenericAPIView):
@@ -123,6 +123,25 @@ class QualityPassportRetrieveAPIView(BaseRetrieveAPIView):
     ).order_by("id")
 
     errors_read = ERRORS_DETAIL
+
+    # Exporters of orders may read only passports attached to created orders.
+    # Catalogue users retain access to all passports through their own view permission.
+    permission_classes = [IsAuthenticated]
+
+    def get_queryset(self):
+        queryset = super().get_queryset()
+        user = self.request.user
+
+        if user.has_perm("catalog.view_qualitypassport"):
+            return queryset
+
+        if user.has_perm("order.export_order"):
+            exported_passports = OrderItem.objects.filter(
+                order__status=Order.Status.CREATED,
+            ).values("quality_passport_id")
+            return queryset.filter(pk__in=exported_passports)
+
+        raise PermissionDenied()
 
 
 class ProductSpecificationDetailAPIView(BaseRetrieveAPIView):
