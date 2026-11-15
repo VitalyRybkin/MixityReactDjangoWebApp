@@ -3,7 +3,6 @@ import { useNavigate } from 'react-router-dom'
 import { AppBar, Box, Button, Toolbar, Typography } from '@mui/material'
 
 import ThemeToggle from '../components/ThemeToggle'
-import { ACCESS_TOKEN, REFRESH_TOKEN } from '../constants.js'
 import { useAuth } from '../pages/auth/context/useAuth.js'
 
 import { topBarSx as sx } from './TopBar.styles.js'
@@ -14,9 +13,7 @@ const TopBar = () => {
     const { user } = useAuth()
 
     const handleLogout = () => {
-        localStorage.removeItem(ACCESS_TOKEN)
-        localStorage.removeItem(REFRESH_TOKEN)
-        navigate('/login', { replace: true })
+        navigate('/logout', { replace: true })
     }
 
     return (

@@ -127,17 +127,20 @@ api.interceptors.response.use(
     },
     async (error) => {
         const originalRequest = error.config
+        const isLoginRequest = originalRequest?.url?.endsWith('/api/auth/token/')
+        const generation = originalRequest?._authSessionGeneration
+
+        if (error.code === 'AUTH_SESSION_CHANGED') return Promise.reject(error)
+        if (!isLoginRequest && generation !== undefined && !isCurrentSession(generation)) {
+            return Promise.reject(sessionChanged())
+        }
+
         if (!error.response) {
             return Promise.reject({ message: 'Нет связи с сервером', isNetworkError: true })
         }
 
         const status = error.response.status
-        if (originalRequest?.url?.endsWith('/api/auth/token/')) return Promise.reject(error)
-
-        const generation = originalRequest?._authSessionGeneration
-        if (generation !== undefined && !isCurrentSession(generation)) {
-            return Promise.reject(sessionChanged())
-        }
+        if (isLoginRequest) return Promise.reject(error)
 
         if (status === 503) {
             notifyApiError(error)

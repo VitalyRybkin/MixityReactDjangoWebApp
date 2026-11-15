@@ -61,6 +61,10 @@ function ProtectedRoute({ children }) {
                 const now = Date.now() / 1000
 
                 if (!expiresAt || expiresAt - now < SKEW_SECONDS) {
+                    // Only an asynchronous check withholds private content.
+                    // Healthy same-session token rotations stay mounted.
+                    setIsAuthorized(null)
+                    setTemporaryError(false)
                     await refreshAccessToken()
                 }
 
@@ -97,6 +101,7 @@ function ProtectedRoute({ children }) {
                 // A refresh 400/401/403 does not prove the *shared* session is
                 // invalid: another tab may still be completing a successful refresh.
                 // Do not call endAuthSession() on a background failure.
+                setIsAuthorized(null)
                 setTemporaryError(true)
             }
         }
