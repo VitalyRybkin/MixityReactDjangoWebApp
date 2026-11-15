@@ -33,6 +33,7 @@ export default function WarehouseFormPage() {
     const updateWarehouse = useUpdateWarehouse()
 
     const saving = createWarehouse.isPending || updateWarehouse.isPending
+    const hasSavedWarehouse = isEdit && warehouse?.id != null && String(warehouse.id) === String(id)
     const initializedForRef = useRef(null)
 
     const { renderActions } = useLoadImage()
@@ -147,11 +148,15 @@ export default function WarehouseFormPage() {
                                 Схема проезда
                             </Typography>
 
-                            {renderActions(
+                            {hasSavedWarehouse ? renderActions(
                                 form?.directions,
-                                `/warehouses/${warehouse?.id}/map`,
-                                warehouse?.directions,
-                                { state: { warehouse: warehouse?.name } },
+                                `/warehouses/${warehouse.id}/map`,
+                                warehouse.directions,
+                                { state: { warehouse: warehouse.name } },
+                            ) : !isEdit && (
+                                <Typography variant="body2" color="text.secondary">
+                                    Сначала сохраните склад, чтобы загрузить схему проезда.
+                                </Typography>
                             )}
                         </Box>
 
