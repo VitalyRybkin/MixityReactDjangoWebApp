@@ -38,6 +38,11 @@ export const fetchDocumentationDetail = async (id) => {
     return res.data
 }
 
+export const createDocumentationShareLinks = async (ids) => {
+    const res = await api.post(documentationApiPaths.shareLinks(), { ids })
+    return res.data
+}
+
 export function useGetDocumentation() {
     return useQuery({
         queryKey: documentationKeys.list(),

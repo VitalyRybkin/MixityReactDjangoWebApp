@@ -1,9 +1,14 @@
-import React, { useState } from 'react'
+import React, { useRef, useState } from 'react'
 
 import {
     Box,
+    Button,
     Checkbox,
     CircularProgress,
+    Dialog,
+    DialogActions,
+    DialogContent,
+    DialogTitle,
     Divider,
     Stack,
     Table,
@@ -12,6 +17,7 @@ import {
     TableContainer,
     TableHead,
     TableRow,
+    Typography,
 } from '@mui/material'
 
 import api from '../../api.js'
@@ -25,8 +31,9 @@ import useSnackbar from '../../hooks/useSnackbar.js'
 import { entityTableListSx as listSx } from '../../styles/entityTableList.styles.js'
 
 import { documentationListSx as sx } from './DocumentationList.styles.js'
-import { fetchDocumentationDetail, useGetDocumentation } from './common.queries.js'
+import { createDocumentationShareLinks, fetchDocumentationDetail, useGetDocumentation } from './common.queries.js'
 import { documentationApiPaths } from './documentationApiPaths.js'
+import { prepareDocumentationEmail } from './documentationEmail.js'
 
 export default function DocumentationListPage() {
     const { data: documentation = [], isPending, error, refetch } = useGetDocumentation()
@@ -44,6 +51,9 @@ export default function DocumentationListPage() {
     }
 
     const [downloadLoading, setDownloadLoading] = useState(false)
+    const [emailPreparing, setEmailPreparing] = useState(false)
+    const [preparedEmail, setPreparedEmail] = useState(null)
+    const emailInFlight = useRef(false)
 
     const { snack, showSnackbar, closeSnackbar } = useSnackbar()
 
@@ -92,32 +102,21 @@ export default function DocumentationListPage() {
         }
     }
 
-    const handleSendEmail = () => {
-        if (!selectedDocs.length) return
+    const handleSendEmail = async () => {
+        if (!selectedDocs.length || emailInFlight.current) return
 
-        const linksText = selectedDocs
-            .map((id, index) => {
-                const doc = documentation.find((d) => d.id === id)
-                if (!doc) return null
-
-                return `${index + 1}. ${doc.title}\n   ${doc.public_url}`
-            })
-            .filter(Boolean)
-            .join('\n\n')
-
-        const subject = `Документация МИКСИТИ (${selectedDocs.length})`
-
-        const body = `Здравствуйте,
-
-            Направляем Вам следующие документы:
-            
-            ${linksText}
-            
-            Если возникнут вопросы — пожалуйста, дайте знать.
-            
-            С уважением,`.trim()
-
-        window.location.href = `mailto:?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`
+        emailInFlight.current = true
+        setEmailPreparing(true)
+        const ids = [...selectedDocs]
+        try {
+            const share = await createDocumentationShareLinks(ids)
+            setPreparedEmail(prepareDocumentationEmail(share, ids))
+        } catch {
+            showSnackbar('Не удалось подготовить ссылки для отправки. Попробуйте снова.', 'error')
+        } finally {
+            emailInFlight.current = false
+            setEmailPreparing(false)
+        }
     }
 
     return (
@@ -131,7 +130,11 @@ export default function DocumentationListPage() {
                         {downloadLoading && <CircularProgress size={20} />}
 
                         <Stack direction="row" spacing={2}>
-                            <EmailLink title="Отправить" onClick={handleSendEmail} />
+                            <EmailLink
+                                title={emailPreparing ? 'Подготовка ссылок…' : 'Отправить'}
+                                onClick={handleSendEmail}
+                                disabled={!selectedDocs.length || emailPreparing}
+                            />
                             <DownloadAction onClick={handleDownloadAll} />
                         </Stack>
                     </>
@@ -214,6 +217,21 @@ export default function DocumentationListPage() {
                     </Table>
                 </TableContainer>
             )}
+
+            <Dialog open={Boolean(preparedEmail)} onClose={() => setPreparedEmail(null)}>
+                <DialogTitle>Отправить документацию</DialogTitle>
+                <DialogContent>
+                    <Typography>
+                        Ссылки действуют до {preparedEmail?.expiresAt.toLocaleString('ru-RU')}.
+                    </Typography>
+                </DialogContent>
+                <DialogActions>
+                    <Button onClick={() => setPreparedEmail(null)}>Отмена</Button>
+                    <Button component="a" href={preparedEmail?.href}>
+                        Открыть письмо
+                    </Button>
+                </DialogActions>
+            </Dialog>
 
             <AppSnackbar open={snack.open} message={snack.message} severity={snack.severity} onClose={closeSnackbar} />
         </Box>
