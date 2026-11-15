@@ -5,16 +5,28 @@ export const toTimeValue = (time) => {
     return dayjs(`1970-01-01T${time}`)
 }
 
-export const toOrderPayload = (form) => ({
-    ...form,
-    client: form.client || null,
-    customer: form.customer?.id ?? null,
-    customer_object: form.customer_object?.id ?? null,
-    warehouse: form.warehouse?.id ?? null,
-    contacts: form.contacts?.map((c) => c.id) ?? [],
-    delivery_from: form.delivery_from?.format('HH:mm') ?? null,
-    delivery_to: form.delivery_to?.format('HH:mm') ?? null,
-})
+export const toOrderPayload = (form, originalOrder = null) => {
+    const payload = {
+        ...form,
+        client: form.client || null,
+        customer: form.customer?.id ?? null,
+        customer_object: form.customer_object?.id ?? null,
+        warehouse: form.warehouse?.id ?? null,
+        contacts: form.contacts?.map((c) => c.id) ?? [],
+        delivery_from: form.delivery_from?.format('HH:mm') ?? null,
+        delivery_to: form.delivery_to?.format('HH:mm') ?? null,
+    }
+    const originalWarehouseId = originalOrder?.warehouse?.id ?? originalOrder?.warehouse
+
+    // PATCH preserves an unchanged relation without revalidating its archived ID.
+    // Explicit replacement and clearing still send their requested value.
+    if (payload.warehouse != null && originalWarehouseId != null &&
+        String(payload.warehouse) === String(originalWarehouseId)) {
+        delete payload.warehouse
+    }
+
+    return payload
+}
 
 export const mapOrderToForm = (order, orderResources) => {
     const customerId = order.customer?.id ?? order.customer ?? null
@@ -28,7 +40,10 @@ export const mapOrderToForm = (order, orderResources) => {
         selectedCustomer?.customer_objects?.find((obj) => Number(obj.id) === Number(customerObjectId)) ?? null
 
     const selectedWarehouse =
-        orderResources.warehouses?.find((warehouse) => Number(warehouse.id) === Number(warehouseId)) ?? null
+        orderResources.warehouses?.find((warehouse) => Number(warehouse.id) === Number(warehouseId)) ??
+        (warehouseId == null ? null : typeof order.warehouse === 'object'
+            ? order.warehouse
+            : { id: warehouseId, name: `Склад № ${warehouseId}` })
 
     const contactIds = new Set(
         (order.contacts ?? []).map((contact) => (typeof contact === 'object' ? contact.id : contact)),

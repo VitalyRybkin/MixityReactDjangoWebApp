@@ -178,7 +178,7 @@ export default function OrderFormPage({ readOnly = false }) {
             confirmedPassportIdsRef.current = []
 
             return {
-                ...toOrderPayload(currentForm),
+                ...toOrderPayload(currentForm, isEdit ? order : null),
                 ...(confirmedIds.length ? { confirmed_passport_ids: confirmedIds } : {}),
                 products: buildProductsPayload(orderProducts),
                 delivery: {
