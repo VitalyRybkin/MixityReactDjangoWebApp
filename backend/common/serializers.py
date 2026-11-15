@@ -68,3 +68,23 @@ class DocumentationBulkDownloadRequestSerializer(serializers.Serializer):
         allow_empty=False,
         required=True,
     )
+
+
+class DocumentationShareLinksRequestSerializer(serializers.Serializer):
+    ids = serializers.ListField(
+        child=serializers.IntegerField(min_value=1),
+        allow_empty=False,
+        max_length=100,
+        required=True,
+    )
+
+
+class DocumentationShareLinkSerializer(serializers.Serializer):
+    id = serializers.IntegerField()
+    title = serializers.CharField()
+    url = serializers.URLField()
+
+
+class DocumentationShareLinksResponseSerializer(serializers.Serializer):
+    links = DocumentationShareLinkSerializer(many=True)
+    expires_at = serializers.DateTimeField()
