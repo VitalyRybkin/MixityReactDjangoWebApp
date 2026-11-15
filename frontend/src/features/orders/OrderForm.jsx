@@ -42,6 +42,7 @@ import { DeliveryContext } from './utils/DeliveryContext.js'
 import { emptyDeliveryInfo, emptyOrderForm } from './utils/order.form.constants.js'
 import { toOrderPayload } from './utils/order.form.mappers.js'
 import { getProductId } from './utils/orderProducts.js'
+import { hasValidOrderPrices } from './utils/orderPrices.js'
 import {
     useCreateOrder,
     useGetOrder,
@@ -213,13 +214,8 @@ export default function OrderFormPage({ readOnly = false }) {
 
     // Never serialize an unresolved reference price as 0. Zero itself remains
     // valid when explicitly stored in an order item.
-    const missingItemPrices = orderProducts.some((row) =>
-        getProductId(row) &&
-        ['price_at_sale', 'price_at_purchase'].some((field) =>
-            row[field] === null || row[field] === undefined || row[field] === '',
-        ),
-    )
-    const pricesNotReady = isFetchingCustomerPrices || isFetchingWarehousePrices || missingItemPrices
+    const invalidItemPrices = orderProducts.some((row) => getProductId(row) && !hasValidOrderPrices(row))
+    const pricesNotReady = isFetchingCustomerPrices || isFetchingWarehousePrices || invalidItemPrices
 
     const isLoadingPage = loadingResources || !orderResources || (isEdit && (loadingOrder || !order))
     const pageLoadError = loadResourceError || loadOrderError

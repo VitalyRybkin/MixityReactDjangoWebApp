@@ -1,9 +1,10 @@
 import { getProductId } from './orderProducts.js'
+import { normalizeOrderPrice } from './orderPrices.js'
 
 export function handlePriceChange({ id, value, editablePrices, setEditablePrices, setOrderProducts, priceType }) {
-    const numericValue = value === '' ? 0 : parseFloat(value)
+    const numericValue = normalizeOrderPrice(value)
 
-    setEditablePrices((prev) => prev.map((item) => (item.id === id ? { ...item, current_display_price: value } : item)))
+    setEditablePrices((prev) => prev.map((item) => (item.id === id ? { ...item, current_display_price: numericValue } : item)))
 
     const targetPriceItem = editablePrices.find((p) => p.id === id)
 
@@ -19,6 +20,8 @@ export function handlePriceChange({ id, value, editablePrices, setEditablePrices
                 return {
                     ...item,
                     [priceType]: numericValue,
+                    // A deliberate clear must survive reference-price loading.
+                    [`${priceType}_cleared`]: numericValue === null,
                 }
             }
 

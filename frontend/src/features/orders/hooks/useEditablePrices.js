@@ -1,9 +1,9 @@
 import { useEffect, useRef } from 'react'
 
+import { normalizeOrderPrice } from '../utils/orderPrices.js'
 import { getProductId, getProductObject } from '../utils/orderProducts.js'
 
-// A saved zero is a real price. Only a genuinely missing field can display a
-// reference price that has not yet been written to the order item.
+// A saved zero is a real price; missing prices stay distinct from zero.
 const hasPrice = (row, field) => row[field] !== null && row[field] !== undefined && row[field] !== ''
 
 const sameDisplayedPrices = (left, right) =>
@@ -37,14 +37,11 @@ export function useEditablePrices({
     useEffect(() => {
         const rows = orderProducts.map((row) => {
             const productId = getProductId(row)
-            const reference = prices.find((price) => Number(price.product?.id) === Number(productId))
             return {
                 id: productId,
                 product: getProductObject(row, prices, products),
                 product_id: productId,
-                current_display_price: hasPrice(row, orderProductPriceField)
-                    ? row[orderProductPriceField]
-                    : (reference?.[priceSourceField] ?? ''),
+                current_display_price: row[orderProductPriceField] ?? '',
             }
         })
         setEditablePrices((old) => sameDisplayedPrices(old, rows) ? old : rows)
@@ -87,11 +84,19 @@ export function useEditablePrices({
             // This avoids dropping persisted prices during initial form hydration.
             const switchingEntity = entityChanged && previousSelections.has(rowId)
             const pendingEntity = old?.pendingEntity === entityKey
+
+            // A user-cleared price stays missing, even if a delayed reference
+            // arrives. Product selection changes reset the clear flag, while a
+            // later clear during a pending replacement belongs to the new product.
+            if (row[`${orderProductPriceField}_cleared`] && !selectionChanged) {
+                tracked.set(rowId, { productId, price: null, manual: true })
+                continue
+            }
+
             if (isEdit && isPersistedItem(row) && !replacing && !switchingEntity && !pendingEntity) continue
 
             const reference = prices.find((price) => Number(price.product?.id) === Number(productId))
-            const referenceValue = reference?.[priceSourceField]
-            const referencePrice = Number(referenceValue)
+            const referencePrice = normalizeOrderPrice(reference?.[priceSourceField])
 
             if (switchingEntity && !replacing) {
                 // A deliberate manual override can survive an entity switch,
@@ -100,7 +105,7 @@ export function useEditablePrices({
                     Number(row[orderProductPriceField]) !== old.price)
                 if (manuallyChanged) {
                     tracked.set(rowId, { productId, price: Number(row[orderProductPriceField]), manual: true })
-                } else if (referenceValue != null && referenceValue !== '' && Number.isFinite(referencePrice)) {
+                } else if (referencePrice !== null) {
                     tracked.set(rowId, { productId, price: referencePrice, manual: false })
                     if (!hasPrice(row, orderProductPriceField) || Number(row[orderProductPriceField]) !== referencePrice) {
                         updates.set(rowId, { productId, oldValue: row[orderProductPriceField], price: referencePrice })
@@ -116,7 +121,7 @@ export function useEditablePrices({
                 continue
             }
 
-            if (referenceValue == null || referenceValue === '' || !Number.isFinite(referencePrice)) {
+            if (referencePrice === null) {
                 if (replacing) {
                     if (old?.pendingReplacement === productId && hasPrice(row, orderProductPriceField)) {
                         // After the stale price was cleared, a user typed a

@@ -1,5 +1,7 @@
 import { useMemo, useState } from 'react'
 
+import { hasValidOrderPrices, normalizeOrderPrice } from '../utils/orderPrices.js'
+
 const emptyProductRow = () => ({
     id: crypto.randomUUID(),
     productId: '',
@@ -32,8 +34,8 @@ export function useOrderProducts(products = []) {
             quantity: item.piece_based_quantity ?? item.weight_quantity ?? '',
             packId: item.pack_type?.id || '',
             value: item.product?.product_unit?.value ?? 0,
-            price_at_sale: Number(item.price_at_sale) || 0,
-            price_at_purchase: Number(item.price_at_purchase) || 0,
+            price_at_sale: normalizeOrderPrice(item.price_at_sale),
+            price_at_purchase: normalizeOrderPrice(item.price_at_purchase),
         }))
 
     const buildProductsPayload = (currentProducts) =>
@@ -43,8 +45,8 @@ export function useOrderProducts(products = []) {
                 product: row.productId,
                 quantity: row.quantity,
                 package: row.packId || null,
-                price_at_sale: Number(row.price_at_sale) || 0,
-                price_at_purchase: Number(row.price_at_purchase) || 0,
+                price_at_sale: normalizeOrderPrice(row.price_at_sale),
+                price_at_purchase: normalizeOrderPrice(row.price_at_purchase),
                 ...(row.new_quality_passport ? { new_quality_passport: row.new_quality_passport } : {}),
             }))
 
@@ -56,7 +58,8 @@ export function useOrderProducts(products = []) {
             }
         })
         setProductErrors(errors)
-        return Object.keys(errors).length === 0
+        return Object.keys(errors).length === 0 &&
+            orderProducts.every((row) => !row.productId || hasValidOrderPrices(row))
     }
 
     const handleAdd = () => {
@@ -71,7 +74,11 @@ export function useOrderProducts(products = []) {
                 const productChanged = 'productId' in updates && updates.productId !== row.productId
                 return {
                     ...row,
-                    ...(productChanged ? { new_quality_passport: undefined } : {}),
+                    ...(productChanged ? {
+                        new_quality_passport: undefined,
+                        price_at_sale_cleared: false,
+                        price_at_purchase_cleared: false,
+                    } : {}),
                     ...updates,
                 }
             }),
