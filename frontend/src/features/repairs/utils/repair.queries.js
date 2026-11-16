@@ -13,6 +13,15 @@ export const unwrapList = (data) => {
     return []
 }
 
+// DRF uses 404 for invalid pages as well as missing resources. Match only
+// its pagination detail, including the backend's localized error envelope.
+export const isRepairRequestsPageOutOfRange = (error) => {
+    const data = error?.response?.data
+    const detail = data?.errors?.detail ?? data?.detail
+    return error?.response?.status === 404 &&
+        ['Invalid page.', 'Неправильная страница'].includes(detail)
+}
+
 // --- QUERY KEYS ---
 export const repairCompaniesKeys = {
     all: ['repairCompanies'],
@@ -268,12 +277,25 @@ export function useDeleteRepairRequest() {
         mutationFn: deleteRepairRequest,
 
         onSuccess: async (id) => {
+            // Discard pre-deletion responses before updating cached pages.
+            await queryClient.cancelQueries({ queryKey: repairRequestsKeys.lists() })
+
             queryClient.removeQueries({
                 queryKey: repairRequestsKeys.detail(id),
             })
 
+            queryClient.setQueriesData({ queryKey: repairRequestsKeys.lists() }, (data) => {
+                if (!Array.isArray(data?.results)) return data
+                const results = data.results.filter((row) => String(row.id) !== String(id))
+                if (results.length === data.results.length) return data
+                return { ...data, results, count: Math.max(0, data.count - 1) }
+            })
+
+            // The list chooses a valid page before fetching again. Refetching
+            // here would request a now-nonexistent final page after deletion.
             await queryClient.invalidateQueries({
                 queryKey: repairRequestsKeys.lists(),
+                refetchType: 'none',
             })
         },
     })

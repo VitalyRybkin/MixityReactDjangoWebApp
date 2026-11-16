@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
 
 import {
@@ -20,6 +20,7 @@ import AppSelectField from '../../components/AppSelectField.jsx'
 import DateRangeFields from '../../components/DateRangeFields.jsx'
 import FilterSummary from '../../components/FilterSummary.jsx'
 import PageHeader from '../../components/PageHeader.jsx'
+import ErrorState from '../../components/ui/ErrorState.jsx'
 import AddAction from '../../components/ui/buttons/AddAction.jsx'
 import ApplyAction from '../../components/ui/buttons/ApplyAction.jsx'
 import DeleteAction from '../../components/ui/buttons/DeleteAction.jsx'
@@ -27,23 +28,25 @@ import DownloadAction from '../../components/ui/buttons/DownloadAction.jsx'
 import ExpandAction from '../../components/ui/buttons/ExpandAction.jsx'
 import PrintAction from '../../components/ui/buttons/PrintAction.jsx'
 import ResetAction from '../../components/ui/buttons/ResetAction.jsx'
+import AppSnackbar from '../../components/ui/feedback/AppSnackbar.jsx'
 import ConfirmDialog from '../../components/ui/feedback/ConfirmDialog.jsx'
 import { useFilters } from '../../hooks/useFilters.js'
-import {formatFilteringDate} from '../../pages/utils/exportOrders.js'
+import { formatFilteringDate } from '../../pages/utils/exportOrders.js'
 import { formatDate } from '../../pages/utils/orders.date-filters.js'
 import { filteriSummarySx as sx } from '../../styles/filterSummary.styles.js'
 import { formatDateYear } from '../../utils/DateTimeFormatting.js'
+import { firstError } from '../../utils/apiError.js'
 import { useGetCustomerObjects, useGetCustomers } from '../customers/utils/customers.queries.js'
 
+import { exportRequestsToExcel } from './utils/exportRequests.js'
 import {
+    isRepairRequestsPageOutOfRange,
     useDeleteRepairRequest,
     useExportRequests,
     useGetRepairCompanies,
-    useGetRepairRequests
+    useGetRepairRequests,
 } from './utils/repair.queries.js'
 import { locationOptions, statusOptions } from './utils/request.form.constants.js'
-import AppSnackbar from "../../components/ui/feedback/AppSnackbar.jsx";
-import {exportRequestsToExcel} from "./utils/exportRequests.js";
 
 const PAGE_SIZE = 10
 const STORAGE_KEY = 'repair_requests_filters'
@@ -100,15 +103,31 @@ export default function RepairRequestListPage() {
     const { refetch: fetchExport, isFetching: isExporting } = useExportRequests(filters)
 
     const { data: customerObjects = [] } = useGetCustomerObjects(draftFilters.customerId)
-    const { data: repairRequests, isLoading: loadingRepairRequests } = useGetRepairRequests({
+    const {
+        data: repairRequests,
+        isLoading: loadingRepairRequests,
+        error: requestsError,
+        refetch: refetchRequests,
+    } = useGetRepairRequests({
         ...filters,
         page,
     })
 
-    const rows = repairRequests?.results ?? []
+    const rows = requestsError ? [] : (repairRequests?.results ?? [])
     const totalCount = repairRequests?.count ?? 0
 
     const pageCount = Math.max(1, Math.ceil(totalCount / PAGE_SIZE))
+
+    useEffect(() => {
+        if (page <= 1) return
+        if (repairRequests && page > pageCount) {
+            setPage(pageCount)
+        } else if (isRepairRequestsPageOutOfRange(requestsError)) {
+            // A concurrent deletion can invalidate a page before its new count
+            // is available. Step back until a valid page supplies that count.
+            setPage((current) => Math.max(1, current - 1))
+        }
+    }, [page, pageCount, repairRequests, requestsError])
 
     const handleCustomerChange = (value) => {
         handleDraftFilterChange('customerId', value)
@@ -140,13 +159,31 @@ export default function RepairRequestListPage() {
     }
 
     const handleConfirmDelete = async () => {
-        if (!deleteTarget) {
+        if (!deleteTarget || deleteRepairRequest.isPending) {
             return
         }
 
-        await deleteRepairRequest.mutateAsync(deleteTarget.id)
+        const nextPage = Math.min(page, Math.max(1, Math.ceil((totalCount - 1) / PAGE_SIZE)))
+
+        try {
+            await deleteRepairRequest.mutateAsync(deleteTarget.id)
+        } catch (error) {
+            showSnackbar(firstError(error), 'error')
+            return
+        }
 
         setDeleteTarget(null)
+
+        if (nextPage < page) {
+            setPage((current) => Math.min(current, nextPage))
+            return
+        }
+
+        try {
+            await refetchRequests({ throwOnError: true })
+        } catch {
+            showSnackbar('Заявка удалена, но не удалось обновить список.', 'warning')
+        }
     }
 
     const handleCancelDelete = () => {
@@ -183,11 +220,7 @@ export default function RepairRequestListPage() {
                 return
             }
 
-            const exportRequests = Array.isArray(data)
-                ? data
-                : Array.isArray(data?.results)
-                    ? data.results
-                    : []
+            const exportRequests = Array.isArray(data) ? data : Array.isArray(data?.results) ? data.results : []
 
             if (!exportRequests.length) {
                 showSnackbar('Нет заявок для экспорта.', 'info')
@@ -196,10 +229,7 @@ export default function RepairRequestListPage() {
 
             await exportRequestsToExcel(exportRequests, filters)
 
-            showSnackbar(
-                `Экспортировано заявок: ${exportRequests.length}`,
-                'success',
-            )
+            showSnackbar(`Экспортировано заявок: ${exportRequests.length}`, 'success')
         } catch (error) {
             console.error('Ошибка экспорта заявок:', error)
             showSnackbar('Ошибка при экспорте заявок.', 'error')
@@ -242,7 +272,7 @@ export default function RepairRequestListPage() {
                 trailing={
                     <ResetAction
                         onClick={handleResetFilters}
-                        disabled={loadingRepairRequests}
+                        disabled={loadingRepairRequests || deleteRepairRequest.isPending}
                         loading={loadingRepairRequests}
                     />
                 }
@@ -338,13 +368,17 @@ export default function RepairRequestListPage() {
                     <ApplyAction
                         onClick={handleApplyFilters}
                         sx={sx.applyButton}
-                        disabled={loadingRepairRequests}
-                        loading={loadingRepairRequests}
+                        disabled={loadingRepairRequests || deleteRepairRequest.isPending}
+                        loading={loadingRepairRequests || deleteRepairRequest.isPending}
                     />
                 </Box>
             </Collapse>
 
             <Divider sx={sx.tableDivider} />
+
+            {requestsError && !(page > 1 && isRepairRequestsPageOutOfRange(requestsError)) && (
+                <ErrorState error={requestsError} onRetry={refetchRequests} loading={loadingRepairRequests} />
+            )}
 
             <TableContainer>
                 <Table size="small">
@@ -422,7 +456,7 @@ export default function RepairRequestListPage() {
                     page={page}
                     count={pageCount}
                     onChange={(_, value) => setPage(value)}
-                    disabled={loadingRepairRequests}
+                    disabled={loadingRepairRequests || deleteRepairRequest.isPending}
                 />
             </Box>
 
