@@ -495,6 +495,11 @@ class OrderWriteSerializer(serializers.ModelSerializer):
             )
 
     def _validate_contacts(self, attrs: dict) -> None:
+        if self.instance is not None and not any(
+                field in attrs for field in ("contacts", "client", "customer")
+        ):
+            return
+
         client = attrs.get(
             "client",
             getattr(self.instance, "client", None),
@@ -508,8 +513,7 @@ class OrderWriteSerializer(serializers.ModelSerializer):
         if "contacts" in attrs:
             contacts = attrs["contacts"]
         elif self.instance is not None:
-            instance = cast(Order, self.instance)
-            contacts = instance.contacts.all()
+            contacts = self.instance.contacts.all()
         else:
             contacts = []
 
@@ -517,20 +521,18 @@ class OrderWriteSerializer(serializers.ModelSerializer):
             contact
             for contact in contacts
             if (
-                contact.client_id != getattr(client, "id", None)
-                and contact.customer_id != getattr(customer, "id", None)
+                    contact.client_id != getattr(client, "id", None)
+                    and contact.customer_id != getattr(customer, "id", None)
             )
         ]
 
         if invalid_contacts:
-            raise serializers.ValidationError(
-                {
-                    "contacts": (
-                        "Можно выбрать только контакты выбранного "
-                        "клиента или заказчика."
-                    )
-                }
-            )
+            raise serializers.ValidationError({
+                "contacts": (
+                    "Можно выбрать только контакты выбранного "
+                    "клиента или заказчика."
+                )
+            })
 
     def _validate_delivery(self, attrs: dict) -> None:
         if "delivery" not in attrs:
