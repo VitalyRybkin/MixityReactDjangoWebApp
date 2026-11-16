@@ -1,11 +1,12 @@
 // --- UTILS ---
-import {useMutation, useQuery, useQueryClient} from '@tanstack/react-query'
+import { useCallback } from 'react'
+
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 
 import api from '../../../api.js'
-import {LIST_STALE_TIME, REFERENCE_STALE_TIME} from '../../../utils/query.constants.js'
+import { LIST_STALE_TIME, REFERENCE_STALE_TIME } from '../../../utils/query.constants.js'
 
-import {repairCompaniesApiPaths, repairRequestsApiPaths} from './repairApiPaths.js'
-
+import { repairCompaniesApiPaths, repairRequestsApiPaths } from './repairApiPaths.js'
 
 export const unwrapList = (data) => {
     if (Array.isArray(data)) return data
@@ -18,8 +19,7 @@ export const unwrapList = (data) => {
 export const isRepairRequestsPageOutOfRange = (error) => {
     const data = error?.response?.data
     const detail = data?.errors?.detail ?? data?.detail
-    return error?.response?.status === 404 &&
-        ['Invalid page.', 'Неправильная страница'].includes(detail)
+    return error?.response?.status === 404 && ['Invalid page.', 'Неправильная страница'].includes(detail)
 }
 
 // --- QUERY KEYS ---
@@ -301,19 +301,16 @@ export function useDeleteRepairRequest() {
     })
 }
 
-export function useExportRequests(filters = {}) {
-    return useQuery({
-        queryKey: repairRequestsKeys.requests_export(filters),
-        queryFn: () =>
-            fetchExportRequests({
-                dateFrom: filters.dateFrom || '',
-                dateTo: filters.dateTo || '',
-                status: filters.status || '',
-                location: filters.location || '',
-                repairCompanyId: filters.repairCompanyId || '',
-                customerId: filters.customerId || '',
-                objectId: filters.objectId || filters.constructionObjectId || '',
+export function useExportRequests() {
+    const queryClient = useQueryClient()
+
+    return useCallback(
+        (filters = {}) =>
+            queryClient.fetchQuery({
+                queryKey: repairRequestsKeys.requests_export(filters),
+                queryFn: () => fetchExportRequests(filters),
+                staleTime: 0,
             }),
-        enabled: false,
-    })
+        [queryClient],
+    )
 }

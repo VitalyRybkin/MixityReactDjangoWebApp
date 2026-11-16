@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react'
+import React, { useEffect, useRef, useState } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
 
 import {
@@ -100,7 +100,9 @@ export default function RepairRequestListPage() {
         STORAGE_KEY,
     )
 
-    const { refetch: fetchExport, isFetching: isExporting } = useExportRequests(filters)
+    const fetchExport = useExportRequests()
+    const exportInProgress = useRef(false)
+    const [isExporting, setIsExporting] = useState(false)
 
     const { data: customerObjects = [] } = useGetCustomerObjects(draftFilters.customerId)
     const {
@@ -211,14 +213,14 @@ export default function RepairRequestListPage() {
     const statusInputValue = statusOptions[filters.status] || '-'
 
     const handleExport = async () => {
-        try {
-            const { data, error, isError } = await fetchExport()
+        if (exportInProgress.current) return
 
-            if (isError) {
-                console.error('Ошибка получения заявок:', error)
-                showSnackbar('Ошибка получения заявок.', 'error')
-                return
-            }
+        exportInProgress.current = true
+        setIsExporting(true)
+
+        try {
+            const exportFilters = structuredClone(filters)
+            const data = await fetchExport(exportFilters)
 
             const exportRequests = Array.isArray(data) ? data : Array.isArray(data?.results) ? data.results : []
 
@@ -227,12 +229,15 @@ export default function RepairRequestListPage() {
                 return
             }
 
-            await exportRequestsToExcel(exportRequests, filters)
+            await exportRequestsToExcel(exportRequests, exportFilters)
 
             showSnackbar(`Экспортировано заявок: ${exportRequests.length}`, 'success')
         } catch (error) {
             console.error('Ошибка экспорта заявок:', error)
             showSnackbar('Ошибка при экспорте заявок.', 'error')
+        } finally {
+            exportInProgress.current = false
+            setIsExporting(false)
         }
     }
 

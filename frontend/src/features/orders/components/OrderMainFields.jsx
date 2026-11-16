@@ -28,6 +28,15 @@ export default function OrderMainFields({
     onViewUpd,
     readOnly = false,
 }) {
+    const clients = orderResources.clients || []
+
+    const hasSelectedClient = !form.client || clients.some((item) => String(item.id) === String(form.client))
+
+    const fallbackClientLabel =
+        order?.client && typeof order.client === 'object' && String(order.client.id) === String(form.client)
+            ? order.client.name
+            : `Поставщик № ${form.client}`
+
     return (
         <Box component="fieldset" sx={[fieldsetStyles, sx.fieldset]}>
             <Typography component="legend" variant="caption" sx={sx.legend}>
@@ -134,7 +143,10 @@ export default function OrderMainFields({
                         disabled={readOnly}
                     >
                         <MenuItem value="">Не выбран</MenuItem>
-                        {orderResources.clients.map((item) => (
+
+                        {!hasSelectedClient && <MenuItem value={form.client}>{fallbackClientLabel}</MenuItem>}
+
+                        {clients.map((item) => (
                             <MenuItem key={item.id} value={item.id}>
                                 {item.name}
                             </MenuItem>

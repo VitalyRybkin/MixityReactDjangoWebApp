@@ -116,10 +116,17 @@ export default function RepairRequestFormPage() {
     }
 
     const handleDeleteClosingFile = async (fileId) => {
-        await deleteClosingFile.mutateAsync({
-            requestId: id,
-            fileId,
-        })
+        try {
+            await deleteClosingFile.mutateAsync({
+                requestId: id,
+                fileId,
+            })
+
+            showSnackbar('Закрывающий файл удалён.', 'success')
+        } catch (error) {
+            console.error('Ошибка удаления закрывающего файла:', error)
+            showSnackbar(firstError(error) || 'Не удалось удалить закрывающий файл.', 'error')
+        }
     }
 
     const saving = createRepairRequest.isPending || updateRepairRequest.isPending
@@ -149,7 +156,14 @@ export default function RepairRequestFormPage() {
 
     const markCleanRef = useRef(null)
 
-    const { form, setForm, error: formError, setError, onChange, onSubmit } = useFormLogic({
+    const {
+        form,
+        setForm,
+        error: formError,
+        setError,
+        onChange,
+        onSubmit,
+    } = useFormLogic({
         isEdit,
         id,
         emptyForm: createEmptyRequestForm,
