@@ -23,6 +23,18 @@ const emptyForm = {
 
 const emptyToNull = (value) => (value?.trim() ? value.trim() : null)
 
+const formatPassportDateForInput = (value) => {
+    if (!value) return ''
+
+    const raw = String(value).trim()
+
+    const format = /^\d{4}-\d{2}-\d{2}$/.test(raw) ? 'YYYY-MM-DD' : 'DD.MM.YYYY'
+
+    const parsed = dayjs(raw, format, true)
+
+    return parsed.isValid() ? parsed.format('DD.MM.YYYY') : raw
+}
+
 export default function DriverDialog({ open, mode = 'create', carrierId, initialData = null, onClose, onSaved }) {
     const createDriver = useCreateDriver()
     const updateDriver = useUpdateDriver()
@@ -47,7 +59,9 @@ export default function DriverDialog({ open, mode = 'create', carrierId, initial
             setForm({
                 fullName: String(initialData.fullName ?? initialData.full_name ?? ''),
                 passportNumber: String(initialData.passportNumber ?? initialData.passport_number ?? ''),
-                passportIssueDate: String(initialData.passportIssueDate ?? initialData.passport_issue_date ?? ''),
+                passportIssueDate: formatPassportDateForInput(
+                    initialData.passportIssueDate ?? initialData.passport_issue_date,
+                ),
                 passportEmittedBy: String(initialData.passportEmittedBy ?? initialData.passport_emitted_by ?? ''),
                 phone: String(initialData.phone ?? ''),
             })
@@ -87,8 +101,7 @@ export default function DriverDialog({ open, mode = 'create', carrierId, initial
         }
 
         const rawPassportDate = String(form.passportIssueDate ?? '').trim()
-        const dateFormat = /^\d{4}-\d{2}-\d{2}$/.test(rawPassportDate) ? 'YYYY-MM-DD' : 'DD.MM.YYYY'
-        const parsedPassportDate = rawPassportDate ? dayjs(rawPassportDate, dateFormat, true) : null
+        const parsedPassportDate = rawPassportDate ? dayjs(rawPassportDate, 'DD.MM.YYYY', true) : null
 
         if (parsedPassportDate && !parsedPassportDate.isValid()) {
             setError('Укажите корректную дату выдачи паспорта.')
