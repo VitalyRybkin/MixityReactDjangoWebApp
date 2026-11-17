@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 
+import { getRepairRelationId } from '../utils/repair.form.mappers.js'
 import { createEmptyRequestForm } from '../utils/request.form.constants.js'
 
 export function useRepairRequestFormData({
@@ -50,9 +51,9 @@ export function useRepairRequestFormData({
             closing_date: repairRequest.closing_date ?? '',
             status: repairRequest.status ?? 'open',
             location: repairRequest.location ?? 'site',
-            repair_company: repairRequest.repair_company ?? '',
-            customerId: repairRequest.construction_object?.customer ?? '',
-            construction_object: repairRequest.construction_object?.id ?? '',
+            repair_company: getRepairRelationId(repairRequest.repair_company) ?? '',
+            customerId: getRepairRelationId(repairRequest.construction_object?.customer) ?? '',
+            construction_object: getRepairRelationId(repairRequest.construction_object) ?? '',
             description: repairRequest.description ?? '',
             inspection_description: repairRequest.inspection_description ?? '',
             closing_description: repairRequest.closing_description ?? '',

@@ -32,6 +32,7 @@ import {
     useUploadClosingFile,
     useUploadRequestFile,
 } from './utils/repair.files.queries.js'
+import { toRepairRequestPayload } from './utils/repair.form.mappers.js'
 import { useGetSpareParts } from './utils/repair.parts.queries.js'
 import {
     useCreateRepairRequest,
@@ -171,18 +172,12 @@ export default function RepairRequestFormPage() {
         createMutation: createRepairRequest,
         redirectPath: '/repair/requests',
 
-        toPayload: (form) => ({
-            request_date: form.request_date,
-            closing_date: form.closing_date || null,
-            status: form.status,
-            location: form.location,
-            repair_company: form.repair_company,
-            construction_object: form.construction_object,
-            description: form.description,
-            inspection_description: form.inspection_description,
-            closing_description: form.closing_description,
-            specifications: buildSpecificationsPayload(specifications),
-        }),
+        toPayload: (form) =>
+            toRepairRequestPayload(
+                form,
+                buildSpecificationsPayload(specifications),
+                isEdit ? repairRequest : null,
+            ),
 
         validate: validateSpecifications,
         onSuccess: () => markCleanRef.current?.(),
@@ -274,6 +269,7 @@ export default function RepairRequestFormPage() {
                         <Box sx={sx.formColumns}>
                             <RepairRequestMainFields
                                 form={form}
+                                originalRequest={isEdit ? repairRequest : null}
                                 customers={customers}
                                 customerObjects={customerObjects}
                                 repairCompanies={repairCompanies}
