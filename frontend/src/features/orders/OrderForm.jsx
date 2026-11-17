@@ -40,9 +40,9 @@ import { useUnsavedGuard } from './hooks/useUnsavedGuard.js'
 import { useViewUpd } from './hooks/useViewUpd.js'
 import { DeliveryContext } from './utils/DeliveryContext.js'
 import { emptyDeliveryInfo, emptyOrderForm } from './utils/order.form.constants.js'
-import { toOrderPayload } from './utils/order.form.mappers.js'
-import { getProductId } from './utils/orderProducts.js'
+import { toDeliveryPayload, toOrderPayload } from './utils/order.form.mappers.js'
 import { hasValidOrderPrices } from './utils/orderPrices.js'
+import { getProductId } from './utils/orderProducts.js'
 import {
     useCreateOrder,
     useGetOrder,
@@ -69,14 +69,6 @@ const formatTons = (value) => {
     return Number.isFinite(number)
         ? `${number.toLocaleString('ru-RU', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} т`
         : '—'
-}
-
-const getEntityId = (value) => {
-    if (value == null) {
-        return null
-    }
-
-    return typeof value === 'object' ? (value.id ?? null) : value
 }
 
 export default function OrderFormPage({ readOnly = false }) {
@@ -182,7 +174,14 @@ export default function OrderFormPage({ readOnly = false }) {
 
     const markCleanRef = useRef(null)
 
-    const { form, setForm, error: formError, setError, onChange, onSubmit } = useFormLogic({
+    const {
+        form,
+        setForm,
+        error: formError,
+        setError,
+        onChange,
+        onSubmit,
+    } = useFormLogic({
         isEdit,
         id,
         emptyForm: emptyOrderForm,
@@ -193,16 +192,16 @@ export default function OrderFormPage({ readOnly = false }) {
             const confirmedIds = confirmedPassportIdsRef.current
             confirmedPassportIdsRef.current = []
 
+            const deliveryPayload = toDeliveryPayload(
+                orderDelivery,
+                isEdit ? (order?.order_delivery ?? order?.delivery ?? null) : null,
+            )
+
             return {
                 ...toOrderPayload(currentForm, isEdit ? order : null),
                 ...(confirmedIds.length ? { confirmed_passport_ids: confirmedIds } : {}),
                 products: buildProductsPayload(orderProducts),
-                delivery: {
-                    ...orderDelivery,
-                    carrier: getEntityId(orderDelivery.carrier),
-                    driver: getEntityId(orderDelivery.driver),
-                    truck: getEntityId(orderDelivery.truck),
-                },
+                ...(deliveryPayload !== undefined ? { delivery: deliveryPayload } : {}),
             }
         },
         validate: validateProducts,
@@ -307,7 +306,10 @@ export default function OrderFormPage({ readOnly = false }) {
                                 if (readOnly || saving || pricesNotReady) {
                                     event.preventDefault()
                                     if (pricesNotReady) {
-                                        showSnackbar('Дождитесь загрузки цен или заполните отсутствующие цены.', 'warning')
+                                        showSnackbar(
+                                            'Дождитесь загрузки цен или заполните отсутствующие цены.',
+                                            'warning',
+                                        )
                                     }
                                     return
                                 }

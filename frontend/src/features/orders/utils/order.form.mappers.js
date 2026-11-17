@@ -121,3 +121,54 @@ export const mapOrderToForm = (order, orderResources) => {
         samples: order.samples ?? false,
     }
 }
+
+const DELIVERY_RELATIONS = ['carrier', 'driver', 'truck']
+
+const DELIVERY_DECIMALS = ['delivery_cost', 'delivery_compensation', 'demurrage']
+
+const sameDeliveryValue = (field, current, original) => {
+    if (DELIVERY_RELATIONS.includes(field)) {
+        const currentId = getEntityId(current)
+        const originalId = getEntityId(original)
+
+        return (currentId == null && originalId == null) || isSameId(currentId, originalId)
+    }
+
+    if (DELIVERY_DECIMALS.includes(field)) {
+        const normalize = (value) => {
+            if (value == null || value === '') return null
+
+            const number = Number(value)
+            return Number.isFinite(number) ? number : value
+        }
+
+        return Object.is(normalize(current), normalize(original))
+    }
+
+    return Object.is(current, original)
+}
+
+export const toDeliveryPayload = (delivery, originalDelivery = null) => {
+    if (delivery == null) return null
+
+    const payload = {
+        ...delivery,
+        carrier: getEntityId(delivery.carrier),
+        driver: getEntityId(delivery.driver),
+        truck: getEntityId(delivery.truck),
+    }
+
+    if (originalDelivery == null) {
+        return payload
+    }
+
+    for (const field of Object.keys(payload)) {
+        if (!Object.hasOwn(originalDelivery, field)) continue
+
+        if (sameDeliveryValue(field, payload[field], originalDelivery[field])) {
+            delete payload[field]
+        }
+    }
+
+    return Object.keys(payload).length ? payload : undefined
+}
