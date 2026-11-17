@@ -47,9 +47,9 @@ const setRows = async (rows) => {
 
 const validate = async () => {
     let result
-    await Promise.resolve(act(async () => {
+    await act(async () => {
         result = current.validate()
-    }))
+    })
     return result
 }
 
@@ -140,9 +140,9 @@ describe('order product prices', () => {
 
     it('prevents the save mutation for missing prices and submits explicit zero prices', async () => {
         const createMutation = { mutateAsync: vi.fn().mockResolvedValue({ id: 1 }) }
-        await Promise.resolve(act(async () => {
+        await act(async () => {
             root.render(<MemoryRouter><SubmitHarness createMutation={createMutation} /></MemoryRouter>)
-        }))
+        })
         await setRows([validRow({ price_at_sale: null, price_at_purchase: 0 })])
 
         await act(async () => current.onSubmit())

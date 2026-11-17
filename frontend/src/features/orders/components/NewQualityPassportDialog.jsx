@@ -103,6 +103,8 @@ const getQuantityRule = (product) => {
 }
 
 /**
+ * @param {{ is_piece_based?: boolean } | null | undefined} product
+ * @param {string | number | null | undefined} orderQuantity
  * @param {QuantityRule | null} rule
  * @returns {bigint | null}
  */

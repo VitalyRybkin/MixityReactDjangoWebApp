@@ -57,9 +57,9 @@ it('the logout route invalidates credentials before cancelling and clearing priv
     document.body.appendChild(container)
     root = createRoot(container)
 
-    await Promise.resolve(act(async () => {
+    await act(async () => {
         root.render(<StrictMode><QueryClientProvider client={queryClient}><App /></QueryClientProvider></StrictMode>)
-    }))
+    })
 
     expect(cancelQueries).toHaveBeenCalled()
     expect(queryClient.getQueryCache().getAll()).toHaveLength(0)
@@ -73,7 +73,7 @@ it('the visible logout button enters the session-cleanup route', async () => {
     root = createRoot(container)
     const auth = { user: { username: 'Tester' }, hasPermission: () => false, hasAnyPermission: () => false }
 
-    await Promise.resolve(act(async () => {
+    await act(async () => {
         root.render(
             <AuthContext.Provider value={auth}>
                 <MemoryRouter>
@@ -85,7 +85,7 @@ it('the visible logout button enters the session-cleanup route', async () => {
                 </MemoryRouter>
             </AuthContext.Provider>,
         )
-    }))
+    })
     const logout = [...container.querySelectorAll('button')].find((button) => button.textContent === 'Выйти')
 
     await act(async () => logout.click())
