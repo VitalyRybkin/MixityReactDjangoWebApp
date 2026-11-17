@@ -28,7 +28,7 @@ function LocationProbe() {
 }
 
 const renderAt = async (path) => {
-    await act(async () => {
+    await Promise.resolve(act(async () => {
         root.render(
             <MemoryRouter initialEntries={[path]}>
                 <Routes>
@@ -40,7 +40,7 @@ const renderAt = async (path) => {
                 <LocationProbe />
             </MemoryRouter>,
         )
-    })
+    }))
 }
 
 const mapAction = (icon = 'AddIcon') => container.querySelector(`[data-testid="${icon}"]`)?.closest('button') ?? null

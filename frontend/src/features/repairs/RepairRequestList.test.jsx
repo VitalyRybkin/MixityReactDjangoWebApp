@@ -112,9 +112,9 @@ const confirmDelete = async () => {
     await click(confirm)
 }
 const refreshVisibleList = async () => {
-    await act(async () => {
+    await Promise.resolve(act(async () => {
         await client.invalidateQueries({ queryKey: repairRequestsKeys.lists(), refetchType: 'active' })
-    })
+    }))
 }
 
 beforeEach(() => {
@@ -245,17 +245,17 @@ describe('repair request deletion on a paginated list', () => {
         const oldPage = pageData(2)
         respondToList = (page) => page === 2 ? oldResponse.promise : pageData(page)
         let refresh
-        await act(async () => {
+        await Promise.resolve(act(async () => {
             refresh = client.refetchQueries({ queryKey: repairRequestsKeys.lists(), type: 'active' })
-        })
+        }))
         await openDelete()
         await confirmDelete()
         await eventually(() => expect(selectedPage()).toBe(1))
 
-        await act(async () => {
+        await Promise.resolve(act(async () => {
             oldResponse.resolve(oldPage)
             await refresh
-        })
+        }))
 
         expect(visibleIds()).not.toContain(11)
         for (const [, data] of client.getQueriesData({ queryKey: repairRequestsKeys.lists() })) {

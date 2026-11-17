@@ -59,6 +59,7 @@ const isValidISODate = (value) => {
     return !Number.isNaN(parsed.getTime()) && parsed.toISOString().slice(0, 10) === value
 }
 
+/** @returns {bigint | null} */
 const parseTonsToGrams = (value) => {
     const match = String(value ?? '')
         .trim()
@@ -70,6 +71,7 @@ const parseTonsToGrams = (value) => {
     return kilograms * 1000n
 }
 
+/** @returns {bigint | null} */
 const parseKgToGrams = (value) => {
     const match = String(value ?? '')
         .trim()
@@ -83,6 +85,9 @@ const parseKgToGrams = (value) => {
 const formatQuantity = (tonnes) =>
     Number(tonnes).toLocaleString('ru-RU', { minimumFractionDigits: 3, maximumFractionDigits: 6 })
 
+/** @typedef {{ stepGrams: bigint, hint: string }} QuantityRule */
+
+/** @returns {QuantityRule | null} */
 const getQuantityRule = (product) => {
     if (!product) return null
     if (!product.is_piece_based) return { stepGrams: 10000n, hint: 'Кратно 0,010 т' }
@@ -97,6 +102,10 @@ const getQuantityRule = (product) => {
     }
 }
 
+/**
+ * @param {QuantityRule | null} rule
+ * @returns {bigint | null}
+ */
 const getOrderQuantityGrams = (product, orderQuantity, rule) => {
     if (orderQuantity === '' || orderQuantity == null) return null
 

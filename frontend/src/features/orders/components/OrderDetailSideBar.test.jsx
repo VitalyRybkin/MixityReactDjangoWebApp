@@ -45,10 +45,10 @@ const options = () => [...document.querySelectorAll('[role="option"]')]
 
 const openWarehouses = async () => {
     const input = warehouseInput()
-    await act(async () => {
+    await Promise.resolve(act(async () => {
         input.focus()
         input.dispatchEvent(new KeyboardEvent('keydown', { key: 'ArrowDown', bubbles: true }))
-    })
+    }))
 }
 
 beforeEach(async () => {

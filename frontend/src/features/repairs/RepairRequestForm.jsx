@@ -255,7 +255,7 @@ export default function RepairRequestFormPage() {
                         error={pageLoadError}
                         onRetry={() => {
                             if (isEdit) {
-                                refetchRequest()
+                                void refetchRequest()
                             }
                         }}
                         loading={loadingRequest}

@@ -313,7 +313,7 @@ export default function OrderFormPage({ readOnly = false }) {
                                     }
                                     return
                                 }
-                                onSubmit(event)
+                                return onSubmit(event)
                             }}
                             sx={sx.form}
                         >
@@ -340,9 +340,9 @@ export default function OrderFormPage({ readOnly = false }) {
                                 <ErrorState
                                     error={pageLoadError}
                                     onRetry={() => {
-                                        refetch()
+                                        void refetch()
                                         if (isEdit) {
-                                            refetchOrder()
+                                            void refetchOrder()
                                         }
                                     }}
                                     loading={loadingResources || loadingOrder}

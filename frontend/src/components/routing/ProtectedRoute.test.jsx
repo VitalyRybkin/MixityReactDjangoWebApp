@@ -45,7 +45,7 @@ function PrivatePage() {
 const privateInput = () => container.querySelector('input[aria-label="Private draft"]')
 
 const renderRoute = async () => {
-    await act(async () => {
+    await Promise.resolve(act(async () => {
         root.render(
             <QueryClientProvider client={queryClient}>
                 <MemoryRouter>
@@ -56,7 +56,7 @@ const renderRoute = async () => {
                 </MemoryRouter>
             </QueryClientProvider>,
         )
-    })
+    }))
 }
 
 // jsdom, like a browser, does not send storage events back to the writing tab.
@@ -64,9 +64,9 @@ const remoteWrite = async (key, newValue) => {
     const oldValue = localStorage.getItem(key)
     if (newValue === null) localStorage.removeItem(key)
     else localStorage.setItem(key, newValue)
-    await act(async () => {
+    await Promise.resolve(act(async () => {
         window.dispatchEvent(new StorageEvent('storage', { key, oldValue, newValue, storageArea: localStorage }))
-    })
+    }))
 }
 
 beforeEach(() => {
@@ -116,10 +116,10 @@ describe('authorization rechecks', () => {
         expect(unmounted).toHaveBeenCalledTimes(1)
         expect(container.textContent).toContain('Проверяем авторизацию')
 
-        await act(async () => {
+        await Promise.resolve(act(async () => {
             localStorage.setItem(ACCESS_TOKEN, token(3600))
             pending.resolve('refreshed-access')
-        })
+        }))
         expect(privateInput()).not.toBeNull()
     })
 
@@ -188,10 +188,10 @@ describe('authorization rechecks', () => {
         vi.mocked(refreshAccessToken).mockReturnValue(pending.promise)
         await remoteWrite(ACCESS_TOKEN, token(-60))
 
-        await act(async () => {
+        await Promise.resolve(act(async () => {
             localStorage.setItem(ACCESS_TOKEN, token(3600))
             pending.reject(new Error('Another tab won the refresh race'))
-        })
+        }))
 
         expect(privateInput()).not.toBeNull()
         expect(container.textContent).not.toContain('Не удалось подтвердить сессию')

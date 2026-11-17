@@ -37,13 +37,13 @@ const renderEditor = async (props) => {
 }
 
 const enterPrice = async (input, value) => {
-    await act(async () => {
+    await Promise.resolve(act(async () => {
         input.focus()
         // Bypass React's value tracker to simulate native keyboard input.
         const setter = Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, 'value').set
         setter.call(input, value)
         input.dispatchEvent(new Event('input', { bubbles: true }))
-    })
+    }))
 }
 
 beforeEach(() => {

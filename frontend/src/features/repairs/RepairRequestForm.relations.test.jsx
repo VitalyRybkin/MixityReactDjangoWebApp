@@ -93,10 +93,10 @@ const input = (name) => {
 const openSelect = async (name) => {
     const field = input(name)
     expect(field).not.toBeNull()
-    await act(async () => {
+    await Promise.resolve(act(async () => {
         field.focus()
         field.dispatchEvent(new KeyboardEvent('keydown', { key: 'ArrowDown', bubbles: true }))
-    })
+    }))
     return [...document.querySelectorAll('[role="option"]')]
 }
 const select = async (name, label) => {
