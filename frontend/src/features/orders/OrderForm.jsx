@@ -53,6 +53,17 @@ import {
 
 const EMPTY_PRICES = []
 
+const REFERENCE_PRICE_WARNINGS = {
+    price_at_sale: {
+        updated: 'Цена заказчика обновлена по справочнику.',
+        missing: 'Для нового заказчика не найдена справочная цена. Укажите цену вручную.',
+    },
+    price_at_purchase: {
+        updated: 'Цена склада обновлена по справочнику.',
+        missing: 'Для нового склада не найдена справочная цена. Укажите цену вручную.',
+    },
+}
+
 const formatTons = (value) => {
     const number = Number(value)
     return Number.isFinite(number)
@@ -79,6 +90,11 @@ export default function OrderFormPage({ readOnly = false }) {
     const confirmedPassportIdsRef = useRef([])
 
     const { snack, showSnackbar, closeSnackbar } = useSnackbar()
+
+    const handleReferencePricesChange = ({ field, missing }) => {
+        if (!isEdit || readOnly) return
+        showSnackbar(REFERENCE_PRICE_WARNINGS[field][missing ? 'missing' : 'updated'], 'warning')
+    }
 
     const {
         data: orderResources,
@@ -202,6 +218,7 @@ export default function OrderFormPage({ readOnly = false }) {
         data: customerPrices = EMPTY_PRICES,
         isLoading: isLoadingCustomerPrices,
         isFetching: isFetchingCustomerPrices,
+        isSuccess: customerPricesLoaded,
         error: loadCustomerPricesError,
     } = useGetCustomerPrices(customerId, productIds)
 
@@ -209,6 +226,7 @@ export default function OrderFormPage({ readOnly = false }) {
         data: warehousePrices = EMPTY_PRICES,
         isLoading: isLoadingWarehousePrices,
         isFetching: isFetchingWarehousePrices,
+        isSuccess: warehousePricesLoaded,
         error: loadWarehousePricesError,
     } = useGetWarehousePrices(warehouseId, productIds)
 
@@ -220,7 +238,7 @@ export default function OrderFormPage({ readOnly = false }) {
     const isLoadingPage = loadingResources || !orderResources || (isEdit && (loadingOrder || !order))
     const pageLoadError = loadResourceError || loadOrderError
 
-    const { isDirty, markClean } = useOrderFormData({
+    const { isDirty, isInitialized, markClean } = useOrderFormData({
         isEdit,
         order,
         orderResources,
@@ -266,6 +284,10 @@ export default function OrderFormPage({ readOnly = false }) {
                     loadingCustomerPrices={isLoadingCustomerPrices}
                     warehousePrices={warehousePrices}
                     loadingWarehousePrices={isLoadingWarehousePrices}
+                    customerPricesReady={!customerId || (customerPricesLoaded && !isFetchingCustomerPrices)}
+                    warehousePricesReady={!warehouseId || (warehousePricesLoaded && !isFetchingWarehousePrices)}
+                    pricesHydrated={!isEdit || isInitialized}
+                    onReferencePricesChange={handleReferencePricesChange}
                     orderProducts={orderProducts}
                     setOrderProducts={setOrderProducts}
                     orderResources={orderResources}

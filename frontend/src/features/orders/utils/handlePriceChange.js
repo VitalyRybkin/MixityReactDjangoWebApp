@@ -20,6 +20,7 @@ export function handlePriceChange({ id, value, editablePrices, setEditablePrices
                 return {
                     ...item,
                     [priceType]: numericValue,
+                    [`${priceType}_revision`]: (item[`${priceType}_revision`] ?? 0) + 1,
                     // A deliberate clear must survive reference-price loading.
                     [`${priceType}_cleared`]: numericValue === null,
                 }

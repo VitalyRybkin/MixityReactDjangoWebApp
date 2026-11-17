@@ -122,6 +122,7 @@ export function useOrderFormData({
     }
 
     return {
+        isInitialized,
         isDirty,
         markClean,
     }

@@ -3,18 +3,17 @@ import { useEffect, useRef } from 'react'
 import { normalizeOrderPrice } from '../utils/orderPrices.js'
 import { getProductId, getProductObject } from '../utils/orderProducts.js'
 
-// A saved zero is a real price; missing prices stay distinct from zero.
-const hasPrice = (row, field) => row[field] !== null && row[field] !== undefined && row[field] !== ''
-
 const sameDisplayedPrices = (left, right) =>
     left.length === right.length &&
-    left.every((item, i) =>
-        item.id === right[i].id &&
-        item.product === right[i].product &&
-        item.current_display_price === right[i].current_display_price,
+    left.every(
+        (item, i) =>
+            item.id === right[i].id &&
+            item.product === right[i].product &&
+            item.current_display_price === right[i].current_display_price,
     )
 
 const isPersistedItem = (row) => typeof row.id === 'number' || /^\d+$/.test(String(row.id))
+const productKey = (row) => String(getProductId(row) ?? '')
 
 export function useEditablePrices({
     isEdit,
@@ -22,167 +21,177 @@ export function useEditablePrices({
     orderProducts,
     objectId,
     prices,
+    pricesReady = true,
+    isHydrated = true,
+    onReferencePricesChange,
     setEditablePrices,
     productIdsKey,
     setOrderProducts,
     priceSourceField,
     orderProductPriceField,
 }) {
-    // Track the last selection, even for persisted items. An existing item's
-    // stored price belongs to its original product, not its replacement.
-    const selectedProductIdsRef = useRef(new Map())
-    const automaticPricesRef = useRef(new Map())
-    const priceEntityRef = useRef(undefined)
+    const contextRef = useRef(null)
+    const rowsRef = useRef(new Map())
+    const notificationRef = useRef(null)
+    const revisionField = `${orderProductPriceField}_revision`
+    const clearedField = `${orderProductPriceField}_cleared`
 
     useEffect(() => {
-        const rows = orderProducts.map((row) => {
-            const productId = getProductId(row)
-            return {
-                id: productId,
-                product: getProductObject(row, prices, products),
-                product_id: productId,
-                current_display_price: row[orderProductPriceField] ?? '',
-            }
-        })
-        setEditablePrices((old) => sameDisplayedPrices(old, rows) ? old : rows)
-    }, [orderProducts, products, prices, setEditablePrices, priceSourceField, orderProductPriceField])
+        const rows = orderProducts.map((row) => ({
+            id: getProductId(row),
+            product: getProductObject(row, prices, products),
+            product_id: getProductId(row),
+            current_display_price: row[orderProductPriceField] ?? '',
+        }))
+        setEditablePrices((old) => (sameDisplayedPrices(old, rows) ? old : rows))
+    }, [orderProducts, products, prices, setEditablePrices, orderProductPriceField])
 
     useEffect(() => {
-        const previous = automaticPricesRef.current
-        const previousSelections = selectedProductIdsRef.current
-        const nextSelections = new Map()
+        if (!isHydrated) return
+
+        const entityKey = String(objectId ?? '')
+        const entityChanged = contextRef.current !== null && contextRef.current !== entityKey
+        const previous = rowsRef.current
         const tracked = new Map()
         const updates = new Map()
-        // Prices are scoped to a customer or warehouse as well as a product.
-        const entityKey = String(objectId ?? '')
-        const entityChanged = priceEntityRef.current !== undefined && priceEntityRef.current !== entityKey
+
+        if (entityChanged) {
+            // Compare settled prices with the values before this selection, not
+            // with the temporary nulls used while its reference query is loading.
+            notificationRef.current = {
+                entityKey,
+                notified: false,
+                baseline: new Map(
+                    orderProducts.flatMap((row) => {
+                        const old = previous.get(String(row.id))
+                        return old?.productKey && old.productKey === productKey(row)
+                            ? [
+                                  [
+                                      String(row.id),
+                                      {
+                                          productKey: old.productKey,
+                                          price: normalizeOrderPrice(row[orderProductPriceField]),
+                                      },
+                                  ],
+                              ]
+                            : []
+                    }),
+                ),
+            }
+        }
+        contextRef.current = entityKey
 
         for (const row of orderProducts) {
-            const productId = getProductId(row)
-            const rowId = String(row.id)
-            if (!productId) {
-                // A price belongs to the selected product. Clearing a selection
-                // invalidates both the stored price and its automatic/manual origin.
-                nextSelections.set(rowId, null)
-                if (hasPrice(row, orderProductPriceField)) {
-                    updates.set(rowId, {
-                        productId,
-                        oldValue: row[orderProductPriceField],
-                        price: null,
-                    })
-                }
-                continue
-            }
-            nextSelections.set(rowId, productId)
+            const id = String(row.id)
+            const selectedProduct = productKey(row)
+            const old = previous.get(id)
+            const revision = row[revisionField] ?? 0
+            const productChanged = old !== undefined && old.productKey !== selectedProduct
+            const newContext = entityChanged || productChanged
+            let manual =
+                old?.manual ??
+                ((isEdit && isPersistedItem(row)) ||
+                    normalizeOrderPrice(row[orderProductPriceField]) !== null ||
+                    Boolean(row[clearedField]))
 
-            const old = previous.get(rowId)
-            const priorProductId = previousSelections.get(rowId)
-            const selectionChanged = previousSelections.has(rowId) && priorProductId !== productId
-            const replacementPending = Boolean(old && old.productId !== productId)
-            const replacing = selectionChanged || replacementPending
-            // Only clear rows that were already observed under the previous entity.
-            // This avoids dropping persisted prices during initial form hydration.
-            const switchingEntity = entityChanged && previousSelections.has(rowId)
-            const pendingEntity = old?.pendingEntity === entityKey
+            // An old override belongs to the old entity/product. A revision
+            // after that switch, including an explicit zero/clear, belongs to
+            // the new context and must win over subsequent query responses.
+            if (newContext) manual = false
+            else if (old && old.revision !== revision) manual = true
 
-            // A user-cleared price stays missing, even if a delayed reference
-            // arrives. Product selection changes reset the clear flag, while a
-            // later clear during a pending replacement belongs to the new product.
-            if (row[`${orderProductPriceField}_cleared`] && !selectionChanged) {
-                tracked.set(rowId, { productId, price: null, manual: true })
-                continue
-            }
-
-            if (isEdit && isPersistedItem(row) && !replacing && !switchingEntity && !pendingEntity) continue
-
-            const reference = prices.find((price) => Number(price.product?.id) === Number(productId))
+            const reference =
+                pricesReady && selectedProduct && entityKey
+                    ? prices.find((price) => String(price.product?.id) === selectedProduct)
+                    : null
             const referencePrice = normalizeOrderPrice(reference?.[priceSourceField])
+            let nextPrice = normalizeOrderPrice(row[orderProductPriceField])
+            if (!selectedProduct || newContext || (!manual && pricesReady)) {
+                nextPrice = referencePrice
+            }
 
-            if (switchingEntity && !replacing) {
-                // A deliberate manual override can survive an entity switch,
-                // but an automatic (or previously persisted) price cannot.
-                const manuallyChanged = old?.manual || (old && hasPrice(row, orderProductPriceField) &&
-                    Number(row[orderProductPriceField]) !== old.price)
-                if (manuallyChanged) {
-                    tracked.set(rowId, { productId, price: Number(row[orderProductPriceField]), manual: true })
-                } else if (referencePrice !== null) {
-                    tracked.set(rowId, { productId, price: referencePrice, manual: false })
-                    if (!hasPrice(row, orderProductPriceField) || Number(row[orderProductPriceField]) !== referencePrice) {
-                        updates.set(rowId, { productId, oldValue: row[orderProductPriceField], price: referencePrice })
+            tracked.set(id, { productKey: selectedProduct, revision, manual })
+            const resetClear = newContext && Boolean(row[clearedField])
+            if (!Object.is(row[orderProductPriceField], nextPrice) || resetClear) {
+                updates.set(id, {
+                    productKey: selectedProduct,
+                    revision,
+                    oldValue: row[orderProductPriceField],
+                    price: nextPrice,
+                    resetClear,
+                })
+            }
+        }
+        rowsRef.current = tracked
+
+        if (updates.size) {
+            setOrderProducts((currentRows) => {
+                if (contextRef.current !== entityKey) return currentRows
+                let changed = false
+                const nextRows = currentRows.map((row) => {
+                    const update = updates.get(String(row.id))
+                    if (
+                        !update ||
+                        productKey(row) !== update.productKey ||
+                        (row[revisionField] ?? 0) !== update.revision ||
+                        !Object.is(row[orderProductPriceField], update.oldValue)
+                    )
+                        return row
+                    changed = true
+                    return {
+                        ...row,
+                        [orderProductPriceField]: update.price,
+                        ...(update.resetClear ? { [clearedField]: false } : {}),
                     }
-                } else {
-                    // NaN is a sentinel: a user-entered price during the new
-                    // entity's fetch must be recognized as a manual override.
-                    tracked.set(rowId, { productId, price: NaN, manual: false, pendingEntity: entityKey })
-                    if (hasPrice(row, orderProductPriceField)) {
-                        updates.set(rowId, { productId, oldValue: row[orderProductPriceField], price: null })
-                    }
-                }
+                })
+                return changed ? nextRows : currentRows
+            })
+            return
+        }
+
+        const notification = notificationRef.current
+        if (!isEdit || !pricesReady || !notification || notification.notified || notification.entityKey !== entityKey)
+            return
+
+        // Notify from the effect only after the price updates have committed.
+        // Mark first, so StrictMode and callback-triggered rerenders cannot repeat it.
+        notification.notified = true
+        let changed = false
+        let missing = false
+
+        for (const row of orderProducts) {
+            const id = String(row.id)
+            const baseline = notification.baseline.get(id)
+
+            if (!baseline || baseline.productKey !== productKey(row) || tracked.get(id)?.manual) {
                 continue
             }
 
-            if (referencePrice === null) {
-                if (replacing) {
-                    if (old?.pendingReplacement === productId && hasPrice(row, orderProductPriceField)) {
-                        // After the stale price was cleared, a user typed a
-                        // replacement price before its reference finished loading.
-                        tracked.set(rowId, { productId, price: Number(row[orderProductPriceField]), manual: true })
-                    } else {
-                        // Keep the previous product identity until the new
-                        // reference arrives; otherwise a saved A=100 is mistaken
-                        // for an explicit manual B=100.
-                        tracked.set(rowId, {
-                            productId: old?.productId ?? priorProductId,
-                            price: old?.price ?? Number(row[orderProductPriceField]),
-                            manual: false,
-                            pendingReplacement: productId,
-                        })
-                        if (hasPrice(row, orderProductPriceField)) {
-                            updates.set(rowId, { productId, oldValue: row[orderProductPriceField], price: null })
-                        }
-                    }
-                } else if (old && old.productId === productId) {
-                    tracked.set(rowId, old)
-                }
-                continue
-            }
+            const price = normalizeOrderPrice(row[orderProductPriceField])
+            const priceChanged = !Object.is(price, baseline.price)
 
-            if (old && !replacing) {
-                // Manual edits, including zero, must survive changes to other rows.
-                const manuallyChanged = old.manual ||
-                    (hasPrice(row, orderProductPriceField) && Number(row[orderProductPriceField]) !== old.price)
-                if (manuallyChanged) {
-                    tracked.set(rowId, { ...old, manual: true })
-                    continue
+            if (priceChanged) {
+                changed = true
+                if (price === null) {
+                    missing = true
                 }
-            } else if (!replacing && hasPrice(row, orderProductPriceField)) {
-                // Existing explicit prices are authoritative for the same product.
-                continue
-            }
-
-            tracked.set(rowId, { productId, price: referencePrice, manual: false })
-            if (!hasPrice(row, orderProductPriceField) || Number(row[orderProductPriceField]) !== referencePrice) {
-                updates.set(rowId, { productId, oldValue: row[orderProductPriceField], price: referencePrice })
             }
         }
 
-        selectedProductIdsRef.current = nextSelections
-        automaticPricesRef.current = tracked
-        priceEntityRef.current = entityKey
-        if (!updates.size) return
-
-        setOrderProducts((currentRows) => {
-            let changed = false
-            const nextRows = currentRows.map((row) => {
-                const update = updates.get(String(row.id))
-                if (!update || getProductId(row) !== update.productId) return row
-                // Avoid clobbering a more recent user edit / product selection.
-                if (!Object.is(row[orderProductPriceField], update.oldValue)) return row
-                if (Object.is(row[orderProductPriceField], update.price)) return row
-                changed = true
-                return { ...row, [orderProductPriceField]: update.price }
-            })
-            return changed ? nextRows : currentRows
-        })
-    }, [isEdit, objectId, prices, productIdsKey, orderProducts, setOrderProducts, priceSourceField, orderProductPriceField])
+        if (changed) onReferencePricesChange?.({ field: orderProductPriceField, missing })
+    }, [
+        isEdit,
+        isHydrated,
+        objectId,
+        prices,
+        pricesReady,
+        orderProducts,
+        productIdsKey,
+        setOrderProducts,
+        priceSourceField,
+        orderProductPriceField,
+        revisionField,
+        clearedField,
+        onReferencePricesChange,
+    ])
 }
