@@ -102,7 +102,7 @@ class ProductSpecificationFactory(factory.django.DjangoModelFactory):
     name = factory.SubFactory(ProductSpecNameFactory)
     value = factory.Sequence(lambda n: f"word-{n}")
     unit = factory.SubFactory(UnitFactory)
-
+    effective_from = datetime.date(2026, 1, 1)
 
 class ProductDescriptionFactory(factory.django.DjangoModelFactory):
     class Meta:

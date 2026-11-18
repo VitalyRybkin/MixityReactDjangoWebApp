@@ -41,6 +41,8 @@ CATALOG_PERMISSIONS: Final[dict[str, str]] = {
 
 
 class TestCatalogPermissionMatrix(BasePermissionMatrixTestCase):
+    """Verify catalog permission matrix contracts."""
+
     __test__ = True
 
     app_label = "catalog"
@@ -54,18 +56,23 @@ class TestCatalogPermissionMatrix(BasePermissionMatrixTestCase):
     )
 
     def create_object(self) -> Product:
+        """Provide create object for the test contract."""
         return ProductFactory.create()
 
     def get_create_url(self) -> str:
+        """Provide get create url for the test contract."""
         return "/api/catalog/products/"
 
     def get_detail_url(self, obj: Product) -> str:
+        """Provide get detail url for the test contract."""
         return f"/api/catalog/products/{obj.pk}/"
 
     def get_create_payload(self) -> dict[str, Any]:
+        """Provide get create payload for the test contract."""
         raise NotImplementedError("Product POST permission test is not configured yet.")
 
     def get_update_payload(self) -> dict[str, Any]:
+        """Provide get update payload for the test contract."""
         return {
             "title": "Updated by permission test",
         }

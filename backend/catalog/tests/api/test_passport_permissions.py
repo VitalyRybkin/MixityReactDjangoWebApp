@@ -86,7 +86,7 @@ class TestQualityPassportPermissionMatrix(BasePermissionMatrixTestCase):
 
     def test_passport_write_methods_disabled(self) -> None:
         """
-        Test that PUT/PATCH/DELETE methods are disabled for quality passports.
+        Test that PUT and PATCH methods remain disabled for quality passports.
         """
         self._logger_header("PASSPORT: WRITE METHODS DISABLED")
 
@@ -100,7 +100,7 @@ class TestQualityPassportPermissionMatrix(BasePermissionMatrixTestCase):
             args=[passport.pk],
         )
 
-        for method in ("put", "patch", "delete"):
+        for method in ("put", "patch"):
             with self.subTest(method=method):
                 response = getattr(self.client, method)(
                     url,

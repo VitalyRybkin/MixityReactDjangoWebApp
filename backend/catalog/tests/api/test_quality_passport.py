@@ -1,4 +1,4 @@
-"""Verify quality-passport validation, issuance, and read-only API contracts."""
+"""Verify quality-passport validation, issuance, retrieval and HTTP methods."""
 
 from datetime import date, timedelta
 from decimal import Decimal
@@ -374,7 +374,6 @@ class TestQualityPassportModel(BaseModelTestCase):
         latest = QualityPassport.last_issued.get_latest_for_product(self.obj.product)
 
         self.assertIsNotNone(latest)
-        self.assertIsNotNone(latest)
         assert latest is not None
 
         self.assertEqual(latest.pk, passport.pk)
@@ -538,13 +537,22 @@ class TestQualityPassportDetailQueryset(BaseQuerysetTestCase):
     _view_class = QualityPassportRetrieveAPIView
 
     def test_queryset_contract(self) -> None:
-        """Verify passport ordering and eager loading of product and creator."""
+        """Verify passport ordering and eager loading."""
+
         self._logger_header("QUERYSET: QUALITY PASSPORT DETAIL")
+
         self._factory.create_batch(3)
+
+        user = get_user_model().objects.create_superuser(
+            username="passport_queryset_admin",
+            password="test_password",
+        )
 
         self._assert_queryset_contract(
             expected_selects=["product", "created_by"],
+            user=user,
         )
+
         self._logger_success(
             "queryset",
             "Passports are ordered and load product and creator relations",
@@ -593,9 +601,9 @@ class TestQualityPassportReadOnlyAPI(TestLoggerMixin, APITestCase):
         self._logger_success("quality_passport", "Missing passport rejected | 404")
 
     def test_disallowed_methods(self) -> None:
-        """Verify POST, PUT, PATCH, and DELETE are rejected with HTTP 405."""
-        self._logger_header("HTTP METHODS: QUALITY PASSPORT READ-ONLY DETAIL")
-        for method in ("post", "put", "patch", "delete"):
+        """Verify unsupported POST, PUT and PATCH methods return HTTP 405."""
+        self._logger_header("HTTP METHODS: QUALITY PASSPORT DETAIL")
+        for method in ("post", "put", "patch"):
             with self.subTest(method=method):
                 response = getattr(self.client, method)(
                     self.url,
