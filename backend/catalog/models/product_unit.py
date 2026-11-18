@@ -1,14 +1,12 @@
 from typing import Any
 
-from django.core.exceptions import ValidationError
+from django.core.exceptions import ObjectDoesNotExist, ValidationError
 from django.db import models
 
 from catalog.utils.unit_choices import TitleChoices
 
 
 class ProductUnit(models.Model):
-    """Define the unit and package weight used to sell a product."""
-
     ALLOWED_PACK_WEIGHTS = {10, 12, 15, 20, 25, 30}
 
     product = models.OneToOneField(
@@ -30,17 +28,28 @@ class ProductUnit(models.Model):
         verbose_name_plural = "Единицы измерения товаров"
 
     def clean(self) -> None:
-        """Check that a piece-based unit uses a supported package weight."""
-        if self.unit.title == TitleChoices.PIECE:
+        """Validate pack weight; leave missing FK errors to Django field validation."""
+        super().clean()
+        if self.unit_id is None:
+            return
+        try:
+            unit_title = self.unit.title
+        except ObjectDoesNotExist:
+            return
+        if unit_title == TitleChoices.PIECE:
             if self.value not in self.ALLOWED_PACK_WEIGHTS:
                 raise ValidationError(
                     {"value": f"Вес упаковки: {sorted(self.ALLOWED_PACK_WEIGHTS)} кг"}
                 )
 
     def save(self, *args: Any, **kwargs: Any) -> None:
-        """Normalize ton units to a value of one and validate before saving."""
-        if self.unit_id and self.unit.title == TitleChoices.TON:
-            self.value = 1
+        # full_clean() must report an invalid FK instead of a descriptor exception.
+        if self.unit_id:
+            try:
+                if self.unit.title == TitleChoices.TON:
+                    self.value = 1
+            except ObjectDoesNotExist:
+                pass
         self.full_clean()
 
         super().save(*args, **kwargs)

@@ -118,25 +118,28 @@ class DocumentationBulkDownloadView(BaseCreateAPIView, generics.GenericAPIView):
 
     resource_name = "Documentation bulk download"
     schema_tags = ["Documentation"]
-    write_serializer_class = DocumentationBulkDownloadRequestSerializer
+    read_serializer_class = DocumentationBulkDownloadRequestSerializer
+
+    queryset = Documentation.objects.all()
 
     serializer_class = DocumentationBulkDownloadRequestSerializer
 
-    def post(self, request: Request, *args: Any, **kwargs: Any) -> HttpResponse:  # type: ignore[override]
+    def post(self, request: Request, *args: Any, **kwargs: Any) -> FileResponse:  # type: ignore[override]
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
 
         ids = serializer.validated_data["ids"]
         zip_buffer = build_documents_zip(ids)
 
-        response = HttpResponse(zip_buffer.getvalue(), content_type="application/zip")
-        response["Content-Disposition"] = 'attachment; filename="documents.zip"'
-        return response
+        return FileResponse(
+            zip_buffer,
+            as_attachment=True,
+            filename="documents.zip",
+            content_type="application/zip",
+        )
 
 
 class DocumentationSharePermission(BasePermission):
-    """Require the Django permission to view documentation."""
-
     def has_permission(self, request: Request, view: APIView) -> bool:
         return request.user.has_perm("common.view_documentation")
 
@@ -148,13 +151,10 @@ class DocumentationSharePermission(BasePermission):
     responses=DocumentationShareLinksResponseSerializer,
 )
 class DocumentationShareLinksView(generics.GenericAPIView):
-    """Issue seven-day recipient links to authenticated users who can view documents."""
-
     permission_classes = [IsAuthenticated, DocumentationSharePermission]
     serializer_class = DocumentationShareLinksRequestSerializer
 
     def post(self, request: Request) -> Response:
-        """Return one signed URL per selected document and the shared expiration time."""
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         tokens, expires_at = create_documentation_share_tokens(
@@ -182,12 +182,10 @@ class DocumentationShareLinksView(generics.GenericAPIView):
 class DocumentationSharedFileView(APIView):
     # The signed URL is the grant. An expired JWT in a recipient's browser
     # must not reject an otherwise valid link before token verification.
-    """Serve a document inline when the recipient presents a valid signed link."""
     authentication_classes = []
     permission_classes = [AllowAny]
 
     def get(self, request: Request, token: str) -> FileResponse:
-        """Resolve the signed grant and stream the corresponding file."""
         document = get_shared_document(token)
         file_obj = open_shared_document(document)
         return FileResponse(
@@ -199,7 +197,6 @@ class DocumentationSharedFileView(APIView):
     def finalize_response(
         self, request: Request, response: Any, *args: Any, **kwargs: Any
     ) -> Any:
-        """Prevent shared-file responses from being cached and set document response headers."""
         response = super().finalize_response(request, response, *args, **kwargs)
         response["Cache-Control"] = "private, no-store"
         response["Referrer-Policy"] = "no-referrer"
@@ -208,6 +205,5 @@ class DocumentationSharedFileView(APIView):
 
 
 def doc_page(request: HttpRequest) -> HttpResponse:
-    """Render the index of available API documentation sections."""
     docs = build_docs_index_sections()
     return render(request, "core/docs_index.html", {"docs": docs})

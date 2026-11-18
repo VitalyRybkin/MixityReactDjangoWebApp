@@ -5,8 +5,8 @@ from django.utils import timezone
 
 
 class RepairRequest(models.Model):
-
     """Track equipment repairs and their associated paperwork and specifications."""
+
     class Status(models.TextChoices):
         OPEN = "open", "Открыта"
         CLOSED = "closed", "Закрыта"

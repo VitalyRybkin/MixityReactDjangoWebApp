@@ -22,8 +22,8 @@ class PassportChanged(APIException):
 
 
 class QualityPassportIssueService:
-
     """Serialize passport issuance for each product."""
+
     @staticmethod
     @transaction.atomic
     def issue(
@@ -39,7 +39,6 @@ class QualityPassportIssueService:
         created_by: Any | None = None,
         issuance_source: Literal["order", "catalog"] = "order",
     ) -> QualityPassport:
-
         """Lock the product, check the expected passport, and apply source-specific date rules."""
         product = Product.objects.select_for_update().get(pk=product_id)
 

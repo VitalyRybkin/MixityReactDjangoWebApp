@@ -104,6 +104,7 @@ class ProductSpecificationFactory(factory.django.DjangoModelFactory):
     unit = factory.SubFactory(UnitFactory)
     effective_from = datetime.date(2026, 1, 1)
 
+
 class ProductDescriptionFactory(factory.django.DjangoModelFactory):
     class Meta:
         model = "catalog.ProductDescription"

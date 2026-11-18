@@ -12,8 +12,8 @@ def upd_pdf_upload_to(instance: "Order", filename: str) -> str:
 
 
 class Order(models.Model):
-
     """Track a sales order, its delivery schedule, and its supporting UPD document."""
+
     class Status(models.TextChoices):
         """Define the stages of the order workflow."""
 
