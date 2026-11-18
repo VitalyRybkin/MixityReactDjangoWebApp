@@ -75,6 +75,7 @@ def scan_uploaded_file(file: UploadedFile | None) -> None:
         file.seek(0)
 
 def compress_jpeg(file: UploadedFile) -> UploadedFile:
+    """Validate the JPEG and recompress it if it exceeds the storage limit."""
     try:
         file.seek(0)
 
@@ -189,6 +190,7 @@ def validate_pdf(
     return file
 
 def compress_pdf(file: UploadedFile) -> UploadedFile:
+    """Use Ghostscript to reduce oversized PDFs to the storage limit."""
     if file.size is not None and file.size <= MAX_STORED_FILE_SIZE:
         file.seek(0)
         return file

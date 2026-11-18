@@ -7,6 +7,8 @@ from catalog.utils.unit_choices import TitleChoices
 
 
 class ProductUnit(models.Model):
+    """Define the unit and package weight used to sell a product."""
+
     ALLOWED_PACK_WEIGHTS = {10, 12, 15, 20, 25, 30}
 
     product = models.OneToOneField(
@@ -28,6 +30,7 @@ class ProductUnit(models.Model):
         verbose_name_plural = "Единицы измерения товаров"
 
     def clean(self) -> None:
+        """Check that a piece-based unit uses a supported package weight."""
         if self.unit.title == TitleChoices.PIECE:
             if self.value not in self.ALLOWED_PACK_WEIGHTS:
                 raise ValidationError(
@@ -35,6 +38,7 @@ class ProductUnit(models.Model):
                 )
 
     def save(self, *args: Any, **kwargs: Any) -> None:
+        """Normalize ton units to a value of one and validate before saving."""
         if self.unit_id and self.unit.title == TitleChoices.TON:
             self.value = 1
         self.full_clean()

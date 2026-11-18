@@ -63,6 +63,8 @@ class DocumentationSerializer(serializers.ModelSerializer):
 
 
 class DocumentationBulkDownloadRequestSerializer(serializers.Serializer):
+    """Validate the document IDs requested in a ZIP download."""
+
     ids = serializers.ListField(
         child=serializers.IntegerField(min_value=1),
         allow_empty=False,
@@ -71,6 +73,8 @@ class DocumentationBulkDownloadRequestSerializer(serializers.Serializer):
 
 
 class DocumentationShareLinksRequestSerializer(serializers.Serializer):
+    """Validate a selection of at most 100 documents to share."""
+
     ids = serializers.ListField(
         child=serializers.IntegerField(min_value=1),
         allow_empty=False,
@@ -80,11 +84,15 @@ class DocumentationShareLinksRequestSerializer(serializers.Serializer):
 
 
 class DocumentationShareLinkSerializer(serializers.Serializer):
+    """Represent a signed recipient URL for one document."""
+
     id = serializers.IntegerField()
     title = serializers.CharField()
     url = serializers.URLField()
 
 
 class DocumentationShareLinksResponseSerializer(serializers.Serializer):
+    """Return issued links and their common expiration time."""
+
     links = DocumentationShareLinkSerializer(many=True)
     expires_at = serializers.DateTimeField()

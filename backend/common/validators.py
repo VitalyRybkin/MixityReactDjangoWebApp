@@ -5,6 +5,7 @@ MAX_DOCUMENTATION_FILE_SIZE = 20 * 1024 * 1024
 
 
 def validate_documentation_file_size(file: UploadedFile) -> None:
+    """Reject documentation uploads larger than 20 MiB."""
     size = file.size
 
     if size is not None and size > MAX_DOCUMENTATION_FILE_SIZE:

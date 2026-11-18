@@ -5,6 +5,8 @@ from django.db import models
 
 
 class ProductPallet(models.Model):
+    """Store a product's pallet capacity at a specific warehouse."""
+
     product = models.ForeignKey(
         "catalog.Product", on_delete=models.CASCADE, related_name="product_pallets"
     )
@@ -23,6 +25,7 @@ class ProductPallet(models.Model):
         verbose_name_plural = "Паллеты (складские)"
 
     def clean(self) -> None:
+        """Require a pallet capacity of 40 or 48 pieces."""
         super().clean()
 
         if self.items_per_pallet not in {40, 48}:
@@ -31,6 +34,7 @@ class ProductPallet(models.Model):
             )
 
     def save(self, *args: Any, **kwargs: Any) -> None:
+        """Validate the pallet configuration before writing it."""
         self.full_clean()
         super().save(*args, **kwargs)
 

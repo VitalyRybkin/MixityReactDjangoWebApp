@@ -15,6 +15,8 @@ ENV_FILE = Path(
 
 
 class Settings(BaseSettings):
+    """Load runtime settings from environment variables and the configured dotenv file."""
+
     DB_NAME: str
     DB_USER: str
     DB_PASSWORD: str
@@ -50,6 +52,7 @@ class Settings(BaseSettings):
 
     @property
     def allowed_hosts(self) -> list[str]:
+        """Return the nonempty host names configured for Django."""
         return [
             host.strip()
             for host in self.DJANGO_ALLOWED_HOSTS.split(",")
@@ -58,6 +61,7 @@ class Settings(BaseSettings):
 
     @property
     def csrf_trusted_origins(self) -> list[str]:
+        """Return the nonempty origins trusted for CSRF checks."""
         return [
             origin.strip()
             for origin in self.DJANGO_CSRF_TRUSTED_ORIGINS.split(",")

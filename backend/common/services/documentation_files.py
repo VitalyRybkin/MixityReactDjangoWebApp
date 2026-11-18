@@ -9,6 +9,7 @@ from common.models import Documentation
 
 
 def get_documentation_file_parts(doc: Documentation) -> tuple[FieldFile, str]:
+    """Open the stored file and return its basename for the response."""
     if not doc.file:
         raise Http404("Файл не найден")
 
@@ -16,6 +17,7 @@ def get_documentation_file_parts(doc: Documentation) -> tuple[FieldFile, str]:
 
 
 def get_ordered_documents(ids: list[int]) -> list[Documentation]:
+    """Return matching documents in ID request order, or raise 404 if none match."""
     documents_map = {doc.id: doc for doc in Documentation.objects.filter(id__in=ids)}
     ordered_documents = [
         documents_map[doc_id] for doc_id in ids if doc_id in documents_map
@@ -28,6 +30,7 @@ def get_ordered_documents(ids: list[int]) -> list[Documentation]:
 
 
 def build_documents_zip(ids: list[int]) -> BytesIO:
+    """Create a rewound ZIP archive with unique member names for the selected files."""
     ordered_documents = get_ordered_documents(ids)
     zip_buffer = BytesIO()
 

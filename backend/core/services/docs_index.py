@@ -2,6 +2,7 @@ from django.urls import NoReverseMatch, reverse
 
 
 def build_docs_index_sections() -> list[dict[str, str]]:
+    """Resolve configured documentation links and omit sections with no registered route."""
     sections = {
         "Authentication": "swagger-auth",
         "Catalog Documentation": "swagger-catalog",

@@ -16,6 +16,7 @@ from repairs.models.repair_request_models import ClosingFile, RepairRequest, Req
 def process_repair_file(
     file: UploadedFile | None,
 ) -> UploadedFile | None:
+    """Check the upload size, scan for malware, and process PDFs and JPEGs by extension."""
     if file is None:
         return None
 
@@ -40,6 +41,8 @@ def process_repair_file(
 
 
 class RepairRequestFileReadSerializer(serializers.ModelSerializer):
+    """Expose the metadata and URL for a repair request attachment."""
+
     file = serializers.FileField(
         required=False,
         allow_null=True,
@@ -55,6 +58,8 @@ class RepairRequestFileReadSerializer(serializers.ModelSerializer):
 
 
 class RepairRequestFileWriteSerializer(RepairRequestFileReadSerializer):
+    """Validate uploads attached to the initial repair request."""
+
     @classmethod
     def validate_file(
         cls,
@@ -64,6 +69,8 @@ class RepairRequestFileWriteSerializer(RepairRequestFileReadSerializer):
 
 
 class RepairClosingFileReadSerializer(serializers.ModelSerializer):
+    """Expose the metadata and URL for a repair closing attachment."""
+
     file = serializers.FileField(
         required=False,
         allow_null=True,
@@ -79,6 +86,8 @@ class RepairClosingFileReadSerializer(serializers.ModelSerializer):
 
 
 class RepairClosingFileWriteSerializer(RepairClosingFileReadSerializer):
+    """Validate uploads attached to the closing paperwork."""
+
     @classmethod
     def validate_file(
         cls,
@@ -88,6 +97,8 @@ class RepairClosingFileWriteSerializer(RepairClosingFileReadSerializer):
 
 
 class RepairFilesSerializer(serializers.ModelSerializer):
+    """List request and closing attachments by type for a repair."""
+
     closing_files = RepairClosingFileReadSerializer(
         many=True,
         read_only=True,

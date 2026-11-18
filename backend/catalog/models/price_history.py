@@ -4,6 +4,8 @@ from django.utils import timezone
 
 
 class _LatestPriceHistoryManager(models.Manager):
+    """Query the latest historical price per product for a single owner."""
+
     owner_field: str
     related: tuple[str, ...]
 
@@ -13,6 +15,7 @@ class _LatestPriceHistoryManager(models.Manager):
         owner_id: int,
         product_ids: list[int],
     ) -> QuerySet:
+        """Select each product's newest price by date, breaking ties by ID."""
         if not product_ids:
             return self.none()
 
@@ -37,24 +40,30 @@ class _LatestPriceHistoryManager(models.Manager):
 
 
 class SalesPriceHistoryManager(_LatestPriceHistoryManager):
+    """Query sale prices scoped to a customer."""
+
     owner_field = "customer_id"
     related = ("product", "customer")
 
     def latest_prices_for_customer_products(
         self, *, customer_id: int, product_ids: list[int]
     ) -> QuerySet:
+        """Return the newest recorded sale price per requested product."""
         return self.latest_prices_for_products(
             owner_id=customer_id, product_ids=product_ids
         )
 
 
 class PurchasePriceHistoryManager(_LatestPriceHistoryManager):
+    """Query purchase prices scoped to a warehouse."""
+
     owner_field = "warehouse_id"
     related = ("product", "warehouse")
 
     def latest_prices_for_warehouse_products(
         self, *, warehouse_id: int, product_ids: list[int]
     ) -> QuerySet:
+        """Return the newest recorded purchase price per requested product."""
         return self.latest_prices_for_products(
             owner_id=warehouse_id, product_ids=product_ids
         )

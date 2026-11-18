@@ -41,6 +41,7 @@ class QualityPassportsService:
         products_data: list[dict] | None,
         created_by: Any | None = None,
     ) -> None:
+        """Issue and assign replacement passports for the requested non-draft order items."""
         requests = {
             data["product"].pk: data["new_quality_passport"]
             for data in (products_data or [])

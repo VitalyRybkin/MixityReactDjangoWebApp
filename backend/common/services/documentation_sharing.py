@@ -16,12 +16,14 @@ UNAVAILABLE_MESSAGE = "Документ недоступен."
 
 
 def _file_digest(document: Documentation) -> str:
+    """Hash the stored filename used to bind a share token to a file."""
     if not document.file or not document.file.name:
         raise Http404(UNAVAILABLE_MESSAGE)
     return hashlib.sha256(document.file.name.encode("utf-8")).hexdigest()
 
 
 def open_shared_document(document: Documentation) -> FieldFile:
+    """Open a shared file for reading and map storage failures to 404."""
     try:
         _file_digest(document)
         return document.file.open("rb")
@@ -32,6 +34,7 @@ def open_shared_document(document: Documentation) -> FieldFile:
 def create_documentation_share_tokens(
     ids: list[int],
 ) -> tuple[list[tuple[Documentation, str]], datetime]:
+    """Validate the entire selection and issue expiring tokens in request order."""
     unique_ids = list(dict.fromkeys(ids))
     documents = {
         document.pk: document
@@ -65,6 +68,7 @@ def create_documentation_share_tokens(
 
 
 def get_shared_document(token: str) -> Documentation:
+    """Resolve an unexpired signed token to a document with the same stored filename."""
     try:
         payload = signing.TimestampSigner(salt=DOCUMENTATION_SHARE_SALT).unsign_object(
             token, max_age=DOCUMENTATION_SHARE_MAX_AGE

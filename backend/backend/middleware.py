@@ -6,10 +6,13 @@ from django.http import HttpRequest, HttpResponse
 
 
 class RetryOnceOnDbEofMiddleware:
+    """Retry a downstream call once when it raises a connection EOF error."""
+
     def __init__(self, get_response: Callable[[HttpRequest], HttpResponse]) -> None:
         self.get_response = get_response
 
     def __call__(self, request: HttpRequest) -> HttpResponse:
+        """Close stale connections before retrying a matching database error."""
         try:
             return self.get_response(request)
         except OperationalError as e:

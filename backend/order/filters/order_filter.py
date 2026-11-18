@@ -7,6 +7,8 @@ from order.models import Order
 
 
 class OrderFilter(django_filters.FilterSet):
+    """Filter orders by delivery date, related records, status, and document availability."""
+
     date_from = django_filters.DateFilter(
         field_name="delivery_date",
         lookup_expr="gte",
@@ -51,6 +53,7 @@ class OrderFilter(django_filters.FilterSet):
         _name: str,
         value: bool,
     ) -> QuerySet[Any, Any]:
+        """Restrict the results to orders without a UPD PDF when enabled."""
         if value:
             return queryset.filter(Q(upd_pdf__isnull=True) | Q(upd_pdf=""))
         return queryset

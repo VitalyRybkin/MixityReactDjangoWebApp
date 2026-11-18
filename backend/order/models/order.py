@@ -7,12 +7,16 @@ from django.utils import timezone
 
 
 def upd_pdf_upload_to(instance: "Order", filename: str) -> str:
+    """Build a year-scoped storage path with a random filename for the UPD PDF."""
     return f"docs/upd/{timezone.now():%Y}/{uuid4().hex}.pdf"
 
 
 class Order(models.Model):
 
+    """Track a sales order, its delivery schedule, and its supporting UPD document."""
     class Status(models.TextChoices):
+        """Define the stages of the order workflow."""
+
         DRAFT = "draft", "Черновик"
         CREATED = "created", "Создан"
         IN_PROGRESS = "in_progress", "В процессе"

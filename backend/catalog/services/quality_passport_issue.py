@@ -12,6 +12,8 @@ from catalog.models import Product, QualityPassport
 
 
 class PassportChanged(APIException):
+    """Signal that the active passport changed since the caller last read it."""
+
     status_code = status.HTTP_409_CONFLICT
     default_code = "passport_changed"
     default_detail = (
@@ -21,6 +23,7 @@ class PassportChanged(APIException):
 
 class QualityPassportIssueService:
 
+    """Serialize passport issuance for each product."""
     @staticmethod
     @transaction.atomic
     def issue(
@@ -37,6 +40,7 @@ class QualityPassportIssueService:
         issuance_source: Literal["order", "catalog"] = "order",
     ) -> QualityPassport:
 
+        """Lock the product, check the expected passport, and apply source-specific date rules."""
         product = Product.objects.select_for_update().get(pk=product_id)
 
         latest = QualityPassport.last_issued.get_latest_for_product(product)

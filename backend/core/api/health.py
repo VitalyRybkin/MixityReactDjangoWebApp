@@ -9,6 +9,7 @@ logger = logging.getLogger(__name__)
 
 @require_GET
 def health_check(request: HttpRequest) -> JsonResponse:
+    """Return HTTP 503 when the application cannot query the database."""
     try:
         with connection.cursor() as cursor:
             cursor.execute("SELECT 1")
