@@ -4,7 +4,7 @@ from typing import Any, cast
 from django.db import transaction
 from rest_framework import serializers
 
-from catalog.api.serializers.passport_serializers import NewQualityPassportSerializer
+from catalog.api.serializers.passport_serializers import QualityPassportIssueSerializer
 from catalog.api.serializers.product_serializers import ProductSerializer
 from catalog.models import Product
 from catalog.services.quality_passports import QualityPassportsService
@@ -261,7 +261,7 @@ class OrderProductWriteSerializer(serializers.Serializer):
         required=False,
     )
 
-    new_quality_passport = NewQualityPassportSerializer(
+    new_quality_passport = QualityPassportIssueSerializer(
         required=False,
         write_only=True,
     )

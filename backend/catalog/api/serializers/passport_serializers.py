@@ -69,54 +69,6 @@ class QualityPassportReadSerializer(serializers.ModelSerializer):
         ).data
 
 
-class QualityPassportWriteSerializer(serializers.ModelSerializer):
-    """
-    Serializes quality passport data for write operations.
-
-    Validates incoming data for creating or updating quality passports and delegates
-    model-level validation to the associated model instance before saving. The
-    serializer accepts a product reference and writable passport fields while keeping
-    the identifier read-only.
-    """
-
-    product = serializers.PrimaryKeyRelatedField(
-        queryset=Product.objects.all(),
-        error_messages={"does_not_exist": "Материал не найден"},
-    )
-
-    class Meta:
-        model = QualityPassport
-        fields = [
-            "id",
-            "product",
-            "number",
-            "issue_date",
-            "batch_number",
-            "production_date",
-            "quantity",
-        ]
-        read_only_fields = ["id"]
-
-    def validate(self, attrs: Any) -> dict:
-        attrs = super().validate(attrs)
-
-        passport = (
-            copy(self.instance) if self.instance is not None else QualityPassport()
-        )
-
-        for field, value in attrs.items():
-            setattr(passport, field, value)
-
-        try:
-            passport.full_clean()
-        except DjangoValidationError as exc:
-            if hasattr(exc, "message_dict"):
-                raise serializers.ValidationError(exc.message_dict) from exc
-
-            raise serializers.ValidationError(exc.messages) from exc
-
-        return attrs
-
 
 class QualityPassportStateQuerySerializer(serializers.Serializer):
     """
@@ -143,7 +95,7 @@ class QualityPassportStateQuerySerializer(serializers.Serializer):
     )
 
 
-class NewQualityPassportSerializer(serializers.Serializer):
+class QualityPassportIssueSerializer(serializers.Serializer):
     """
     Validate data required to create a new quality passport.
 
