@@ -1,5 +1,5 @@
 from decimal import Decimal
-from typing import Any, cast
+from typing import Any
 
 from django.db import transaction
 from rest_framework import serializers
@@ -291,11 +291,6 @@ class OrderProductWriteSerializer(serializers.Serializer):
         product = attrs["product"]
         quantity = attrs["quantity"]
 
-        attrs = super().validate(attrs)
-
-        product = attrs["product"]
-        quantity = attrs["quantity"]
-
         if product.is_piece_based:
             if quantity != quantity.to_integral_value():
                 raise serializers.ValidationError(
@@ -496,7 +491,7 @@ class OrderWriteSerializer(serializers.ModelSerializer):
 
     def _validate_contacts(self, attrs: dict) -> None:
         if self.instance is not None and not any(
-                field in attrs for field in ("contacts", "client", "customer")
+            field in attrs for field in ("contacts", "client", "customer")
         ):
             return
 
@@ -521,18 +516,20 @@ class OrderWriteSerializer(serializers.ModelSerializer):
             contact
             for contact in contacts
             if (
-                    contact.client_id != getattr(client, "id", None)
-                    and contact.customer_id != getattr(customer, "id", None)
+                contact.client_id != getattr(client, "id", None)
+                and contact.customer_id != getattr(customer, "id", None)
             )
         ]
 
         if invalid_contacts:
-            raise serializers.ValidationError({
-                "contacts": (
-                    "Можно выбрать только контакты выбранного "
-                    "клиента или заказчика."
-                )
-            })
+            raise serializers.ValidationError(
+                {
+                    "contacts": (
+                        "Можно выбрать только контакты выбранного "
+                        "клиента или заказчика."
+                    )
+                }
+            )
 
     def _validate_delivery(self, attrs: dict) -> None:
         if "delivery" not in attrs:

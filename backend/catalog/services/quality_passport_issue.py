@@ -1,6 +1,6 @@
 from datetime import date
 from decimal import Decimal
-from typing import Any
+from typing import Any, Literal
 
 from django.core.exceptions import ValidationError as DjangoValidationError
 from django.db import transaction
@@ -34,6 +34,7 @@ class QualityPassportIssueService:
         issue_date: date | None = None,
         delivery_date: date | None = None,
         created_by: Any | None = None,
+        issuance_source: Literal["order", "catalog"] = "order",
     ) -> QualityPassport:
 
         product = Product.objects.select_for_update().get(pk=product_id)
@@ -45,21 +46,44 @@ class QualityPassportIssueService:
         if latest_id != expected_latest_passport_id:
             raise PassportChanged()
 
-        # Preserve the previous auto-date behavior for clients that omit issue_date.
-        # An explicitly supplied date is never silently changed.
-        if issue_date is None:
-            issue_date = timezone.localdate()
-            if latest and latest.issue_date > issue_date:
-                issue_date = latest.issue_date
+        if issuance_source == "catalog":
+            if latest is None:
+                raise DjangoValidationError(
+                    {"product_id": "Для товара отсутствует действующий паспорт."}
+                )
 
-        if delivery_date is not None and issue_date > delivery_date:
-            raise DjangoValidationError(
-                {
-                    "issue_date": (
-                        "Дата паспорта не может быть позже даты доставки заявки."
-                    )
-                }
-            )
+            if issue_date is None:
+                raise DjangoValidationError({"issue_date": "Укажите дату паспорта."})
+
+            if issue_date <= latest.issue_date:
+                raise DjangoValidationError(
+                    {
+                        "issue_date": "Дата нового паспорта должна быть позже даты предыдущего."
+                    }
+                )
+
+            if issue_date > timezone.localdate():
+                raise DjangoValidationError(
+                    {
+                        "issue_date": "Дата паспорта не может быть позже сегодняшней даты."
+                    }
+                )
+
+        elif issuance_source == "order":
+            # Preserve previous behavior for orders which omit issue_date.
+            if issue_date is None:
+                issue_date = timezone.localdate()
+                if latest and latest.issue_date > issue_date:
+                    issue_date = latest.issue_date
+
+            if delivery_date is not None and issue_date > delivery_date:
+                raise DjangoValidationError(
+                    {
+                        "issue_date": "Дата паспорта не может быть позже даты доставки заявки."
+                    }
+                )
+        else:
+            raise ValueError(f"Unsupported passport issuance source: {issuance_source}")
 
         passport = QualityPassport(
             product=product,

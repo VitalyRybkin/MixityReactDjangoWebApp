@@ -231,12 +231,13 @@ def create_schema(
     *,
     resource: str,
     tags: list[str],
-    read_serializer: Any,
+    write_serializer: Any,
     get_operation_id: Optional[str] = None,
     post_summary: Optional[str] = None,
     post_description: Optional[str] = None,
+    errors_write: Dict[int, Any] = ERRORS_WRITE
 ) -> Any:
-
+    write_response = OpenApiResponse(response=write_serializer)
     post_operation_id = get_operation_id or f"create{resource}"
     post_summary = post_summary or f"Create a new {resource}"
     post_description = post_description or (
@@ -248,7 +249,7 @@ def create_schema(
             operation_id=post_operation_id,
             summary=post_summary,
             tags=tags,
-            responses={201: read_serializer},
+            responses={201: write_response, **errors_write},
             description=post_description,
         ),
     )

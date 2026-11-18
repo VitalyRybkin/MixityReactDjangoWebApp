@@ -118,7 +118,7 @@ class DocumentationBulkDownloadView(BaseCreateAPIView, generics.GenericAPIView):
 
     resource_name = "Documentation bulk download"
     schema_tags = ["Documentation"]
-    read_serializer_class = DocumentationBulkDownloadRequestSerializer
+    write_serializer_class = DocumentationBulkDownloadRequestSerializer
 
     serializer_class = DocumentationBulkDownloadRequestSerializer
 
@@ -189,7 +189,9 @@ class DocumentationSharedFileView(APIView):
             filename=document.file.name.rsplit("/", 1)[-1],
         )
 
-    def finalize_response(self, request: Request, response: Any, *args: Any, **kwargs: Any) -> Any:
+    def finalize_response(
+        self, request: Request, response: Any, *args: Any, **kwargs: Any
+    ) -> Any:
         response = super().finalize_response(request, response, *args, **kwargs)
         response["Cache-Control"] = "private, no-store"
         response["Referrer-Policy"] = "no-referrer"

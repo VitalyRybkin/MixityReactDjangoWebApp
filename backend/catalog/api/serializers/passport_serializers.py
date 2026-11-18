@@ -1,14 +1,15 @@
-from copy import copy
 from decimal import Decimal
 from typing import Any
 
-from django.core.exceptions import ValidationError as DjangoValidationError
-from django.db.models import Subquery, OuterRef
+from django.db.models import OuterRef, Subquery
+from django.utils import timezone
 from rest_framework import serializers
 
-from catalog.api.serializers.prodcut_specification_serializer import ProductSpecificationItemSerializer
+from catalog.api.serializers.prodcut_specification_serializer import (
+    ProductSpecificationItemSerializer,
+)
 from catalog.api.serializers.product_serializers import ProductSerializer
-from catalog.models import Product, QualityPassport, ProductSpecification
+from catalog.models import ProductSpecification, QualityPassport
 from order.models import Order
 
 
@@ -69,7 +70,6 @@ class QualityPassportReadSerializer(serializers.ModelSerializer):
         ).data
 
 
-
 class QualityPassportStateQuerySerializer(serializers.Serializer):
     """
     Validate data required to query quality passport states.
@@ -105,9 +105,7 @@ class QualityPassportIssueSerializer(serializers.Serializer):
     and the optional issue date.
     """
 
-    expected_latest_passport_id = serializers.IntegerField(
-        min_value=1,
-    )
+    expected_latest_passport_id = serializers.IntegerField(min_value=1)
     number = serializers.CharField(max_length=50)
     batch_number = serializers.CharField(max_length=100)
     issue_date = serializers.DateField(required=False)
@@ -120,8 +118,19 @@ class QualityPassportIssueSerializer(serializers.Serializer):
 
     def validate(self, attrs: dict[str, Any]) -> dict[str, Any]:
         attrs = super().validate(attrs)
+
+        source = self.context.get("issuance_source", "order")
+
+        if source not in {"order", "catalog"}:
+            raise serializers.ValidationError(
+                {"non_field_errors": "Неизвестный режим выпуска паспорта."}
+            )
+
         issue_date = attrs.get("issue_date")
         production_date = attrs["production_date"]
+
+        if source == "catalog" and issue_date is None:
+            raise serializers.ValidationError({"issue_date": "Укажите дату паспорта."})
 
         if issue_date is not None and production_date > issue_date:
             raise serializers.ValidationError(
@@ -130,4 +139,19 @@ class QualityPassportIssueSerializer(serializers.Serializer):
                 }
             )
 
+        if (
+            source == "catalog"
+            and issue_date is not None
+            and issue_date > timezone.localdate()
+        ):
+            raise serializers.ValidationError(
+                {"issue_date": "Дата паспорта не может быть позже сегодняшней даты."}
+            )
+
         return attrs
+
+
+class CatalogQualityPassportIssueSerializer(QualityPassportIssueSerializer):
+    """Catalog issue request: product identity is not taken from an order item."""
+
+    product_id = serializers.IntegerField(min_value=1)

@@ -11,6 +11,7 @@ from .views.products import (
 )
 from .views.quality_passports import (
     ProductSpecificationDetailAPIView,
+    QualityPassportIssueAPIView,
     QualityPassportRetrieveAPIView,
     QualityPassportStateAPIView,
 )
@@ -76,5 +77,10 @@ urlpatterns = [
         QualityPassportRoutes.STATE.path,
         QualityPassportStateAPIView.as_view(),
         name=QualityPassportRoutes.STATE.name,
+    ),
+    path(
+        QualityPassportRoutes.CREATE.path,
+        QualityPassportIssueAPIView.as_view(),
+        name=QualityPassportRoutes.CREATE.name,
     ),
 ]

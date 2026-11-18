@@ -1,17 +1,21 @@
 """Expose quality-passport state previews for order products."""
 
-from django.db.models import OuterRef, Prefetch, Subquery
+from typing import Any
+
+from django.core.exceptions import ValidationError as DjangoValidationError
+from django.db.models import OuterRef, Prefetch, QuerySet, Subquery
 from django.shortcuts import get_object_or_404
 from django.utils import timezone
 from drf_spectacular.types import OpenApiTypes
-from drf_spectacular.utils import OpenApiParameter
-from rest_framework import serializers
-from rest_framework.exceptions import PermissionDenied
+from drf_spectacular.utils import OpenApiParameter, extend_schema
+from rest_framework import serializers, status
+from rest_framework.exceptions import PermissionDenied, ValidationError
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.request import Request
 from rest_framework.response import Response
 
 from catalog.api.serializers.passport_serializers import (
+    CatalogQualityPassportIssueSerializer,
     QualityPassportReadSerializer,
     QualityPassportStateQuerySerializer,
 )
@@ -19,9 +23,12 @@ from catalog.api.serializers.prodcut_specification_serializer import (
     ProductSpecificationReadSerializer,
 )
 from catalog.models import Product, ProductSpecification, QualityPassport
+from catalog.services.quality_passport_delete import QualityPassportDeleteService
+from catalog.services.quality_passport_issue import QualityPassportIssueService
 from catalog.services.quality_passport_state import QualityPassportStateService
-from core.openapi import ERRORS_DETAIL
+from core.openapi import ERRORS_DETAIL, ERRORS_WRITE
 from core.openapi.base_views import (
+    BaseCreateAPIView,
     BaseGenericAPIView,
     BaseRetrieveAPIView,
 )
@@ -123,12 +130,9 @@ class QualityPassportRetrieveAPIView(BaseRetrieveAPIView):
     ).order_by("id")
 
     errors_read = ERRORS_DETAIL
-
-    # Exporters of orders may read only passports attached to created orders.
-    # Catalogue users retain access to all passports through their own view permission.
     permission_classes = [IsAuthenticated]
 
-    def get_queryset(self):
+    def get_queryset(self) -> QuerySet[QualityPassport]:
         queryset = super().get_queryset()
         user = self.request.user
 
@@ -142,6 +146,67 @@ class QualityPassportRetrieveAPIView(BaseRetrieveAPIView):
             return queryset.filter(pk__in=exported_passports)
 
         raise PermissionDenied()
+
+    @extend_schema(
+        operation_id="deleteQualityPassport",
+        summary="Delete latest unassigned quality passport",
+        tags=["QualityPassport"],
+        responses={204: None, 403: None, 404: None, 409: None},
+    )
+    def delete(self, request: Request, pk: int, *args: Any, **kwargs: Any) -> Response:
+        if not request.user.has_perm("catalog.delete_qualitypassport"):
+            raise PermissionDenied()
+
+        QualityPassportDeleteService.delete_latest_unassigned(passport_id=pk)
+        return Response(status=status.HTTP_204_NO_CONTENT)
+
+
+class QualityPassportIssueAPIView(BaseCreateAPIView):
+    resource_name = "quality_passport_issue"
+    schema_tags = ["QualityPassport"]
+    permission_classes = [IsAuthenticated]
+    http_method_names = ["post", "options"]
+
+    write_serializer_class = CatalogQualityPassportIssueSerializer
+    serializer_class = CatalogQualityPassportIssueSerializer
+    errors_write = ERRORS_WRITE
+
+    def get_serializer_context(self) -> dict[str, Any]:
+        context = super().get_serializer_context()
+        context["issuance_source"] = "catalog"
+        return context
+
+    def create(self, request: Request, *args: Any, **kwargs: Any) -> Response:
+        if not request.user.has_perm("catalog.add_qualitypassport"):
+            raise PermissionDenied()
+
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        data = serializer.validated_data
+
+        # Return 404 for a missing product rather than an uncaught DoesNotExist.
+        product = get_object_or_404(Product, pk=data["product_id"])
+
+        try:
+            passport = QualityPassportIssueService.issue(
+                product_id=product.pk,
+                expected_latest_passport_id=data["expected_latest_passport_id"],
+                number=data["number"],
+                batch_number=data["batch_number"],
+                production_date=data["production_date"],
+                quantity=data["quantity"],
+                issue_date=data["issue_date"],
+                created_by=request.user,
+                issuance_source="catalog",
+            )
+        except DjangoValidationError as exc:
+            details = exc.message_dict if hasattr(exc, "message_dict") else exc.messages
+            raise ValidationError(details) from exc
+
+        return Response(
+            QualityPassportReadSerializer(passport).data,
+            status=status.HTTP_201_CREATED,
+        )
 
 
 class ProductSpecificationDetailAPIView(BaseRetrieveAPIView):
@@ -165,7 +230,7 @@ class ProductSpecificationDetailAPIView(BaseRetrieveAPIView):
         OpenApiParameter("as_of", OpenApiTypes.DATE, OpenApiParameter.QUERY),
     ]
 
-    def get_queryset(self):
+    def get_queryset(self) -> QuerySet[Product]:
         as_of_param = self.request.query_params.get("as_of")
 
         as_of = (

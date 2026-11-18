@@ -46,13 +46,11 @@ class OrderFilter(django_filters.FilterSet):
         fields = []
 
     def filter_no_upd(
-            self,
-            queryset: QuerySet,
-            _name: str,
-            value: bool,
+        self,
+        queryset: QuerySet,
+        _name: str,
+        value: bool,
     ) -> QuerySet[Any, Any]:
         if value:
-            return queryset.filter(
-                Q(upd_pdf__isnull=True) | Q(upd_pdf="")
-            )
+            return queryset.filter(Q(upd_pdf__isnull=True) | Q(upd_pdf=""))
         return queryset
