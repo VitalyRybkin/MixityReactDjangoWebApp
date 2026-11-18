@@ -1,8 +1,6 @@
 import { useRef, useState } from 'react'
 
-import AttachFileIcon from '@mui/icons-material/AttachFile'
-import OpenInNewIcon from '@mui/icons-material/OpenInNew'
-import { Box, CircularProgress, IconButton, Link, Stack, TextField, Typography } from '@mui/material'
+import { Box, Link, Stack, TextField, Typography } from '@mui/material'
 
 import DeleteAction from '../../../components/ui/buttons/DeleteAction.jsx'
 import UploadAction from '../../../components/ui/buttons/UploadAction.jsx'

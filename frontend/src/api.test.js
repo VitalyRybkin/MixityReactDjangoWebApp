@@ -164,6 +164,88 @@ describe('requests in the current session', () => {
     )
 })
 
+describe('business requests retried after authentication refresh', () => {
+    it('propagates refresh failure without clearing the current session', async () => {
+        const tab = await loadTab()
+        tab.startAuthSession('old-access', 'old-refresh')
+        const generation = tab.getAuthSessionGeneration()
+        let refreshError
+        const adapter = vi.fn(async (config) => {
+            const response = { ...responseFor(config, {}), status: 401 }
+            const error = new AxiosError('Unauthorized', 'ERR_BAD_REQUEST', config, null, response)
+            if (config.url.endsWith('/api/auth/token/refresh/')) refreshError = error
+            throw error
+        })
+        tab.default.defaults.adapter = adapter
+
+        const request = tab.default.get('/api/orders/')
+        await expect(request).rejects.toMatchObject({ response: { status: 401 } })
+        await expect(request).rejects.toBe(refreshError)
+        expect(adapter).toHaveBeenCalledTimes(2)
+        expect(localStorage.getItem(ACCESS_TOKEN)).toBe('old-access')
+        expect(localStorage.getItem(REFRESH_TOKEN)).toBe('old-refresh')
+        expect(tab.getAuthSessionGeneration()).toBe(generation)
+    })
+
+    it('does not retry an old business request when the account changes during refresh', async () => {
+        const tab = await loadTab()
+        tab.startAuthSession('old-access', 'old-refresh')
+        const refreshStarted = deferred()
+        const refreshCompletion = deferred()
+        let refreshConfig
+        const adapter = vi.fn(async (config) => {
+            if (config.url.endsWith('/api/auth/token/refresh/')) {
+                refreshConfig = config
+                refreshStarted.resolve()
+                return refreshCompletion.promise
+            }
+            const response = { ...responseFor(config, {}), status: 401 }
+            throw new AxiosError('Unauthorized', 'ERR_BAD_REQUEST', config, null, response)
+        })
+        tab.default.defaults.adapter = adapter
+        const request = tab.default.get('/api/orders/')
+        const rejected = expect(request).rejects.toMatchObject({ code: 'AUTH_SESSION_CHANGED' })
+        await refreshStarted.promise
+
+        tab.startAuthSession('other-account-access', 'other-account-refresh')
+        refreshCompletion.resolve(responseFor(refreshConfig, { access: 'late-access', refresh: 'late-refresh' }))
+
+        await rejected
+        expect(adapter).toHaveBeenCalledTimes(2)
+        expect(localStorage.getItem(ACCESS_TOKEN)).toBe('other-account-access')
+        expect(localStorage.getItem(REFRESH_TOKEN)).toBe('other-account-refresh')
+    })
+
+    it.each([400, 409, 500])('preserves the retried business request error %s and refreshed credentials', async (status) => {
+        const tab = await loadTab()
+        tab.startAuthSession('old-access', 'old-refresh')
+        const generation = tab.getAuthSessionGeneration()
+        let businessAttempts = 0
+        let businessError
+        const adapter = vi.fn(async (config) => {
+            if (config.url.endsWith('/api/auth/token/refresh/')) {
+                return responseFor(config, { access: 'new-access', refresh: 'new-refresh' })
+            }
+            businessAttempts += 1
+            const response = { ...responseFor(config, {}), status: businessAttempts === 1 ? 401 : status }
+            const error = new AxiosError('Request failed', 'ERR_BAD_RESPONSE', config, null, response)
+            if (businessAttempts > 1) businessError = error
+            throw error
+        })
+        tab.default.defaults.adapter = adapter
+
+        const request = tab.default.get('/api/orders/')
+        await expect(request).rejects.toMatchObject({ response: { status } })
+        await expect(request).rejects.toBe(businessError)
+        expect(businessAttempts).toBe(2)
+        expect(adapter).toHaveBeenCalledTimes(3)
+        expect(adapter.mock.calls[2][0].headers.Authorization).toBe('Bearer new-access')
+        expect(localStorage.getItem(ACCESS_TOKEN)).toBe('new-access')
+        expect(localStorage.getItem(REFRESH_TOKEN)).toBe('new-refresh')
+        expect(tab.getAuthSessionGeneration()).toBe(generation)
+    })
+})
+
 describe('login requests', () => {
     it('accepts a successful login response despite a session change while waiting', async () => {
         const tab = await loadTab()

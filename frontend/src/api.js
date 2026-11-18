@@ -161,23 +161,16 @@ api.interceptors.response.use(
         if (!originalRequest || originalRequest._retry) return Promise.reject(error)
         originalRequest._retry = true
 
-        let newAccess
-        try {
-            // A different request may have already refreshed the access token.
-            // In that case retry directly rather than rotating the refresh token again.
-            const previousAuthorization = originalRequest.headers?.Authorization
-            const currentAccess = localStorage.getItem(ACCESS_TOKEN)
-            newAccess = currentAccess && previousAuthorization !== `Bearer ${currentAccess}`
-                ? currentAccess
-                : await refreshAccessToken()
+        // A different request may have already refreshed the access token.
+        // In that case retry directly rather than rotating the refresh token again.
+        // Refresh errors propagate without revoking shared credentials.
+        const previousAuthorization = originalRequest.headers?.Authorization
+        const currentAccess = localStorage.getItem(ACCESS_TOKEN)
+        const newAccess = currentAccess && previousAuthorization !== `Bearer ${currentAccess}`
+            ? currentAccess
+            : await refreshAccessToken()
 
-            if (!isCurrentSession(generation)) throw sessionChanged()
-        } catch (refreshError) {
-            // The refresh may be transient or a losing concurrent rotation.
-            // Leave account state intact; explicit logout is the only safe
-            // place to delete shared credentials without cross-tab arbitration.
-            return Promise.reject(refreshError)
-        }
+        if (!isCurrentSession(generation)) return Promise.reject(sessionChanged())
 
         // Do NOT catch errors from the retried business request here.
         // A 400/409/500 after a successful refresh is not a reason to log out.

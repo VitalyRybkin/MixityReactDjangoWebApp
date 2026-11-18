@@ -183,10 +183,17 @@ const Home = () => {
         previewTab.document.title = `УПД заявки № ${orderId}`
         previewTab.document.body.textContent = 'Загрузка УПД…'
 
+        const reportPreviewError = (error) => {
+            if (!previewTab.closed) previewTab.close()
+            console.error('Ошибка просмотра УПД:', error)
+            showSnackbar('Не удалось открыть УПД.', 'error')
+        }
+
         try {
             const blob = await viewUpd(orderId)
             if (!(blob instanceof Blob) || !blob.size) {
-                throw new Error('Пустой ответ УПД')
+                reportPreviewError(new Error('Пустой ответ УПД'))
+                return
             }
 
             const pdfUrl = URL.createObjectURL(blob)
@@ -198,9 +205,7 @@ const Home = () => {
             previewTab.location.replace(pdfUrl)
             window.setTimeout(() => URL.revokeObjectURL(pdfUrl), 5 * 60 * 1000)
         } catch (error) {
-            if (!previewTab.closed) previewTab.close()
-            console.error('Ошибка просмотра УПД:', error)
-            showSnackbar('Не удалось открыть УПД.', 'error')
+            reportPreviewError(error)
         }
     }, [showSnackbar])
 

@@ -12,7 +12,7 @@ const crcTable = Array.from(
     (_, i) => {
         let crc = i
         for (let j = 0; j < 8; j += 1) {
-            crc = crc & 1 ? 0xedb88320 ^ (crc >>> 1) : crc >>> 1
+            crc = crc % 2 !== 0 ? 0xedb88320 ^ (crc >>> 1) : crc >>> 1
         }
         return crc >>> 0
     },

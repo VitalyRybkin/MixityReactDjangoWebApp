@@ -168,8 +168,7 @@ export default function ObjectDetailWithContactList({
                 if (nextPhones.length !== phones.length) {
                     await api.patch(`/api/contacts/${contactId}/`, { phoneNumbers: nextPhones })
                 }
-                const refreshed = await contactsQuery.refetch({ throwOnError: true })
-                if (refreshed.error) throw refreshed.error
+                await contactsQuery.refetch({ throwOnError: true })
                 showSnackbar('Телефон удалён', 'success')
             } catch (error) {
                 showSnackbar(error?.response?.data?.detail || 'Не удалось удалить телефон', 'error')
