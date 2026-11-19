@@ -27,9 +27,9 @@ const TODAY = '2026-11-02'
 const MIN_ISSUE_DATE = '2026-11-01'
 const PREVIOUS = {
     id: 42,
-    number: '543/1',
+    number: 54672,
     issue_date: '2026-10-31',
-    batch_number: '29.098',
+    batch_number: '28.999',
     production_date: '2026-10-30',
     quantity: '3.000',
 }
@@ -42,13 +42,15 @@ const BULK_PRODUCT = {
 const PAYLOAD = {
     product_id: BULK_PRODUCT.id,
     expected_latest_passport_id: PREVIOUS.id,
-    number: '543/2',
+    number: 54680,
+    suggested_next_passport_number: 54680,
     issue_date: TODAY,
-    batch_number: '29.099',
+    batch_number: '29.000',
     production_date: TODAY,
     quantity: '2.000',
 }
-const stateFor = (passport, used = '0.000', remaining = passport.quantity) => ({
+const stateFor = (passport, used = '0.000', remaining = passport.quantity, suggestion = PAYLOAD.number) => ({
+    suggested_next_passport_number: suggestion,
     passport,
     latest_passport_id: passport.id,
     is_latest: true,
@@ -121,7 +123,7 @@ const openIssue = async () => {
     await eventually(() => expect(dialogButton('Выпустить паспорт')?.disabled).toBe(false))
 }
 const fillIssue = async ({ number = PAYLOAD.number, batchNumber = PAYLOAD.batch_number, quantity = PAYLOAD.quantity } = {}) => {
-    await change('Паспорт №', number)
+    await change('Паспорт №', String(number))
     await change('Номер партии', batchNumber)
     await change('Количество, т', quantity)
 }
@@ -129,7 +131,7 @@ const mockIssueSuccess = () => {
     vi.mocked(api.post).mockImplementation(async (_url, payload) => {
         const { number, issue_date, batch_number, production_date, quantity } = payload
         const passport = { id: 43, number, issue_date, batch_number, production_date, quantity }
-        latestState = stateFor(passport)
+        latestState = stateFor(passport, undefined, undefined, number + 1)
         return { data: { ...passport, product, specifications: [] } }
     })
 }
@@ -176,10 +178,10 @@ it('defaults both dates to today, validates the calendar bounds and accepts the 
     mockIssueSuccess()
     await renderCatalog()
     await openIssue()
-    expect(dialog().textContent).toContain('№ 543/1 от 31.10.2026')
+    expect(dialog().textContent).toContain('№ 54672 от 31.10.2026')
     expect(dialog().textContent).toContain(PREVIOUS.batch_number)
-    expect(input('Паспорт №').placeholder).toBe(`Номер паспорта (${PAYLOAD.number})`)
-    expect(input('Номер партии').placeholder).toBe(`Номер партии (${PAYLOAD.batch_number})`)
+    expect(input('Паспорт №').value).toBe(String(PAYLOAD.number))
+    expect(input('Номер партии').value).toBe(PAYLOAD.batch_number)
     expect(input('Дата паспорта')).toMatchObject({ value: TODAY, min: MIN_ISSUE_DATE, max: TODAY })
     expect(input('Дата изготовления')).toMatchObject({ value: TODAY, max: TODAY })
     await fillIssue()
@@ -259,7 +261,7 @@ it.each([true, false])('uses the configured piece weight with is_piece_based=%s'
 
 it('issues the passport, invalidates the quality-passport cache and refreshes the Catalog row', async () => {
     mockIssueSuccess()
-    const orderKey = qualityPassportKeys.state({ productId: product.id, orderId: 12, targetStatus: 'draft' })
+    const orderKey = qualityPassportKeys.state({ productId: 99, orderId: 12, targetStatus: 'draft' })
     const orderState = stateFor(PREVIOUS, '1.200', '1.800')
     client.setQueryData(orderKey, orderState)
     await renderCatalog()
@@ -268,14 +270,17 @@ it('issues the passport, invalidates the quality-passport cache and refreshes th
     const respondToRefresh = fetchLatestState
     let finishRefresh
     fetchLatestState = () => new Promise((resolve) => { finishRefresh = () => resolve(respondToRefresh()) })
-    await fillIssue({ number: ` ${PAYLOAD.number} `, batchNumber: ` ${PAYLOAD.batch_number} ` })
+    const { suggested_next_passport_number: suggestion, ...manualPayload } = PAYLOAD
+    const edited = { ...manualPayload, number: 70001, batch_number: '28.340' }
+    expect(input('Паспорт №').value).toBe(String(suggestion))
+    await fillIssue({ number: ' 70001 ', batchNumber: ' 28,34 ' })
     await save()
 
-    expect(api.post).toHaveBeenCalledExactlyOnceWith(PASSPORTS_URL, PAYLOAD)
+    expect(api.post).toHaveBeenCalledExactlyOnceWith(PASSPORTS_URL, edited)
     await eventually(() => {
         expect(dialog()).toBeNull()
-        expect(alerts()).toEqual(expect.arrayContaining([expect.stringContaining('543/2')]))
-        expect(passportDetailsButton(PAYLOAD.number)).toBeTruthy()
+        expect(alerts()).toEqual(expect.arrayContaining([expect.stringContaining('70001')]))
+        expect(passportDetailsButton(edited.number)).toBeTruthy()
         expect(passportDetailsButton(PREVIOUS.number)).toBeNull()
         expect(stateCalls()).toHaveLength(requestCount + 1)
     })
@@ -294,7 +299,7 @@ it('shows validation errors on the relevant fields and keeps the dialog contents
     await fillIssue()
     await save()
 
-    expect(input('Паспорт №')).toMatchObject({ value: PAYLOAD.number })
+    expect(input('Паспорт №')).toMatchObject({ value: String(PAYLOAD.number) })
     expect(input('Паспорт №').getAttribute('aria-invalid')).toBe('true')
     expect(dialog().textContent).toContain('Паспорт с таким номером уже существует.')
     expect(input('Количество, т').getAttribute('aria-invalid')).toBe('true')
@@ -320,14 +325,14 @@ it.each([
 })
 
 it('keeps the original guard ID during a background refresh and refreshes on a conflict before asking the user to reopen', async () => {
-    const replacement = { ...PREVIOUS, id: 43, number: 'NEW-43', issue_date: MIN_ISSUE_DATE }
+    const replacement = { ...PREVIOUS, id: 43, number: 54674, issue_date: MIN_ISSUE_DATE }
     const catalogKey = qualityPassportKeys.state({ productId: product.id, source: 'catalog' })
     vi.mocked(api.post).mockRejectedValueOnce(apiError(409, { errors: { detail: 'Действующий паспорт изменился.' } }))
     await renderCatalog()
     await openIssue()
     await fillIssue()
 
-    latestState = stateFor(replacement)
+    latestState = stateFor(replacement, undefined, undefined, 54681)
     await act(async () => client.refetchQueries({ queryKey: qualityPassportKeys.all, type: 'active' }))
     await eventually(() => expect(passportDetailsButton(replacement.number)).toBeTruthy())
     const requestCount = stateCalls().length
@@ -355,7 +360,26 @@ it('keeps the original guard ID during a background refresh and refreshes on a c
     })
     await act(async () => finishRefresh())
     await openIssue()
-    expect(dialog().textContent).toContain(replacement.number)
+    expect(dialog().textContent).toContain(String(replacement.number))
+    expect(input('Паспорт №').value).toBe('54681')
+})
+
+it('refreshes a globally occupied suggestion while keeping the same product passport and batch', async () => {
+    vi.mocked(api.post).mockRejectedValueOnce(apiError(409, { errors: { code: 'passport_number_conflict' } }))
+    await renderCatalog()
+    await openIssue()
+    await fillIssue()
+
+    latestState = stateFor(PREVIOUS, '1.200', '1.800', PAYLOAD.number + 1)
+    await act(async () => client.refetchQueries({ queryKey: qualityPassportKeys.all, type: 'active' }))
+    expect(input('Паспорт №').value).toBe(String(PAYLOAD.number))
+    await save()
+    expect(api.post).toHaveBeenCalledExactlyOnceWith(PASSPORTS_URL, PAYLOAD)
+    await eventually(() => expect(alerts()).toEqual(expect.arrayContaining([expect.stringMatching(/номер паспорта уже занят/i)])))
+    await openIssue()
+    expect(passportDetailsButton(PREVIOUS.number)).toBeTruthy()
+    expect(input('Паспорт №').value).toBe(String(PAYLOAD.number + 1))
+    expect(input('Номер партии').value).toBe(PAYLOAD.batch_number)
 })
 
 it('blocks duplicate submissions and closing while issuance is pending', async () => {

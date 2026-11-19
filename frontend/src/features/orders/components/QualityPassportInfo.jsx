@@ -31,11 +31,12 @@ export default function QualityPassportInfo({
     deliveryDate = null,
     readOnly = false,
     pendingPassport = null,
+    allocatePassportNumber,
     onPassportChange,
 }) {
-    const [renewOpen, setRenewOpen] = useState(false)
+    const [issuance, setIssuance] = useState(null)
 
-    const { data, isPending, isError } = useGetQualityPassportState({
+    const { data, isPending, isError, fetchStatus } = useGetQualityPassportState({
         productId,
         quantity,
         orderId,
@@ -53,7 +54,7 @@ export default function QualityPassportInfo({
         )
     }
 
-    if (isError) {
+    if (isError && (!issuance || !data)) {
         return (
             <Typography variant="caption" color="error" sx={{ display: 'block', mt: 0.5, px: 1 }}>
                 Не удалось загрузить данные паспорта качества.
@@ -132,10 +133,12 @@ export default function QualityPassportInfo({
                     {!readOnly && !isHistorical && (
                         <RenewAction
                             size="small"
-                            disabled={!pendingPassport && !canRenew}
+                            disabled={fetchStatus !== 'idle' || (!pendingPassport && !canRenew)}
                             title={pendingPassport ? 'Изменить новый паспорт' : 'Создать паспорт'}
                             aria-label={pendingPassport ? 'Изменить новый паспорт' : 'Создать паспорт'}
-                            onClick={() => setRenewOpen(true)}
+                            onClick={() => setIssuance({
+                                suggestedNumber: allocatePassportNumber(data.suggested_next_passport_number),
+                            })}
                         />
                     )}
                 </Box>
@@ -153,23 +156,24 @@ export default function QualityPassportInfo({
                 </Typography>
             )}
 
-            {renewOpen && (
+            {issuance && (
                 <NewQualityPassportDialog
                     open
                     currentPassport={passport}
+                    suggestedNextPassportNumber={issuance.suggestedNumber}
                     initialValue={pendingPassport}
                     product={product}
                     orderQuantity={quantity}
                     deliveryDate={deliveryDate}
                     isDraft={isDraft}
-                    onClose={() => setRenewOpen(false)}
+                    onClose={() => setIssuance(null)}
                     onConfirm={(details) => {
                         onPassportChange?.(details)
-                        setRenewOpen(false)
+                        setIssuance(null)
                     }}
                     onRemove={() => {
                         onPassportChange?.(undefined)
-                        setRenewOpen(false)
+                        setIssuance(null)
                     }}
                 />
             )}

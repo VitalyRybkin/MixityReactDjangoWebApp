@@ -1,3 +1,4 @@
+import { formatBatchNumber } from '../../../utils/qualityPassportNumbers.js'
 import './QualityPassport.css'
 
 const HEADER_SPEC_NAMES = new Set(['Условное обозначение', 'ТУ'])
@@ -70,7 +71,7 @@ export default function QualityPassportTemplate({ passport }) {
 
             <dl className="qp-details">
                 <dt>Номер партии –</dt>
-                <dd>{passport.batch_number || '—'}</dd>
+                <dd>{formatBatchNumber(passport.batch_number) || '—'}</dd>
                 <dt>Дата изготовления –</dt>
                 <dd>{formatDate(passport.production_date)}</dd>
                 <dt>Количество –</dt>

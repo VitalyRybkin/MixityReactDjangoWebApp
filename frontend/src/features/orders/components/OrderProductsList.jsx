@@ -4,6 +4,7 @@ import { Autocomplete, Box, Divider, Stack, TextField, Typography } from '@mui/m
 
 import AddAction from '../../../components/ui/buttons/AddAction.jsx'
 import DeleteAction from '../../../components/ui/buttons/DeleteAction.jsx'
+import { allocateOrderPassportNumber } from '../utils/orderProducts.js'
 
 import QualityPassportInfo from './QualityPassportInfo.jsx'
 
@@ -12,6 +13,7 @@ import { orderProductsListSx as sx } from './OrderProductsList.styles.js'
 export default function OrderProductsList({
     rows,
     productErrors = {},
+    passportNumberErrors = {},
     productsList,
     packsList,
     onChange,
@@ -162,10 +164,18 @@ export default function OrderProductsList({
                                     deliveryDate={deliveryDate}
                                     readOnly={readOnly}
                                     pendingPassport={row.new_quality_passport}
+                                    allocatePassportNumber={(suggestion) =>
+                                        allocateOrderPassportNumber(suggestion, rows, row.id)
+                                    }
                                     onPassportChange={(nextPassport) =>
                                         onChange(row.id, { new_quality_passport: nextPassport })
                                     }
                                 />
+                            )}
+                            {passportNumberErrors[row.id] && (
+                                <Typography role="alert" variant="caption" color="error" sx={{ display: 'block', ml: 1 }}>
+                                    {passportNumberErrors[row.id]}
+                                </Typography>
                             )}
                         </Box>
                     )

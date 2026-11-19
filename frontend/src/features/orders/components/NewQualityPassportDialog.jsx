@@ -13,6 +13,8 @@ import {
     Typography,
 } from '@mui/material'
 
+import { formatBatchNumber, parsePassportNumber, suggestPassportNumbers, validatePassportNumbers } from '../../../utils/qualityPassportNumbers.js'
+
 const todayLocal = () => {
     const date = new Date()
     const year = date.getFullYear()
@@ -21,15 +23,14 @@ const todayLocal = () => {
     return `${year}-${month}-${day}`
 }
 
-const newEmptyForm = (currentPassport, deliveryDate) => {
+const newEmptyForm = (currentPassport, deliveryDate, openingSuggestion) => {
     const today = todayLocal()
     const upperBound = deliveryDate && isValidISODate(deliveryDate) ? deliveryDate : today
     const proposedDate = upperBound < today ? upperBound : today
     const issueDate = currentPassport?.issue_date > proposedDate ? currentPassport.issue_date : proposedDate
 
     return {
-        number: '',
-        batch_number: '',
+        ...suggestPassportNumbers(currentPassport, openingSuggestion),
         issue_date: issueDate,
         production_date: issueDate,
         quantity: '',
@@ -41,16 +42,6 @@ const formatPassportDate = (value) => {
 
     const match = String(value).match(/^(\d{4})-(\d{2})-(\d{2})/)
     return match ? `${match[3]}.${match[2]}.${match[1]}` : String(value)
-}
-
-const suggestNextNumber = (value) => {
-    const previous = String(value || '').trim()
-    const match = previous.match(/^(.*?)(\d+)$/s)
-    if (!match) return null
-
-    const digits = match[2]
-    const nextDigits = String(BigInt(digits) + 1n).padStart(digits.length, '0')
-    return `${match[1]}${nextDigits}`
 }
 
 const isValidISODate = (value) => {
@@ -89,11 +80,12 @@ const formatQuantity = (tonnes) =>
 
 /** @returns {QuantityRule | null} */
 const getQuantityRule = (product) => {
-    if (!product) return null
-    if (!product.is_piece_based) return { stepGrams: 10000n, hint: 'Кратно 0,010 т' }
+    const config = product?.product_unit
+    const unit = config?.unit?.title
+    if (unit === 'ton') return { stepGrams: 10000n, hint: 'Кратно 0,010 т' }
+    if (unit !== 'piece') return null
 
-    const weightKg = product.product_unit?.value
-    const stepGrams = parseKgToGrams(weightKg)
+    const stepGrams = parseKgToGrams(config.value)
     if (stepGrams === null || stepGrams <= 0n) return null
 
     return {
@@ -103,17 +95,17 @@ const getQuantityRule = (product) => {
 }
 
 /**
- * @param {{ is_piece_based?: boolean } | null | undefined} product
+ * @param {{ is_piece_based?: boolean, product_unit?: { value?: string | number } } | null | undefined} product
  * @param {string | number | null | undefined} orderQuantity
- * @param {QuantityRule | null} rule
  * @returns {bigint | null}
  */
-const getOrderQuantityGrams = (product, orderQuantity, rule) => {
+const getOrderQuantityGrams = (product, orderQuantity) => {
     if (orderQuantity === '' || orderQuantity == null) return null
 
     if (product?.is_piece_based) {
         const count = String(orderQuantity).trim()
-        return /^\d+$/.test(count) && rule ? BigInt(count) * rule.stepGrams : null
+        const weightGrams = parseKgToGrams(product.product_unit?.value)
+        return /^\d+$/.test(count) && weightGrams !== null && weightGrams > 0n ? BigInt(count) * weightGrams : null
     }
 
     return parseTonsToGrams(orderQuantity)
@@ -122,6 +114,7 @@ const getOrderQuantityGrams = (product, orderQuantity, rule) => {
 export default function NewQualityPassportDialog({
     open,
     currentPassport,
+    suggestedNextPassportNumber,
     initialValue,
     product,
     orderQuantity,
@@ -131,14 +124,16 @@ export default function NewQualityPassportDialog({
     onConfirm,
     onRemove,
 }) {
+    const [openingSuggestion] = useState(suggestedNextPassportNumber)
     const [form, setForm] = useState(() => ({
-        ...newEmptyForm(currentPassport, deliveryDate),
+        ...newEmptyForm(currentPassport, deliveryDate, openingSuggestion),
         ...(initialValue || {}),
     }))
     const [errors, setErrors] = useState({})
 
-    const suggestedPassportNumber = suggestNextNumber(currentPassport?.number)
-    const suggestedBatchNumber = suggestNextNumber(currentPassport?.batch_number)
+    const numberHint = initialValue && openingSuggestion && parsePassportNumber(form.number) !== openingSuggestion
+        ? `Предложенный номер: ${openingSuggestion}`
+        : undefined
     const quantityRule = getQuantityRule(product)
     const hasDeliveryDate = deliveryDate && isValidISODate(deliveryDate)
     const impossibleDateRange = hasDeliveryDate && currentPassport?.issue_date > deliveryDate
@@ -157,20 +152,11 @@ export default function NewQualityPassportDialog({
     }
 
     const handleConfirm = () => {
-        const number = String(form.number).trim()
-        const batchNumber = String(form.batch_number).trim()
         const issueDate = String(form.issue_date).trim()
         const productionDate = String(form.production_date).trim()
         const quantity = String(form.quantity).trim().replace(',', '.')
         const expectedLatestId = Number(initialValue?.expected_latest_passport_id ?? currentPassport?.id)
-        const nextErrors = {}
-
-        if (!number) nextErrors.number = 'Укажите номер паспорта.'
-        else if (number.length > 50) nextErrors.number = 'Максимум 50 символов.'
-        else if (number === currentPassport?.number) nextErrors.number = 'Новый номер должен отличаться от предыдущего.'
-
-        if (!batchNumber) nextErrors.batch_number = 'Укажите номер партии.'
-        else if (batchNumber.length > 100) nextErrors.batch_number = 'Максимум 100 символов.'
+        const nextErrors = validatePassportNumbers(form, currentPassport)
 
         if (!isValidISODate(issueDate)) {
             nextErrors.issue_date = 'Укажите корректную дату паспорта.'
@@ -194,7 +180,7 @@ export default function NewQualityPassportDialog({
         } else if (quantityGrams % quantityRule.stepGrams !== 0n) {
             nextErrors.quantity = `Количество должно быть кратно ${formatQuantity(Number(quantityRule.stepGrams) / 1_000_000)} т.`
         } else {
-            const orderGrams = getOrderQuantityGrams(product, orderQuantity, quantityRule)
+            const orderGrams = getOrderQuantityGrams(product, orderQuantity)
             if (orderGrams !== null && quantityGrams < orderGrams) {
                 nextErrors.quantity = `Количество паспорта должно быть не меньше ${formatQuantity(Number(orderGrams) / 1_000_000)} т (вес позиции заявки).`
             }
@@ -206,11 +192,16 @@ export default function NewQualityPassportDialog({
         setErrors(nextErrors)
         if (isDraft || Object.keys(nextErrors).length) return
 
+        const number = parsePassportNumber(form.number)
+        const originalSuggestion = number === parsePassportNumber(initialValue?.number)
+            ? initialValue?.suggested_next_passport_number
+            : openingSuggestion
         onConfirm({
             expected_latest_passport_id: expectedLatestId,
             number,
+            ...(number === originalSuggestion ? { suggested_next_passport_number: number } : {}),
             issue_date: issueDate,
-            batch_number: batchNumber,
+            batch_number: formatBatchNumber(form.batch_number),
             production_date: productionDate,
             quantity,
         })
@@ -230,7 +221,7 @@ export default function NewQualityPassportDialog({
                                 № {currentPassport.number} от {formatPassportDate(currentPassport.issue_date)}
                             </Typography>
                             <Typography variant="caption" color="text.secondary" sx={{ display: 'block' }}>
-                                Номер партии: {currentPassport.batch_number || '—'}
+                                Номер партии: {formatBatchNumber(currentPassport.batch_number) || '—'}
                             </Typography>
                             <Typography variant="caption" color="text.secondary">
                                 Дата изготовления: {formatPassportDate(currentPassport.production_date)}
@@ -263,16 +254,11 @@ export default function NewQualityPassportDialog({
                             fullWidth
                             required
                             label="Паспорт №"
-                            placeholder={
-                                suggestedPassportNumber
-                                    ? `Номер паспорта (${suggestedPassportNumber})`
-                                    : 'Номер паспорта'
-                            }
                             value={form.number}
                             onChange={handleChange('number')}
                             error={Boolean(errors.number)}
-                            helperText={errors.number}
-                            slotProps={{ inputLabel: { shrink: true }, htmlInput: { maxLength: 50 } }}
+                            helperText={errors.number || numberHint}
+                            slotProps={{ inputLabel: { shrink: true }, htmlInput: { inputMode: 'numeric' } }}
                         />
                         <Typography variant="body2" sx={{ alignSelf: 'center', color: 'text.secondary', pb: 0.5 }}>
                             от
@@ -302,12 +288,11 @@ export default function NewQualityPassportDialog({
                         fullWidth
                         required
                         label="Номер партии"
-                        placeholder={suggestedBatchNumber ? `Номер партии (${suggestedBatchNumber})` : 'Номер партии'}
                         value={form.batch_number}
                         onChange={handleChange('batch_number')}
                         error={Boolean(errors.batch_number)}
                         helperText={errors.batch_number}
-                        slotProps={{ inputLabel: { shrink: true }, htmlInput: { maxLength: 100 } }}
+                        slotProps={{ inputLabel: { shrink: true }, htmlInput: { inputMode: 'decimal' } }}
                     />
                     <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', sm: '1fr 1fr' }, gap: 2 }}>
                         <TextField

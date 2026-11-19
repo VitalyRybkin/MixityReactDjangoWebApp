@@ -18,6 +18,7 @@ import RenewAction from '../../../components/ui/buttons/RenewAction.jsx'
 import AppSnackbar from '../../../components/ui/feedback/AppSnackbar.jsx'
 import { useAuth } from '../../../pages/auth/context/useAuth.js'
 import { PERMISSIONS } from '../../../pages/auth/permissions.js'
+import { formatBatchNumber } from '../../../utils/qualityPassportNumbers.js'
 import QualityPassportUsageBar from '../../orders/components/QualityPassportUsageBar.jsx'
 import { formatPassportTons } from '../../orders/components/qualityPassportTons.js'
 import { qualityPassportKeys, useGetQualityPassportState } from '../../orders/utils/qualityPassports.queries.js'
@@ -92,7 +93,7 @@ function CatalogPassportSummary({ productName, data, isPending, isError, isRefre
     }
 
     return (
-        <Box sx={{ minWidth: 0 }}>
+        <Box sx={{ minWidth: 0, mt: 0.5 }}>
             <Box sx={{ display: 'flex', flexWrap: 'wrap', columnGap: 2, rowGap: 0.25, alignItems: 'center' }}>
                 <ButtonBase
                     type="button"
@@ -122,16 +123,15 @@ function CatalogPassportSummary({ productName, data, isPending, isError, isRefre
                     {remaining < 0 ? 'Перерасход' : 'Остаток'}: {formatPassportTons(Math.abs(remaining))}
                 </Typography>
             </Box>
-            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mt: 0.5 }}>
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mt: -1 }}>
                 <QualityPassportUsageBar issued={issued} used={used} />
-                <Box sx={{ display: 'flex', gap: 0.25, flexShrink: 0 }}>
+                <Box sx={{ display: 'flex', gap: 0.5, flexShrink: 0 }}>
                     <CatalogPassportActions
                         passportId={passport.id}
                         passportSummary={passport}
                         productName={productName}
                     />
                     <RenewAction
-                        size="small"
                         disabled={!canRenew}
                         title={renewTitle}
                         aria-label={renewTitle}
@@ -151,7 +151,7 @@ function CatalogPassportSummary({ productName, data, isPending, isError, isRefre
                         <Typography variant="body2" color="text.secondary">
                             Номер партии
                         </Typography>
-                        <Typography variant="body2">{passport.batch_number || '—'}</Typography>
+                        <Typography variant="body2">{formatBatchNumber(passport.batch_number) || '—'}</Typography>
                         <Typography variant="body2" color="text.secondary">
                             Дата изготовления
                         </Typography>
@@ -214,10 +214,13 @@ export default function CatalogPassportStatus({ productId, productName, product 
         void refreshPassports()
     }
 
-    const handleConflict = () => {
+    const handleConflict = (code) => {
         setIssueFromPassport(null)
         setSnackbar({
-            message: 'Действующий паспорт изменился. После обновления данных откройте создание заново.',
+            message:
+                code === 'passport_number_conflict'
+                    ? 'Предложенный номер паспорта уже занят. После обновления данных откройте создание заново.'
+                    : 'Действующий паспорт изменился. После обновления данных откройте создание заново.',
             severity: 'warning',
         })
         void refreshPassports()
@@ -240,6 +243,7 @@ export default function CatalogPassportStatus({ productId, productName, product 
                     productName={product?.title || productName}
                     product={result.data?.product}
                     currentPassport={issueFromPassport}
+                    suggestedNextPassportNumber={result.data?.suggested_next_passport_number}
                     onClose={() => setIssueFromPassport(null)}
                     onSuccess={handleSuccess}
                     onConflict={handleConflict}

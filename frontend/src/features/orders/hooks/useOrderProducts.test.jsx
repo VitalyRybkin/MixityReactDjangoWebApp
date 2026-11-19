@@ -157,3 +157,26 @@ describe('order product prices', () => {
         })
     })
 })
+
+it('blocks duplicate prepared passport numbers before the save mutation and ignores historical assignments', async () => {
+    const createMutation = { mutateAsync: vi.fn().mockResolvedValue({ id: 1 }) }
+    await act(async () => {
+        root.render(<MemoryRouter><SubmitHarness createMutation={createMutation} /></MemoryRouter>)
+    })
+    await setRows([
+        validRow({ quality_passport: { number: 546 }, new_quality_passport: { number: 545 } }),
+        validRow({ id: 'row-2', productId: 2, new_quality_passport: { number: '0545' } }),
+    ])
+    await act(async () => current.onSubmit())
+    expect(createMutation.mutateAsync).not.toHaveBeenCalled()
+    expect(Object.keys(current.passportNumberErrors)).toEqual(['row-1', 'row-2'])
+
+    await act(async () => current.handleChange('row-2', { new_quality_passport: { number: 546 } }))
+    await act(async () => current.onSubmit())
+    expect(createMutation.mutateAsync).toHaveBeenCalledExactlyOnceWith({
+        products: expect.arrayContaining([
+            expect.objectContaining({ product: 1, new_quality_passport: { number: 545 } }),
+            expect.objectContaining({ product: 2, new_quality_passport: { number: 546 } }),
+        ]),
+    })
+})

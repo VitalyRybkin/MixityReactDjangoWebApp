@@ -1,6 +1,7 @@
 import { useMemo, useState } from 'react'
 
 import { hasValidOrderPrices, normalizeOrderPrice } from '../utils/orderPrices.js'
+import { getOrderPassportNumberErrors } from '../utils/orderProducts.js'
 
 const emptyProductRow = () => ({
     id: crypto.randomUUID(),
@@ -13,6 +14,7 @@ const emptyProductRow = () => ({
 export function useOrderProducts(products = []) {
     const [orderProducts, setOrderProducts] = useState([])
     const [productErrors, setProductErrors] = useState({})
+    const passportNumberErrors = useMemo(() => getOrderPassportNumberErrors(orderProducts), [orderProducts])
 
     const totalWeight = useMemo(() => {
         return orderProducts.reduce((acc, row) => {
@@ -59,6 +61,7 @@ export function useOrderProducts(products = []) {
         })
         setProductErrors(errors)
         return Object.keys(errors).length === 0 &&
+            Object.keys(passportNumberErrors).length === 0 &&
             orderProducts.every((row) => !row.productId || hasValidOrderPrices(row))
     }
 
@@ -100,6 +103,7 @@ export function useOrderProducts(products = []) {
         orderProducts,
         setOrderProducts,
         productErrors,
+        passportNumberErrors,
         totalWeight,
         normalizeOrderProducts,
         buildProductsPayload,

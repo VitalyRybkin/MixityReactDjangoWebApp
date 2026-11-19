@@ -16,15 +16,8 @@ import {
 
 import api from '../../../api.js'
 import { firstError } from '../../../utils/apiError.js'
+import { formatBatchNumber, parsePassportNumber, suggestPassportNumbers, validatePassportNumbers } from '../../../utils/qualityPassportNumbers.js'
 import { catalogToday, formatPassportDate, isPassportDate, nextPassportDate } from '../utils/catalogPassportDates.js'
-
-const suggestNextNumber = (value) => {
-    const match = String(value || '')
-        .trim()
-        .match(/^(.*?)(\d+)$/s)
-    if (!match) return null
-    return `${match[1]}${String(BigInt(match[2]) + 1n).padStart(match[2].length, '0')}`
-}
 
 const normalizeQuantity = (value) =>
     value
@@ -64,15 +57,17 @@ export default function CatalogIssuePassportDialog({
     productName,
     product,
     currentPassport,
+    suggestedNextPassportNumber,
     onClose,
     onSuccess,
     onConflict,
 }) {
     const titleId = useId()
     const savingRef = useRef(false)
+    const [openingSuggestion] = useState(suggestedNextPassportNumber)
     const [form, setForm] = useState(() => {
         const today = catalogToday()
-        return { number: '', issue_date: today, batch_number: '', production_date: today, quantity: '' }
+        return { ...suggestPassportNumbers(currentPassport, openingSuggestion), issue_date: today, production_date: today, quantity: '' }
     })
     const [errors, setErrors] = useState({})
     const [requestError, setRequestError] = useState('')
@@ -99,17 +94,8 @@ export default function CatalogIssuePassportDialog({
     }
 
     const validate = () => {
-        const nextErrors = {}
-        const number = form.number.trim()
-        const batch = form.batch_number.trim()
+        const nextErrors = validatePassportNumbers(form, currentPassport)
         const kg = parseQuantityKg(normalizeQuantity(form.quantity))
-
-        if (!number) nextErrors.number = 'Укажите номер паспорта.'
-        else if (number.length > 50) nextErrors.number = 'Максимум 50 символов.'
-        else if (number === currentPassport?.number) nextErrors.number = 'Номер должен отличаться от предыдущего.'
-
-        if (!batch) nextErrors.batch_number = 'Укажите номер партии.'
-        else if (batch.length > 100) nextErrors.batch_number = 'Максимум 100 символов.'
 
         if (!isPassportDate(form.issue_date)) nextErrors.issue_date = 'Укажите корректную дату паспорта.'
         else if (form.issue_date < minDate)
@@ -136,12 +122,14 @@ export default function CatalogIssuePassportDialog({
         setErrors(nextErrors)
         if (Object.keys(nextErrors).length > 0) return
 
+        const number = parsePassportNumber(form.number)
         const payload = {
             product_id: productId,
             expected_latest_passport_id: currentPassport.id,
-            number: form.number.trim(),
+            number,
+            ...(number === openingSuggestion ? { suggested_next_passport_number: openingSuggestion } : {}),
             issue_date: form.issue_date,
-            batch_number: form.batch_number.trim(),
+            batch_number: formatBatchNumber(form.batch_number),
             production_date: form.production_date,
             quantity: normalizeQuantity(form.quantity),
         }
@@ -156,7 +144,7 @@ export default function CatalogIssuePassportDialog({
             const status = error?.response?.status
 
             if (status === 409) {
-                onConflict()
+                onConflict(error.response.data?.errors?.code)
             } else if (status === 400) {
                 const responseData = error.response.data
                 const fields = responseData?.errors ?? responseData
@@ -188,9 +176,6 @@ export default function CatalogIssuePassportDialog({
         if (!savingRef.current) onClose()
     }
 
-    const suggestedNumber = suggestNextNumber(currentPassport.number)
-    const suggestedBatch = suggestNextNumber(currentPassport.batch_number)
-
     return (
         <Dialog open onClose={close} fullWidth maxWidth="sm" aria-labelledby={titleId}>
             <DialogTitle id={titleId}>Создание паспорта качества</DialogTitle>
@@ -207,7 +192,7 @@ export default function CatalogIssuePassportDialog({
                             № {currentPassport.number} от {formatPassportDate(currentPassport.issue_date)}
                         </Typography>
                         <Typography variant="caption" color="text.secondary" sx={{ display: 'block' }}>
-                            Номер партии: {currentPassport.batch_number || '—'}
+                            Номер партии: {formatBatchNumber(currentPassport.batch_number) || '—'}
                         </Typography>
                         <Typography variant="caption" color="text.secondary">
                             Дата изготовления: {formatPassportDate(currentPassport.production_date)}
@@ -234,13 +219,12 @@ export default function CatalogIssuePassportDialog({
                             fullWidth
                             required
                             label="Паспорт №"
-                            placeholder={suggestedNumber ? `Номер паспорта (${suggestedNumber})` : 'Номер паспорта'}
                             value={form.number}
                             onChange={handleChange('number')}
                             error={Boolean(errors.number)}
                             helperText={errors.number}
                             disabled={saving}
-                            slotProps={{ inputLabel: { shrink: true }, htmlInput: { maxLength: 50 } }}
+                            slotProps={{ inputLabel: { shrink: true }, htmlInput: { inputMode: 'numeric' } }}
                         />
                         <Typography variant="body2" sx={{ alignSelf: 'center', color: 'text.secondary', pb: 0.5 }}>
                             от
@@ -270,13 +254,12 @@ export default function CatalogIssuePassportDialog({
                         fullWidth
                         required
                         label="Номер партии"
-                        placeholder={suggestedBatch ? `Номер партии (${suggestedBatch})` : 'Номер партии'}
                         value={form.batch_number}
                         onChange={handleChange('batch_number')}
                         error={Boolean(errors.batch_number)}
                         helperText={errors.batch_number}
                         disabled={saving}
-                        slotProps={{ inputLabel: { shrink: true }, htmlInput: { maxLength: 100 } }}
+                        slotProps={{ inputLabel: { shrink: true }, htmlInput: { inputMode: 'decimal' } }}
                     />
                     <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', sm: '1fr 1fr' }, gap: 2 }}>
                         <TextField

@@ -117,6 +117,11 @@ export default function OrderFormPage({ readOnly = false }) {
             return
         }
 
+        if (code === 'passport_number_conflict') {
+            showSnackbar('Предложенный номер паспорта уже занят. Откройте подготовленный паспорт и выберите другой номер.', 'warning')
+            return
+        }
+
         if (code === 'passport_changed') {
             showSnackbar('Действующий паспорт изменился. Проверьте данные паспорта и повторите сохранение.', 'warning')
             return
@@ -163,6 +168,7 @@ export default function OrderFormPage({ readOnly = false }) {
         orderProducts,
         setOrderProducts,
         productErrors,
+        passportNumberErrors,
         totalWeight,
         normalizeOrderProducts,
         buildProductsPayload,
@@ -395,6 +401,7 @@ export default function OrderFormPage({ readOnly = false }) {
                                         readOnly={controlsReadOnly}
                                         rows={orderProducts}
                                         productErrors={productErrors}
+                                        passportNumberErrors={passportNumberErrors}
                                         productsList={orderResources?.products || []}
                                         packsList={orderResources?.pack_types || []}
                                         orderId={isEdit ? id : null}
