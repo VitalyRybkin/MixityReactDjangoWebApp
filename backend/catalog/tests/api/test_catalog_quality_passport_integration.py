@@ -9,6 +9,7 @@ from decimal import Decimal
 from typing import ClassVar, Literal
 
 from django.contrib.auth import get_user_model
+from django.contrib.auth.models import Permission
 from django.core.exceptions import ValidationError as DjangoValidationError
 from django.urls import reverse
 from django.utils import timezone
@@ -118,6 +119,88 @@ class TestQualityPassportCatalogIntegration(APITestCase, TestLoggerMixin):
             "catalog_issue_persists_and_becomes_latest",
             "Verify catalog issue persists and becomes latest",
         )
+
+    def test_catalog_state_allows_issuer_without_order_view_permission(self) -> None:
+        product = ProductFactory.create(is_piece_based=True)
+        ProductUnitFactory.create(product=product, value=25)
+        passport = QualityPassport.objects.create(
+            product=product,
+            number="PIECE-STATE-1",
+            batch_number="PIECE-STATE",
+            issue_date=self.previous_date,
+            production_date=self.previous_date,
+            quantity=Decimal("2.000"),
+        )
+        user = get_user_model().objects.create_user(username="catalog_passport_issuer")
+        user.user_permissions.add(
+            *Permission.objects.filter(
+                content_type__app_label="catalog",
+                codename__in=["view_product", "add_qualitypassport"],
+            )
+        )
+        self.client.force_authenticate(user=user)
+        url = reverse(f"catalog:{QualityPassportRoutes.STATE.name}")
+        params = {
+            "product_id": product.pk,
+            "order_id": 999999,
+            "quantity": "1",
+            "target_status": Order.Status.CREATED,
+        }
+
+        catalog = self.client.get(url, {"source": "catalog", **params})
+        order = self.client.get(url, params)
+
+        self.assertEqual(catalog.status_code, 200, catalog.data)
+        self.assertEqual(catalog.data["latest_passport_id"], passport.pk)
+        self.assertEqual(catalog.data["passport"]["id"], passport.pk)
+        self.assertTrue(catalog.data["product"]["is_piece_based"])
+        self.assertEqual(catalog.data["product"]["product_unit"]["value"], 25)
+        self.assertIsNone(catalog.data["projected_used_quantity"])
+        self.assertEqual(order.status_code, 403, order.data)
+
+    def test_catalog_state_order_state_and_detail_permission_matrix(self) -> None:
+        product_view = ("catalog", "view_product")
+        passport_view = ("catalog", "view_qualitypassport")
+        passport_add = ("catalog", "add_qualitypassport")
+        order_view = ("order", "view_order")
+        # The expected statuses are for Catalog state, order state, and detail.
+        cases = (
+            ((product_view,), (403, 403, 403)),
+            ((product_view, passport_view), (200, 403, 200)),
+            ((product_view, passport_add), (200, 403, 403)),
+            ((product_view, order_view), (200, 200, 403)),
+            ((passport_view, passport_add, order_view), (403, 200, 200)),
+            ((product_view, passport_view, passport_add, order_view), (200, 200, 200)),
+        )
+        state_url = reverse(f"catalog:{QualityPassportRoutes.STATE.name}")
+        detail_url = reverse(
+            f"catalog:{QualityPassportRoutes.DETAIL.name}", args=[self.previous.pk]
+        )
+        state_params = {"product_id": self.product.pk}
+
+        for index, (permissions, expected) in enumerate(cases):
+            with self.subTest(permissions=permissions):
+                user = get_user_model().objects.create_user(
+                    username=f"passport_permissions_{index}"
+                )
+                user.user_permissions.add(
+                    *(
+                        Permission.objects.get(
+                            content_type__app_label=app, codename=codename
+                        )
+                        for app, codename in permissions
+                    )
+                )
+                self.client.force_authenticate(user=user)
+                catalog = self.client.get(
+                    state_url, {**state_params, "source": "catalog"}
+                )
+                order = self.client.get(state_url, state_params)
+                detail = self.client.get(detail_url)
+                self.assertEqual(
+                    (catalog.status_code, order.status_code, detail.status_code),
+                    expected,
+                )
 
     def test_catalog_allows_next_calendar_day(self) -> None:
         """Verify catalog allows next calendar day."""

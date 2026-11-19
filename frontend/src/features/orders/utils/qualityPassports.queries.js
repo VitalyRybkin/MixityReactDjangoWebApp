@@ -8,19 +8,21 @@ const qualityPassportApiPaths = {
 
 export const qualityPassportKeys = {
     all: ['quality-passports'],
-    state: ({ productId, orderId, quantity, targetStatus }) => [
+    state: ({ productId, orderId, quantity, targetStatus, source }) => [
         ...qualityPassportKeys.all,
         'state',
         productId || null,
         orderId || null,
         quantity ?? '',
         targetStatus || '',
+        ...(source ? [source] : []),
     ],
 }
 
-export async function fetchQualityPassportState({ productId, orderId, quantity, targetStatus }) {
+export async function fetchQualityPassportState({ productId, orderId, quantity, targetStatus, source }) {
     const params = { product_id: productId }
 
+    if (source) params.source = source
     if (orderId) params.order_id = orderId
     if (targetStatus) params.target_status = targetStatus
 
@@ -35,8 +37,8 @@ export async function fetchQualityPassportState({ productId, orderId, quantity, 
     return res.data
 }
 
-export function useGetQualityPassportState({ productId, orderId = null, quantity = '', targetStatus = null }) {
-    const parameters = { productId, orderId, quantity, targetStatus }
+export function useGetQualityPassportState({ productId, orderId = null, quantity = '', targetStatus = null, source }) {
+    const parameters = { productId, orderId, quantity, targetStatus, source }
 
     return useQuery({
         queryKey: qualityPassportKeys.state(parameters),

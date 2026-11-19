@@ -8,8 +8,11 @@ from rest_framework import serializers
 from catalog.api.serializers.prodcut_specification_serializer import (
     ProductSpecificationItemSerializer,
 )
-from catalog.api.serializers.product_serializers import ProductSerializer
-from catalog.models import ProductSpecification, QualityPassport
+from catalog.api.serializers.product_serializers import (
+    ProductSerializer,
+    ProductUnitSerializer,
+)
+from catalog.models import Product, ProductSpecification, QualityPassport
 from order.models import Order
 
 
@@ -71,12 +74,13 @@ class QualityPassportReadSerializer(serializers.ModelSerializer):
 
 
 class QualityPassportStateQuerySerializer(serializers.Serializer):
-    """
-    Validate data required to query quality passport states.
+    """Validate the product and optional order projection parameters."""
 
-    Ensures that the submitted query data contains a reference to the product and
-    order IDs, and optionally a quantity and target status.
-    """
+    source = serializers.ChoiceField(
+        choices=["order", "catalog"],
+        required=False,
+        help_text="Use catalog to retrieve the latest passport and product unit configuration.",
+    )
 
     product_id = serializers.IntegerField(min_value=1)
     order_id = serializers.IntegerField(
@@ -93,6 +97,18 @@ class QualityPassportStateQuerySerializer(serializers.Serializer):
         choices=Order.Status.choices,
         required=False,
     )
+
+
+class CatalogPassportProductSerializer(serializers.ModelSerializer):
+    """Expose the unit configuration needed to validate Catalog issuance."""
+
+    product_unit = ProductUnitSerializer(
+        source="unit_config", read_only=True, allow_null=True
+    )
+
+    class Meta:
+        model = Product
+        fields = ["is_piece_based", "product_unit"]
 
 
 class QualityPassportIssueSerializer(serializers.Serializer):

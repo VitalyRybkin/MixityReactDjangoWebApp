@@ -1,4 +1,4 @@
-"""Expose quality-passport state previews for order products."""
+"""Expose quality passports and state previews for Catalog and orders."""
 
 from typing import Any
 
@@ -15,6 +15,7 @@ from rest_framework.request import Request
 from rest_framework.response import Response
 
 from catalog.api.serializers.passport_serializers import (
+    CatalogPassportProductSerializer,
     CatalogQualityPassportIssueSerializer,
     QualityPassportReadSerializer,
     QualityPassportStateQuerySerializer,
@@ -36,11 +37,7 @@ from order.models import Order, OrderItem
 
 
 class QualityPassportStateAPIView(BaseGenericAPIView):
-    """Provide authenticated users with a read-only passport-state preview.
-
-    Require order-view permission and restrict passport-issuance availability
-    according to the user's permission to add or change the target order.
-    """
+    """Provide the latest Catalog passport or an order-specific projection."""
 
     resource_name = "quality_passport_state"
     schema_tags = ["QualityPassport"]
@@ -51,26 +48,38 @@ class QualityPassportStateAPIView(BaseGenericAPIView):
 
     http_method_names = ["get", "head", "options"]
 
+    @extend_schema(parameters=[QualityPassportStateQuerySerializer])
     def get(self, request: Request) -> Response:
-        """Validate query parameters and return the projected passport state.
-
-        Resolve the requested product and optional order. Use the supplied
-        target status, falling back to the existing order status or draft for
-        a new order. Limit the returned can_issue_new_passport flag using
-        change-order permission for an existing order or add-order permission
-        for a new one. This endpoint does not issue or assign passports.
-
-        Raises:
-            PermissionDenied: If the user lacks order-view permission.
-            ValidationError: If query parameters are invalid.
-            Http404: If the requested product or order does not exist.
-        """
-        if not request.user.has_perm("order.view_order"):
+        """Use the Catalog permissions only for the product-level preview."""
+        from_catalog = request.query_params.get("source") == "catalog"
+        can_view_orders = request.user.has_perm("order.view_order")
+        if from_catalog:
+            if not request.user.has_perm("catalog.view_product") or not (
+                can_view_orders
+                or request.user.has_perm("catalog.view_qualitypassport")
+                or request.user.has_perm("catalog.add_qualitypassport")
+            ):
+                raise PermissionDenied()
+        elif not can_view_orders:
             raise PermissionDenied()
 
         query = QualityPassportStateQuerySerializer(data=request.query_params)
         query.is_valid(raise_exception=True)
         params = query.validated_data
+
+        if from_catalog:
+            product = get_object_or_404(
+                Product.objects.select_related("unit_config__unit"),
+                pk=params["product_id"],
+            )
+            state = QualityPassportStateService.get_state(
+                product=product,
+                quantity=None,
+                order=None,
+                target_status=Order.Status.DRAFT,
+            )
+            state["product"] = CatalogPassportProductSerializer(product).data
+            return Response(state)
 
         product = get_object_or_404(
             Product,

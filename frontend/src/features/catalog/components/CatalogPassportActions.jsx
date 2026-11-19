@@ -6,6 +6,8 @@ import api from '../../../api.js'
 import DownAction from '../../../components/ui/buttons/DownloadAction.jsx'
 import ViewAction from '../../../components/ui/buttons/ViewAction.jsx'
 import AppSnackbar from '../../../components/ui/feedback/AppSnackbar.jsx'
+import { useAuth } from '../../../pages/auth/context/useAuth.js'
+import { PERMISSIONS } from '../../../pages/auth/permissions.js'
 import {
     exportQualityPassport,
     qualityPassportPdfFilename,
@@ -18,6 +20,7 @@ import {
  * the selected passport may differ in order-related contexts.
  */
 export default function CatalogPassportActions({ passportId, passportSummary, productName }) {
+    const { hasPermission } = useAuth()
     const [loading, setLoading] = useState(false)
     const [snackbar, setSnackbar] = useState({ open: false, message: '', severity: 'error' })
 
@@ -87,7 +90,7 @@ export default function CatalogPassportActions({ passportId, passportSummary, pr
         }
     }
 
-    if (!passportId) return null
+    if (!passportId || !hasPermission(PERMISSIONS.catalog.viewQualityPassport)) return null
 
     return (
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
