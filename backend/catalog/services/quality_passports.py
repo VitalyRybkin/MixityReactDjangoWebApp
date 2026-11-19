@@ -135,6 +135,9 @@ class QualityPassportsService:
                     issue_date=data.get("issue_date"),
                     delivery_date=order.delivery_date,
                     created_by=created_by,
+                    suggested_next_passport_number=data.get(
+                        "suggested_next_passport_number"
+                    ),
                 )
             except DjangoValidationError as exc:
                 errors = (
@@ -286,7 +289,7 @@ class QualityPassportsService:
             unconfirmed.append(
                 {
                     "passport_id": str(passport.pk),
-                    "passport_number": passport.number,
+                    "passport_number": str(passport.number),
                     "product_id": str(passport.product.pk),
                     "product_title": passport.product.title,
                     "passport_quantity": str(passport.quantity),

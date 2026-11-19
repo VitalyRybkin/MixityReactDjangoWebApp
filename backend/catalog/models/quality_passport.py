@@ -1,11 +1,12 @@
 from __future__ import annotations
 
+from collections.abc import Collection
 from decimal import Decimal
 from typing import Any
 
 from django.conf import settings
 from django.core.exceptions import ValidationError
-from django.core.validators import MinValueValidator
+from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
 from django.utils import timezone
 
@@ -13,6 +14,8 @@ from catalog.utils.unit_choices import TitleChoices
 
 from . import Product
 from .product_unit import ProductUnit
+
+MAX_PASSPORT_NUMBER = 2_147_483_647
 
 
 class LastIssuedPassportManager(models.Manager["QualityPassport"]):
@@ -37,8 +40,8 @@ class QualityPassport(models.Model):
         verbose_name="Продукция",
     )
 
-    number = models.CharField(
-        max_length=50,
+    number = models.PositiveIntegerField(
+        validators=[MinValueValidator(1), MaxValueValidator(MAX_PASSPORT_NUMBER)],
         verbose_name="Номер паспорта",
     )
 
@@ -47,8 +50,10 @@ class QualityPassport(models.Model):
         verbose_name="Дата паспорта",
     )
 
-    batch_number = models.CharField(
-        max_length=100,
+    batch_number = models.DecimalField(
+        max_digits=9,
+        decimal_places=3,
+        validators=[MinValueValidator(Decimal("0"))],
         verbose_name="Номер партии",
     )
 
@@ -92,6 +97,14 @@ class QualityPassport(models.Model):
         verbose_name_plural = "Паспорта качества"
 
         constraints = [
+            models.CheckConstraint(
+                condition=models.Q(number__gt=0),
+                name="quality_passport_positive_number",
+            ),
+            models.CheckConstraint(
+                condition=models.Q(batch_number__gte=0),
+                name="quality_passport_nonnegative_batch",
+            ),
             models.CheckConstraint(
                 condition=models.Q(quantity__gt=0),
                 name="quality_passport_positive_quantity",
@@ -169,6 +182,20 @@ class QualityPassport(models.Model):
             raise ValidationError(
                 {"quantity": f"Количество должно быть кратно {step:.3f} т."}
             )
+
+    def clean_fields(self, exclude: Collection[str] | None = None) -> None:
+        excluded = exclude or ()
+        if "number" not in excluded and isinstance(self.number, (bool, float, Decimal)):
+            # IntegerField coerces numeric objects with int(), which truncates fractions.
+            if isinstance(self.number, bool):
+                raise ValidationError({"number": "Укажите целый номер паспорта."})
+            number = Decimal(str(self.number))
+            if not number.is_finite() or number != number.to_integral_value():
+                raise ValidationError({"number": "Укажите целый номер паспорта."})
+        if "batch_number" not in excluded and isinstance(self.batch_number, float):
+            # Validate fractional digits before DecimalField can round the float.
+            self.batch_number = Decimal(str(self.batch_number))
+        super().clean_fields(exclude=exclude)
 
     def save(self, *args: Any, **kwargs: Any) -> None:
         self.full_clean()

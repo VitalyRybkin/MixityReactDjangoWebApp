@@ -13,6 +13,7 @@ from catalog.api.serializers.product_serializers import (
     ProductUnitSerializer,
 )
 from catalog.models import Product, ProductSpecification, QualityPassport
+from catalog.models.quality_passport import MAX_PASSPORT_NUMBER
 from order.models import Order
 
 
@@ -27,6 +28,16 @@ class QualityPassportReadSerializer(serializers.ModelSerializer):
 
     product = ProductSerializer(read_only=True)
     specifications = serializers.SerializerMethodField()
+    number = serializers.IntegerField(
+        min_value=1, max_value=MAX_PASSPORT_NUMBER, read_only=True
+    )
+    batch_number = serializers.DecimalField(
+        max_digits=9,
+        decimal_places=3,
+        coerce_to_string=True,
+        read_only=True,
+        help_text="Non-negative decimal string with exactly three fractional digits.",
+    )
 
     class Meta:
         model = QualityPassport
@@ -76,7 +87,8 @@ class QualityPassportReadSerializer(serializers.ModelSerializer):
 class QualityPassportStateQuerySerializer(serializers.Serializer):
     """Validate the product and optional order projection parameters."""
 
-    source = serializers.ChoiceField(
+    # DRF fields also have a source attribute, but here it is the public query field name.
+    source = serializers.ChoiceField(  # type: ignore[assignment]
         choices=["order", "catalog"],
         required=False,
         help_text="Use catalog to retrieve the latest passport and product unit configuration.",
@@ -111,6 +123,36 @@ class CatalogPassportProductSerializer(serializers.ModelSerializer):
         fields = ["is_piece_based", "product_unit"]
 
 
+class QualityPassportSummarySerializer(QualityPassportReadSerializer):
+    class Meta(QualityPassportReadSerializer.Meta):
+        fields = [
+            "id",
+            "number",
+            "issue_date",
+            "batch_number",
+            "production_date",
+            "quantity",
+        ]
+
+
+class QualityPassportStateSerializer(serializers.Serializer):
+    suggested_next_passport_number = serializers.IntegerField(
+        min_value=1,
+        max_value=MAX_PASSPORT_NUMBER,
+        allow_null=True,
+        help_text="Global maximum passport number plus one, or null when the integer range is exhausted.",
+    )
+    passport = QualityPassportSummarySerializer(allow_null=True)
+    latest_passport_id = serializers.IntegerField(allow_null=True)
+    is_latest = serializers.BooleanField()
+    used_quantity = serializers.CharField(allow_null=True)
+    remaining_quantity = serializers.CharField(allow_null=True)
+    projected_used_quantity = serializers.CharField(allow_null=True)
+    projected_exceeded_quantity = serializers.CharField(allow_null=True)
+    can_issue_new_passport = serializers.BooleanField()
+    product = CatalogPassportProductSerializer(required=False)
+
+
 class QualityPassportIssueSerializer(serializers.Serializer):
     """
     Validate data required to create a new quality passport.
@@ -122,8 +164,21 @@ class QualityPassportIssueSerializer(serializers.Serializer):
     """
 
     expected_latest_passport_id = serializers.IntegerField(min_value=1)
-    number = serializers.CharField(max_length=50)
-    batch_number = serializers.CharField(max_length=100)
+    suggested_next_passport_number = serializers.IntegerField(
+        min_value=1,
+        max_value=MAX_PASSPORT_NUMBER,
+        required=False,
+        write_only=True,
+        help_text="Original suggestion when submitting that number. Suggestions do not reserve a number.",
+    )
+    number = serializers.IntegerField(min_value=1, max_value=MAX_PASSPORT_NUMBER)
+    batch_number = serializers.DecimalField(
+        max_digits=9,
+        decimal_places=3,
+        min_value=Decimal("0"),
+        coerce_to_string=True,
+        help_text="Non-negative decimal number or decimal string with up to three fractional digits.",
+    )
     issue_date = serializers.DateField(required=False)
     production_date = serializers.DateField()
     quantity = serializers.DecimalField(
@@ -131,6 +186,9 @@ class QualityPassportIssueSerializer(serializers.Serializer):
         decimal_places=3,
         min_value=Decimal("0.001"),
     )
+
+    def validate_batch_number(self, value: Decimal) -> Decimal:
+        return value.copy_abs() if value.is_zero() else value
 
     def validate(self, attrs: dict[str, Any]) -> dict[str, Any]:
         attrs = super().validate(attrs)

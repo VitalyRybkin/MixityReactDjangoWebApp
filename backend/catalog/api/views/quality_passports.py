@@ -8,7 +8,7 @@ from django.shortcuts import get_object_or_404
 from django.utils import timezone
 from drf_spectacular.types import OpenApiTypes
 from drf_spectacular.utils import OpenApiParameter, extend_schema
-from rest_framework import serializers, status
+from rest_framework import generics, serializers, status
 from rest_framework.exceptions import PermissionDenied, ValidationError
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.request import Request
@@ -19,6 +19,7 @@ from catalog.api.serializers.passport_serializers import (
     CatalogQualityPassportIssueSerializer,
     QualityPassportReadSerializer,
     QualityPassportStateQuerySerializer,
+    QualityPassportStateSerializer,
 )
 from catalog.api.serializers.prodcut_specification_serializer import (
     ProductSpecificationReadSerializer,
@@ -27,28 +28,30 @@ from catalog.models import Product, ProductSpecification, QualityPassport
 from catalog.services.quality_passport_delete import QualityPassportDeleteService
 from catalog.services.quality_passport_issue import QualityPassportIssueService
 from catalog.services.quality_passport_state import QualityPassportStateService
-from core.openapi import ERRORS_DETAIL, ERRORS_WRITE
+from core.openapi import ERRORS_DETAIL, ERRORS_READ, ERRORS_WRITE
 from core.openapi.base_views import (
     BaseCreateAPIView,
-    BaseGenericAPIView,
     BaseRetrieveAPIView,
 )
 from order.models import Order, OrderItem
 
 
-class QualityPassportStateAPIView(BaseGenericAPIView):
+class QualityPassportStateAPIView(generics.GenericAPIView):
     """Provide the latest Catalog passport or an order-specific projection."""
 
-    resource_name = "quality_passport_state"
-    schema_tags = ["QualityPassport"]
     permission_classes = [IsAuthenticated]
-    read_serializer_class = QualityPassportStateQuerySerializer
 
     serializer_class = QualityPassportStateQuerySerializer
 
     http_method_names = ["get", "head", "options"]
 
-    @extend_schema(parameters=[QualityPassportStateQuerySerializer])
+    @extend_schema(
+        operation_id="listquality_passport_states",
+        tags=["QualityPassport"],
+        summary="Get quality passport state",
+        parameters=[QualityPassportStateQuerySerializer],
+        responses={200: QualityPassportStateSerializer, **ERRORS_READ},
+    )
     def get(self, request: Request) -> Response:
         """Use the Catalog permissions only for the product-level preview."""
         from_catalog = request.query_params.get("source") == "catalog"
@@ -177,6 +180,7 @@ class QualityPassportIssueAPIView(BaseCreateAPIView):
     http_method_names = ["post", "options"]
 
     write_serializer_class = CatalogQualityPassportIssueSerializer
+    response_serializer_class = QualityPassportReadSerializer
     serializer_class = CatalogQualityPassportIssueSerializer
     errors_write = ERRORS_WRITE
 
@@ -207,6 +211,9 @@ class QualityPassportIssueAPIView(BaseCreateAPIView):
                 issue_date=data["issue_date"],
                 created_by=request.user,
                 issuance_source="catalog",
+                suggested_next_passport_number=data.get(
+                    "suggested_next_passport_number"
+                ),
             )
         except DjangoValidationError as exc:
             details = exc.message_dict if hasattr(exc, "message_dict") else exc.messages

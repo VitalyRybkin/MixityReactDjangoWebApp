@@ -232,12 +232,13 @@ def create_schema(
     resource: str,
     tags: list[str],
     write_serializer: Any,
+    response_serializer: Any | None = None,
     get_operation_id: Optional[str] = None,
     post_summary: Optional[str] = None,
     post_description: Optional[str] = None,
     errors_write: Dict[int, Any] = ERRORS_WRITE
 ) -> Any:
-    write_response = OpenApiResponse(response=write_serializer)
+    write_response = OpenApiResponse(response=response_serializer or write_serializer)
     post_operation_id = get_operation_id or f"create{resource}"
     post_summary = post_summary or f"Create a new {resource}"
     post_description = post_description or (

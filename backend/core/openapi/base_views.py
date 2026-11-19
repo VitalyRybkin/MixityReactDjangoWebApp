@@ -155,6 +155,7 @@ class BaseCreateAPIView(generics.CreateAPIView):
     schema_tags: ClassVar[list[str]] = []
 
     write_serializer_class: ClassVar[Type[serializers.BaseSerializer]] = serializers.Serializer
+    response_serializer_class: ClassVar[Type[serializers.BaseSerializer] | None] = None
 
     @classmethod
     def as_view(cls, **kwargs: Any) -> Any:
@@ -162,6 +163,7 @@ class BaseCreateAPIView(generics.CreateAPIView):
             resource=cls.resource_name,
             tags=cls.schema_tags,
             write_serializer=cls.write_serializer_class,
+            response_serializer=cls.response_serializer_class,
             errors_write =errors.ERRORS_WRITE
         )(cls)
 

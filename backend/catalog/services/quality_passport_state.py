@@ -2,9 +2,11 @@
 
 from decimal import Decimal
 
+from django.db.models import Max
 from rest_framework.exceptions import ValidationError
 
 from catalog.models import Product, ProductUnit, QualityPassport
+from catalog.models.quality_passport import MAX_PASSPORT_NUMBER
 from catalog.services.quality_passports import QualityPassportsService
 from order.models import Order, OrderItem
 
@@ -89,8 +91,16 @@ class QualityPassportStateService:
             else latest
         )
 
+        maximum_number = (
+            QualityPassport.objects.aggregate(maximum=Max("number"))["maximum"] or 0
+        )
+        suggestion = (
+            maximum_number + 1 if maximum_number < MAX_PASSPORT_NUMBER else None
+        )
+
         if passport is None:
             return {
+                "suggested_next_passport_number": suggestion,
                 "passport": None,
                 "latest_passport_id": None,
                 "is_latest": False,
@@ -151,11 +161,12 @@ class QualityPassportStateService:
         )
 
         return {
+            "suggested_next_passport_number": suggestion,
             "passport": {
                 "id": passport.pk,
                 "number": passport.number,
                 "issue_date": passport.issue_date.isoformat(),
-                "batch_number": passport.batch_number,
+                "batch_number": f"{passport.batch_number:.3f}",
                 "production_date": passport.production_date.isoformat(),
                 "quantity": str(passport.quantity),
             },

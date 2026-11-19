@@ -94,9 +94,9 @@ class QualityPassportDataFactory(factory.django.DjangoModelFactory):
         model = QualityPassport
 
     product = factory.SubFactory("catalog.tests.api.factories.ProductFactory")
-    number = factory.Sequence(lambda n: f"word-{n}")
+    number = factory.Sequence(lambda n: 200_000 + n)
     issue_date = factory.fuzzy.FuzzyDate(start_date=date.today(), end_date=date.today())
-    batch_number = factory.Sequence(lambda n: f"word-{n}")
+    batch_number = factory.Sequence(lambda n: 200_000 + n)
     production_date = factory.fuzzy.FuzzyDate(
         start_date=date.today(),
     )

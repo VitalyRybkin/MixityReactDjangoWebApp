@@ -3,7 +3,7 @@ from decimal import Decimal
 from typing import Any, Literal
 
 from django.core.exceptions import ValidationError as DjangoValidationError
-from django.db import transaction
+from django.db import IntegrityError, transaction
 from django.utils import timezone
 from rest_framework import status
 from rest_framework.exceptions import APIException
@@ -21,6 +21,25 @@ class PassportChanged(APIException):
     )
 
 
+class PassportNumberConflict(APIException):
+    status_code = status.HTTP_409_CONFLICT
+    default_code = "passport_number_conflict"
+    default_detail = {
+        "number": "Предложенный номер паспорта уже занят. Обновите данные и выберите другой номер.",
+        "code": "passport_number_conflict",
+    }
+
+
+def _raise_number_conflict(
+    number: int, suggestion: int | None, cause: Exception
+) -> None:
+    if number == suggestion:
+        raise PassportNumberConflict() from cause
+    raise DjangoValidationError(
+        {"number": "Паспорт с таким номером уже существует."}
+    ) from cause
+
+
 class QualityPassportIssueService:
     """Serialize passport issuance for each product."""
 
@@ -30,10 +49,11 @@ class QualityPassportIssueService:
         *,
         product_id: int,
         expected_latest_passport_id: int | None,
-        number: str,
-        batch_number: str,
+        number: int,
+        batch_number: Decimal,
         production_date: date,
         quantity: Decimal,
+        suggested_next_passport_number: int | None = None,
         issue_date: date | None = None,
         delivery_date: date | None = None,
         created_by: Any | None = None,
@@ -98,6 +118,25 @@ class QualityPassportIssueService:
             created_by=created_by,
         )
 
-        passport.save()
+        try:
+            # A unique-index race must be rolled back before converting it to an API error.
+            with transaction.atomic():
+                passport.save()
+        except DjangoValidationError as exc:
+            errors = getattr(exc, "error_dict", {})
+            if errors.keys() == {"number"} and any(
+                error.code == "unique" for error in errors["number"]
+            ):
+                _raise_number_conflict(number, suggested_next_passport_number, exc)
+            raise
+        except IntegrityError as exc:
+            constraint = getattr(
+                getattr(exc.__cause__, "diag", None), "constraint_name", None
+            )
+            if constraint == "unique_quality_passport_number" or str(exc) == (
+                "UNIQUE constraint failed: catalog_qualitypassport.number"
+            ):
+                _raise_number_conflict(number, suggested_next_passport_number, exc)
+            raise
 
         return passport

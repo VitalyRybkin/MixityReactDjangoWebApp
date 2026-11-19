@@ -5,6 +5,7 @@ from django.contrib.auth.models import AnonymousUser
 from django.http import FileResponse, HttpRequest, HttpResponse
 from django.shortcuts import get_object_or_404, render
 from django.urls import reverse
+from drf_spectacular.types import OpenApiTypes
 from drf_spectacular.utils import extend_schema
 from rest_framework import generics
 from rest_framework.generics import RetrieveAPIView
@@ -29,11 +30,8 @@ from common.services.documentation_sharing import (
     get_shared_document,
     open_shared_document,
 )
-from core.openapi.base_views import (
-    BaseCreateAPIView,
-    BaseGenericAPIView,
-    BaseListAPIView,
-)
+from core.openapi import ERRORS_WRITE
+from core.openapi.base_views import BaseGenericAPIView, BaseListAPIView
 from core.services.docs_index import build_docs_index_sections
 
 from .models import Documentation
@@ -111,19 +109,22 @@ class DocumentationDownloadView(BaseGenericAPIView, APIView):
         )
 
 
-class DocumentationBulkDownloadView(BaseCreateAPIView, generics.GenericAPIView):
+class DocumentationBulkDownloadView(generics.CreateAPIView):
     """
     View to serve multiple documentation files as a zip archive.
     """
-
-    resource_name = "Documentation bulk download"
-    schema_tags = ["Documentation"]
-    read_serializer_class = DocumentationBulkDownloadRequestSerializer
 
     queryset = Documentation.objects.all()
 
     serializer_class = DocumentationBulkDownloadRequestSerializer
 
+    @extend_schema(
+        operation_id="createDocumentation bulk download",
+        tags=["Documentation"],
+        summary="Download selected documents as a ZIP archive",
+        request=DocumentationBulkDownloadRequestSerializer,
+        responses={(200, "application/zip"): OpenApiTypes.BINARY, **ERRORS_WRITE},
+    )
     def post(self, request: Request, *args: Any, **kwargs: Any) -> FileResponse:  # type: ignore[override]
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
