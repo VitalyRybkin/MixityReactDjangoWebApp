@@ -55,9 +55,9 @@ class TestQualityPassportCatalogIntegration(APITestCase, TestLoggerMixin):
         self.previous_date = self.today - timedelta(days=3)
         self.previous = QualityPassport.objects.create(
             product=self.product,
-            number="PG-INITIAL-1",
+            number=54672,
             issue_date=self.previous_date,
-            batch_number="INITIAL",
+            batch_number="28.999",
             production_date=self.previous_date,
             quantity=Decimal("10.000"),
         )
@@ -66,7 +66,7 @@ class TestQualityPassportCatalogIntegration(APITestCase, TestLoggerMixin):
         self,
         *,
         issue_date: date | None = None,
-        number: str = "PG-NEXT-2",
+        number: int = 54673,
         quantity: Decimal = Decimal("2.000"),
         expected_latest_passport_id: int | None = None,
         issuance_source: Literal["order", "catalog"] = "catalog",
@@ -86,7 +86,7 @@ class TestQualityPassportCatalogIntegration(APITestCase, TestLoggerMixin):
                 else self.previous.pk
             ),
             number=number,
-            batch_number="NEW-BATCH",
+            batch_number=Decimal("29.000"),
             production_date=date_value,
             quantity=quantity,
             issue_date=date_value,
@@ -125,8 +125,8 @@ class TestQualityPassportCatalogIntegration(APITestCase, TestLoggerMixin):
         ProductUnitFactory.create(product=product, value=25)
         passport = QualityPassport.objects.create(
             product=product,
-            number="PIECE-STATE-1",
-            batch_number="PIECE-STATE",
+            number=54674,
+            batch_number="29.009",
             issue_date=self.previous_date,
             production_date=self.previous_date,
             quantity=Decimal("2.000"),
@@ -153,6 +153,8 @@ class TestQualityPassportCatalogIntegration(APITestCase, TestLoggerMixin):
         self.assertEqual(catalog.status_code, 200, catalog.data)
         self.assertEqual(catalog.data["latest_passport_id"], passport.pk)
         self.assertEqual(catalog.data["passport"]["id"], passport.pk)
+        self.assertEqual(catalog.json()["passport"]["number"], 54674)
+        self.assertEqual(catalog.json()["passport"]["batch_number"], "29.009")
         self.assertTrue(catalog.data["product"]["is_piece_based"])
         self.assertEqual(catalog.data["product"]["product_unit"]["value"], 25)
         self.assertIsNone(catalog.data["projected_used_quantity"])
@@ -176,7 +178,7 @@ class TestQualityPassportCatalogIntegration(APITestCase, TestLoggerMixin):
         detail_url = reverse(
             f"catalog:{QualityPassportRoutes.DETAIL.name}", args=[self.previous.pk]
         )
-        state_params = {"product_id": self.product.pk}
+        state_params: dict[str, int | str] = {"product_id": self.product.pk}
 
         for index, (permissions, expected) in enumerate(cases):
             with self.subTest(permissions=permissions):
@@ -267,7 +269,7 @@ class TestQualityPassportCatalogIntegration(APITestCase, TestLoggerMixin):
         first_new = self.issue()
         with self.assertRaises(PassportChanged):
             self.issue(
-                number="PG-OTHER-3",
+                number=54675,
                 issue_date=self.today,
                 expected_latest_passport_id=self.previous.pk,
             )

@@ -151,7 +151,9 @@ class QualityPassportFactory(factory.django.DjangoModelFactory):
         )
         return Decimal("20000.000")
 
-    number = factory.Sequence(lambda n: f"QPP-{n}")
+    number = factory.Sequence(lambda n: 100_000 + n * 10)
     issue_date = factory.Faker("date")
-    batch_number = factory.Sequence(lambda n: f"Batch-{n}")
+    batch_number = factory.Sequence(
+        lambda n: (Decimal(n) / 1000).quantize(Decimal("0.001"))
+    )
     production_date = factory.SelfAttribute("issue_date")

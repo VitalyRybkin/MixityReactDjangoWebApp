@@ -333,6 +333,18 @@ class TestQualityPassportModel(BaseModelTestCase):
     _factory = QualityPassportFactory
 
     invalid_fields_map = [
+        ValidationFieldSpec(field_name="number", invalid_value=0),
+        ValidationFieldSpec(field_name="number", invalid_value=-1),
+        ValidationFieldSpec(field_name="number", invalid_value=2_147_483_648),
+        ValidationFieldSpec(field_name="number", invalid_value=Decimal("5.5")),
+        ValidationFieldSpec(field_name="batch_number", invalid_value=Decimal("-0.001")),
+        ValidationFieldSpec(
+            field_name="batch_number", invalid_value=Decimal("28.3456")
+        ),
+        ValidationFieldSpec(
+            field_name="batch_number", invalid_value=Decimal("1000000")
+        ),
+        ValidationFieldSpec(field_name="batch_number", invalid_value=999999.9991),
         ValidationFieldSpec(field_name="quantity", invalid_value=123456789101),
         ValidationFieldSpec(
             field_name="quantity", invalid_value=Decimal("1234568.1234")
@@ -341,6 +353,11 @@ class TestQualityPassportModel(BaseModelTestCase):
     ]
 
     valid_fields_map = [
+        ValidationFieldSpec(field_name="number", invalid_value=54672),
+        ValidationFieldSpec(field_name="batch_number", invalid_value=Decimal("0")),
+        ValidationFieldSpec(
+            field_name="batch_number", invalid_value=Decimal("999999.999")
+        ),
         ValidationFieldSpec(
             field_name="quantity",
             invalid_value=Decimal("30.000"),

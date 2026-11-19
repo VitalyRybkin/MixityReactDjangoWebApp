@@ -49,7 +49,7 @@ class TestQualityPassportModel(BaseModelTestCase):
         """
         return QualityPassport(
             product=self.obj.product,
-            number=f"{self.obj.number}-NEW",
+            number=self.obj.number + 1,
             issue_date=issue_date,
             production_date=min(self.obj.production_date, issue_date),
             batch_number=self.obj.batch_number,
@@ -318,7 +318,7 @@ class TestQualityPassportModel(BaseModelTestCase):
 
         passport = QualityPassport(
             product=self.obj.product,
-            number=f"{self.obj.number}-NEW",
+            number=self.obj.number + 1,
             issue_date=self.obj.issue_date,
             production_date=self.obj.production_date,
             batch_number=self.obj.batch_number,
@@ -413,7 +413,7 @@ class TestQualityPassportModel(BaseModelTestCase):
         new_passport = QualityPassportIssueService.issue(
             product_id=old_passport.product_id,
             expected_latest_passport_id=old_passport.pk,
-            number=f"{old_passport.number}-NEW",
+            number=old_passport.number + 1,
             batch_number=old_passport.batch_number,
             production_date=old_passport.production_date,
             quantity=old_passport.quantity,
@@ -445,7 +445,7 @@ class TestQualityPassportModel(BaseModelTestCase):
         new_passport = QualityPassportIssueService.issue(
             product_id=self.obj.product_id,
             expected_latest_passport_id=self.obj.pk,
-            number=f"{self.obj.number}-DATED",
+            number=self.obj.number + 2,
             batch_number=self.obj.batch_number,
             issue_date=requested_date,
             production_date=production_date,
@@ -465,7 +465,7 @@ class TestQualityPassportModel(BaseModelTestCase):
         new_passport = QualityPassportIssueService.issue(
             product_id=self.obj.product_id,
             expected_latest_passport_id=self.obj.pk,
-            number=f"{self.obj.number}-DEFAULT",
+            number=self.obj.number + 3,
             batch_number=self.obj.batch_number,
             production_date=self.obj.production_date,
             quantity=self.obj.quantity,
@@ -484,7 +484,7 @@ class TestQualityPassportModel(BaseModelTestCase):
             QualityPassportIssueService.issue(
                 product_id=self.obj.product_id,
                 expected_latest_passport_id=None,
-                number=f"{self.obj.number}-NEW",
+                number=self.obj.number + 1,
                 batch_number=self.obj.batch_number,
                 production_date=self.obj.production_date,
                 quantity=self.obj.quantity,

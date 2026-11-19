@@ -91,10 +91,10 @@ class QualityPassportTestBase(TestLoggerMixin, APITestCase):
 
         QualityPassport.objects.create(
             product=product,
-            number=f"REGRESSION-Q-{product.pk}",
+            number=300_000 + product.pk,
             issue_date=self.passport.issue_date,
             production_date=self.passport.production_date,
-            batch_number=f"REGRESSION-B-{product.pk}",
+            batch_number=Decimal("28.340"),
             quantity=Decimal("300.000"),
         )
 
@@ -178,8 +178,8 @@ class QualityPassportTestBase(TestLoggerMixin, APITestCase):
         """Build passport-issuance input referencing the expected latest passport."""
         return {
             "expected_latest_passport_id": self.passport.pk,
-            "number": f"{self.passport.number}-NEW",
-            "batch_number": self.passport.batch_number,
+            "number": self.passport.number + 1,
+            "batch_number": str(self.passport.batch_number),
             "production_date": self.passport.production_date.isoformat(),
             "quantity": str(quantity),
         }

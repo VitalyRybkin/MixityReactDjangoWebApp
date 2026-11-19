@@ -1,10 +1,11 @@
 """Test Catalog passport issuance through its routed API and the database."""
 
-from datetime import timedelta
+from datetime import date, timedelta
 from decimal import Decimal
+from typing import ClassVar
 
 from django.contrib.auth import get_user_model
-from django.contrib.auth.models import Permission
+from django.contrib.auth.models import Permission, User
 from django.urls import reverse
 from django.utils import timezone
 from rest_framework import status
@@ -19,6 +20,11 @@ from order.tests.factories import OrderFactory, OrderItemFactory
 
 
 class TestCatalogQualityPassportPost(APITestCase):
+    today: ClassVar[date]
+    product: ClassVar[Product]
+    previous: ClassVar[QualityPassport]
+    issuer: ClassVar[User]
+
     @classmethod
     def setUpTestData(cls) -> None:
         cls.today = timezone.localdate()
@@ -30,9 +36,9 @@ class TestCatalogQualityPassportPost(APITestCase):
         ProductUnitFactory.create(product=cls.product, unit=ton, value=1)
         cls.previous = QualityPassport.objects.create(
             product=cls.product,
-            number="POST-1",
+            number=54672,
             issue_date=cls.today - timedelta(days=2),
-            batch_number="PREVIOUS",
+            batch_number="28.999",
             production_date=cls.today - timedelta(days=3),
             quantity=Decimal("10.000"),
         )
@@ -46,12 +52,12 @@ class TestCatalogQualityPassportPost(APITestCase):
     def setUp(self) -> None:
         self.client.force_authenticate(user=self.issuer)
         self.url = reverse(f"catalog:{QualityPassportRoutes.CREATE.name}")
-        self.payload = {
+        self.payload: dict[str, int | str] = {
             "product_id": self.product.pk,
             "expected_latest_passport_id": self.previous.pk,
-            "number": "POST-2",
+            "number": 54673,
             "issue_date": self.today.isoformat(),
-            "batch_number": "NEW",
+            "batch_number": "29.000",
             "production_date": self.today.isoformat(),
             "quantity": "2.000",
         }
@@ -135,9 +141,9 @@ class TestCatalogQualityPassportPost(APITestCase):
         ProductUnitFactory.create(product=product, value=12)
         previous = QualityPassport.objects.create(
             product=product,
-            number="POST-PIECE-1",
+            number=54674,
             issue_date=self.previous.issue_date,
-            batch_number="PIECE-PREVIOUS",
+            batch_number="29.009",
             production_date=self.previous.production_date,
             quantity=Decimal("0.120"),
         )
@@ -197,7 +203,7 @@ class TestCatalogQualityPassportPost(APITestCase):
         self.assertEqual(issued.status_code, status.HTTP_201_CREATED, issued.data)
 
         stale = self.client.post(
-            self.url, self.payload | {"number": "POST-STALE"}, format="json"
+            self.url, self.payload | {"number": 54675}, format="json"
         )
 
         self.assertEqual(stale.status_code, status.HTTP_409_CONFLICT, stale.data)
@@ -206,4 +212,4 @@ class TestCatalogQualityPassportPost(APITestCase):
             QualityPassport.last_issued.get_latest_for_product(self.product),
             QualityPassport.objects.get(pk=issued.data["id"]),
         )
-        self.assertFalse(QualityPassport.objects.filter(number="POST-STALE").exists())
+        self.assertFalse(QualityPassport.objects.filter(number=54675).exists())

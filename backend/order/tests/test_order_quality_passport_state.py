@@ -42,6 +42,11 @@ class TestOrderQualityPassportState(QualityPassportTestBase):
             response.data["passport"]["id"],
             self.passport.pk,
         )
+        self.assertEqual(response.json()["passport"]["number"], self.passport.number)
+        self.assertEqual(
+            response.json()["passport"]["batch_number"],
+            f"{self.passport.batch_number:.3f}",
+        )
 
         self.assertGreater(
             Decimal(response.data["projected_used_quantity"]),

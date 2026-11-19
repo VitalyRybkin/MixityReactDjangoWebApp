@@ -34,8 +34,8 @@ class CatalogPassportIssueSerializerTests(APITestCase, TestLoggerMixin):
         self.data = {
             "product_id": 12,
             "expected_latest_passport_id": 25,
-            "number": "NEW-25",
-            "batch_number": "B-25",
+            "number": 54673,
+            "batch_number": "29.000",
             "issue_date": self.today.isoformat(),
             "production_date": self.today.isoformat(),
             "quantity": "1.000",
@@ -55,6 +55,37 @@ class CatalogPassportIssueSerializerTests(APITestCase, TestLoggerMixin):
         self._logger_success(
             "catalog_requires_product_id", "Verify catalog requires product id"
         )
+
+    def test_numeric_number_input_and_fixed_scale_output(self) -> None:
+        for batch_number, expected in [
+            (28.34, "28.340"),
+            ("29", "29.000"),
+            (0, "0.000"),
+        ]:
+            with self.subTest(batch_number=batch_number):
+                serializer = QualityPassportIssueSerializer(
+                    data=self.data | {"number": "54673", "batch_number": batch_number}
+                )
+                self.assertTrue(serializer.is_valid(), serializer.errors)
+                self.assertEqual(
+                    serializer.validated_data["batch_number"], Decimal(expected)
+                )
+                self.assertEqual(serializer.data["number"], 54673)
+                self.assertEqual(serializer.data["batch_number"], expected)
+
+    def test_rejects_invalid_passport_and_batch_numbers(self) -> None:
+        cases: dict[str, list[int | float | str]] = {
+            "number": [0, -1, 1.5, 2_147_483_648],
+            "batch_number": ["-0.001", "28.3456", "1000000", "NaN"],
+        }
+        for field, values in cases.items():
+            for value in values:
+                with self.subTest(field=field, value=value):
+                    serializer = QualityPassportIssueSerializer(
+                        data=self.data | {field: value}
+                    )
+                    self.assertFalse(serializer.is_valid())
+                    self.assertIn(field, serializer.errors)
 
     def test_catalog_requires_issue_date(self) -> None:
         """Verify catalog requires issue date."""
@@ -131,8 +162,8 @@ class QualityPassportIssueServiceTests(APITestCase, TestLoggerMixin):
         self.fields = {
             "product_id": 12,
             "expected_latest_passport_id": 25,
-            "number": "NEW-25",
-            "batch_number": "B-25",
+            "number": 54673,
+            "batch_number": "29.000",
             "production_date": self.today - timedelta(days=1),
             "quantity": Decimal("1.000"),
             "issue_date": self.today - timedelta(days=1),
@@ -301,8 +332,8 @@ class CatalogPassportIssueApiTests(APITestCase, TestLoggerMixin):
         self.body = {
             "product_id": 12,
             "expected_latest_passport_id": 25,
-            "number": "NEW-25",
-            "batch_number": "B-25",
+            "number": 54673,
+            "batch_number": "29.000",
             "production_date": self.today.isoformat(),
             "issue_date": self.today.isoformat(),
             "quantity": "1.000",

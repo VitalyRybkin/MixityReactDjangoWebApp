@@ -71,9 +71,9 @@ class TestQualityPassportPermissionMatrix(BasePermissionMatrixTestCase):
 
         return {
             "product": passport.product_id,
-            "number": f"{passport.number}-NEW",
+            "number": passport.number + 1,
             "issue_date": passport.issue_date.isoformat(),
-            "batch_number": passport.batch_number,
+            "batch_number": str(passport.batch_number),
             "production_date": passport.production_date.isoformat(),
             "quantity": str(passport.quantity),
         }
@@ -81,7 +81,7 @@ class TestQualityPassportPermissionMatrix(BasePermissionMatrixTestCase):
     def get_update_payload(self) -> dict:
         """Build a batch-number update for the shared change-permission check."""
         return {
-            "batch_number": "Updated-Batch",
+            "batch_number": "29.340",
         }
 
     def test_passport_write_methods_disabled(self) -> None:

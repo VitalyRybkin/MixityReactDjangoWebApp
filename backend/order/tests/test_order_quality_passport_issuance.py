@@ -124,7 +124,7 @@ class TestOrderQualityPassportIssuance(QualityPassportTestBase):
             count_before + 1,
         )
 
-        new_passport = QualityPassport.objects.get(number=f"{self.passport.number}-NEW")
+        new_passport = QualityPassport.objects.get(number=self.passport.number + 1)
 
         self.item.refresh_from_db()
 
