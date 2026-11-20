@@ -45,6 +45,7 @@ export default function OrderMobileList({
     onOpen,
     onDelete,
     onUploadUpd,
+    onViewUpd,
     canDelete = false,
     canManageUpd = false,
 }) {
@@ -89,6 +90,7 @@ export default function OrderMobileList({
                         onOpen={onOpen}
                         onDelete={onDelete}
                         onUploadUpd={onUploadUpd}
+                        onViewUpd={onViewUpd}
                         canDelete={canDelete}
                         canManageUpd={canManageUpd}
                     />

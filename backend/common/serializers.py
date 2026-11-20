@@ -3,6 +3,8 @@ from typing import TYPE_CHECKING, Any
 from django.urls import reverse
 from rest_framework import serializers
 
+from common.services.documentation_files import MAX_DOCUMENTATION_ZIP_FILES
+
 from .models import Documentation
 from .routes import DocumentationRoutes
 
@@ -63,8 +65,35 @@ class DocumentationSerializer(serializers.ModelSerializer):
 
 
 class DocumentationBulkDownloadRequestSerializer(serializers.Serializer):
+    """Validate a bounded ZIP request and normalize duplicate document IDs."""
+
     ids = serializers.ListField(
         child=serializers.IntegerField(min_value=1),
         allow_empty=False,
+        max_length=MAX_DOCUMENTATION_ZIP_FILES,
         required=True,
     )
+
+    def validate_ids(self, value: list[int]) -> list[int]:
+        """Retain the requested order while removing duplicate IDs."""
+        return list(dict.fromkeys(value))
+
+
+class DocumentationShareLinksRequestSerializer(serializers.Serializer):
+    ids = serializers.ListField(
+        child=serializers.IntegerField(min_value=1),
+        allow_empty=False,
+        max_length=100,
+        required=True,
+    )
+
+
+class DocumentationShareLinkSerializer(serializers.Serializer):
+    id = serializers.IntegerField()
+    title = serializers.CharField()
+    url = serializers.URLField()
+
+
+class DocumentationShareLinksResponseSerializer(serializers.Serializer):
+    links = DocumentationShareLinkSerializer(many=True)
+    expires_at = serializers.DateTimeField()

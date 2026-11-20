@@ -1,7 +1,20 @@
 import { useMemo, useRef, useState } from 'react'
 import { useParams } from 'react-router-dom'
 
-import { Box, CircularProgress, Container, Divider, TextField, Typography } from '@mui/material'
+import {
+    Alert,
+    Box,
+    Button,
+    CircularProgress,
+    Container,
+    Dialog,
+    DialogActions,
+    DialogContent,
+    DialogTitle,
+    Divider,
+    TextField,
+    Typography,
+} from '@mui/material'
 
 import AppBreadcrumbs from '../../components/AppBreadcrumbs.jsx'
 import PageHeaderCreateUpdate from '../../components/PageHeaderCreateUpdate.jsx'
@@ -11,7 +24,7 @@ import ConfirmDialog from '../../components/ui/feedback/ConfirmDialog.jsx'
 import { useFormLogic } from '../../hooks/useEntityForm.js'
 import useSnackbar from '../../hooks/useSnackbar.js'
 import { useFileUpload } from '../../hooks/useUploadFile.js'
-import { sidebarPageSx } from '../../layouts/AppSidebar.jsx'
+import { sidebarPageSx } from '../../layouts/AppSidebar.styles.js'
 import { useGetCustomerPrices } from '../customers/utils/customers.queries.js'
 import { useGetWarehousePrices } from '../warehouses/utils/stocks.queries.js'
 
@@ -27,7 +40,8 @@ import { useUnsavedGuard } from './hooks/useUnsavedGuard.js'
 import { useViewUpd } from './hooks/useViewUpd.js'
 import { DeliveryContext } from './utils/DeliveryContext.js'
 import { emptyDeliveryInfo, emptyOrderForm } from './utils/order.form.constants.js'
-import { toOrderPayload } from './utils/order.form.mappers.js'
+import { toDeliveryPayload, toOrderPayload } from './utils/order.form.mappers.js'
+import { hasValidOrderPrices } from './utils/orderPrices.js'
 import { getProductId } from './utils/orderProducts.js'
 import {
     useCreateOrder,
@@ -39,12 +53,22 @@ import {
 
 const EMPTY_PRICES = []
 
-const getEntityId = (value) => {
-    if (value == null) {
-        return null
-    }
+const REFERENCE_PRICE_WARNINGS = {
+    price_at_sale: {
+        updated: 'Цена заказчика обновлена по справочнику.',
+        missing: 'Для нового заказчика не найдена справочная цена. Укажите цену вручную.',
+    },
+    price_at_purchase: {
+        updated: 'Цена склада обновлена по справочнику.',
+        missing: 'Для нового склада не найдена справочная цена. Укажите цену вручную.',
+    },
+}
 
-    return typeof value === 'object' ? (value.id ?? null) : value
+const formatTons = (value) => {
+    const number = Number(value)
+    return Number.isFinite(number)
+        ? `${number.toLocaleString('ru-RU', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} т`
+        : '—'
 }
 
 export default function OrderFormPage({ readOnly = false }) {
@@ -53,8 +77,16 @@ export default function OrderFormPage({ readOnly = false }) {
 
     const [open, setOpen] = useState(false)
     const [orderDelivery, setOrderDelivery] = useState(emptyDeliveryInfo)
+    const [passportConflict, setPassportConflict] = useState(null)
+    const formRef = useRef(null)
+    const confirmedPassportIdsRef = useRef([])
 
     const { snack, showSnackbar, closeSnackbar } = useSnackbar()
+
+    const handleReferencePricesChange = ({ field, missing }) => {
+        if (!isEdit || readOnly) return
+        showSnackbar(REFERENCE_PRICE_WARNINGS[field][missing ? 'missing' : 'updated'], 'warning')
+    }
 
     const {
         data: orderResources,
@@ -70,8 +102,55 @@ export default function OrderFormPage({ readOnly = false }) {
         refetch: refetchOrder,
     } = useGetOrder(id, { enabled: isEdit })
 
-    const createOrder = useCreateOrder()
-    const updateOrder = useUpdateOrder()
+    const showPassportSaveConflict = (error) => {
+        const response = error?.response?.data
+        const conflict = response?.errors ?? response?.detail ?? response
+        const code = conflict?.code ?? conflict?.detail?.code
+
+        if (code === 'passport_limit_exceeded') {
+            const passports = conflict?.passports ?? conflict?.detail?.passports ?? []
+            if (Array.isArray(passports) && passports.length) {
+                setPassportConflict(passports)
+                return
+            }
+            showSnackbar('Количество паспорта превышено. Проверьте данные и повторите сохранение.', 'warning')
+            return
+        }
+
+        if (code === 'passport_number_conflict') {
+            showSnackbar('Предложенный номер паспорта уже занят. Откройте подготовленный паспорт и выберите другой номер.', 'warning')
+            return
+        }
+
+        if (code === 'passport_changed') {
+            showSnackbar('Действующий паспорт изменился. Проверьте данные паспорта и повторите сохранение.', 'warning')
+            return
+        }
+
+        showSnackbar(
+            'Не удалось сохранить заявку из-за конфликта данных. Обновите информацию и повторите сохранение.',
+            'warning',
+        )
+    }
+
+    const handleKeepOverrun = () => {
+        const ids = (passportConflict ?? [])
+            .map((passport) => Number(passport.passport_id))
+            .filter((passportId) => Number.isInteger(passportId) && passportId > 0)
+
+        if (!ids.length) {
+            showSnackbar('Не удалось определить паспорта для подтверждения.', 'error')
+            return
+        }
+
+        setPassportConflict(null)
+        confirmedPassportIdsRef.current = [...new Set(ids)]
+
+        formRef.current?.requestSubmit()
+    }
+
+    const createOrder = useCreateOrder({ onPassportConflict: showPassportSaveConflict })
+    const updateOrder = useUpdateOrder({ onPassportConflict: showPassportSaveConflict })
     const uploadUpd = useUploadUpd()
 
     const handleUploadUpd = useFileUpload(uploadUpd, showSnackbar, {
@@ -83,11 +162,13 @@ export default function OrderFormPage({ readOnly = false }) {
     const handleViewUpd = useViewUpd(showSnackbar)
 
     const saving = createOrder.isPending || updateOrder.isPending || uploadUpd.isPending
+    const controlsReadOnly = readOnly || saving
 
     const {
         orderProducts,
         setOrderProducts,
         productErrors,
+        passportNumberErrors,
         totalWeight,
         normalizeOrderProducts,
         buildProductsPayload,
@@ -99,23 +180,36 @@ export default function OrderFormPage({ readOnly = false }) {
 
     const markCleanRef = useRef(null)
 
-    const { form, setForm, setError, onChange, onSubmit } = useFormLogic({
+    const {
+        form,
+        setForm,
+        error: formError,
+        setError,
+        onChange,
+        onSubmit,
+    } = useFormLogic({
         isEdit,
         id,
         emptyForm: emptyOrderForm,
         updateMutation: updateOrder,
         createMutation: createOrder,
         redirectPath: '/',
-        toPayload: (form) => ({
-            ...toOrderPayload(form),
-            products: buildProductsPayload(orderProducts),
-            delivery: {
-                ...orderDelivery,
-                carrier: getEntityId(orderDelivery.carrier),
-                driver: getEntityId(orderDelivery.driver),
-                truck: getEntityId(orderDelivery.truck),
-            },
-        }),
+        toPayload: (currentForm) => {
+            const confirmedIds = confirmedPassportIdsRef.current
+            confirmedPassportIdsRef.current = []
+
+            const deliveryPayload = toDeliveryPayload(
+                orderDelivery,
+                isEdit ? (order?.order_delivery ?? order?.delivery ?? null) : null,
+            )
+
+            return {
+                ...toOrderPayload(currentForm, isEdit ? order : null),
+                ...(confirmedIds.length ? { confirmed_passport_ids: confirmedIds } : {}),
+                products: buildProductsPayload(orderProducts),
+                ...(deliveryPayload !== undefined ? { delivery: deliveryPayload } : {}),
+            }
+        },
         validate: validateProducts,
         onSuccess: () => markCleanRef.current?.(),
     })
@@ -128,19 +222,28 @@ export default function OrderFormPage({ readOnly = false }) {
     const {
         data: customerPrices = EMPTY_PRICES,
         isLoading: isLoadingCustomerPrices,
+        isFetching: isFetchingCustomerPrices,
+        isSuccess: customerPricesLoaded,
         error: loadCustomerPricesError,
     } = useGetCustomerPrices(customerId, productIds)
 
     const {
         data: warehousePrices = EMPTY_PRICES,
         isLoading: isLoadingWarehousePrices,
+        isFetching: isFetchingWarehousePrices,
+        isSuccess: warehousePricesLoaded,
         error: loadWarehousePricesError,
     } = useGetWarehousePrices(warehouseId, productIds)
+
+    // Never serialize an unresolved reference price as 0. Zero itself remains
+    // valid when explicitly stored in an order item.
+    const invalidItemPrices = orderProducts.some((row) => getProductId(row) && !hasValidOrderPrices(row))
+    const pricesNotReady = isFetchingCustomerPrices || isFetchingWarehousePrices || invalidItemPrices
 
     const isLoadingPage = loadingResources || !orderResources || (isEdit && (loadingOrder || !order))
     const pageLoadError = loadResourceError || loadOrderError
 
-    const { isDirty, markClean } = useOrderFormData({
+    const { isDirty, isInitialized, markClean } = useOrderFormData({
         isEdit,
         order,
         orderResources,
@@ -176,9 +279,9 @@ export default function OrderFormPage({ readOnly = false }) {
 
     return (
         <DeliveryContext.Provider value={deliveryContextValue}>
-            <Box sx={sidebarPageSx.page}>
+            <Box sx={sidebarPageSx.page} inert={saving ? '' : undefined} aria-busy={saving}>
                 <OrderDetailSideBar
-                    readOnly={readOnly}
+                    readOnly={controlsReadOnly}
                     isEdit={isEdit}
                     open={open}
                     setOpen={setOpen}
@@ -186,6 +289,10 @@ export default function OrderFormPage({ readOnly = false }) {
                     loadingCustomerPrices={isLoadingCustomerPrices}
                     warehousePrices={warehousePrices}
                     loadingWarehousePrices={isLoadingWarehousePrices}
+                    customerPricesReady={!customerId || (customerPricesLoaded && !isFetchingCustomerPrices)}
+                    warehousePricesReady={!warehouseId || (warehousePricesLoaded && !isFetchingWarehousePrices)}
+                    pricesHydrated={!isEdit || isInitialized}
+                    onReferencePricesChange={handleReferencePricesChange}
                     orderProducts={orderProducts}
                     setOrderProducts={setOrderProducts}
                     orderResources={orderResources}
@@ -199,8 +306,21 @@ export default function OrderFormPage({ readOnly = false }) {
 
                         <Box
                             component="form"
+                            ref={formRef}
                             noValidate
-                            onSubmit={readOnly ? (event) => event.preventDefault() : onSubmit}
+                            onSubmit={(event) => {
+                                if (readOnly || saving || pricesNotReady) {
+                                    event.preventDefault()
+                                    if (pricesNotReady) {
+                                        showSnackbar(
+                                            'Дождитесь загрузки цен или заполните отсутствующие цены.',
+                                            'warning',
+                                        )
+                                    }
+                                    return
+                                }
+                                return onSubmit(event)
+                            }}
                             sx={sx.form}
                         >
                             <Box sx={sx.header}>
@@ -208,7 +328,7 @@ export default function OrderFormPage({ readOnly = false }) {
                                     isEdit={isEdit}
                                     orderId={form.id}
                                     saving={saving}
-                                    saveDisabled={readOnly || (isEdit && !isDirty)}
+                                    saveDisabled={readOnly || pricesNotReady || (isEdit && !isDirty)}
                                     newOrder="Создание заявки"
                                     editOrder={readOnly ? 'Просмотр заявки' : 'Редактирование заявки'}
                                 />
@@ -216,13 +336,19 @@ export default function OrderFormPage({ readOnly = false }) {
 
                             <Divider sx={sx.divider} />
 
+                            {formError && !pageLoadError && (
+                                <Alert severity="error" sx={{ mb: 2 }}>
+                                    {formError}
+                                </Alert>
+                            )}
+
                             {pageLoadError ? (
                                 <ErrorState
                                     error={pageLoadError}
                                     onRetry={() => {
-                                        refetch()
+                                        void refetch()
                                         if (isEdit) {
-                                            refetchOrder()
+                                            void refetchOrder()
                                         }
                                     }}
                                     loading={loadingResources || loadingOrder}
@@ -235,7 +361,7 @@ export default function OrderFormPage({ readOnly = false }) {
                                 <>
                                     <Box sx={sx.mainFields}>
                                         <OrderMainFields
-                                            readOnly={readOnly}
+                                            readOnly={controlsReadOnly}
                                             form={form}
                                             setForm={setForm}
                                             onChange={onChange}
@@ -247,7 +373,7 @@ export default function OrderFormPage({ readOnly = false }) {
                                         />
 
                                         <OrderCustomerFields
-                                            readOnly={readOnly}
+                                            readOnly={controlsReadOnly}
                                             form={form}
                                             setForm={setForm}
                                             orderResources={orderResources}
@@ -256,7 +382,7 @@ export default function OrderFormPage({ readOnly = false }) {
                                     </Box>
 
                                     <TextField
-                                        disabled={readOnly}
+                                        disabled={controlsReadOnly}
                                         size="small"
                                         label="Примечание"
                                         value={form.description || ''}
@@ -272,11 +398,15 @@ export default function OrderFormPage({ readOnly = false }) {
                             {!pageLoadError && !isLoadingPage && (
                                 <Box sx={sx.products}>
                                     <OrderProductsList
-                                        readOnly={readOnly}
+                                        readOnly={controlsReadOnly}
                                         rows={orderProducts}
                                         productErrors={productErrors}
+                                        passportNumberErrors={passportNumberErrors}
                                         productsList={orderResources?.products || []}
                                         packsList={orderResources?.pack_types || []}
+                                        orderId={isEdit ? id : null}
+                                        targetStatus={form.status}
+                                        deliveryDate={form.delivery_date}
                                         onAdd={handleAddProductRow}
                                         onChange={handleProductChange}
                                         onRemove={handleRemoveProductRow}
@@ -306,6 +436,51 @@ export default function OrderFormPage({ readOnly = false }) {
                             onClose={handleCancel}
                             onConfirm={handleConfirm}
                         />
+
+                        <Dialog
+                            open={Boolean(passportConflict)}
+                            onClose={() => setPassportConflict(null)}
+                            maxWidth="sm"
+                            fullWidth
+                        >
+                            <DialogTitle sx={{ pb: 2, fontSize: '1.2rem', fontWeight: 600 }}>
+                                Превышение количества по паспортам:
+                            </DialogTitle>
+                            <DialogContent sx={{ pt: '8px !important', pb: '4px !important' }}>
+                                <Box component="ul" sx={{ pl: 3.5, my: 0, '& > li:not(:last-child)': { mb: 1.5 } }}>
+                                    {(passportConflict ?? []).map((passport) => (
+                                        <Box
+                                            component="li"
+                                            key={`${passport.product_id}-${passport.passport_id}`}
+                                            sx={{ pl: 0.5, '&::marker': { color: 'text.secondary' } }}
+                                        >
+                                            <Box sx={{ display: 'flex', flexWrap: 'wrap', columnGap: 1, rowGap: 0.5 }}>
+                                                <Typography variant="body2">
+                                                    {passport.product_title} · Паспорт № {passport.passport_number}
+                                                </Typography>
+                                                <Typography
+                                                    variant="body2"
+                                                    sx={{ color: 'error.light', opacity: 0.85, fontWeight: 400 }}
+                                                >
+                                                    · Превышение: {formatTons(passport.exceeded_quantity)}
+                                                </Typography>
+                                            </Box>
+                                        </Box>
+                                    ))}
+                                </Box>
+                                <Typography color="text.secondary" sx={{ mt: 3, fontSize: '0.9rem', lineHeight: 1.45 }}>
+                                    Вернуться для создания новых паспортов или сохранить с указанными превышениями?
+                                </Typography>
+                            </DialogContent>
+                            <DialogActions sx={{ px: 3, pt: 0, pb: 2, gap: 1 }}>
+                                <Button type="button" color="inherit" onClick={() => setPassportConflict(null)}>
+                                    Вернуться
+                                </Button>
+                                <Button type="button" variant="contained" disabled={saving} onClick={handleKeepOverrun}>
+                                    Сохранить
+                                </Button>
+                            </DialogActions>
+                        </Dialog>
 
                         <AppSnackbar
                             open={snack.open}

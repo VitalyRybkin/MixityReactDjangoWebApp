@@ -3,7 +3,7 @@ from unittest import SkipTest
 
 from django.db.models import QuerySet
 from rest_framework.serializers import BaseSerializer
-from rest_framework.test import APIRequestFactory, APITestCase
+from rest_framework.test import APIRequestFactory, APITestCase, force_authenticate
 
 from core.tests.utils import TestLoggerMixin
 
@@ -73,6 +73,7 @@ class BaseQuerysetTestCase(BaseViewTestCase):
         expected_prefetches: list[str] | None = None,
         expected_selects: list[str] | None = None,
         ordered: bool = True,
+        user: Any | None = None,
     ) -> None:
         view_class = self._get_view_class()
 
@@ -88,8 +89,11 @@ class BaseQuerysetTestCase(BaseViewTestCase):
         factory = APIRequestFactory()
         request = factory.get("/")
 
+        if user is not None:
+            force_authenticate(request, user=user)
+
         view = view_class()
-        view.request = request
+        view.request = view.initialize_request(request)
         view.args = ()
         view.kwargs = {}
 

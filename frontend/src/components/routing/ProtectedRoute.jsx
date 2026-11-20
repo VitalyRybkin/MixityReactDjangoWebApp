@@ -1,70 +1,150 @@
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useState } from 'react'
 import { Navigate } from 'react-router-dom'
 
-import { Box, CircularProgress, Typography } from '@mui/material'
+import { Alert, Box, Button, CircularProgress, Typography } from '@mui/material'
 
+import { useQueryClient } from '@tanstack/react-query'
 import { jwtDecode } from 'jwt-decode'
 
-import { refreshAccessToken } from '../../api.js'
+import { AUTH_SESSION_ID_KEY, endAuthSession, getAuthSessionGeneration, refreshAccessToken } from '../../api.js'
 import { ACCESS_TOKEN, REFRESH_TOKEN } from '../../constants.js'
 
 const SKEW_SECONDS = 30
 
 function ProtectedRoute({ children }) {
+    const queryClient = useQueryClient()
     const [isAuthorized, setIsAuthorized] = useState(null)
-    const ranRef = useRef(false)
+    const [temporaryError, setTemporaryError] = useState(false)
+    const [retryCount, setRetryCount] = useState(0)
 
     useEffect(() => {
-        // Helps avoid duplicate authentication runs in development StrictMode.
-        if (ranRef.current) return
+        let cancelled = false
 
-        ranRef.current = true
-        ;(async () => {
-            try {
-                await auth()
-            } catch {
+        const generationAtStart = getAuthSessionGeneration()
+        const onStorage = (event) => {
+            if (cancelled) return
+
+            if (event.key === AUTH_SESSION_ID_KEY && getAuthSessionGeneration() !== generationAtStart) {
+                // A different login/logout changed the account. Never end that new session.
+                void queryClient.cancelQueries()
+                queryClient.clear()
                 setIsAuthorized(false)
+                return
             }
-        })()
-    }, [])
 
-    const refreshToken = async () => {
-        try {
-            await refreshAccessToken()
-            setIsAuthorized(true)
-        } catch {
-            setIsAuthorized(false)
+            if (
+                (event.key === ACCESS_TOKEN || event.key === REFRESH_TOKEN) &&
+                event.newValue &&
+                getAuthSessionGeneration() === generationAtStart
+            ) {
+                // A second tab may finish its successful refresh after this tab failed.
+                // Re-check the shared tokens instead of leaving the screen at Retry.
+                setTemporaryError(false)
+                setRetryCount((count) => count + 1)
+            }
         }
-    }
+        window.addEventListener('storage', onStorage)
 
-    const auth = async () => {
-        const token = localStorage.getItem(ACCESS_TOKEN)
+        const checkAuthorization = async () => {
+            const token = localStorage.getItem(ACCESS_TOKEN)
+            const refresh = localStorage.getItem(REFRESH_TOKEN)
 
-        if (!token) {
-            setIsAuthorized(false)
-            return
+            if (!token && !refresh) {
+                // Nothing to refresh. The user is not authenticated, but do not
+                // mutate shared storage from a route guard.
+                setIsAuthorized(false)
+                return
+            }
+
+            try {
+                const expiresAt = token ? jwtDecode(token)?.exp : null
+                const now = Date.now() / 1000
+
+                if (!expiresAt || expiresAt - now < SKEW_SECONDS) {
+                    // Only an asynchronous check withholds private content.
+                    // Healthy same-session token rotations stay mounted.
+                    setIsAuthorized(null)
+                    setTemporaryError(false)
+                    await refreshAccessToken()
+                }
+
+                if (!cancelled && getAuthSessionGeneration() === generationAtStart) {
+                    setTemporaryError(false)
+                    setIsAuthorized(true)
+                }
+            } catch (error) {
+                if (cancelled) return
+                if (error?.code === 'AUTH_SESSION_CHANGED' || getAuthSessionGeneration() !== generationAtStart) {
+                    // A different account replaced the one we were checking.
+                    void queryClient.cancelQueries()
+                    queryClient.clear()
+                    setIsAuthorized(false)
+                    return
+                }
+
+                // A concurrent refresh might already have written a newer access
+                // token. Its success must win over this tab's rejected refresh.
+                const latestToken = localStorage.getItem(ACCESS_TOKEN)
+                if (latestToken && latestToken !== token) {
+                    try {
+                        const latestExpiry = jwtDecode(latestToken)?.exp
+                        if (latestExpiry && latestExpiry > Date.now() / 1000) {
+                            setTemporaryError(false)
+                            setIsAuthorized(true)
+                            return
+                        }
+                    } catch {
+                        // The new token is unusable; keep storage intact for Retry.
+                    }
+                }
+
+                // A refresh 400/401/403 does not prove the *shared* session is
+                // invalid: another tab may still be completing a successful refresh.
+                // Do not call endAuthSession() on a background failure.
+                setIsAuthorized(null)
+                setTemporaryError(true)
+            }
         }
 
-        let decoded
+        void checkAuthorization()
 
-        try {
-            decoded = jwtDecode(token)
-        } catch {
-            localStorage.removeItem(ACCESS_TOKEN)
-            localStorage.removeItem(REFRESH_TOKEN)
-
-            setIsAuthorized(false)
-            return
+        return () => {
+            cancelled = true
+            window.removeEventListener('storage', onStorage)
         }
+    }, [queryClient, retryCount])
 
-        const exp = decoded?.exp
-        const now = Date.now() / 1000
-
-        if (!exp || exp - now < SKEW_SECONDS) {
-            await refreshToken()
-        } else {
-            setIsAuthorized(true)
-        }
+    if (temporaryError && isAuthorized === null) {
+        return (
+            <Box sx={{ p: 3, maxWidth: 520, mx: 'auto', mt: 8 }}>
+                <Alert severity="warning">
+                    Не удалось подтвердить сессию. Другая вкладка может обновлять токен.
+                    Попробуйте повторить запрос или войдите заново.
+                </Alert>
+                <Button
+                    sx={{ mt: 2 }}
+                    variant="contained"
+                    onClick={() => {
+                        setTemporaryError(false)
+                        setRetryCount((count) => count + 1)
+                    }}
+                >
+                    Повторить
+                </Button>
+                <Button
+                    sx={{ mt: 2, ml: 1 }}
+                    onClick={() => {
+                        // Only an explicit user action can terminate a shared session.
+                        endAuthSession()
+                        void queryClient.cancelQueries()
+                        queryClient.clear()
+                        setIsAuthorized(false)
+                    }}
+                >
+                    Войти заново
+                </Button>
+            </Box>
+        )
     }
 
     if (isAuthorized === null) {

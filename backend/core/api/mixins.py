@@ -4,6 +4,8 @@ from rest_framework.response import Response
 
 
 class APIViewProtocol(Protocol):
+    """Describe the view operations used by deletion mixins."""
+
     def get_object(self) -> Any: ...
     def get_serializer(self, *args: Any, **kwargs: Any) -> Any: ...
     def perform_destroy(self, instance: Any) -> None: ...
@@ -15,11 +17,13 @@ class SoftDeleteResponseMixin:
     """
 
     def perform_destroy(self, instance: Any) -> None:
+        """Mark a record inactive when it has an activation field."""
         if hasattr(instance, "is_active"):
             instance.is_active = False
             instance.save(update_fields=["is_active"])
 
     def destroy(self, request: Any, *args: Any, **kwargs: Any) -> Response:
+        """Deactivate the record and return its serialized state."""
         instance = self.get_object()  # type: ignore
         self.perform_destroy(instance)
 

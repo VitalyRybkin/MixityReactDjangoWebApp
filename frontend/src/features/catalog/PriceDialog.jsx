@@ -1,6 +1,7 @@
 import React, { useEffect } from 'react'
 
 import {
+    Alert,
     Dialog,
     DialogContent,
     DialogTitle,
@@ -51,7 +52,7 @@ export default function PriceDialog({
     const isEdit = Boolean(price)
     const isSale = selection?.type === 'sale'
 
-    const { form, setForm, onChange, onSubmit } = useFormLogic({
+    const { form, setForm, error: formError, setError, onChange, onSubmit } = useFormLogic({
         isEdit,
         id: price?.id,
 
@@ -84,6 +85,7 @@ export default function PriceDialog({
             return
         }
 
+        setError('')
         setForm({
             date: price?.date ?? getToday(),
             value: price
@@ -92,7 +94,7 @@ export default function PriceDialog({
                     : price.purchase_price
                 : '',
         })
-    }, [open, price, isSale, setForm])
+    }, [open, price, isSale, setForm, setError])
 
     if (!selection) {
         return null
@@ -136,6 +138,7 @@ export default function PriceDialog({
 
                     <DialogContent sx={sx.content}>
                         <Stack sx={sx.stack}>
+                            {formError && <Alert severity="error">{formError}</Alert>}
                             <Stack spacing={1.5}>
                                 <Stack spacing={0.5}>
                                     <Typography variant="caption" color="text.secondary">

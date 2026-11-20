@@ -2,11 +2,13 @@ import { Box, TextField, Typography } from '@mui/material'
 
 import AppSelectField from '../../../components/AppSelectField.jsx'
 import { fieldsetStyles, repairRequestFormSx as sx } from '../RepairRequestForm.styles.js'
+import { withCurrentRepairOption } from '../utils/repair.form.mappers.js'
 
 import RepairFilesSection from './RepairFilesSection.jsx'
 
 export default function RepairRequestMainFields({
     form,
+    originalRequest,
     customers,
     customerObjects,
     repairCompanies,
@@ -20,6 +22,21 @@ export default function RepairRequestMainFields({
     onDeleteFile,
     uploadingFile,
 }) {
+    const originalObject = originalRequest?.construction_object
+    const originalCustomer =
+        originalObject?.customer && typeof originalObject.customer === 'object'
+            ? originalObject.customer
+            : { id: originalObject?.customer, name: originalObject?.customer_name }
+
+    const companyOptions = withCurrentRepairOption(
+        repairCompanies,
+        form.repair_company,
+        originalRequest?.repair_company,
+        'Ремонтирующая компания',
+    )
+    const customerOptions = withCurrentRepairOption(customers, form.customerId, originalCustomer, 'Контрагент')
+    const objectOptions = withCurrentRepairOption(customerObjects, form.construction_object, originalObject, 'Объект')
+
     return (
         <Box component="fieldset" sx={[fieldsetStyles, sx.fieldset]}>
             <Typography component="legend" variant="caption" sx={sx.legend}>
@@ -41,7 +58,7 @@ export default function RepairRequestMainFields({
                     id="repair-company"
                     label="Ремонтирующая компания"
                     value={form.repair_company || ''}
-                    options={repairCompanies}
+                    options={companyOptions}
                     onChange={(value) => onSelectChange('repair_company', value)}
                     searchable
                     includeAll={false}
@@ -52,7 +69,7 @@ export default function RepairRequestMainFields({
                     id="repair-customer"
                     label="Контрагент"
                     value={form.customerId || ''}
-                    options={customers}
+                    options={customerOptions}
                     onChange={onCustomerChange}
                     searchable
                     includeAll={false}
@@ -63,7 +80,7 @@ export default function RepairRequestMainFields({
                     id="repair-object"
                     label="Объект"
                     value={form.construction_object || ''}
-                    options={customerObjects}
+                    options={objectOptions}
                     onChange={(value) => onSelectChange('construction_object', value)}
                     searchable
                     includeAll={false}

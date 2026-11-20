@@ -1,29 +1,56 @@
 export const catalogSx = {
-    row: {
-        cursor: 'pointer',
-
-        '& td': {
-            py: 1,
-            borderBottom: '1px solid',
-            borderColor: 'divider',
+    list: {
+        display: 'grid',
+        gap: 1.25,
+        mt: 2,
+    },
+    empty: {
+        py: 4,
+        textAlign: 'center',
+    },
+    productCard: {
+        display: 'grid',
+        gridTemplateColumns: {
+            xs: 'minmax(0, 1fr)',
+            md: 'minmax(220px, 0.9fr) minmax(380px, 1.7fr)',
+        },
+        alignItems: 'center',
+        columnGap: 2,
+        rowGap: 1.25,
+        px: { xs: 1.5, sm: 2 },
+        py: 1.5,
+        border: '1px solid',
+        borderColor: 'divider',
+        borderRadius: 2,
+        bgcolor: 'background.paper',
+        minWidth: 0,
+        '&:hover': {
+            borderColor: 'primary.dark',
         },
     },
-
-    nameCell: {
-        width: {
-            xs: 240,
-            sm: 280,
-            md: 320,
-        },
-        maxWidth: {
-            xs: 240,
-            sm: 280,
-            md: 320,
-        },
-        fontWeight: 600,
+    productButton: {
+        width: '100%',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        gap: 1,
+        textAlign: 'left',
+        borderRadius: 1,
+        px: 0.75,
+        py: 1,
+        minWidth: 0,
+        '&:hover': { bgcolor: 'action.hover' },
     },
-
-    titleCell: {
-        color: 'text.secondary',
+    productText: { minWidth: 0, flex: 1 },
+    productName: { fontWeight: 600, fontSize: '0.94rem', overflowWrap: 'anywhere' },
+    productTitle: { mt: 0.25, lineHeight: 1.4, overflowWrap: 'anywhere' },
+    chevron: { flexShrink: 0, color: 'text.secondary' },
+    passportCell: {
+        minWidth: 0,
+        pl: { xs: 0.75, md: 2 },
+        borderLeft: { xs: 'none', md: '1px solid' },
+        borderTop: { xs: '1px solid', md: 'none' },
+        borderColor: 'divider',
+        pt: { xs: 1, md: 0 },
     },
 }

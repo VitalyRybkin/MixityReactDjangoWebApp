@@ -1,11 +1,13 @@
+// Login page that exchanges credentials for stored authentication tokens.
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 
+import { useQueryClient } from '@tanstack/react-query'
+
 import { Alert, Box, Button, Container, Paper, TextField, Typography } from '@mui/material'
 
-import api from '../api.js'
+import api, { startAuthSession } from '../api.js'
 import ThemeToggle from '../components/ThemeToggle.jsx'
-import { ACCESS_TOKEN, REFRESH_TOKEN } from '../constants.js'
 
 const sx = {
     page: { minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center' },
@@ -15,13 +17,16 @@ const sx = {
     submit: { py: 1.4, borderRadius: 3, fontWeight: 600, textTransform: 'none' },
 }
 
+// Renders the login form, loading state, and authentication errors.
 const Login = () => {
     const navigate = useNavigate()
+    const queryClient = useQueryClient()
     const [username, setUsername] = useState('')
     const [password, setPassword] = useState('')
     const [error, setError] = useState('')
     const [loading, setLoading] = useState(false)
 
+    // Requests tokens, stores them on success, and redirects home or shows an error.
     const onSubmit = async (e) => {
         e.preventDefault()
         setError('')
@@ -33,10 +38,10 @@ const Login = () => {
                 password,
             })
 
-            localStorage.removeItem(ACCESS_TOKEN)
-            localStorage.removeItem(REFRESH_TOKEN)
-            localStorage.setItem(ACCESS_TOKEN, res.data.access)
-            localStorage.setItem(REFRESH_TOKEN, res.data.refresh)
+            // Invalidate old in-flight API responses before cancelling the old cache.
+            startAuthSession(res.data.access, res.data.refresh)
+            await queryClient.cancelQueries()
+            queryClient.clear()
 
             navigate('/', { replace: true })
         } catch (err) {
@@ -76,7 +81,10 @@ const Login = () => {
                         <TextField
                             label="Логин"
                             value={username}
-                            onChange={(e) => setUsername(e.target.value)}
+                            onChange={
+                                // Keeps the username state in sync with the input.
+                                (e) => setUsername(e.target.value)
+                            }
                             autoComplete="username"
                             fullWidth
                             required
@@ -86,7 +94,10 @@ const Login = () => {
                             label="Пароль"
                             type="password"
                             value={password}
-                            onChange={(e) => setPassword(e.target.value)}
+                            onChange={
+                                // Keeps the password state in sync with the input.
+                                (e) => setPassword(e.target.value)
+                            }
                             autoComplete="current-password"
                             fullWidth
                             required

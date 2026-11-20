@@ -4,12 +4,20 @@ import api from '../../../api.js'
 import { LIST_STALE_TIME, REFERENCE_STALE_TIME } from '../../../utils/query.constants.js'
 
 import { orderApiPaths } from './orderApiPaths.js'
+import { qualityPassportKeys } from './qualityPassports.queries.js'
 
 // --- UTILS ---
 const unwrapList = (data) => {
     if (Array.isArray(data)) return data
     if (Array.isArray(data?.results)) return data.results
     return []
+}
+
+const handlePassportSaveError = (queryClient, error, onPassportConflict) => {
+    if (error?.response?.status !== 409) return
+
+    onPassportConflict?.(error)
+    return queryClient.invalidateQueries({ queryKey: qualityPassportKeys.all })
 }
 
 // --- QUERY KEYS ---
@@ -45,7 +53,9 @@ export const orderKeys = {
             status: filters.status || '',
             customerId: filters.customerId || '',
             warehouseId: filters.warehouseId || '',
+            productId: filters.productId || '',
             samples: filters.samples === true,
+            noUpd: filters.no_upd === true,
         },
     ],
 }
@@ -85,11 +95,11 @@ export async function fetchOrders(filters = {}) {
     }
 
     if (filters.samples === true) {
-        params.samples = ''
+        params.samples = true
     }
 
     if (filters.no_upd === true) {
-        params.no_upd = ''
+        params.no_upd = true
     }
 
     const res = await api.get(orderApiPaths.listCreate(), {
@@ -99,14 +109,17 @@ export async function fetchOrders(filters = {}) {
     return res.data
 }
 
-export const fetchExportOrders = async ({ dateFrom, dateTo, status, customerId, warehouseId } = {}) => {
+export const fetchExportOrders = async ({ dateFrom, dateTo, status, customerId, warehouseId, productId, samples, no_upd } = {}) => {
     const params = {}
 
     if (dateFrom) params.date_from = dateFrom
     if (dateTo) params.date_to = dateTo
     if (status) params.status = status
-    if (customerId) params.customer = customerId
-    if (warehouseId) params.warehouse = warehouseId
+    if (customerId) params.customer_id = customerId
+    if (warehouseId) params.warehouse_id = warehouseId
+    if (productId) params.product_id = productId
+    if (samples === true) params.samples = true
+    if (no_upd === true) params.no_upd = true
 
     const res = await api.get(orderApiPaths.download(), { params })
     return unwrapList(res.data)
@@ -186,6 +199,9 @@ export function useExportOrders(filters = {}) {
                 status: filters.status || '',
                 customerId: filters.customerId || '',
                 warehouseId: filters.warehouseId || '',
+                productId: filters.productId || '',
+                samples: filters.samples === true,
+                no_upd: filters.no_upd === true,
             }),
         enabled: false,
     })
@@ -200,21 +216,24 @@ export function useGetOrder(id, options = {}) {
     })
 }
 
-export function useCreateOrder() {
+export function useCreateOrder({ onPassportConflict } = {}) {
     const queryClient = useQueryClient()
     return useMutation({
         mutationFn: createOrder,
+        onError: (error) => handlePassportSaveError(queryClient, error, onPassportConflict),
         onSuccess: async () => {
             await queryClient.invalidateQueries({ queryKey: orderKeys.all })
+            await queryClient.invalidateQueries({ queryKey: qualityPassportKeys.all })
         },
     })
 }
 
-export function useUpdateOrder() {
+export function useUpdateOrder({ onPassportConflict } = {}) {
     const queryClient = useQueryClient()
 
     return useMutation({
         mutationFn: updateOrder,
+        onError: (error) => handlePassportSaveError(queryClient, error, onPassportConflict),
 
         onSuccess: async (_, variables) => {
             await queryClient.invalidateQueries({
@@ -224,6 +243,8 @@ export function useUpdateOrder() {
             await queryClient.invalidateQueries({
                 queryKey: orderKeys.detail(variables.id),
             })
+
+            await queryClient.invalidateQueries({ queryKey: qualityPassportKeys.all })
         },
     })
 }

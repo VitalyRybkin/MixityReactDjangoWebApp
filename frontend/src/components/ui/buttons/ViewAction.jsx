@@ -1,13 +1,11 @@
-import React from 'react'
-
-import InsertDriveFileIcon from '@mui/icons-material/InsertDriveFile'
+import VisibilityOutlinedIcon from '@mui/icons-material/VisibilityOutlined'
 
 import IconAction from './IconAction.jsx'
 
-export default function ViewAction({ ...props }) {
+export default function ViewAction({ onClick, ...props }) {
     return (
-        <IconAction title="Смотреть" {...props}>
-            <InsertDriveFileIcon fontSize="small" />
+        <IconAction title="Просмотр паспорта" aria-label="Просмотр паспорта" onClick={onClick} {...props}>
+            <VisibilityOutlinedIcon fontSize="small" />
         </IconAction>
     )
 }

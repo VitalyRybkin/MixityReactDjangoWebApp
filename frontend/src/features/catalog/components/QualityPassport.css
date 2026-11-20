@@ -1,0 +1,165 @@
+/* Печатная форма; внешний вид не зависит от темы MUI. */
+.qp-page,
+.qp-page * {
+    box-sizing: border-box;
+}
+
+.qp-page {
+    width: 210mm;
+    min-height: 0;
+    margin: 0;
+    padding: 11mm 19mm 13mm;
+    background: #fff;
+    color: #111;
+    font-family: Calibri, Carlito, Arial, sans-serif;
+    font-size: 10pt;
+    line-height: 1.18;
+}
+
+.qp-company {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    text-align: right;
+    min-height: 35mm;
+    font-size: 7.9pt;
+    line-height: 1.15;
+}
+
+
+.qp-company-name {
+    margin-bottom: 0.7mm;
+    font-size: 9pt;
+    font-weight: 700;
+}
+
+.qp-heading {
+    text-align: center;
+    margin-bottom: 7mm;
+}
+
+.qp-heading h1 {
+    margin: 0 0 2mm;
+    font-size: 15pt;
+    line-height: 1.1;
+    font-weight: 700;
+}
+
+.qp-issued {
+    margin: 0 0 3mm;
+    font-size: 10.5pt;
+    font-weight: 600;
+    text-decoration: none;
+}
+
+.qp-heading h2 {
+    margin: 0 0 1mm;
+    font-size: 12.5pt;
+    line-height: 1.1;
+    font-weight: 500;
+    text-decoration: none;
+}
+
+.qp-designation,
+.qp-standard {
+    margin: 0 auto;
+    font-family: Calibri, Carlito, Arial, sans-serif;
+    font-size: 11pt;
+    line-height: 1.13;
+    font-style: italic;
+    font-weight: 400;
+}
+
+.qp-standard {
+    font-size: 10.5pt;
+}
+
+.qp-technical-conditions {
+    margin: 0.7mm 0 0;
+    font-family: Calibri, Carlito, Arial, sans-serif;
+    font-size: 9pt;
+    font-style: italic;
+}
+
+.qp-details {
+    display: grid;
+    grid-template-columns: 48mm minmax(0, 1fr);
+    row-gap: 1.3mm;
+    margin: 0 0 8mm;
+    font-size: 10.3pt;
+}
+
+.qp-details dt,
+.qp-details dd {
+    margin: 0;
+    padding: 0;
+    font-weight: 400;
+}
+
+.qp-section-heading {
+    margin: 0 0 1.3mm;
+    text-align: center;
+    font-size: 12.2pt;
+    font-weight: 700;
+}
+
+.qp-specs {
+    width: 100%;
+    border-collapse: collapse;
+    border-spacing: 0;
+    border: 0;
+    table-layout: fixed;
+    font-size: 9.5pt;
+    line-height: 1.12;
+}
+
+.qp-specs th,
+.qp-specs td {
+    border: 1px solid #333;
+    padding: 1.15mm 1.7mm;
+    vertical-align: middle;
+    overflow-wrap: break-word;
+}
+
+.qp-specs thead th {
+    padding-top: 1.4mm;
+    padding-bottom: 1.4mm;
+    text-align: center;
+    font-weight: 700;
+    background: #fff;
+}
+
+.qp-specs th:first-child,
+.qp-specs td:first-child {
+    width: 12mm;
+    text-align: center;
+}
+
+.qp-specs th:last-child,
+.qp-specs td:last-child {
+    width: 52mm;
+    text-align: center;
+}
+
+.qp-header-break {
+    display: block;
+}
+
+.qp-specs tr,
+.qp-signature {
+    break-inside: avoid;
+    page-break-inside: avoid;
+}
+
+.qp-signature {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 9mm;
+    font-size: 10.3pt;
+}
+
+@media print {
+    .qp-page {
+        margin: 0;
+    }
+}

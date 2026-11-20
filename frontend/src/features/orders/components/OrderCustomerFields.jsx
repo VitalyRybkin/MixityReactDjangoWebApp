@@ -60,22 +60,29 @@ export default function OrderCustomerFields({
         const refreshedCustomer = await refetchCustomer(customerId)
 
         setForm((prev) => {
-            const selectedIds = new Set((prev.contacts ?? []).map((contact) => Number(contact.id)))
+            const contactsById = new Map((prev.contacts ?? []).map((contact) => [String(contact.id), contact]))
 
-            if (createdContact?.id) {
-                selectedIds.add(Number(createdContact.id))
+            const availableContacts = new Map(
+                (refreshedCustomer?.contacts ?? []).map((contact) => [String(contact.id), contact]),
+            )
+
+            for (const id of contactsById.keys()) {
+                if (availableContacts.has(id)) {
+                    contactsById.set(id, availableContacts.get(id))
+                }
             }
 
-            let contacts = (refreshedCustomer?.contacts ?? []).filter((contact) => selectedIds.has(Number(contact.id)))
-
-            if (createdContact && !contacts.some((contact) => Number(contact.id) === Number(createdContact.id))) {
-                contacts = [...contacts, createdContact]
+            if (createdContact?.id != null) {
+                contactsById.set(
+                    String(createdContact.id),
+                    availableContacts.get(String(createdContact.id)) ?? createdContact,
+                )
             }
 
             return {
                 ...prev,
                 customer: refreshedCustomer ?? prev.customer,
-                contacts,
+                contacts: [...contactsById.values()],
             }
         })
 
@@ -131,8 +138,20 @@ export default function OrderCustomerFields({
                 <Stack direction="row" spacing={1} alignItems="flex-start">
                     <Autocomplete
                         size="small"
-                        options={form.customer?.customer_objects || []}
-                        getOptionLabel={(option) => (option ? `${option.name} [ ${option.address} ]` : '')}
+                        options={[
+                            ...(form.customer?.customer_objects ?? []),
+                            ...(form.customer_object &&
+                            !(form.customer?.customer_objects ?? []).some(
+                                (item) => String(item.id) === String(form.customer_object.id),
+                            )
+                                ? [form.customer_object]
+                                : []),
+                        ]}
+                        getOptionLabel={(option) => {
+                            if (!option) return ''
+
+                            return option.address ? `${option.name} [ ${option.address} ]` : option.name || ''
+                        }}
                         isOptionEqualToValue={(option, value) => option.id === value.id}
                         value={form.customer_object || null}
                         onChange={(event, newValue) => {
@@ -163,7 +182,15 @@ export default function OrderCustomerFields({
                     <Autocomplete
                         multiple
                         size="small"
-                        options={form.customer?.contacts || []}
+                        options={[
+                            ...(form.customer?.contacts ?? []),
+                            ...(form.contacts ?? []).filter(
+                                (selected) =>
+                                    !(form.customer?.contacts ?? []).some(
+                                        (item) => String(item.id) === String(selected.id),
+                                    ),
+                            ),
+                        ]}
                         isOptionEqualToValue={(option, value) => option.id === value.id}
                         value={form.contacts || []}
                         onChange={(event, newValue) => {
@@ -176,11 +203,11 @@ export default function OrderCustomerFields({
                         getOptionLabel={(option) => {
                             if (!option || typeof option !== 'object') return ''
 
-                            const name = `${option.firstName || ''} ${option.lastName || ''}`.trim()
-
+                            const fullName = `${option.firstName || ''} ${option.lastName || ''}`.trim()
+                            const displayName = fullName || option.name || ''
                             const phones = option.phoneNumbers?.map((phone) => phone.phoneNumber).join(', ') || ''
 
-                            return `${name}${phones ? ` - [ ${phones} ]` : ''}`.trim() || 'Без имени'
+                            return `${displayName}${phones ? ` - [ ${phones} ]` : ''}`.trim() || 'Без имени'
                         }}
                         renderInput={(params) => <TextField {...params} label="Контакты заказчика" />}
                         noOptionsText="Нет контактов для этого заказчика"

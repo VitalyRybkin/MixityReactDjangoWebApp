@@ -22,6 +22,10 @@ export default function OrderDetailSideBar({
     loadingCustomerPrices,
     warehousePrices,
     loadingWarehousePrices,
+    customerPricesReady = true,
+    warehousePricesReady = true,
+    pricesHydrated = true,
+    onReferencePricesChange,
     orderProducts = [],
     setOrderProducts,
     orderResources,
@@ -33,7 +37,12 @@ export default function OrderDetailSideBar({
 
     const { data: delivery } = useContext(DeliveryContext)
 
-    const warehouses = orderResources?.warehouses ?? []
+    const activeWarehouses = orderResources?.warehouses ?? []
+    const selectedWarehouse = form?.warehouse
+    const warehouses = selectedWarehouse?.id != null &&
+        !activeWarehouses.some((warehouse) => String(warehouse.id) === String(selectedWarehouse.id))
+        ? [selectedWarehouse, ...activeWarehouses]
+        : activeWarehouses
     const products = orderResources?.products ?? []
 
     const warehouseId = form?.warehouse?.id ?? form?.warehouse ?? null
@@ -58,6 +67,9 @@ export default function OrderDetailSideBar({
         orderProducts,
         objectId: customerId,
         prices: customerPrices,
+        pricesReady: customerPricesReady,
+        isHydrated: pricesHydrated,
+        onReferencePricesChange,
         setEditablePrices: setEditableSalePrices,
         productIdsKey,
         setOrderProducts,
@@ -71,6 +83,9 @@ export default function OrderDetailSideBar({
         orderProducts,
         objectId: warehouseId,
         prices: warehousePrices,
+        pricesReady: warehousePricesReady,
+        isHydrated: pricesHydrated,
+        onReferencePricesChange,
         setEditablePrices: setEditablePurchasePrices,
         productIdsKey,
         setOrderProducts,
@@ -123,7 +138,7 @@ export default function OrderDetailSideBar({
                     size="small"
                     options={warehouses}
                     getOptionLabel={(option) => option?.name || ''}
-                    isOptionEqualToValue={(option, value) => option.id === value.id}
+                    isOptionEqualToValue={(option, value) => String(option.id) === String(value.id)}
                     value={form.warehouse || null}
                     onChange={(event, newValue) => {
                         setForm((prev) => ({

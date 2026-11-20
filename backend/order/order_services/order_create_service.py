@@ -5,6 +5,7 @@ from order.models import Order
 
 @transaction.atomic
 def create_order(validated_data: dict) -> Order:
+    """Create the order and set its many-to-many relationships in one transaction."""
     m2m_data = {}
     m2m_fields = Order._meta.many_to_many
 

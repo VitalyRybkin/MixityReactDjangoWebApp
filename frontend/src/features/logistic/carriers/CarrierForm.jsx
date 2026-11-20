@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react'
+import React, { useEffect, useRef } from 'react'
 import { useLocation, useNavigate, useParams } from 'react-router-dom'
 
 import { Alert, Box, CircularProgress, Paper, Stack, TextField, Typography } from '@mui/material'
@@ -31,8 +31,27 @@ export default function CarrierFormPage() {
     const updateCarrier = useUpdateCarrier()
 
     const saving = createCarrier.isPending || updateCarrier.isPending
+    const initializedForRef = useRef(null)
+
+    const { form, setForm, error, setError, phoneError, setPhoneError, emailError, setEmailError, onChange, onSubmit } =
+        useFormLogic({
+            isEdit,
+            id,
+            emptyForm,
+            updateMutation: updateCarrier,
+            createMutation: createCarrier,
+            redirectPath: '/carriers',
+        })
 
     useEffect(() => {
+        const recordKey = isEdit ? `edit:${id}` : 'create'
+        if (initializedForRef.current === recordKey) return
+
+        // A query can briefly expose previous-record data while the URL changes.
+        // Initialize only once the requested entity is available.
+        if (isEdit && (!carrier || (carrier.id != null && String(carrier.id) !== String(id)))) return
+
+        initializedForRef.current = recordKey
         if (!isEdit) {
             setForm(emptyForm)
             setPhoneError('')
@@ -52,23 +71,13 @@ export default function CarrierFormPage() {
             setPhoneError('')
             setEmailError('')
         }
-    }, [carrier, isEdit])
+    }, [carrier, id, isEdit, setForm, setPhoneError, setEmailError])
 
     useEffect(() => {
         if (loadError) {
             setError(loadError?.response?.data?.detail || 'Ошибка загрузки данных')
         }
-    }, [loadError])
-
-    const { form, setForm, error, setError, phoneError, setPhoneError, emailError, setEmailError, onChange, onSubmit } =
-        useFormLogic({
-            isEdit,
-            id,
-            emptyForm,
-            updateMutation: updateCarrier,
-            createMutation: createCarrier,
-            redirectPath: '/carriers',
-        })
+    }, [loadError, setError])
 
     if (isEdit && loadingCarrier) return <CircularProgress />
 

@@ -109,8 +109,8 @@ export function useRepairSpecifications() {
                 rowErrors.partId = 'Выберите запчасть.'
             }
 
-            if (toNumber(item.quantity) <= 0) {
-                rowErrors.quantity = 'Укажите количество больше 0.'
+            if (!Number.isFinite(toNumber(item.quantity)) || toNumber(item.quantity) < 1) {
+                rowErrors.quantity = 'Количество должно быть не меньше 1.'
             }
 
             if (

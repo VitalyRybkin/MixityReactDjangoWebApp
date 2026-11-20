@@ -1,11 +1,11 @@
-import React, { useState } from 'react'
+import React, { useRef, useState } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
 
 import { Edit as EditIcon } from '@mui/icons-material'
 import ConstructionIcon from '@mui/icons-material/Construction'
 import LocalShippingIcon from '@mui/icons-material/LocalShipping'
 import PersonIcon from '@mui/icons-material/Person'
-import { Box, Card, CardContent, CircularProgress, Divider, Stack, Typography } from '@mui/material'
+import { Alert, Box, Button, Card, CardContent, CircularProgress, Divider, Stack, Typography } from '@mui/material'
 
 import { useQuery } from '@tanstack/react-query'
 
@@ -54,6 +54,8 @@ export default function ObjectDetailWithContactList({
     const entity = entityQuery.data ?? null
     const contacts = contactsQuery.data ?? []
     const loading = entityQuery.isPending || contactsQuery.isPending
+    const loadError = entityQuery.isError || contactsQuery.isError
+    const missingEntity = !loading && !entity
 
     const [dialog, setDialog] = useState({
         open: false,
@@ -80,6 +82,8 @@ export default function ObjectDetailWithContactList({
 
     const { confirm, askConfirm, closeConfirm, handleConfirm } = useConfirm()
     const { snack, showSnackbar, closeSnackbar } = useSnackbar()
+
+    const phoneDeletionQueuesRef = useRef(new Map())
 
     const [deleting, setDeleting] = useState({
         contactIds: new Set(),
@@ -149,30 +153,69 @@ export default function ObjectDetailWithContactList({
         })
     }
 
-    const onDeletePhone = async (contactId, phoneNumberToDelete) => {
-        const contact = contacts.find((c) => c.id === contactId)
-
-        if (!contact) return
-
-        const nextPhones = (contact.phoneNumbers ?? []).filter((p) => p.phoneNumber !== phoneNumberToDelete)
-
+    const onDeletePhone = (contactId, phoneNumberToDelete) => {
         setDeletingPhone(contactId, phoneNumberToDelete, true)
 
-        try {
-            await api.patch(`/api/contacts/${contactId}/`, {
-                phoneNumbers: nextPhones,
-            })
+        // The API replaces the whole phoneNumbers array. Serialize deletes
+        // per contact and fetch the newest array immediately before PATCH.
+        const previousJob = phoneDeletionQueuesRef.current.get(contactId) ?? Promise.resolve()
+        const job = previousJob.catch(() => {}).then(async () => {
+            try {
+                const { data: latestContact } = await api.get(`/api/contacts/${contactId}/`)
+                const phones = latestContact.phoneNumbers ?? []
+                const nextPhones = phones.filter((p) => p.phoneNumber !== phoneNumberToDelete)
 
-            await contactsQuery.refetch()
-            showSnackbar('Телефон удалён', 'success')
-        } catch (e) {
-            showSnackbar(e?.response?.data?.detail || 'Не удалось удалить телефон', 'error')
-        } finally {
-            setDeletingPhone(contactId, phoneNumberToDelete, false)
-        }
+                if (nextPhones.length !== phones.length) {
+                    await api.patch(`/api/contacts/${contactId}/`, { phoneNumbers: nextPhones })
+                }
+                await contactsQuery.refetch({ throwOnError: true })
+                showSnackbar('Телефон удалён', 'success')
+            } catch (error) {
+                showSnackbar(error?.response?.data?.detail || 'Не удалось удалить телефон', 'error')
+            } finally {
+                setDeletingPhone(contactId, phoneNumberToDelete, false)
+            }
+        })
+        phoneDeletionQueuesRef.current.set(contactId, job)
+        void job.finally(() => {
+            if (phoneDeletionQueuesRef.current.get(contactId) === job) {
+                phoneDeletionQueuesRef.current.delete(contactId)
+            }
+        })
     }
+    const rows = entity && !loadError ? fields(entity) : []
 
-    const rows = fields(entity)
+    if (loadError || missingEntity) {
+        // A network/5xx failure can leave entity empty; only an actual
+        // 404 (or a successful empty response) should say "not found".
+        const notFound = entityQuery.error?.response?.status === 404 ||
+            (!entityQuery.isError && missingEntity)
+        const message = notFound
+            ? 'Запись не найдена.'
+            : entityQuery.isError
+              ? 'Не удалось загрузить данные записи.'
+              : 'Не удалось загрузить контакты.'
+
+        return (
+            <Box sx={sx.page}>
+                <AppBreadcrumbs />
+                <Alert severity="error" sx={{ mt: 2 }}>{message}</Alert>
+                {!notFound && (
+                    <Button
+                        sx={{ mt: 2 }}
+                        variant="outlined"
+                        disabled={entityQuery.isFetching || contactsQuery.isFetching}
+                        onClick={() => {
+                            if (entityQuery.isError) void entityQuery.refetch()
+                            if (contactsQuery.isError) void contactsQuery.refetch()
+                        }}
+                    >
+                        Повторить
+                    </Button>
+                )}
+            </Box>
+        )
+    }
 
     return (
         <Box sx={sx.page}>
@@ -187,6 +230,7 @@ export default function ObjectDetailWithContactList({
 
                         <Stack direction="row" spacing={1}>
                             <EditAction
+                                disabled={loading || !entity}
                                 onClick={(event) => {
                                     if (renderEditDialog) {
                                         event.currentTarget.blur()
@@ -274,15 +318,17 @@ export default function ObjectDetailWithContactList({
                     </CardContent>
                 </Card>
 
-                <ContactsListView
-                    contacts={contacts}
-                    onAdd={openCreateContact}
-                    onEdit={openEditContact}
-                    onDelete={onDeleteContact}
-                    onDeletePhone={onDeletePhone}
-                    isDeletingPhone={isPhoneDeleting}
-                    isDeletingContact={isContactDeleting}
-                />
+                {!loading && (
+                    <ContactsListView
+                        contacts={contacts}
+                        onAdd={openCreateContact}
+                        onEdit={openEditContact}
+                        onDelete={onDeleteContact}
+                        onDeletePhone={onDeletePhone}
+                        isDeletingPhone={isPhoneDeleting}
+                        isDeletingContact={isContactDeleting}
+                    />
+                )}
             </Stack>
 
             {renderEditDialog?.({

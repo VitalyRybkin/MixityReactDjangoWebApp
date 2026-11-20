@@ -4,18 +4,25 @@ import { Autocomplete, Box, Divider, Stack, TextField, Typography } from '@mui/m
 
 import AddAction from '../../../components/ui/buttons/AddAction.jsx'
 import DeleteAction from '../../../components/ui/buttons/DeleteAction.jsx'
+import { allocateOrderPassportNumber } from '../utils/orderProducts.js'
+
+import QualityPassportInfo from './QualityPassportInfo.jsx'
 
 import { orderProductsListSx as sx } from './OrderProductsList.styles.js'
 
 export default function OrderProductsList({
     rows,
     productErrors = {},
+    passportNumberErrors = {},
     productsList,
     packsList,
     onChange,
     onAdd,
     onRemove,
     readOnly = false,
+    orderId = null,
+    targetStatus = null,
+    deliveryDate = null,
 }) {
     const selectedProductIds = useMemo(() => rows.map((row) => row.productId).filter(Boolean), [rows])
 
@@ -49,75 +56,76 @@ export default function OrderProductsList({
                     const isPieceBased = selectedProduct?.is_piece_based
 
                     return (
-                        <Box key={row.id} sx={sx.row}>
-                            <Box sx={sx.fields}>
-                                <Autocomplete
-                                    fullWidth
-                                    size="small"
-                                    options={productsList}
-                                    value={selectedProduct}
-                                    getOptionLabel={(option) => option?.name || ''}
-                                    isOptionEqualToValue={(option, value) => option.id === value.id}
-                                    getOptionDisabled={(option) =>
-                                        selectedProductIds.includes(option.id) && option.id !== row.productId
-                                    }
-                                    onChange={(_, newValue) => {
-                                        onChange(row.id, {
-                                            productId: newValue?.id || '',
-                                            packId: newValue?.default_package?.id || '',
-                                        })
-                                    }}
-                                    renderInput={(params) => (
-                                        <TextField
-                                            {...params}
-                                            label="Продукция"
-                                            placeholder="Начните вводить название"
-                                        />
-                                    )}
-                                    sx={sx.productField}
-                                    disabled={readOnly}
-                                />
-
-                                <Box sx={sx.quantityGroup}>
-                                    <TextField
+                        <Box key={row.id}>
+                            <Box sx={sx.row}>
+                                <Box sx={sx.fields}>
+                                    <Autocomplete
+                                        fullWidth
                                         size="small"
-                                        label="Количество"
-                                        type="number"
-                                        required
-                                        value={row.quantity}
-                                        onChange={(e) => {
-                                            const value = e.target.value
-
-                                            if (value === '') {
-                                                onChange(row.id, { quantity: '' })
-                                                return
-                                            }
-
-                                            if (isPieceBased) {
-                                                if (/^\d*$/.test(value)) {
-                                                    onChange(row.id, { quantity: value })
-                                                }
-                                            } else if (/^\d*\.?\d{0,2}$/.test(value)) {
-                                                onChange(row.id, { quantity: value })
-                                            }
+                                        options={productsList}
+                                        value={selectedProduct}
+                                        getOptionLabel={(option) => option?.name || ''}
+                                        isOptionEqualToValue={(option, value) => option.id === value.id}
+                                        getOptionDisabled={(option) =>
+                                            selectedProductIds.includes(option.id) && option.id !== row.productId
+                                        }
+                                        onChange={(_, newValue) => {
+                                            onChange(row.id, {
+                                                productId: newValue?.id || '',
+                                                packId: newValue?.default_package?.id || '',
+                                            })
                                         }}
-                                        error={quantityError}
-                                        slotProps={{
-                                            input: {
-                                                inputProps: {
-                                                    step: isPieceBased ? 1 : 0.01,
-                                                    inputMode: isPieceBased ? 'numeric' : 'decimal',
-                                                    min: isPieceBased ? 1 : 0.01,
-                                                },
-                                            },
-                                        }}
-                                        sx={sx.quantityField}
+                                        renderInput={(params) => (
+                                            <TextField
+                                                {...params}
+                                                label="Продукция"
+                                                placeholder="Начните вводить название"
+                                            />
+                                        )}
+                                        sx={sx.productField}
                                         disabled={readOnly}
                                     />
 
-                                    <Typography variant="body1" sx={sx.unit}>
-                                        {unitTitle}
-                                    </Typography>
+                                    <Box sx={sx.quantityGroup}>
+                                        <TextField
+                                            size="small"
+                                            label="Количество"
+                                            type="number"
+                                            required
+                                            value={row.quantity}
+                                            onChange={(e) => {
+                                                const value = e.target.value
+
+                                                if (value === '') {
+                                                    onChange(row.id, { quantity: '' })
+                                                    return
+                                                }
+
+                                                if (isPieceBased) {
+                                                    if (/^\d*$/.test(value)) {
+                                                        onChange(row.id, { quantity: value })
+                                                    }
+                                                } else if (/^\d*\.?\d{0,2}$/.test(value)) {
+                                                    onChange(row.id, { quantity: value })
+                                                }
+                                            }}
+                                            error={quantityError}
+                                            slotProps={{
+                                                input: {
+                                                    inputProps: {
+                                                        step: isPieceBased ? 1 : 0.01,
+                                                        inputMode: isPieceBased ? 'numeric' : 'decimal',
+                                                        min: isPieceBased ? 1 : 0.01,
+                                                    },
+                                                },
+                                            }}
+                                            sx={sx.quantityField}
+                                            disabled={readOnly}
+                                        />
+
+                                        <Typography variant="body1" sx={sx.unit}>
+                                            {unitTitle}
+                                        </Typography>
                                 </Box>
 
                                 <Autocomplete
@@ -143,7 +151,32 @@ export default function OrderProductsList({
                                         <DeleteAction onClick={() => onRemove(row.id)} />
                                     </Box>
                                 )}
+                                </Box>
                             </Box>
+
+                            {row.productId && (
+                                <QualityPassportInfo
+                                    productId={row.productId}
+                                    quantity={row.quantity}
+                                    product={selectedProduct}
+                                    orderId={orderId}
+                                    targetStatus={targetStatus}
+                                    deliveryDate={deliveryDate}
+                                    readOnly={readOnly}
+                                    pendingPassport={row.new_quality_passport}
+                                    allocatePassportNumber={(suggestion) =>
+                                        allocateOrderPassportNumber(suggestion, rows, row.id)
+                                    }
+                                    onPassportChange={(nextPassport) =>
+                                        onChange(row.id, { new_quality_passport: nextPassport })
+                                    }
+                                />
+                            )}
+                            {passportNumberErrors[row.id] && (
+                                <Typography role="alert" variant="caption" color="error" sx={{ display: 'block', ml: 1 }}>
+                                    {passportNumberErrors[row.id]}
+                                </Typography>
+                            )}
                         </Box>
                     )
                 })}

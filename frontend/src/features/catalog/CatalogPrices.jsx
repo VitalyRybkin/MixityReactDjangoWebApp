@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from 'react'
+import React, { useEffect, useMemo, useState } from 'react'
 import { useParams } from 'react-router-dom'
 
 import { Box, CircularProgress, Divider, Typography } from '@mui/material'
@@ -52,6 +52,13 @@ export default function CatalogPrices() {
     const deletePurchasePrice = useDeletePurchasePrice(id)
 
     const activeQuery = selection?.type === 'sale' ? salesQuery : purchaseQuery
+
+    // A removed last price can leave us on a page the API no longer serves.
+    useEffect(() => {
+        if (page > 1 && activeQuery.error?.response?.status === 404) {
+            setPage((current) => Math.max(1, current - 1))
+        }
+    }, [page, activeQuery.error])
     const createMutation = selection?.type === 'sale' ? createSalesPrice : createPurchasePrice
     const updateMutation = selection?.type === 'sale' ? updateSalesPrice : updatePurchasePrice
     const deleteMutation = selection?.type === 'sale' ? deleteSalesPrice : deletePurchasePrice
@@ -114,6 +121,11 @@ export default function CatalogPrices() {
     }
 
     const handlePriceDeleted = () => {
+        // If the current page contained only this entry, return to the previous page.
+        const count = activeQuery.data?.count
+        if (page > 1 && Number.isInteger(count) && Math.ceil(Math.max(0, count - 1) / 10) < page) {
+            setPage((current) => Math.max(1, current - 1))
+        }
         handleCloseDialog()
         showSnackbar('Цена удалена')
     }

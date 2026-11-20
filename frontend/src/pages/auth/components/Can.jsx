@@ -1,5 +1,7 @@
-import { useAuth } from '../context/AuthContext.jsx'
+// Conditionally renders content based on the current user's permissions and groups.
+import { useAuth } from '../context/useAuth.js'
 
+// Renders children when every supplied access requirement passes, or the fallback otherwise.
 export default function Can({ permission, group, any = [], all = [], fallback = null, children }) {
     const { hasPermission, hasAnyPermission, hasAllPermissions, hasGroup } = useAuth()
 

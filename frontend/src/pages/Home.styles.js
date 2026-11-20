@@ -1,4 +1,5 @@
-import { sidebarPageSx } from '../layouts/AppSidebar.jsx'
+// Responsive layout and grid styles for the orders dashboard.
+import { sidebarPageSx } from '../layouts/AppSidebar.styles.js'
 
 export const homeSx = {
     container: {
@@ -53,6 +54,7 @@ export const homeSx = {
     },
 }
 
+// Adds the sidebar offset to the dashboard content when the filter panel is open.
 export const getHomeContentSx = (sidebarOpen) => [
     sidebarPageSx.content,
     sidebarOpen && sidebarPageSx.contentWithSidebar,

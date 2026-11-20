@@ -5,6 +5,8 @@ from rest_framework.request import Request
 
 
 class StrictDjangoModelPermissions(DjangoModelPermissions):
+    """Require Django model view permissions for GET and HEAD requests."""
+
     perms_map = {
         "GET": ["%(app_label)s.view_%(model_name)s"],
         "OPTIONS": [],
@@ -17,6 +19,8 @@ class StrictDjangoModelPermissions(DjangoModelPermissions):
 
 
 class OrderUpdPermission(BasePermission):
+    """Require the order permission for managing UPD documents."""
+
     message = "У вас нет прав для работы с УПД."
 
     def has_permission(
@@ -32,6 +36,8 @@ class OrderUpdPermission(BasePermission):
 
 
 class OrderViewPermission(BasePermission):
+    """Require the Django permission for viewing orders."""
+
     def has_permission(
         self,
         request: Request,

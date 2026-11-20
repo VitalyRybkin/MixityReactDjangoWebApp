@@ -2,7 +2,7 @@ import FileUploadAction from '../../../components/FileUploadAction.jsx'
 import { formatDateTime, formatTime } from '../../../utils/DateTimeFormatting.js'
 import { ORDER_STATUS_LABELS } from '../../../utils/localeDataGridText.js'
 
-export const getFilterGridOrderColumns = ({ onUploadUpd }) => [
+export const getFilterGridOrderColumns = ({ onUploadUpd, onViewUpd }) => [
     {
         field: 'id',
         headerName: '№',
@@ -10,11 +10,11 @@ export const getFilterGridOrderColumns = ({ onUploadUpd }) => [
         minWidth: 70,
     },
     {
-        field: 'created_at',
+        field: 'order_date',
         headerName: 'Дата заявки',
         flex: 0.7,
         minWidth: 140,
-        valueGetter: (_, row) => formatDateTime(row.created_at),
+        valueGetter: (_, row) => formatDateTime(row.order_date),
     },
     {
         field: 'client_name',
@@ -71,6 +71,7 @@ export const getFilterGridOrderColumns = ({ onUploadUpd }) => [
                 entityId={row.id}
                 fileUrl={row.upd_pdf}
                 onUpload={onUploadUpd}
+                onView={onViewUpd}
                 uploadTitle="Загрузить"
                 viewTitle="Просмотр"
             />

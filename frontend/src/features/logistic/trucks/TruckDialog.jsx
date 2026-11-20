@@ -30,7 +30,7 @@ const emptyForm = {
     description: '',
 }
 
-const normalizePlate = (value) => value.toUpperCase().replace(/\s|-/g, '')
+const normalizePlate = (value) => value.toUpperCase().replace(/[\s-]/g, '')
 
 export default function TruckDialog({ open, mode = 'create', carrierId, initialData = null, onClose, onSaved }) {
     const createTruck = useCreateTruck()
@@ -115,10 +115,7 @@ export default function TruckDialog({ open, mode = 'create', carrierId, initialD
                     payload,
                 })
             } else {
-                savedTruck = await createTruck.mutateAsync({
-                    carrierId,
-                    payload,
-                })
+                savedTruck = await createTruck.mutateAsync(payload)
             }
 
             await onSaved?.(savedTruck)

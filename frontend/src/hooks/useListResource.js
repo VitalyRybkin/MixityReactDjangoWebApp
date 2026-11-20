@@ -28,7 +28,7 @@ export function useListResource(fetcher, deps = []) {
     }, deps)
 
     useEffect(() => {
-        load()
+        void load()
     }, [load])
 
     return { items, loading, error, setItems, reload: load }

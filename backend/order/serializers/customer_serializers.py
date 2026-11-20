@@ -3,13 +3,22 @@ from typing import Any
 from phonenumber_field.serializerfields import PhoneNumberField
 from rest_framework import serializers
 
+from catalog.api.serializers.product_serializers import ProductSerializer
 from catalog.models import SalesPriceHistory
-from catalog.serializers.product_serializers import ProductSerializer
 from core.validators.validators import validate_ru_phone
 from order.models import ConstructionObject, Customer
 
 
-class CustomerSerializer(serializers.ModelSerializer):
+class BaseCustomerSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Customer
+        fields = [
+            "id",
+            "name",
+        ]
+
+
+class CustomerSerializer(BaseCustomerSerializer):
 
     phone = PhoneNumberField(
         region="RU",
@@ -20,11 +29,8 @@ class CustomerSerializer(serializers.ModelSerializer):
     )
     isActive = serializers.BooleanField(source="is_active", read_only=True)
 
-    class Meta:
-        model = Customer
-        fields = [
-            "id",
-            "name",
+    class Meta(BaseCustomerSerializer.Meta):
+        fields = BaseCustomerSerializer.Meta.fields + [
             "organization",
             "email",
             "address",

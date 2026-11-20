@@ -34,6 +34,7 @@ class UnitBaseTest:
     }
 
     def get_serializer(self) -> UnitSerializer:
+        """Provide get serializer for the test contract."""
         return UnitSerializer()
 
 
@@ -53,27 +54,45 @@ class TestUnitAPIList(UnitBaseTest, BaseAPIMixin):
 
     def test_get_list(self) -> None:
         """Test the logic for retrieving a list of units."""
+        self._logger_header("UNIT APILIST: GET LIST")
         self._get_list_logic()
+        self._logger_success(
+            "get_list", "Verify the list response matches the expected resource fields"
+        )
 
     def test_creating_item_logic(self) -> None:
         """Test the logic for creating a new unit."""
+        self._logger_header("UNIT APILIST: CREATING ITEM LOGIC")
         payload = self.payload_generator()
         self._create_logic(payload)
+        self._logger_success(
+            "creating_item_logic", "Verify valid input creates a resource"
+        )
 
     def test_item_unique_fields(self) -> None:
         """Test the logic for ensuring unique fields in unit creation."""
+        self._logger_header("UNIT APILIST: ITEM UNIQUE FIELDS")
         payload = self.payload_generator()
         self._test_all_unique_fields(payload)
+        self._logger_success(
+            "item_unique_fields", "Reject duplicate values for unique fields"
+        )
 
     def test_item_mandatory_fields(self) -> None:
         """Test the logic for ensuring mandatory fields in unit creation."""
+        self._logger_header("UNIT APILIST: ITEM MANDATORY FIELDS")
         payload = self.payload_generator()
         self._test_all_mandatory_fields(payload)
+        self._logger_success(
+            "item_mandatory_fields", "Reject requests that omit required fields"
+        )
 
     def test_str_method(self) -> None:
         """Test the string representation of a unit."""
+        self._logger_header("UNIT APILIST: STR METHOD")
         unit = self.obj
         self._str_method_logic(unit.title)
+        self._logger_success("str_method", "Verify the model string representation")
 
     def payload_generator(self) -> Dict[str, Any]:
         """Generate a payload for unit creation tests."""
@@ -102,16 +121,22 @@ class TestUnitRetrieveUpdate(UnitBaseTest, BaseAPIMixin):
 
     def test_retrieve_logic(self) -> None:
         """Test the logic for retrieving a unit."""
+        self._logger_header("UNIT RETRIEVE UPDATE: RETRIEVE LOGIC")
         self._retrieve_object_by_id()
+        self._logger_success("retrieve_logic", "Verify retrieve logic")
 
     def test_update_logic(self) -> None:
         """Test the logic for updating a unit."""
+        self._logger_header("UNIT RETRIEVE UPDATE: UPDATE LOGIC")
         payload = {
             "to_kg_factor": 1000,
         }
         self._patch_logic_success(payload)
+        self._logger_success("update_logic", "Verify update logic")
 
     def test_update_logic_failed(self) -> None:
+        """Verify update logic failed."""
+        self._logger_header("UNIT RETRIEVE UPDATE: UPDATE LOGIC FAILED")
         self.obj.title = TitleChoices.KILOGRAM
         self.obj.is_weight_based = True
         self.obj.to_kg_factor = 1
@@ -126,10 +151,15 @@ class TestUnitRetrieveUpdate(UnitBaseTest, BaseAPIMixin):
             payload=payload,
             expected_field="is_weight_based",
         )
+        self._logger_success("update_logic_failed", "Verify update logic failed")
 
     def test_not_found_error(self) -> None:
         """Test the error handling logic for retrieving a nonexistent unit."""
+        self._logger_header("UNIT RETRIEVE UPDATE: NOT FOUND ERROR")
         self._retrieve_object_by_id_not_found()
+        self._logger_success(
+            "not_found_error", "Return HTTP 404 for a nonexistent resource"
+        )
 
 
 class TestUnitFiledValidation(UnitBaseTest, BaseAPIMixin):
@@ -148,6 +178,7 @@ class TestUnitFiledValidation(UnitBaseTest, BaseAPIMixin):
 
     def test_fields_validation(self) -> None:
         """Test the field validation logic for unit creation."""
+        self._logger_header("UNIT FILED VALIDATION: FIELDS VALIDATION")
         kg_ok = {"title": "kilogram", "isWeightBased": True, "toKgFactor": 1}
         ton_ok = {"title": "ton", "isWeightBased": True, "toKgFactor": 1000}
         piece_ok = {"title": "piece", "isWeightBased": False, "toKgFactor": 1}
@@ -189,3 +220,4 @@ class TestUnitFiledValidation(UnitBaseTest, BaseAPIMixin):
         ]
 
         self._test_field_validation(cases)
+        self._logger_success("fields_validation", "Verify fields validation")

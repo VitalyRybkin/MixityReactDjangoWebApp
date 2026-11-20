@@ -129,8 +129,8 @@ class OrderListCreateAPIView(BaseListCreateAPIView):
         OpenApiParameter("date_from", OpenApiTypes.DATE, OpenApiParameter.QUERY),
         OpenApiParameter("date_to", OpenApiTypes.DATE, OpenApiParameter.QUERY),
         OpenApiParameter("status", OpenApiTypes.STR, OpenApiParameter.QUERY),
-        OpenApiParameter("customer", OpenApiTypes.INT, OpenApiParameter.QUERY),
-        OpenApiParameter("warehouse", OpenApiTypes.INT, OpenApiParameter.QUERY),
+        OpenApiParameter("customer_id", OpenApiTypes.INT, OpenApiParameter.QUERY),
+        OpenApiParameter("warehouse_id", OpenApiTypes.INT, OpenApiParameter.QUERY),
         OpenApiParameter("no_upd", OpenApiTypes.BOOL, OpenApiParameter.QUERY),
         OpenApiParameter("product_id", OpenApiTypes.INT, OpenApiParameter.QUERY),
         OpenApiParameter("samples", OpenApiTypes.BOOL, OpenApiParameter.QUERY),
@@ -240,8 +240,8 @@ class OrdersExportAPIView(BaseListAPIView):
         OpenApiParameter("date_from", OpenApiTypes.DATE, OpenApiParameter.QUERY),
         OpenApiParameter("date_to", OpenApiTypes.DATE, OpenApiParameter.QUERY),
         OpenApiParameter("status", OpenApiTypes.STR, OpenApiParameter.QUERY),
-        OpenApiParameter("customer", OpenApiTypes.INT, OpenApiParameter.QUERY),
-        OpenApiParameter("warehouse", OpenApiTypes.INT, OpenApiParameter.QUERY),
+        OpenApiParameter("customer_id", OpenApiTypes.INT, OpenApiParameter.QUERY),
+        OpenApiParameter("warehouse_id", OpenApiTypes.INT, OpenApiParameter.QUERY),
     ]
 
     serializer_class = OrdersExportReadSerializer

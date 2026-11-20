@@ -1,3 +1,4 @@
+// Permission identifiers used to control access to application features.
 export const PERMISSIONS = {
     orders: {
         view: 'order.view_order',
@@ -50,6 +51,8 @@ export const PERMISSIONS = {
         add: 'catalog.add_product',
         change: 'catalog.change_product',
         delete: 'catalog.delete_product',
+        viewQualityPassport: 'catalog.view_qualitypassport',
+        addQualityPassport: 'catalog.add_qualitypassport',
     },
 
     carriers: {

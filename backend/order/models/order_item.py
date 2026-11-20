@@ -4,6 +4,8 @@ from django.db import models
 
 
 class OrderItem(models.Model):
+    """Store the quantity, recorded prices, and assigned quality passport for a product."""
+
     order = models.ForeignKey(
         "order.Order",
         on_delete=models.CASCADE,
@@ -14,6 +16,15 @@ class OrderItem(models.Model):
         "catalog.Product",
         on_delete=models.CASCADE,
         related_name="order_entries",
+    )
+
+    quality_passport = models.ForeignKey(
+        "catalog.QualityPassport",
+        on_delete=models.PROTECT,
+        related_name="order_items",
+        null=True,
+        blank=True,
+        verbose_name="Паспорт качества",
     )
 
     pack_type = models.ForeignKey(
@@ -68,6 +79,7 @@ class OrderItem(models.Model):
 
     @property
     def get_total(self) -> Decimal:
+        """Calculate the total purchase cost using the recorded unit price and quantity."""
         if not self.price_at_purchase:
             return Decimal("0.00")
         quantity = Decimal(self.piece_based_quantity or 0) + (

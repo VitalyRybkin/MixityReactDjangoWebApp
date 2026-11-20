@@ -3,7 +3,7 @@ from typing import ClassVar, Any, Type, Sequence
 from drf_spectacular.utils import OpenApiParameter
 from rest_framework import generics, serializers
 
-from core.openapi import ERRORS_DETAIL
+from core.openapi import ERRORS_DETAIL, errors
 from core.openapi.schema_factories import list_create_schema, retrieve_update_destroy_schema, resources_schema, \
     update_patch_schema, create_schema, list_schema
 
@@ -144,8 +144,8 @@ class BaseCreateAPIView(generics.CreateAPIView):
     Attributes:
         resource_name (str): The name of the API resource. Defaults to an empty string.
         schema_tags (list[str]): A list of tags used for API schema generation.
-        read_serializer_class (Type[serializers.BaseSerializer]): The serializer class
-            used for reading API responses. Defaults to `serializers.Serializer`.
+        write_serializer_class (Type[serializers.BaseSerializer]): The serializer class
+            used for writing API requests. Defaults to `serializers.Serializer`.
 
     Methods:
         as_view(**kwargs): Overrides the default as_view method to inject schema creation
@@ -154,14 +154,17 @@ class BaseCreateAPIView(generics.CreateAPIView):
     resource_name: ClassVar[str] = ""
     schema_tags: ClassVar[list[str]] = []
 
-    read_serializer_class: ClassVar[Type[serializers.BaseSerializer]] = serializers.Serializer
+    write_serializer_class: ClassVar[Type[serializers.BaseSerializer]] = serializers.Serializer
+    response_serializer_class: ClassVar[Type[serializers.BaseSerializer] | None] = None
 
     @classmethod
     def as_view(cls, **kwargs: Any) -> Any:
         decorated = create_schema(
             resource=cls.resource_name,
             tags=cls.schema_tags,
-            read_serializer=cls.read_serializer_class,
+            write_serializer=cls.write_serializer_class,
+            response_serializer=cls.response_serializer_class,
+            errors_write =errors.ERRORS_WRITE
         )(cls)
 
         return super(BaseCreateAPIView, decorated).as_view(**kwargs)
@@ -185,3 +188,22 @@ class BaseListAPIView(generics.ListAPIView):
         )(cls)
 
         return super(BaseListAPIView, decorated).as_view(**kwargs)
+
+class BaseRetrieveAPIView(generics.RetrieveAPIView):
+    resource_name: ClassVar[str] = ""
+    schema_tags: ClassVar[list[str]] = []
+    schema_parameters: ClassVar[Sequence[OpenApiParameter]] = ()
+
+    read_serializer_class: ClassVar[Type[serializers.BaseSerializer]] = serializers.Serializer
+
+    @classmethod
+    def as_view(cls, **kwargs: Any) -> Any:
+        decorated = list_schema(
+            resource=cls.resource_name,
+            tags=cls.schema_tags,
+            read_serializer=cls.read_serializer_class,
+            errors_read=ERRORS_DETAIL,
+            parameters=list(cls.schema_parameters),
+        )(cls)
+
+        return super(BaseRetrieveAPIView, decorated).as_view(**kwargs)

@@ -1,4 +1,4 @@
-import { useCallback, useMemo, useState } from 'react'
+import { useCallback, useMemo, useRef, useState } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
 
 import { Box, Checkbox, Divider, FormControlLabel } from '@mui/material'
@@ -12,21 +12,19 @@ import ApplyAction from '../../components/ui/buttons/ApplyAction.jsx'
 import DownloadAction from '../../components/ui/buttons/DownloadAction.jsx'
 import AppSnackbar from '../../components/ui/feedback/AppSnackbar.jsx'
 import { useFileUpload } from '../../hooks/useUploadFile.js'
-import { useAuth } from '../../pages/auth/context/AuthContext.jsx'
+import { useAuth } from '../../pages/auth/context/useAuth.js'
 import { PERMISSIONS } from '../../pages/auth/permissions.js'
 import CustomPagination from '../../pages/components/CustomPagination.jsx'
 import { exportOrdersToExcel } from '../../pages/utils/exportOrders.js'
 import { formatDate } from '../../pages/utils/orders.date-filters.js'
 import { localeText } from '../../utils/localeDataGridText.js'
-import { useGetProducts } from '../catalog/utils/catalog.queries.js'
 import { useGetCustomers } from '../customers/utils/customers.queries.js'
-import { useGetWarehouses } from '../warehouses/utils/stocks.queries.js'
 
 import { orderFilteringPageSx as sx } from './OrderFilteringPage.styles.js'
 import { useOrdersFilters } from './hooks/useOrdersFilters.js'
 import { useViewUpd } from './hooks/useViewUpd.js'
 import { getFilterGridOrderColumns } from './utils/filtering_order.columns.jsx'
-import { useExportOrders, useGetOrders, useUploadUpd } from './utils/orders.queries.js'
+import { fetchExportOrders, useGetOrderResources, useGetOrders, useUploadUpd } from './utils/orders.queries.js'
 
 const STORAGE_KEY = 'searching_orders_cache'
 
@@ -56,14 +54,10 @@ export default function OrderFilteringPage() {
     const entity = location.state?.entity
 
     const { data: customers = [] } = useGetCustomers()
-    const { data: warehouses = [] } = useGetWarehouses()
-    const { data: products = [] } = useGetProducts()
+    const { data: orderResources } = useGetOrderResources()
+    const warehouses = orderResources?.warehouses ?? []
+    const products = orderResources?.products ?? []
     const uploadUpd = useUploadUpd()
-
-    const handleUploadUpd = useFileUpload(uploadUpd, {
-        successMessage: 'УПД успешно загружен.',
-        errorMessage: 'Не удалось загрузить УПД.',
-    })
 
     const { formattedFilters, draftFilters, applyFilters, handleDraftFilterChange } = useOrdersFilters(
         STORAGE_KEY,
@@ -79,7 +73,8 @@ export default function OrderFilteringPage() {
     })
 
     const { data: orders, isPending: loadingOrders } = useGetOrders(formattedFilters)
-    const { refetch: fetchDownload, isFetching: isDownloading } = useExportOrders(formattedFilters)
+    const [isDownloading, setIsDownloading] = useState(false)
+    const exportInFlightRef = useRef(false)
 
     const showSnackbar = useCallback((message, severity = 'success') => {
         setSnackbar({
@@ -88,6 +83,12 @@ export default function OrderFilteringPage() {
             severity,
         })
     }, [])
+
+    const handleUploadUpd = useFileUpload(uploadUpd, showSnackbar, {
+        successMessage: 'УПД успешно загружен.',
+        deleteSuccessMessage: 'УПД успешно удалён.',
+        errorMessage: 'Не удалось изменить УПД.',
+    })
 
     const handleViewUpd = useViewUpd(showSnackbar)
 
@@ -101,18 +102,27 @@ export default function OrderFilteringPage() {
     )
 
     const handleExport = async () => {
+        if (exportInFlightRef.current) return
+        exportInFlightRef.current = true
+        setIsDownloading(true)
+        // Capture a single immutable export context. Applying another filter
+        // must not change either the dataset or its filename mid-request.
+        const exportFilters = { ...formattedFilters }
+        const exportWarehouses = [...warehouses]
         try {
-            const { data } = await fetchDownload()
-            const exportOrders = Array.isArray(data) ? data : Array.isArray(data?.results) ? data.results : []
+            const exportOrders = await fetchExportOrders(exportFilters)
 
             if (!exportOrders.length) {
                 showSnackbar('Нет заявок для экспорта.', 'info')
                 return
             }
 
-            await exportOrdersToExcel(exportOrders, formattedFilters, warehouses ?? [])
+            await exportOrdersToExcel(exportOrders, exportFilters, exportWarehouses)
         } catch {
             showSnackbar('Ошибка при экспорте.', 'error')
+        } finally {
+            exportInFlightRef.current = false
+            setIsDownloading(false)
         }
     }
 
@@ -122,14 +132,14 @@ export default function OrderFilteringPage() {
 
             <PageHeader
                 title="Поиск заявок"
-                actions={
+                actions={hasPermission(PERMISSIONS.orders.export) ? (
                     <DownloadAction
                         title="Экспорт в Excel"
                         onClick={handleExport}
                         disabled={isDownloading || loadingOrders}
                         loading={isDownloading || loadingOrders}
                     />
-                }
+                ) : null}
             />
 
             <Divider />

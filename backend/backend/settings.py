@@ -312,5 +312,12 @@ MEDIA_URL = '/media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 
 SPECTACULAR_SETTINGS = {
+    "TITLE": "Mixity API",
+    "DESCRIPTION": "Mixity API documentation",
+    "VERSION": "1.0.0",
     "COMPONENT_SPLIT_REQUEST": True,
+    "ENUM_NAME_OVERRIDES": {
+        "OrderStatusEnum": "common.schema_enums.order_status_choices",
+        "RepairRequestStatusEnum": "common.schema_enums.repair_status_choices",
+    },
 }

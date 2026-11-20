@@ -1,3 +1,5 @@
+from decimal import Decimal
+
 import pytest
 
 from catalog.models import (
@@ -9,6 +11,7 @@ from catalog.models import (
     ProductSpecName,
     ProductUnit,
     PurchasePriceHistory,
+    QualityPassport,
     SalesPriceHistory,
     SpecificationGroup,
 )
@@ -22,6 +25,7 @@ from catalog.tests.api.factories import (
     ProductSpecNameFactory,
     ProductUnitFactory,
     PurchasePriceHistoryFactory,
+    QualityPassportFactory,
     SalePriceHistoryFactory,
     SpecificationGroupFactory,
     UnitFactory,
@@ -34,6 +38,7 @@ from stock.tests.factories import WarehouseFactory
 
 
 class TestDescriptionItemModel(BaseModelTestCase):
+    """Verify description item model contracts."""
 
     __test__ = True
 
@@ -41,11 +46,18 @@ class TestDescriptionItemModel(BaseModelTestCase):
     _factory = DescriptionItemFactory
 
     def test_str_with_description(self) -> None:
+        """Verify the model string representation includes its identifying fields."""
+        self._logger_header("DESCRIPTION ITEM MODEL: STR WITH DESCRIPTION")
         expected = self.obj.title
         self._str_method(expected)
+        self._logger_success(
+            "str_with_description",
+            "Verify the model string representation includes its identifying fields",
+        )
 
 
 class TestPurchasePriceHistoryModel(BaseModelTestCase):
+    """Verify purchase price history model contracts."""
 
     __test__ = True
 
@@ -53,12 +65,20 @@ class TestPurchasePriceHistoryModel(BaseModelTestCase):
     _factory = PurchasePriceHistoryFactory
 
     def test_str_with_description(self) -> None:
+        """Verify the model string representation includes its identifying fields."""
+        self._logger_header("PURCHASE PRICE HISTORY MODEL: STR WITH DESCRIPTION")
         expected = (
             f"{self.obj.product.name} - {self.obj.warehouse.name} - {self.obj.date}"
         )
         self._str_method(expected)
+        self._logger_success(
+            "str_with_description",
+            "Verify the model string representation includes its identifying fields",
+        )
 
     def test_purchase_price_history(self) -> None:
+        """Verify purchase price history."""
+        self._logger_header("PURCHASE PRICE HISTORY MODEL: PURCHASE PRICE HISTORY")
         self._test_price_history(
             context_manager_name="latest_prices_for_warehouse_products",
             context_price_model=self._model,
@@ -67,20 +87,31 @@ class TestPurchasePriceHistoryModel(BaseModelTestCase):
             context_field="warehouse_id",
             owner_field="warehouse",
         )
+        self._logger_success("purchase_price_history", "Verify purchase price history")
 
 
 class TestSalesPriceHistoryModel(BaseModelTestCase):
+    """Verify sales price history model contracts."""
+
     __test__ = True
     _model = SalesPriceHistory
     _factory = SalePriceHistoryFactory
 
     def test_str_with_description(self) -> None:
+        """Verify the model string representation includes its identifying fields."""
+        self._logger_header("SALES PRICE HISTORY MODEL: STR WITH DESCRIPTION")
         expected = (
             f"{self.obj.product.name} - {self.obj.customer.name} - {self.obj.date}"
         )
         self._str_method(expected)
+        self._logger_success(
+            "str_with_description",
+            "Verify the model string representation includes its identifying fields",
+        )
 
     def test_sales_price_history(self) -> None:
+        """Verify sales price history."""
+        self._logger_header("SALES PRICE HISTORY MODEL: SALES PRICE HISTORY")
         self._test_price_history(
             context_manager_name="latest_prices_for_customer_products",
             context_price_model=self._model,
@@ -89,60 +120,94 @@ class TestSalesPriceHistoryModel(BaseModelTestCase):
             context_field="customer_id",
             owner_field="customer",
         )
+        self._logger_success("sales_price_history", "Verify sales price history")
 
 
 class TestProductGroupModel(BaseModelTestCase):
+    """Verify product group model contracts."""
+
     __test__ = True
     _model = ProductGroup
     _factory = ProductGroupFactory
 
     def test_str_with_description(self) -> None:
+        """Verify the model string representation includes its identifying fields."""
+        self._logger_header("PRODUCT GROUP MODEL: STR WITH DESCRIPTION")
         expected = f"{self.obj.name}"
         self._str_method(expected)
+        self._logger_success(
+            "str_with_description",
+            "Verify the model string representation includes its identifying fields",
+        )
 
 
 class TestSpecificationGroupModel(BaseModelTestCase):
+    """Verify specification group model contracts."""
+
     __test__ = True
     _model = SpecificationGroup
     _factory = SpecificationGroupFactory
 
     def test_str_with_description(self) -> None:
+        """Verify the model string representation includes its identifying fields."""
+        self._logger_header("SPECIFICATION GROUP MODEL: STR WITH DESCRIPTION")
         expected = f"{self.obj.name}"
         self._str_method(expected)
+        self._logger_success(
+            "str_with_description",
+            "Verify the model string representation includes its identifying fields",
+        )
 
 
 class TestProductSpecValueModel(BaseModelTestCase):
+    """Verify product spec value model contracts."""
+
     __test__ = True
     _model = ProductSpecName
     _factory = ProductSpecNameFactory
 
     def test_str_method(self) -> None:
+        """Verify the model string representation."""
+        self._logger_header("PRODUCT SPEC VALUE MODEL: STR METHOD")
         expected = f"{self.obj.title}"
         self._str_method(expected)
+        self._logger_success("str_method", "Verify the model string representation")
 
 
 class TestProductSpecificationModel(BaseModelTestCase):
+    """Verify product specification model contracts."""
+
     __test__ = True
     _model = ProductSpecification
     _factory = ProductSpecificationFactory
 
     def test_str_method(self) -> None:
+        """Verify the model string representation."""
+        self._logger_header("PRODUCT SPECIFICATION MODEL: STR METHOD")
         expected = f"{self.obj.name} ({self.obj.product.name})"
         self._str_method(expected)
+        self._logger_success("str_method", "Verify the model string representation")
 
 
 class TestProductDescriptionModel(BaseModelTestCase):
+    """Verify product description model contracts."""
+
     __test__ = True
     _model = ProductDescription
     _factory = ProductDescriptionFactory
 
     def test_str_method(self) -> None:
+        """Verify the model string representation."""
+        self._logger_header("PRODUCT DESCRIPTION MODEL: STR METHOD")
         expected = f"{self.obj.product} - {self.obj.item}"
         self._str_method(expected)
+        self._logger_success("str_method", "Verify the model string representation")
 
 
 @pytest.mark.django_db
 class TestProductUnitModel(BaseModelTestCase):
+    """Verify product unit model contracts."""
+
     __test__ = True
     _model = ProductUnit
     _factory = ProductUnitFactory
@@ -170,12 +235,26 @@ class TestProductUnitModel(BaseModelTestCase):
     ]
 
     def test_invalid_field_validation(self) -> None:
+        """Reject invalid model field values."""
+        self._logger_header("PRODUCT UNIT MODEL: INVALID FIELD VALIDATION")
         self._validate_model_invalid_fields()
+        self._logger_success(
+            "invalid_field_validation", "Reject invalid model field values"
+        )
 
     def test_valid_field_validation(self) -> None:
+        """Accept valid model field values."""
+        self._logger_header("PRODUCT UNIT MODEL: VALID FIELD VALIDATION")
         self._validate_model_valid_fields()
+        self._logger_success(
+            "valid_field_validation", "Accept valid model field values"
+        )
 
     def test_ton_product_unit_value_is_forced_to_one(self) -> None:
+        """Verify ton product unit value is forced to one."""
+        self._logger_header(
+            "PRODUCT UNIT MODEL: TON PRODUCT UNIT VALUE IS FORCED TO ONE"
+        )
         product = ProductFactory.create()
         unit = UnitFactory.create(title=TitleChoices.TON)
 
@@ -190,13 +269,22 @@ class TestProductUnitModel(BaseModelTestCase):
             field_name="value",
             autosaved_value=1,
         )
+        self._logger_success(
+            "ton_product_unit_value_is_forced_to_one",
+            "Verify ton product unit value is forced to one",
+        )
 
     def test_str_method(self) -> None:
+        """Verify the model string representation."""
+        self._logger_header("PRODUCT UNIT MODEL: STR METHOD")
         expected = f"{self.obj.product} ({self.obj.unit.title}) - {self.obj.value}"
         self._str_method(expected)
+        self._logger_success("str_method", "Verify the model string representation")
 
 
 class TestProductPaletteModel(BaseModelTestCase):
+    """Verify product palette model contracts."""
+
     __test__ = True
     _model = ProductPallet
     _factory = ProductPaletteFactory
@@ -211,11 +299,90 @@ class TestProductPaletteModel(BaseModelTestCase):
     ]
 
     def test_invalid_field_validation(self) -> None:
+        """Reject invalid model field values."""
+        self._logger_header("PRODUCT PALETTE MODEL: INVALID FIELD VALIDATION")
         self._validate_model_invalid_fields()
+        self._logger_success(
+            "invalid_field_validation", "Reject invalid model field values"
+        )
 
     def test_valid_field_validation(self) -> None:
+        """Accept valid model field values."""
+        self._logger_header("PRODUCT PALETTE MODEL: VALID FIELD VALIDATION")
         self._validate_model_valid_fields()
+        self._logger_success(
+            "valid_field_validation", "Accept valid model field values"
+        )
 
     def test_str_with_description(self) -> None:
+        """Verify the model string representation includes its identifying fields."""
+        self._logger_header("PRODUCT PALETTE MODEL: STR WITH DESCRIPTION")
         expected = f"{self.obj.product.name} @ {self.obj.warehouse.name}: {self.obj.items_per_pallet} шт"
         self._str_method(expected)
+        self._logger_success(
+            "str_with_description",
+            "Verify the model string representation includes its identifying fields",
+        )
+
+
+class TestQualityPassportModel(BaseModelTestCase):
+    """Verify quality passport model contracts."""
+
+    __test__ = True
+    _model = QualityPassport
+    _factory = QualityPassportFactory
+
+    invalid_fields_map = [
+        ValidationFieldSpec(field_name="number", invalid_value=0),
+        ValidationFieldSpec(field_name="number", invalid_value=-1),
+        ValidationFieldSpec(field_name="number", invalid_value=2_147_483_648),
+        ValidationFieldSpec(field_name="number", invalid_value=Decimal("5.5")),
+        ValidationFieldSpec(field_name="batch_number", invalid_value=Decimal("-0.001")),
+        ValidationFieldSpec(
+            field_name="batch_number", invalid_value=Decimal("28.3456")
+        ),
+        ValidationFieldSpec(
+            field_name="batch_number", invalid_value=Decimal("1000000")
+        ),
+        ValidationFieldSpec(field_name="batch_number", invalid_value=999999.9991),
+        ValidationFieldSpec(field_name="quantity", invalid_value=123456789101),
+        ValidationFieldSpec(
+            field_name="quantity", invalid_value=Decimal("1234568.1234")
+        ),
+        ValidationFieldSpec(field_name="quantity", invalid_value=-1),
+    ]
+
+    valid_fields_map = [
+        ValidationFieldSpec(field_name="number", invalid_value=54672),
+        ValidationFieldSpec(field_name="batch_number", invalid_value=Decimal("0")),
+        ValidationFieldSpec(
+            field_name="batch_number", invalid_value=Decimal("999999.999")
+        ),
+        ValidationFieldSpec(
+            field_name="quantity",
+            invalid_value=Decimal("30.000"),
+        ),
+    ]
+
+    def test_invalid_field_validation(self) -> None:
+        """Reject invalid model field values."""
+        self._logger_header("QUALITY PASSPORT MODEL: INVALID FIELD VALIDATION")
+        self._validate_model_invalid_fields()
+        self._logger_success(
+            "invalid_field_validation", "Reject invalid model field values"
+        )
+
+    def test_valid_field_validation(self) -> None:
+        """Accept valid model field values."""
+        self._logger_header("QUALITY PASSPORT MODEL: VALID FIELD VALIDATION")
+        self._validate_model_valid_fields()
+        self._logger_success(
+            "valid_field_validation", "Accept valid model field values"
+        )
+
+    def test_str_method(self) -> None:
+        """Verify the model string representation."""
+        self._logger_header("QUALITY PASSPORT MODEL: STR METHOD")
+        expected = f"Паспорт № {self.obj.number} — {self.obj.product.name}"
+        self._str_method(expected)
+        self._logger_success("str_method", "Verify the model string representation")

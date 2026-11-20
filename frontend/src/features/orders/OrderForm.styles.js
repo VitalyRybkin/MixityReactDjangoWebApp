@@ -1,4 +1,4 @@
-import { sidebarPageSx } from '../../layouts/AppSidebar.jsx'
+import { sidebarPageSx } from '../../layouts/AppSidebar.styles.js'
 import { commonLayoutSx } from '../../styles/layout.styles.js'
 
 export const orderFormSx = {
@@ -57,6 +57,13 @@ export const orderFormSx = {
     products: {
         minWidth: 0,
         width: '100%',
+        mt: 3,
+        px: { xs: 1.5, sm: 2 },
+        py: 2,
+        border: '1px solid',
+        borderColor: 'divider',
+        borderRadius: 2,
+        bgcolor: 'action.hover',
     },
 
     weight: {

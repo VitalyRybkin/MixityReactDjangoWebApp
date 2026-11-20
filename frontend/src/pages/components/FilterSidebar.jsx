@@ -1,3 +1,4 @@
+/** Provides order filters for delivery dates, status, customer, and warehouse. */
 import { Box, Button, Divider, Tooltip, Typography } from '@mui/material'
 
 import AppSelectField from '../../components/AppSelectField.jsx'
@@ -20,6 +21,7 @@ const rangePresetButtons = [
     { value: 'thisMonth', label: 'Месяц' },
 ]
 
+// Renders editable filters, date presets, and the action that applies them.
 export default function FilterSidebar({
     open,
     setOpen,
@@ -62,7 +64,10 @@ export default function FilterSidebar({
                 options={statusOptions}
                 valueKey="value"
                 labelKey="label"
-                onChange={(value) => handleDraftFilterChange('status', value)}
+                onChange={
+                    // Updates the draft status filter.
+                    (value) => handleDraftFilterChange('status', value)
+                }
             />
 
             <AppSelectField
@@ -70,7 +75,10 @@ export default function FilterSidebar({
                 label="Контрагент"
                 value={draftFilters.customerId}
                 options={customers}
-                onChange={(value) => handleDraftFilterChange('customerId', value)}
+                onChange={
+                    // Updates the draft customer filter.
+                    (value) => handleDraftFilterChange('customerId', value)
+                }
             />
 
             <AppSelectField
@@ -78,17 +86,23 @@ export default function FilterSidebar({
                 label="Склад"
                 value={draftFilters.warehouseId}
                 options={warehouses}
-                onChange={(value) => handleDraftFilterChange('warehouseId', value)}
+                onChange={
+                    // Updates the draft warehouse filter.
+                    (value) => handleDraftFilterChange('warehouseId', value)
+                }
             />
 
             <Divider sx={sx.sectionDivider} />
 
             <Box sx={sx.presetGroup}>
-                {quickPresetButtons.map((item) => (
+                {quickPresetButtons.map(/* Renders a button for each single-day preset. */ (item) => (
                     <Tooltip key={item.value} title="День">
                         <Button
                             variant={selectedPreset === item.value ? 'contained' : 'outlined'}
-                            onClick={() => onPresetClick(item.value)}
+                            onClick={
+                                // Selects this single-day preset.
+                                () => onPresetClick(item.value)
+                            }
                         >
                             {item.label}
                         </Button>
@@ -99,11 +113,14 @@ export default function FilterSidebar({
             <Divider sx={sx.sectionDivider} />
 
             <Box sx={sx.presetGroup}>
-                {rangePresetButtons.map((item) => (
+                {rangePresetButtons.map(/* Renders a button for each week or month preset. */ (item) => (
                     <Tooltip key={item.value} title={item.label === 'Месяц' ? 'Месяц' : 'Неделя'}>
                         <Button
                             variant={selectedPreset === item.value ? 'contained' : 'outlined'}
-                            onClick={() => onPresetClick(item.value)}
+                            onClick={
+                                // Selects this week or month preset.
+                                () => onPresetClick(item.value)
+                            }
                         >
                             {item.label}
                         </Button>

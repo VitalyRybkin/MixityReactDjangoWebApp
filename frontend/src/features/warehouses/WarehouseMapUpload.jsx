@@ -32,7 +32,7 @@ export default function WarehouseMapUploadPage() {
             const formData = new FormData()
             formData.append('directions', file)
 
-            await api.patch(warehouseApiPaths.map(), formData, {
+            await api.patch(warehouseApiPaths.map(id), formData, {
                 headers: { 'Content-Type': 'multipart/form-data' },
             })
 

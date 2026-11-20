@@ -1,10 +1,13 @@
+from decimal import Decimal
 from typing import Any
 
 from django.db import transaction
 from rest_framework import serializers
 
+from catalog.api.serializers.passport_serializers import QualityPassportIssueSerializer
+from catalog.api.serializers.product_serializers import ProductSerializer
 from catalog.models import Product
-from catalog.serializers.product_serializers import ProductSerializer
+from catalog.services.quality_passports import QualityPassportsService
 from contacts.models import Contact
 from contacts.serializers import ContactSerializer
 from logistic.models import Carrier
@@ -123,12 +126,14 @@ class OrderItemSerializer(serializers.ModelSerializer):
 
     product = ProductSerializer()
     pack_type = PackageTypeSerializer()
+    quality_passport = serializers.PrimaryKeyRelatedField(read_only=True)
 
     class Meta:
         model = OrderItem
         fields = [
             "id",
             "product",
+            "quality_passport",
             "piece_based_quantity",
             "weight_quantity",
             "pack_type",
@@ -182,6 +187,7 @@ class OrderReadSerializer(serializers.ModelSerializer):
     )
     order_delivery = OrderDeliveryInfoSerializer(source="delivery", read_only=True)
     warehouse = BaseWarehouseSerializer()
+    passports_with_limit_exceeded = serializers.SerializerMethodField()
 
     class Meta:
         model = Order
@@ -205,27 +211,25 @@ class OrderReadSerializer(serializers.ModelSerializer):
             "order_products",
             "order_delivery",
             "warehouse",
+            "passports_with_limit_exceeded",
         ]
+
+    def get_passports_with_limit_exceeded(self, obj: Order) -> list[dict]:
+        return getattr(obj, "passports_with_limit_exceeded", [])
 
 
 class OrderProductWriteSerializer(serializers.Serializer):
     """
     Serializer for handling order product data, including product selection,
     quantity, and optional package.
-
-    Attributes:
-        product: The product selected for the order. Must be related to an
-            existing product in the Product model.
-        quantity: The quantity of the product. For piece-based products, this
-            must be a whole number.
-        package: The optional packaging type selected for the product, relates
-            to an existing package in the PackType model.
-
-    Methods:
-        validate(data: dict) -> dict:
-            Validates the given data against rules for piece-based and
-            weight-based products and adjusts the serialized output accordingly.
     """
+
+    QUANTITY_ERROR_MESSAGES: dict[str, Any] = {
+        "null": "Укажите количество.",
+        "required": "Укажите количество.",
+        "invalid": "Введите корректное число.",
+        "min_value": "Количество должно быть больше нуля.",
+    }
 
     product = serializers.PrimaryKeyRelatedField(
         queryset=Product.objects.all(),
@@ -238,11 +242,8 @@ class OrderProductWriteSerializer(serializers.Serializer):
     quantity = serializers.DecimalField(
         max_digits=10,
         decimal_places=2,
-        error_messages={
-            "null": "Укажите количество.",
-            "required": "Укажите количество.",
-            "invalid": "Введите корректное число.",
-        },
+        min_value=Decimal("0.01"),
+        error_messages=QUANTITY_ERROR_MESSAGES,
     )
     package = serializers.PrimaryKeyRelatedField(
         queryset=PackType.objects.all(),
@@ -260,28 +261,54 @@ class OrderProductWriteSerializer(serializers.Serializer):
         required=False,
     )
 
-    def validate(self, data: dict) -> dict:
-        product = data.get("product")
-        quantity = data.get("quantity")
+    new_quality_passport = QualityPassportIssueSerializer(
+        required=False,
+        write_only=True,
+    )
 
-        assert product is not None, "Product is required after DRF validation"
-        assert quantity is not None, "Quantity is required after DRF validation"
+    def to_internal_value(self, data: Any) -> dict[str, Any]:
+        if isinstance(data, dict) and "quality_passport" in data:
+            raise serializers.ValidationError(
+                {
+                    "quality_passport": (
+                        "Manual assignment of quality passport is prohibited."
+                    )
+                }
+            )
+
+        return super().to_internal_value(data)
+
+    def validate(self, attrs: dict[str, Any]) -> dict[str, Any]:
+
+        if "new_quality_passport" in attrs and "quality_passport" in attrs:
+            raise serializers.ValidationError(
+                "Нельзя одновременно выбирать существующий "
+                "и выпускать новый паспорт качества."
+            )
+
+        attrs = super().validate(attrs)
+
+        product = attrs["product"]
+        quantity = attrs["quantity"]
 
         if product.is_piece_based:
             if quantity != quantity.to_integral_value():
                 raise serializers.ValidationError(
                     {
-                        "quantity": "Для штучного товара количество должно быть целым числом."
+                        "quantity": (
+                            "Для штучного товара количество "
+                            "должно быть целым числом."
+                        )
                     }
                 )
 
-            data["piece_based_quantity"] = int(quantity)
-            data["weight_quantity"] = None
+            attrs["piece_based_quantity"] = int(quantity)
+            attrs["weight_quantity"] = None
         else:
-            data["piece_based_quantity"] = None
-            data["weight_quantity"] = quantity
+            attrs["piece_based_quantity"] = None
+            attrs["weight_quantity"] = quantity
 
-        return data
+        return attrs
 
 
 class OrderDeliveryInfo(serializers.ModelSerializer):
@@ -373,6 +400,15 @@ class OrderWriteSerializer(serializers.ModelSerializer):
         allow_null=True,
     )
 
+    passports_with_limit_exceeded = serializers.SerializerMethodField()
+
+    confirmed_passport_ids = serializers.ListField(
+        child=serializers.IntegerField(min_value=1),
+        required=False,
+        write_only=True,
+        default=list,
+    )
+
     class Meta:
         model = Order
         fields = [
@@ -393,6 +429,8 @@ class OrderWriteSerializer(serializers.ModelSerializer):
             "samples",
             "created_at",
             "updated_at",
+            "passports_with_limit_exceeded",
+            "confirmed_passport_ids",
         ]
 
         read_only_fields = [
@@ -400,6 +438,9 @@ class OrderWriteSerializer(serializers.ModelSerializer):
             "created_at",
             "updated_at",
         ]
+
+    def get_passports_with_limit_exceeded(self, obj: Order) -> list[dict]:
+        return getattr(obj, "passports_with_limit_exceeded", [])
 
     def validate(self, attrs: dict) -> dict:
         """
@@ -412,6 +453,19 @@ class OrderWriteSerializer(serializers.ModelSerializer):
         self._validate_customer_object(attrs)
         self._validate_contacts(attrs)
         self._validate_delivery(attrs)
+
+        products = attrs.get("products", [])
+
+        if any("new_quality_passport" in item for item in products):
+            new_status = attrs.get(
+                "status",
+                getattr(self.instance, "status", Order.Status.DRAFT),
+            )
+
+            if new_status == Order.Status.DRAFT:
+                raise serializers.ValidationError(
+                    {"products": "Нельзя выпускать паспорт для черновика."}
+                )
 
         return attrs
 
@@ -432,10 +486,15 @@ class OrderWriteSerializer(serializers.ModelSerializer):
             and customer_object.customer_id != customer.id
         ):
             raise serializers.ValidationError(
-                {"customer_object": ("Объект не принадлежит выбранному заказчику.")}
+                {"customer_object": "Object does not belong to customer."}
             )
 
     def _validate_contacts(self, attrs: dict) -> None:
+        if self.instance is not None and not any(
+            field in attrs for field in ("contacts", "client", "customer")
+        ):
+            return
+
         client = attrs.get(
             "client",
             getattr(self.instance, "client", None),
@@ -511,6 +570,7 @@ class OrderWriteSerializer(serializers.ModelSerializer):
         if errors:
             raise serializers.ValidationError({"delivery": errors})
 
+    @transaction.atomic
     def create(self, validated_data: dict) -> Order:
         """
         Creates a new Order instance using the provided validated data. Extracts
@@ -522,20 +582,38 @@ class OrderWriteSerializer(serializers.ModelSerializer):
         contacts_data = validated_data.pop("contacts", [])
         delivery_data = validated_data.pop("delivery", None)
 
+        confirmed_ids = set(validated_data.pop("confirmed_passport_ids", []))
+
         request = self.context.get("request")
+
         if request and request.user and request.user.is_authenticated:
             validated_data["user"] = request.user
 
         order = Order.objects.create(**validated_data)
 
         if contacts_data:
-            order.contacts.set(contacts_data)  # type: ignore
+            order.contacts.set(contacts_data)
 
         sync_delivery_data(order, delivery_data)
         sync_order_items(order, products_data)
 
+        if order.status == Order.Status.DRAFT:
+            order.order_items.update(quality_passport=None)
+        else:
+            QualityPassportsService.issue_requested_passports(
+                order=order,
+                products_data=products_data,
+                created_by=validated_data.get("user"),
+            )
+
+            QualityPassportsService.passport_quantity_check(
+                order=order,
+                confirmed_passport_ids=confirmed_ids,
+            )
+
         return order
 
+    @transaction.atomic
     def update(self, instance: Order, validated_data: dict) -> Order:
         """
         Updates an order instance with the provided validated data. Applies
@@ -547,18 +625,39 @@ class OrderWriteSerializer(serializers.ModelSerializer):
         contacts_data = validated_data.pop("contacts", None)
         delivery_data = validated_data.pop("delivery", None)
 
+        confirmed_ids = set(validated_data.pop("confirmed_passport_ids", []))
+
         for attr, value in validated_data.items():
             setattr(instance, attr, value)
 
         instance.save()
 
         if contacts_data is not None:
-            instance.contacts.set(contacts_data)  # type: ignore
+            instance.contacts.set(contacts_data)
 
         if products_data is not None:
             sync_order_items(instance, products_data)
 
         sync_delivery_data(instance, delivery_data)
+
+        if instance.status == Order.Status.DRAFT:
+            OrderItem.objects.filter(order=instance).update(quality_passport=None)
+        else:
+            request = self.context.get("request")
+            created_by = (
+                request.user if request and request.user.is_authenticated else None
+            )
+
+            QualityPassportsService.issue_requested_passports(
+                order=instance,
+                products_data=products_data,
+                created_by=created_by,
+            )
+
+            QualityPassportsService.passport_quantity_check(
+                order=instance,
+                confirmed_passport_ids=confirmed_ids,
+            )
 
         return instance
 

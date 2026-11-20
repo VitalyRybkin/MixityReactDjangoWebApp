@@ -25,12 +25,13 @@ export default function FileUploadAction({
 
     const isUploading = pendingAction === 'upload'
     const isDeleting = pendingAction === 'delete'
+    const isViewing = pendingAction === 'view'
     const isPending = pendingAction !== null
 
     const handleSelectClick = (event) => {
         event.stopPropagation()
 
-        if (!isPending) {
+        if (!disabled && !isPending) {
             fileInputRef.current?.click()
         }
     }
@@ -38,14 +39,24 @@ export default function FileUploadAction({
     const handleViewClick = async (event) => {
         event.stopPropagation()
 
-        if (onView) {
-            await onView(entityId)
+        if (disabled || isPending) return
+
+        setPendingAction('view')
+        try {
+            if (onView) {
+                await onView(entityId)
+            } else if (fileUrl) {
+                // Fallback for non-protected files; authenticated UPD uses onView.
+                window.open(fileUrl, '_blank', 'noopener,noreferrer')
+            }
+        } finally {
+            setPendingAction(null)
         }
     }
 
     const handleDeleteClick = (event) => {
         event.stopPropagation()
-        setDeleteConfirmOpen(true)
+        if (!disabled && !isPending) setDeleteConfirmOpen(true)
     }
 
     const handleConfirmDelete = async () => {
@@ -89,12 +100,12 @@ export default function FileUploadAction({
 
             {fileUrl ? (
                 <Box sx={{ display: 'flex', gap: 1 }}>
-                    <ViewAction title={viewTitle} disabled={disabled || isPending} onClick={handleViewClick} />
+                    <ViewAction title={viewTitle} loading={isViewing} disabled={disabled || isPending} onClick={handleViewClick} />
 
                     <DeleteFileAction
                         title={deleteTitle}
                         loading={isDeleting}
-                        disabled={disabled}
+                        disabled={disabled || isPending}
                         onClick={handleDeleteClick}
                     />
                 </Box>
@@ -103,7 +114,7 @@ export default function FileUploadAction({
                     <UploadAction
                         title={uploadTitle}
                         loading={isUploading}
-                        disabled={disabled}
+                        disabled={disabled || isPending}
                         onClick={handleSelectClick}
                     />
                 </Box>

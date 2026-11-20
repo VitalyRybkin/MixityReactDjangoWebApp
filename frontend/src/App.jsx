@@ -1,15 +1,18 @@
+import { useEffect } from 'react'
 import {
-    Navigate,
     Outlet,
     Route,
     RouterProvider,
     createBrowserRouter,
     createRoutesFromElements,
+    useNavigate,
 } from 'react-router-dom'
 
+import { useQueryClient } from '@tanstack/react-query'
+
+import { endAuthSession } from './api.js'
 import ProtectedRoute from './components/routing/ProtectedRoute.jsx'
 import GlobalApiErrorSnackbar from './components/ui/feedback/GlobalApiErrorSnackbar.jsx'
-import { ACCESS_TOKEN, REFRESH_TOKEN } from './constants.js'
 import CatalogPage from './features/catalog/Catalog.jsx'
 import CatalogPrices from './features/catalog/CatalogPrices.jsx'
 import ClientDetailPage from './features/clients/ClientDetail.jsx'
@@ -46,9 +49,21 @@ import { AuthProvider } from './pages/auth/context/AuthContext.jsx'
 import { PERMISSIONS } from './pages/auth/permissions.js'
 
 function Logout() {
-    localStorage.removeItem(ACCESS_TOKEN)
-    localStorage.removeItem(REFRESH_TOKEN)
-    return <Navigate to="/login" replace />
+    const navigate = useNavigate()
+    const queryClient = useQueryClient()
+
+    useEffect(() => {
+        // Revoke local credentials before leaving the private area.
+        endAuthSession()
+
+        // Stop background reads and discard everything cached for this session.
+        void queryClient.cancelQueries()
+        queryClient.clear()
+
+        navigate('/login', { replace: true })
+    }, [navigate, queryClient])
+
+    return null
 }
 
 function AuthenticatedApp() {

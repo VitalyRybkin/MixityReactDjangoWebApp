@@ -1,4 +1,5 @@
 import datetime
+from decimal import Decimal
 
 import factory.fuzzy
 from factory import fuzzy
@@ -101,6 +102,7 @@ class ProductSpecificationFactory(factory.django.DjangoModelFactory):
     name = factory.SubFactory(ProductSpecNameFactory)
     value = factory.Sequence(lambda n: f"word-{n}")
     unit = factory.SubFactory(UnitFactory)
+    effective_from = datetime.date(2026, 1, 1)
 
 
 class ProductDescriptionFactory(factory.django.DjangoModelFactory):
@@ -133,3 +135,25 @@ class ProductPaletteFactory(factory.django.DjangoModelFactory):
     product = factory.SubFactory(ProductFactory)
     warehouse = factory.SubFactory(WarehouseFactory)
     items_per_pallet = factory.Iterator([40, 48])
+
+
+class QualityPassportFactory(factory.django.DjangoModelFactory):
+    class Meta:
+        model = "catalog.QualityPassport"
+
+    product = factory.SubFactory(ProductFactory)
+
+    @factory.lazy_attribute
+    def quantity(self) -> Decimal:
+        ProductUnitFactory(
+            product=self.product,
+            value=25,
+        )
+        return Decimal("20000.000")
+
+    number = factory.Sequence(lambda n: 100_000 + n * 10)
+    issue_date = factory.Faker("date")
+    batch_number = factory.Sequence(
+        lambda n: (Decimal(n) / 1000).quantize(Decimal("0.001"))
+    )
+    production_date = factory.SelfAttribute("issue_date")

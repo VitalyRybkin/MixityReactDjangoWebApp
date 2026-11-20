@@ -5,6 +5,7 @@ from django.utils import timezone
 
 
 class RepairRequest(models.Model):
+    """Track equipment repairs and their associated paperwork and specifications."""
 
     class Status(models.TextChoices):
         OPEN = "open", "Открыта"
@@ -95,6 +96,8 @@ class RepairRequest(models.Model):
 
 
 class RequestFile(models.Model):
+    """Store an attachment submitted with a repair request."""
+
     repair_request = models.ForeignKey(
         RepairRequest,
         on_delete=models.CASCADE,
@@ -128,6 +131,8 @@ class RequestFile(models.Model):
 
 
 class ClosingFile(models.Model):
+    """Store an attachment documenting the close of a repair request."""
+
     repair_request = models.ForeignKey(
         RepairRequest,
         on_delete=models.CASCADE,
@@ -156,6 +161,8 @@ class ClosingFile(models.Model):
 
 
 class RepairService(models.Model):
+    """Name a service that can be added to a repair specification."""
+
     name = models.CharField(max_length=255, verbose_name="Название услуги")
     description = models.TextField(blank=True, verbose_name="Описание")
     is_active = models.BooleanField(default=True, verbose_name="Доступна для заказа")
@@ -169,6 +176,8 @@ class RepairService(models.Model):
 
 
 class RepairPart(models.Model):
+    """Name a part that can be added to a repair specification."""
+
     name = models.CharField(max_length=255, verbose_name="Название з/ч")
     description = models.TextField(blank=True, verbose_name="Описание")
     is_active = models.BooleanField(default=True, verbose_name="Доступна для заказа")
@@ -182,6 +191,8 @@ class RepairPart(models.Model):
 
 
 class RepairSpecification(models.Model):
+    """Associate a repair with a part or service and its quantity."""
+
     repair_request = models.ForeignKey(
         RepairRequest,
         on_delete=models.CASCADE,

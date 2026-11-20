@@ -1,4 +1,4 @@
-import { useEffect } from 'react'
+import { useEffect, useRef } from 'react'
 import { useLocation, useNavigate, useParams } from 'react-router-dom'
 
 import { Alert, Box, CircularProgress, Paper, Stack, TextField, Typography } from '@mui/material'
@@ -18,7 +18,7 @@ const emptyForm = {
     address: '',
     phone: '',
     email: '',
-    descriptions: '',
+    description: '',
 }
 
 export default function WarehouseFormPage() {
@@ -33,10 +33,30 @@ export default function WarehouseFormPage() {
     const updateWarehouse = useUpdateWarehouse()
 
     const saving = createWarehouse.isPending || updateWarehouse.isPending
+    const hasSavedWarehouse = isEdit && warehouse?.id != null && String(warehouse.id) === String(id)
+    const initializedForRef = useRef(null)
 
     const { renderActions } = useLoadImage()
 
+    const { form, setForm, error, setError, phoneError, setPhoneError, emailError, setEmailError, onChange, onSubmit } =
+        useFormLogic({
+            isEdit,
+            id,
+            emptyForm,
+            updateMutation: updateWarehouse,
+            createMutation: createWarehouse,
+            redirectPath: '/warehouses',
+        })
+
     useEffect(() => {
+        const recordKey = isEdit ? `edit:${id}` : 'create'
+        if (initializedForRef.current === recordKey) return
+
+        // A query can briefly expose previous-record data while the URL changes.
+        // Initialize only once the requested entity is available.
+        if (isEdit && (!warehouse || (warehouse.id != null && String(warehouse.id) !== String(id)))) return
+
+        initializedForRef.current = recordKey
         if (!isEdit) {
             setForm(emptyForm)
             setPhoneError('')
@@ -51,29 +71,19 @@ export default function WarehouseFormPage() {
                 address: warehouse.address ?? '',
                 phone: warehouse.phone ?? '',
                 email: warehouse.email ?? '',
-                descriptions: warehouse.descriptions ?? '',
+                description: warehouse.description ?? '',
                 directions: warehouse.directions ?? '',
             })
             setPhoneError('')
             setEmailError('')
         }
-    }, [warehouse, isEdit])
+    }, [warehouse, id, isEdit, setForm, setPhoneError, setEmailError])
 
     useEffect(() => {
         if (loadError) {
             setError(loadError?.response?.data?.detail || 'Ошибка загрузки данных')
         }
-    }, [loadError])
-
-    const { form, setForm, error, setError, phoneError, setPhoneError, emailError, setEmailError, onChange, onSubmit } =
-        useFormLogic({
-            isEdit,
-            id,
-            emptyForm,
-            updateMutation: updateWarehouse,
-            createMutation: createWarehouse,
-            redirectPath: '/warehouses',
-        })
+    }, [loadError, setError])
 
     if (isEdit && loadingWarehouse) {
         return (
@@ -127,8 +137,8 @@ export default function WarehouseFormPage() {
                         />
                         <TextField
                             label="Примечание"
-                            value={form.descriptions}
-                            onChange={onChange('descriptions')}
+                            value={form.description}
+                            onChange={onChange('description')}
                             fullWidth
                             multiline
                             minRows={3}
@@ -138,11 +148,15 @@ export default function WarehouseFormPage() {
                                 Схема проезда
                             </Typography>
 
-                            {renderActions(
+                            {hasSavedWarehouse ? renderActions(
                                 form?.directions,
-                                `/warehouses/${warehouse?.id}/map`,
-                                warehouse?.directions,
-                                { state: { warehouse: warehouse?.name } },
+                                `/warehouses/${warehouse.id}/map`,
+                                warehouse.directions,
+                                { state: { warehouse: warehouse.name } },
+                            ) : !isEdit && (
+                                <Typography variant="body2" color="text.secondary">
+                                    Сначала сохраните склад, чтобы загрузить схему проезда.
+                                </Typography>
                             )}
                         </Box>
 

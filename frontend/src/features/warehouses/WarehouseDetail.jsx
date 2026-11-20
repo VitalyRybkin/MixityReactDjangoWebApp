@@ -23,7 +23,7 @@ export default function WarehouseDetailPage() {
                 { label: 'Наименование', value: w?.name },
                 { label: 'Организация', value: w?.organization },
                 { label: 'Адрес', value: w?.address },
-                { label: 'Телефон', value: w?.phoneNumber },
+                { label: 'Телефон', value: w?.phone },
                 { label: 'Email', value: emailValue(w?.email) },
                 { label: 'Примечание', value: w?.description },
                 {

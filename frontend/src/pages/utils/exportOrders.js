@@ -1,6 +1,23 @@
 import ExcelJS from 'exceljs'
 import { saveAs } from 'file-saver'
 
+// Only filename components are sanitized; worksheet cell values retain original text.
+// Covers forbidden path characters on Windows/macOS/Linux and ASCII controls.
+export function sanitizeFilenamePart(value) {
+    const forbidden = '/\\:*?"<>|'
+    const safe = Array.from(String(value ?? ''))
+        .map((char) => {
+            const code = char.codePointAt(0)
+            return code < 32 || code === 127 || forbidden.includes(char) ? '_' : char
+        })
+        .join('')
+        .replace(/\s+/g, ' ')
+        .trim()
+        .replace(/[. ]+$/g, '')
+
+    return Array.from(safe).slice(0, 100).join('') || 'unknown'
+}
+
 export function formatFilteringDate(dateStr, includeYear = false) {
     if (!dateStr) return ''
     const [year, month, day] = dateStr.split('-')
@@ -10,7 +27,7 @@ export function formatFilteringDate(dateStr, includeYear = false) {
     return `${day}.${month}`
 }
 
-export async function exportOrdersToExcel(orders, filters, warehouses) {
+export async function prepareOrdersExcelFile(orders, filters, warehouses) {
     const jsonData = Array.isArray(orders) ? orders : Array.isArray(orders?.results) ? orders.results : []
 
     if (!jsonData.length) {
@@ -165,13 +182,19 @@ export async function exportOrdersToExcel(orders, filters, warehouses) {
     const dateStr = filters.dateFrom === filters.dateTo ? endPeriod : `${startPeriod}-${endPeriod}`
 
     const warehouseName = filters.warehouseId
-        ? (warehouses.find((w) => w.id === filters.warehouseId)?.name ?? 'unknown')
+        ? (warehouses.find((w) => String(w.id) === String(filters.warehouseId))?.name ?? 'unknown')
         : null
 
-    const warehouseStr = warehouseName ? `_склад_${warehouseName}` : '_ВСЕ_СКЛАДЫ'
+    const warehouseStr = warehouseName ? `_склад_${sanitizeFilenamePart(warehouseName)}` : '_ВСЕ_СКЛАДЫ'
 
-    saveAs(
-        new Blob([buffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' }),
-        `заявки${warehouseStr}_${dateStr}.xlsx`,
-    )
+    return {
+        filename: `заявки${warehouseStr}_${dateStr}.xlsx`,
+        blob: new Blob([buffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' }),
+    }
+}
+
+// Keep the existing individual Excel download available to other screens.
+export async function exportOrdersToExcel(orders, filters, warehouses) {
+    const file = await prepareOrdersExcelFile(orders, filters, warehouses)
+    saveAs(file.blob, file.filename)
 }

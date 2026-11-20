@@ -1,10 +1,14 @@
 import { useEffect, useRef, useState } from 'react'
 
-const formatRu = (value) =>
-    Number(value ?? 0).toLocaleString('ru-RU', {
+import { normalizeOrderPrice } from '../utils/orderPrices.js'
+
+const formatRu = (value) => {
+    const price = normalizeOrderPrice(value)
+    return price === null ? '' : price.toLocaleString('ru-RU', {
         minimumFractionDigits: 2,
         maximumFractionDigits: 2,
     })
+}
 
 export function useCurrencyField(value, onChange) {
     const [display, setDisplay] = useState(() => formatRu(value))
@@ -19,8 +23,18 @@ export function useCurrencyField(value, onChange) {
     const handleChange = (e) => {
         const raw = e.target.value
         setDisplay(raw)
-        const parsed = parseFloat(raw.replace(/\s/g, '').replace(',', '.'))
-        if (!isNaN(parsed)) onChange(parsed)
+        const normalized = raw.replace(/[\s\u00a0\u202f]/g, '').replace(',', '.')
+        if (normalized === '') {
+            onChange(null)
+            return
+        }
+        // Keep the stored value at the same two-decimal precision as the UI.
+        if (!/^-?\d+(?:\.\d*)?$/.test(normalized)) {
+            onChange(null)
+            return
+        }
+        const parsed = Number(normalized)
+        onChange(normalizeOrderPrice(Math.round((parsed + Number.EPSILON) * 100) / 100))
     }
 
     const handleBlur = () => {

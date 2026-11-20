@@ -3,8 +3,8 @@ from typing import Any
 from phonenumber_field.serializerfields import PhoneNumberField
 from rest_framework import serializers, validators
 
+from catalog.api.serializers.product_serializers import ProductSerializer
 from catalog.models import PurchasePriceHistory
-from catalog.serializers.product_serializers import ProductSerializer
 from core.validators.validators import validate_ru_phone
 from stock.models import Warehouse
 

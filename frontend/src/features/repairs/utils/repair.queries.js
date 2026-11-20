@@ -1,16 +1,25 @@
 // --- UTILS ---
-import {useMutation, useQuery, useQueryClient} from '@tanstack/react-query'
+import { useCallback } from 'react'
+
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 
 import api from '../../../api.js'
-import {LIST_STALE_TIME, REFERENCE_STALE_TIME} from '../../../utils/query.constants.js'
+import { LIST_STALE_TIME, REFERENCE_STALE_TIME } from '../../../utils/query.constants.js'
 
-import {repairCompaniesApiPaths, repairRequestsApiPaths} from './repairApiPaths.js'
-
+import { repairCompaniesApiPaths, repairRequestsApiPaths } from './repairApiPaths.js'
 
 export const unwrapList = (data) => {
     if (Array.isArray(data)) return data
     if (Array.isArray(data?.results)) return data.results
     return []
+}
+
+// DRF uses 404 for invalid pages as well as missing resources. Match only
+// its pagination detail, including the backend's localized error envelope.
+export const isRepairRequestsPageOutOfRange = (error) => {
+    const data = error?.response?.data
+    const detail = data?.errors?.detail ?? data?.detail
+    return error?.response?.status === 404 && ['Invalid page.', 'Неправильная страница'].includes(detail)
 }
 
 // --- QUERY KEYS ---
@@ -37,7 +46,7 @@ export const repairRequestsKeys = {
             location: filters.location || '',
             repairCompanyId: filters.repairCompanyId || '',
             customerId: filters.customerId || '',
-            constructionObjectId: filters.constructionObjectId || '',
+            objectId: filters.objectId || filters.constructionObjectId || '',
         },
     ],
 }
@@ -136,16 +145,25 @@ export const deleteRepairRequest = async (id) => {
     return id
 }
 
-export const fetchExportRequests = async ({ dateFrom, dateTo, status, location, repairCompanyId, customerId, constructionObjectId } = {}) => {
+export const fetchExportRequests = async ({
+    dateFrom,
+    dateTo,
+    status,
+    location,
+    repairCompanyId,
+    customerId,
+    objectId,
+    constructionObjectId,
+} = {}) => {
     const params = {}
 
     if (dateFrom) params.date_from = dateFrom
     if (dateTo) params.date_to = dateTo
     if (status) params.status = status
     if (location) params.location = location
-    if (customerId) params.customer = customerId
-    if (repairCompanyId) params.warehouse = repairCompanyId
-    if (constructionObjectId) params.construction_object = constructionObjectId
+    if (customerId) params.customer_id = customerId
+    if (repairCompanyId) params.repair_company_id = repairCompanyId
+    if (objectId || constructionObjectId) params.object_id = objectId || constructionObjectId
 
     const res = await api.get(repairRequestsApiPaths.export(), { params })
     return unwrapList(res.data)
@@ -259,30 +277,40 @@ export function useDeleteRepairRequest() {
         mutationFn: deleteRepairRequest,
 
         onSuccess: async (id) => {
+            // Discard pre-deletion responses before updating cached pages.
+            await queryClient.cancelQueries({ queryKey: repairRequestsKeys.lists() })
+
             queryClient.removeQueries({
                 queryKey: repairRequestsKeys.detail(id),
             })
 
+            queryClient.setQueriesData({ queryKey: repairRequestsKeys.lists() }, (data) => {
+                if (!Array.isArray(data?.results)) return data
+                const results = data.results.filter((row) => String(row.id) !== String(id))
+                if (results.length === data.results.length) return data
+                return { ...data, results, count: Math.max(0, data.count - 1) }
+            })
+
+            // The list chooses a valid page before fetching again. Refetching
+            // here would request a now-nonexistent final page after deletion.
             await queryClient.invalidateQueries({
                 queryKey: repairRequestsKeys.lists(),
+                refetchType: 'none',
             })
         },
     })
 }
 
-export function useExportRequests(filters = {}) {
-    return useQuery({
-        queryKey: repairRequestsKeys.requests_export(filters),
-        queryFn: () =>
-            fetchExportRequests({
-                dateFrom: filters.dateFrom || '',
-                dateTo: filters.dateTo || '',
-                status: filters.status || '',
-                location: filters.location || '',
-                repairCompanyId: filters.repairCompanyId || '',
-                customerId: filters.customerId || '',
-                constructionObjectId: filters.constructionObjectId || '',
+export function useExportRequests() {
+    const queryClient = useQueryClient()
+
+    return useCallback(
+        (filters = {}) =>
+            queryClient.fetchQuery({
+                queryKey: repairRequestsKeys.requests_export(filters),
+                queryFn: () => fetchExportRequests(filters),
+                staleTime: 0,
             }),
-        enabled: false,
-    })
+        [queryClient],
+    )
 }

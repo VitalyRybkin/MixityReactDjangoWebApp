@@ -1,8 +1,14 @@
+import posixpath
+from pathlib import Path
+
 from django.conf import settings
 from django.conf.urls.static import static
 from django.contrib import admin
+from django.http import Http404, HttpRequest
+from django.http.response import HttpResponseBase
 from django.urls import include, path
 from django.views.generic import RedirectView
+from django.views.static import serve
 from drf_spectacular.views import SpectacularAPIView, SpectacularSwaggerView
 from rest_framework.permissions import AllowAny
 from rest_framework_simplejwt.views import TokenRefreshView
@@ -10,6 +16,17 @@ from rest_framework_simplejwt.views import TokenRefreshView
 from common.views import doc_page, UserMeView
 from core.api.auth import LoginTokenObtainPairView
 from core.api.health import health_check
+
+
+def serve_public_media(
+    request: HttpRequest, path: str, document_root: str | Path
+) -> HttpResponseBase:
+    """Keep documentation private even through normalized development media URLs."""
+    normalized = posixpath.normpath(path).lstrip("/")
+    if normalized.split("/", 1)[0].casefold() == "docs":
+        raise Http404
+    return serve(request, path, document_root=str(document_root))
+
 
 urlpatterns = [
     path("admin/", admin.site.urls),
@@ -261,5 +278,6 @@ if settings.DEBUG:
     if settings.DEBUG:
         urlpatterns += static(
             settings.MEDIA_URL,
+            view=serve_public_media,
             document_root=settings.MEDIA_ROOT,
         )

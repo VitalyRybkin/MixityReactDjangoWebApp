@@ -1,7 +1,7 @@
 import React, { useRef } from 'react'
 import { useParams } from 'react-router-dom'
 
-import { Box, CircularProgress, Divider, Stack, Typography } from '@mui/material'
+import { Alert, Box, CircularProgress, Divider, Stack, Typography } from '@mui/material'
 
 import AppBreadcrumbs from '../../components/AppBreadcrumbs.jsx'
 import PageHeaderCreateUpdate from '../../components/PageHeaderCreateUpdate.jsx'
@@ -32,6 +32,7 @@ import {
     useUploadClosingFile,
     useUploadRequestFile,
 } from './utils/repair.files.queries.js'
+import { toRepairRequestPayload } from './utils/repair.form.mappers.js'
 import { useGetSpareParts } from './utils/repair.parts.queries.js'
 import {
     useCreateRepairRequest,
@@ -40,7 +41,7 @@ import {
     useUpdateRepairRequest,
 } from './utils/repair.queries.js'
 import { useGetRepairServices } from './utils/repair.services.queries.js'
-import { emptyRequestForm } from './utils/request.form.constants.js'
+import { createEmptyRequestForm } from './utils/request.form.constants.js'
 
 export default function RepairRequestFormPage() {
     const { id } = useParams()
@@ -116,10 +117,17 @@ export default function RepairRequestFormPage() {
     }
 
     const handleDeleteClosingFile = async (fileId) => {
-        await deleteClosingFile.mutateAsync({
-            requestId: id,
-            fileId,
-        })
+        try {
+            await deleteClosingFile.mutateAsync({
+                requestId: id,
+                fileId,
+            })
+
+            showSnackbar('Закрывающий файл удалён.', 'success')
+        } catch (error) {
+            console.error('Ошибка удаления закрывающего файла:', error)
+            showSnackbar(firstError(error) || 'Не удалось удалить закрывающий файл.', 'error')
+        }
     }
 
     const saving = createRepairRequest.isPending || updateRepairRequest.isPending
@@ -149,26 +157,27 @@ export default function RepairRequestFormPage() {
 
     const markCleanRef = useRef(null)
 
-    const { form, setForm, setError, onChange, onSubmit } = useFormLogic({
+    const {
+        form,
+        setForm,
+        error: formError,
+        setError,
+        onChange,
+        onSubmit,
+    } = useFormLogic({
         isEdit,
         id,
-        emptyForm: emptyRequestForm,
+        emptyForm: createEmptyRequestForm,
         updateMutation: updateRepairRequest,
         createMutation: createRepairRequest,
         redirectPath: '/repair/requests',
 
-        toPayload: (form) => ({
-            request_date: form.request_date,
-            closing_date: form.closing_date || null,
-            status: form.status,
-            location: form.location,
-            repair_company: form.repair_company,
-            construction_object: form.construction_object,
-            description: form.description,
-            inspection_description: form.inspection_description,
-            closing_description: form.closing_description,
-            specifications: buildSpecificationsPayload(specifications),
-        }),
+        toPayload: (form) =>
+            toRepairRequestPayload(
+                form,
+                buildSpecificationsPayload(specifications),
+                isEdit ? repairRequest : null,
+            ),
 
         validate: validateSpecifications,
         onSuccess: () => markCleanRef.current?.(),
@@ -235,12 +244,18 @@ export default function RepairRequestFormPage() {
 
                 <Divider sx={sx.divider} />
 
+                {formError && !pageLoadError && (
+                    <Alert severity="error" sx={{ mb: 2 }}>
+                        {formError}
+                    </Alert>
+                )}
+
                 {pageLoadError ? (
                     <ErrorState
                         error={pageLoadError}
                         onRetry={() => {
                             if (isEdit) {
-                                refetchRequest()
+                                void refetchRequest()
                             }
                         }}
                         loading={loadingRequest}
@@ -254,6 +269,7 @@ export default function RepairRequestFormPage() {
                         <Box sx={sx.formColumns}>
                             <RepairRequestMainFields
                                 form={form}
+                                originalRequest={isEdit ? repairRequest : null}
                                 customers={customers}
                                 customerObjects={customerObjects}
                                 repairCompanies={repairCompanies}

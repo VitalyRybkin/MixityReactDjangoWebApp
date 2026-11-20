@@ -1,6 +1,6 @@
 import {useLocation, useNavigate, useParams} from "react-router-dom";
 import {useCreateRepairCompany, useGetRepairCompany, useUpdateRepairCompany} from "./utils/repair.queries.js";
-import React, {useEffect} from "react";
+import React, {useEffect, useRef} from "react";
 import {useFormLogic} from "../../hooks/useEntityForm.js";
 import {Alert, Box, CircularProgress, Paper, Stack, TextField, Typography} from "@mui/material";
 import AppBreadcrumbs from "../../components/AppBreadcrumbs.jsx";
@@ -27,8 +27,27 @@ export default function RepairCompanyFormPage() {
     const updateCompany = useUpdateRepairCompany()
 
     const saving = createCompany.isPending || updateCompany.isPending
+    const initializedForRef = useRef(null)
+
+    const { form, setForm, error, setError, phoneError, setPhoneError, emailError, setEmailError, onChange, onSubmit } =
+        useFormLogic({
+            isEdit,
+            id,
+            emptyForm,
+            updateMutation: updateCompany,
+            createMutation: createCompany,
+            redirectPath: '/repair/companies',
+        })
 
     useEffect(() => {
+        const recordKey = isEdit ? `edit:${id}` : 'create'
+        if (initializedForRef.current === recordKey) return
+
+        // A query can briefly expose previous-record data while the URL changes.
+        // Initialize only once the requested entity is available.
+        if (isEdit && (!repairCompany || (repairCompany.id != null && String(repairCompany.id) !== String(id)))) return
+
+        initializedForRef.current = recordKey
         if (!isEdit) {
             setForm(emptyForm)
             setPhoneError('')
@@ -47,23 +66,13 @@ export default function RepairCompanyFormPage() {
             setPhoneError('')
             setEmailError('')
         }
-    }, [repairCompany, isEdit])
+    }, [repairCompany, id, isEdit, setForm, setPhoneError, setEmailError])
 
     useEffect(() => {
         if (loadError) {
             setError(loadError?.response?.data?.detail || 'Ошибка загрузки данных')
         }
-    }, [loadError])
-
-    const { form, setForm, error, setError, phoneError, setPhoneError, emailError, setEmailError, onChange, onSubmit } =
-        useFormLogic({
-            isEdit,
-            id,
-            emptyForm,
-            updateMutation: updateCompany,
-            createMutation: createCompany,
-            redirectPath: '/repair/companies',
-        })
+    }, [loadError, setError])
 
     if (isEdit && loadingCompany) return <CircularProgress />
 
