@@ -39,6 +39,20 @@ class ConstructionObjectsRoutes:
     )
 
 
+class RentalContractsRoutes:
+    """
+    Routes for managing RentalContract resources.
+    """
+
+    LIST_CREATE = ApiRoute(
+        "customers/<int:pk>/rental_contracts/", "rental_contract_list_create"
+    )
+    DETAIL = ApiRoute(
+        "customers/<int:pk>/rental_contracts/<int:contract_pk>/",
+        "rental_contract_detail",
+    )
+
+
 class OrderRoutes:
     LIST_CREATE = ApiRoute("", "order_list_create")
     DETAIL = ApiRoute("<int:pk>/", "order_detail")

@@ -5,6 +5,7 @@ from .order import Order
 from .order_delivery import OrderDelivery
 from .order_item import OrderItem
 from .pack_type import PackType
+from .rental_contract import RentalContract
 
 __all__ = [
     "Client",
@@ -14,4 +15,5 @@ __all__ = [
     "OrderItem",
     "PackType",
     "OrderDelivery",
+    "RentalContract",
 ]

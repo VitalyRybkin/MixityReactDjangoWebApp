@@ -13,16 +13,19 @@ from contacts.models import Contact
 from contacts.selectors import ContactSelector
 from contacts.serializers import ContactSerializer
 from core.api.mixins import SoftDeleteResponseMixin
+from core.openapi import ERRORS_DETAIL, ERRORS_DETAIL_WRITE, ERRORS_READ, ERRORS_WRITE
 from core.openapi.base_views import (
     BaseListAPIView,
     BaseListCreateAPIView,
     BaseRetrieveUpdateDestroyAPIView,
 )
 from order.models import ConstructionObject, Customer
+from order.models.rental_contract import RentalContract
 from order.permissions import OrderFormAccessPermission
 from order.serializers.customer_serializers import (
     CustomerObjectsSerializer,
     CustomerPriceSerializer,
+    CustomerRentalContractSerializer,
     CustomerSerializer,
 )
 
@@ -135,6 +138,57 @@ class CustomerObjectRetrieveUpdateDestroyAPIView(BaseRetrieveUpdateDestroyAPIVie
         )
 
         return ConstructionObject.objects.active().filter(
+            customer=customer,
+        )
+
+
+class CustomerContractsListCreateAPIView(BaseListCreateAPIView):
+    resource_name = "CustomerContracts"
+    schema_tags = ["Customer Contracts"]
+
+    read_serializer_class = CustomerRentalContractSerializer
+    write_serializer_class = CustomerRentalContractSerializer
+    serializer_class = CustomerRentalContractSerializer
+
+    errors_read = ERRORS_READ
+    errors_write = ERRORS_WRITE
+
+    def get_queryset(self) -> QuerySet[RentalContract]:
+        customer = get_object_or_404(
+            Customer.objects.active(),
+            pk=self.kwargs["pk"],
+        )
+        return RentalContract.objects.filter(
+            customer=customer,
+        )
+
+    def perform_create(self, serializer: BaseSerializer[Any]) -> None:
+        customer = get_object_or_404(
+            Customer.objects.active(),
+            pk=self.kwargs["pk"],
+        )
+        serializer.save(customer=customer)
+
+
+class CustomerContractsRetrieveUpdateDestroyAPIView(BaseRetrieveUpdateDestroyAPIView):
+    resource_name = "CustomerContract"
+    schema_tags = ["Customer Contracts"]
+
+    read_serializer_class = CustomerRentalContractSerializer
+    write_serializer_class = CustomerRentalContractSerializer
+    serializer_class = CustomerRentalContractSerializer
+
+    errors_read = ERRORS_DETAIL
+    errors_write = ERRORS_DETAIL_WRITE
+
+    lookup_url_kwarg = "contract_pk"
+
+    def get_queryset(self) -> QuerySet[RentalContract]:
+        customer = get_object_or_404(
+            Customer.objects.active(),
+            pk=self.kwargs["pk"],
+        )
+        return RentalContract.objects.filter(
             customer=customer,
         )
 

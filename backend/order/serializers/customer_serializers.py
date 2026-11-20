@@ -7,6 +7,18 @@ from catalog.api.serializers.product_serializers import ProductSerializer
 from catalog.models import SalesPriceHistory
 from core.validators.validators import validate_ru_phone
 from order.models import ConstructionObject, Customer
+from order.models.rental_contract import RentalContract
+
+
+class CustomerRentalContractSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = RentalContract
+        fields = [
+            "id",
+            "contract_number",
+            "contract_date",
+            "is_active",
+        ]
 
 
 class BaseCustomerSerializer(serializers.ModelSerializer):
@@ -28,6 +40,7 @@ class CustomerSerializer(BaseCustomerSerializer):
         allow_null=True,
     )
     isActive = serializers.BooleanField(source="is_active", read_only=True)
+    rental_contracts = CustomerRentalContractSerializer(many=True, read_only=True)
 
     class Meta(BaseCustomerSerializer.Meta):
         fields = BaseCustomerSerializer.Meta.fields + [
@@ -36,6 +49,7 @@ class CustomerSerializer(BaseCustomerSerializer):
             "address",
             "phone",
             "isActive",
+            "rental_contracts",
         ]
 
     def validate_phone(self, value: Any) -> Any:
