@@ -7,13 +7,26 @@ from catalog.api.serializers.product_serializers import ProductSerializer
 from catalog.models import SalesPriceHistory
 from core.validators.validators import validate_ru_phone
 from order.models import ConstructionObject, Customer
-from order.models.rental_contract import RentalContract
+from order.models.rental_contract import RentalContract, rental_contract_is_used
 
 
-class CustomerRentalContractSerializer(
-    serializers.ModelSerializer[RentalContract]
-):
-    """Expose rental contract details."""
+class CustomerRentalContractSerializer(serializers.ModelSerializer[RentalContract]):
+    """Expose contract details while the nested endpoint assigns the customer."""
+
+    is_used = serializers.SerializerMethodField()
+
+    def get_is_used(self, obj: RentalContract) -> bool:
+        return rental_contract_is_used(obj)
+
+    def update(
+        self, instance: RentalContract, validated_data: dict[str, Any],
+    ) -> RentalContract:
+        # Editing number/date must never implicitly reactivate a stale contract.
+        for field, value in validated_data.items():
+            setattr(instance, field, value)
+        if validated_data:
+            instance.save(update_fields=validated_data.keys())
+        return instance
 
     class Meta:
         model = RentalContract
@@ -22,20 +35,8 @@ class CustomerRentalContractSerializer(
             "contract_number",
             "contract_date",
             "is_active",
+            "is_used",
         ]
-
-    def update(
-        self,
-        instance: RentalContract,
-        validated_data: dict[str, Any],
-    ) -> RentalContract:
-        for field, value in validated_data.items():
-            setattr(instance, field, value)
-
-        if validated_data:
-            instance.save(update_fields=validated_data.keys())
-
-        return instance
 
 
 class BaseCustomerSerializer(serializers.ModelSerializer):

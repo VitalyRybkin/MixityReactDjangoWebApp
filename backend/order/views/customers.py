@@ -1,9 +1,11 @@
 from typing import Any
 
+from django.db import IntegrityError, router, transaction
 from django.db.models import QuerySet
+from django.db.models.deletion import ProtectedError, RestrictedError
 from drf_spectacular.utils import OpenApiParameter
 from rest_framework import generics
-from rest_framework.exceptions import ValidationError
+from rest_framework.exceptions import APIException, ValidationError
 from rest_framework.generics import get_object_or_404
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.serializers import BaseSerializer
@@ -20,7 +22,7 @@ from core.openapi.base_views import (
     BaseRetrieveUpdateDestroyAPIView,
 )
 from order.models import ConstructionObject, Customer
-from order.models.rental_contract import RentalContract
+from order.models.rental_contract import RentalContract, rental_contract_is_used
 from order.permissions import OrderFormAccessPermission
 from order.serializers.customer_serializers import (
     CustomerObjectsSerializer,
@@ -35,9 +37,7 @@ class BaseCustomerGenericAPIView(generics.GenericAPIView):
     Base view for customer operations.
     """
 
-    queryset = Customer.objects.active().prefetch_related(
-        "rental_contracts"
-    )
+    queryset = Customer.objects.active()
 
     serializer_class = CustomerSerializer
 
@@ -176,6 +176,12 @@ class CustomerContractsListCreateAPIView(BaseListCreateAPIView):
         serializer.save(customer=customer)
 
 
+class RentalContractInUse(APIException):
+    status_code = 409
+    default_detail = "Нельзя удалить договор: он уже используется в системе."
+    default_code = "contract_in_use"
+
+
 class CustomerContractsRetrieveUpdateDestroyAPIView(BaseRetrieveUpdateDestroyAPIView):
     """Retrieve, update, or delete a contract belonging to an active customer."""
 
@@ -200,6 +206,24 @@ class CustomerContractsRetrieveUpdateDestroyAPIView(BaseRetrieveUpdateDestroyAPI
         return RentalContract.objects.filter(
             customer=customer,
         )
+
+    def perform_destroy(self, instance: RentalContract) -> None:
+        """Prevent deleting any contract referenced by another Django model."""
+        using = instance._state.db or router.db_for_write(RentalContract, instance=instance)
+        try:
+            with transaction.atomic(using=using):
+                # Lock before checking to serialize delete with FK-based inserts.
+                locked = RentalContract.objects.using(using).select_for_update().get(pk=instance.pk)
+                if rental_contract_is_used(locked):
+                    raise RentalContractInUse()
+                locked.delete(using=using)
+        except (ProtectedError, RestrictedError) as exc:
+            raise RentalContractInUse() from exc
+        except IntegrityError as exc:
+            # A concurrent FK insert may make deletion unsafe after the check.
+            if rental_contract_is_used(instance):
+                raise RentalContractInUse() from exc
+            raise
 
 
 class CustomerPriceListAPIView(BaseListAPIView):

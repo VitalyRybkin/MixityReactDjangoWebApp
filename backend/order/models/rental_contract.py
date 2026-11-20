@@ -95,3 +95,18 @@ class RentalContract(models.Model):
     def __str__(self) -> str:
         """Return the customer name, contract number, and formatted contract date."""
         return f"{self.customer.name} - №{self.contract_number} от {self.contract_date:%d.%m.%Y}"
+
+
+def rental_contract_is_used(contract: RentalContract) -> bool:
+    """Check for ORM relations that reference this contract, including archived rows.
+
+    This covers ForeignKey, OneToOne and ManyToMany relations declared in Django.
+    The future RepairRequest.rental_contract FK must use on_delete=PROTECT.
+    """
+    using = contract._state.db or router.db_for_read(type(contract), instance=contract)
+    for relation in contract._meta.related_objects:
+        if relation.related_model._base_manager.using(using).filter(
+            **{relation.field.name: contract},
+        ).exists():
+            return True
+    return False

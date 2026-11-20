@@ -1,4 +1,5 @@
 from datetime import date
+from unittest.mock import patch
 from typing import Any
 
 from django.db import IntegrityError, transaction
@@ -308,6 +309,22 @@ class TestCustomerRentalContractAPIDetailAPI(
             "Inactive rental contract retrieved | HTTP 200",
             msg="",
         )
+
+    def test_used_contract_cannot_be_deleted(self) -> None:
+        """Reject deletion of a contract referenced elsewhere in the system."""
+        with patch("order.views.customers.rental_contract_is_used", return_value=True):
+            response = self.client.delete(self.url)
+
+        self.assertEqual(response.status_code, status.HTTP_409_CONFLICT)
+        self.assertTrue(RentalContract.objects.filter(pk=self.obj.pk).exists())
+
+    def test_used_contract_is_marked_in_detail(self) -> None:
+        """Expose the usage flag so the frontend can disable deletion."""
+        with patch("order.serializers.customer_serializers.rental_contract_is_used", return_value=True):
+            response = self.client.get(self.url)
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertTrue(response.data["is_used"])
 
     def test_patch_reactivates_inactive_contract(self) -> None:
         """Activating an older contract retires the currently active contract."""
