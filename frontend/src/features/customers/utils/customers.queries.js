@@ -3,7 +3,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import api from '../../../api.js'
 import { REFERENCE_STALE_TIME } from '../../../utils/query.constants.js'
 
-import { constructionObjectsApiPaths, customerApiPaths } from './customerApiPaths.js'
+import { constructionObjectsApiPaths, customerApiPaths, rentalContractsApiPaths } from './customerApiPaths.js'
 
 // --- UTILS ---
 const unwrapList = (data) => {
@@ -19,6 +19,7 @@ export const customerKeys = {
     detail: (id) => [...customerKeys.all, 'detail', String(id)],
     objectDetail: (id, objectId) => [...customerKeys.detail(id), 'object', String(objectId)],
     objects: (id) => [...customerKeys.detail(id), 'objects'],
+    contracts: (id) => [...customerKeys.detail(id), 'rental_contracts'],
     prices: (customerId, productIds = []) => [
         ...customerKeys.all,
         'prices',
@@ -208,5 +209,65 @@ export function useDeleteCustomerObject() {
                 queryKey: customerKeys.objects(id),
             })
         },
+    })
+}
+
+// --- RENTAL CONTRACT API ---
+export const fetchCustomerContracts = async (customerId) => {
+    const res = await api.get(rentalContractsApiPaths.listCreate(customerId))
+    return unwrapList(res.data)
+}
+
+export const createCustomerContract = async ({ customerId, payload }) => {
+    const res = await api.post(rentalContractsApiPaths.listCreate(customerId), payload)
+    return res.data
+}
+
+export const updateCustomerContract = async ({ customerId, contractId, payload }) => {
+    const res = await api.patch(rentalContractsApiPaths.detail(customerId, contractId), payload)
+    return res.data
+}
+
+export const deleteCustomerContract = async ({ customerId, contractId }) => {
+    await api.delete(rentalContractsApiPaths.detail(customerId, contractId))
+    return contractId
+}
+
+export function useGetCustomerContracts(customerId) {
+    return useQuery({
+        queryKey: customerKeys.contracts(customerId),
+        queryFn: () => fetchCustomerContracts(customerId),
+        enabled: Boolean(customerId),
+    })
+}
+
+async function invalidateCustomerContractData(queryClient, customerId) {
+    await Promise.all([
+        queryClient.invalidateQueries({ queryKey: customerKeys.detail(customerId) }),
+        queryClient.invalidateQueries({ queryKey: customerKeys.list() }),
+    ])
+}
+
+export function useCreateCustomerContract() {
+    const queryClient = useQueryClient()
+    return useMutation({
+        mutationFn: createCustomerContract,
+        onSuccess: (_, { customerId }) => invalidateCustomerContractData(queryClient, customerId),
+    })
+}
+
+export function useUpdateCustomerContract() {
+    const queryClient = useQueryClient()
+    return useMutation({
+        mutationFn: updateCustomerContract,
+        onSuccess: (_, { customerId }) => invalidateCustomerContractData(queryClient, customerId),
+    })
+}
+
+export function useDeleteCustomerContract() {
+    const queryClient = useQueryClient()
+    return useMutation({
+        mutationFn: deleteCustomerContract,
+        onSuccess: (_, { customerId }) => invalidateCustomerContractData(queryClient, customerId),
     })
 }
