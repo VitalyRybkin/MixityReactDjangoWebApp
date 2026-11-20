@@ -10,7 +10,11 @@ from order.models import ConstructionObject, Customer
 from order.models.rental_contract import RentalContract
 
 
-class CustomerRentalContractSerializer(serializers.ModelSerializer):
+class CustomerRentalContractSerializer(
+    serializers.ModelSerializer[RentalContract]
+):
+    """Expose rental contract details."""
+
     class Meta:
         model = RentalContract
         fields = [
@@ -19,6 +23,19 @@ class CustomerRentalContractSerializer(serializers.ModelSerializer):
             "contract_date",
             "is_active",
         ]
+
+    def update(
+        self,
+        instance: RentalContract,
+        validated_data: dict[str, Any],
+    ) -> RentalContract:
+        for field, value in validated_data.items():
+            setattr(instance, field, value)
+
+        if validated_data:
+            instance.save(update_fields=validated_data.keys())
+
+        return instance
 
 
 class BaseCustomerSerializer(serializers.ModelSerializer):

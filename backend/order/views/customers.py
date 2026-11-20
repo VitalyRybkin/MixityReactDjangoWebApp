@@ -35,7 +35,9 @@ class BaseCustomerGenericAPIView(generics.GenericAPIView):
     Base view for customer operations.
     """
 
-    queryset = Customer.objects.active()
+    queryset = Customer.objects.active().prefetch_related(
+        "rental_contracts"
+    )
 
     serializer_class = CustomerSerializer
 
@@ -143,6 +145,8 @@ class CustomerObjectRetrieveUpdateDestroyAPIView(BaseRetrieveUpdateDestroyAPIVie
 
 
 class CustomerContractsListCreateAPIView(BaseListCreateAPIView):
+    """List contract history and create contracts for an active customer."""
+
     resource_name = "CustomerContracts"
     schema_tags = ["Customer Contracts"]
 
@@ -154,6 +158,7 @@ class CustomerContractsListCreateAPIView(BaseListCreateAPIView):
     errors_write = ERRORS_WRITE
 
     def get_queryset(self) -> QuerySet[RentalContract]:
+        """Return active and inactive contracts for the customer in the URL."""
         customer = get_object_or_404(
             Customer.objects.active(),
             pk=self.kwargs["pk"],
@@ -162,7 +167,8 @@ class CustomerContractsListCreateAPIView(BaseListCreateAPIView):
             customer=customer,
         )
 
-    def perform_create(self, serializer: BaseSerializer[Any]) -> None:
+    def perform_create(self, serializer: BaseSerializer[RentalContract]) -> None:
+        """Assign the new contract to the active customer in the URL."""
         customer = get_object_or_404(
             Customer.objects.active(),
             pk=self.kwargs["pk"],
@@ -171,6 +177,8 @@ class CustomerContractsListCreateAPIView(BaseListCreateAPIView):
 
 
 class CustomerContractsRetrieveUpdateDestroyAPIView(BaseRetrieveUpdateDestroyAPIView):
+    """Retrieve, update, or delete a contract belonging to an active customer."""
+
     resource_name = "CustomerContract"
     schema_tags = ["Customer Contracts"]
 
@@ -184,6 +192,7 @@ class CustomerContractsRetrieveUpdateDestroyAPIView(BaseRetrieveUpdateDestroyAPI
     lookup_url_kwarg = "contract_pk"
 
     def get_queryset(self) -> QuerySet[RentalContract]:
+        """Scope contract lookups to the customer in the URL."""
         customer = get_object_or_404(
             Customer.objects.active(),
             pk=self.kwargs["pk"],
