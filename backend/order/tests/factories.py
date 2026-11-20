@@ -9,7 +9,7 @@ from order.models import (
     Customer,
     Order,
     OrderDelivery,
-    OrderItem,
+    OrderItem, RentalContract,
 )
 from stock.tests.factories import WarehouseFactory
 
@@ -101,3 +101,12 @@ class QualityPassportDataFactory(factory.django.DjangoModelFactory):
         start_date=date.today(),
     )
     quantity = factory.fuzzy.FuzzyDecimal(low=1, high=100, precision=3)
+
+class RentalContractFactory(factory.django.DjangoModelFactory):
+    class Meta:
+        model = RentalContract
+
+    customer = factory.SubFactory(CustomerFactory)
+    contract_date = factory.fuzzy.FuzzyDate(start_date=date.today(), end_date=date.today())
+    contract_number = factory.Sequence(lambda n: 200_000 + n)
+    is_active = True

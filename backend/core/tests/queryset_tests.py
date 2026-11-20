@@ -1,11 +1,12 @@
+from collections.abc import Sequence
 from typing import TYPE_CHECKING
 from urllib.parse import urlencode
 
+from django.db import models
 from rest_framework.response import Response
 from rest_framework.reverse import reverse
 
 from catalog.models import PurchasePriceHistory, SalesPriceHistory
-from contacts.models import Contact
 
 if TYPE_CHECKING:
     from core.tests.type_stubs import BaseMixinProto as _Base
@@ -78,28 +79,27 @@ class QuerysetContractMixin(_Base):
         return response
 
     def _get_object_related_entities_list(
-        self,
-        obj_id: int,
-        expected_contacts: list[Contact],
-        entity: str,
+            self,
+            obj_id: int,
+            expected_objects: Sequence[models.Model],
+            entity: str,
     ) -> None:
-        """
-        Retrieves the contact list for a specific object and compares it with the expected contacts.
-        """
-
         detail_url = self.get_detail_url(obj_id)
         self._logger_header(f"ENDPOINT GET: {detail_url}")
+
         response = self.client.get(detail_url)
 
         self.assertEqual(response.status_code, 200)
 
         ids = {item["id"] for item in response.data}
-        expected_ids = {contact.id for contact in expected_contacts}
+        expected_ids = {obj.pk for obj in expected_objects}
 
         self.assertEqual(ids, expected_ids)
+        self.assertEqual(len(response.data), len(expected_objects))
 
-        print(
-            f"{self.INDENT}{self.COLOR['OK']}✓ Retrieval of {entity} list passed{self.COLOR['END']}"
+        self._logger_success(
+            f"Retrieval of {entity} list passed",
+            f"HTTP {response.status_code}",
         )
 
     def _assert_filtered_count(self, expected_count: int, params: dict) -> None:
