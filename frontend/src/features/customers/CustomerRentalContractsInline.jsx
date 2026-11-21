@@ -10,8 +10,6 @@ import {
     DialogContent,
     DialogContentText,
     DialogTitle,
-    IconButton,
-    Paper,
     Radio,
     Stack,
     TextField,
@@ -22,6 +20,10 @@ import AddOutlinedIcon from '@mui/icons-material/AddOutlined'
 import DeleteOutlineIcon from '@mui/icons-material/DeleteOutline'
 import EditOutlinedIcon from '@mui/icons-material/EditOutlined'
 import HistoryOutlinedIcon from '@mui/icons-material/HistoryOutlined'
+
+import { objectDetailWithContactListSx as detailSx } from '../../components/ObjectDetailWithContactList.styles.js'
+import AddAction from '../../components/ui/buttons/AddAction.jsx'
+import IconAction from '../../components/ui/buttons/IconAction.jsx'
 
 import {
     useCreateCustomerContract,
@@ -44,7 +46,8 @@ function contractLabel(contract) {
 
 function errorMessage(error) {
     const data = error?.response?.data
-    if (error?.response?.status === 409 || data?.code === 'contract_in_use') {
+    if (data?.code === 'contract_in_use' ||
+        (error?.response?.status === 409 && error?.config?.method === 'delete')) {
         return 'Нельзя удалить договор: он уже используется в системе.'
     }
     const messages = data?.messages ?? data?.detail ?? data?.errors
@@ -62,7 +65,7 @@ function errorMessage(error) {
  * A contract is removable only when the backend confirms it is unused.
  * The endpoint also validates DELETE on the server; is_used is just a UI hint.
  */
-export default function CustomerRentalContracts({ customerId, readOnly = false }) {
+export default function CustomerRentalContractsInline({ customerId, readOnly = false }) {
     const { data: contracts = [], isLoading, isError, error: loadError, refetch } = useGetCustomerContracts(customerId)
     const createMutation = useCreateCustomerContract()
     const updateMutation = useUpdateCustomerContract()
@@ -92,6 +95,7 @@ export default function CustomerRentalContracts({ customerId, readOnly = false }
         } catch (err) {
             // Keep the deletion confirmation open if the backend rejects removal.
             setActionError(errorMessage(err))
+            if (err?.response?.status === 409) void refetch()
         }
     }
 
@@ -147,31 +151,48 @@ export default function CustomerRentalContracts({ customerId, readOnly = false }
     }
 
     return (
-        <Paper variant="outlined" sx={{ p: 2 }}>
-            <Stack direction="row" alignItems="center" justifyContent="space-between" gap={1} flexWrap="wrap" mb={1}>
-                <Typography variant="subtitle1" fontWeight={600}>Договор аренды</Typography>
-                <Stack direction="row" gap={1}>
-                    <Button size="small" color="inherit" variant="outlined"
-                        startIcon={<HistoryOutlinedIcon />}
-                        onClick={() => { setActionError(''); setHistoryOpen(true) }}>
-                        История
-                    </Button>
+        <Box component="section" sx={{ minWidth: 0, width: '100%' }}>
+            <Stack direction="row" alignItems="flex-start" justifyContent="flex-start" gap={1} sx={{ mb: 0.5 }}>
+                <Typography variant="body2" sx={detailSx.fieldLabel}>
+                    ДОГОВОР АРЕНДЫ
+                </Typography>
+                <Stack direction="row" gap={0.5} alignItems="center" sx={{ mt: -0.25 }}>
+                    <IconAction
+                        title="История договоров"
+                        aria-label="История договоров аренды"
+                        disabled={isLoading || isError}
+                        sx={{ p: 0.4, '& .MuiSvgIcon-root': { fontSize: 17 } }}
+                        onClick={() => { setActionError(''); setHistoryOpen(true); void refetch() }}
+                    >
+                        <HistoryOutlinedIcon />
+                    </IconAction>
                     {!readOnly && (
-                        <Button size="small" variant="outlined" startIcon={<AddOutlinedIcon />}
-                            onClick={openCreate} disabled={busy}>
-                            Добавить
-                        </Button>
+                        <AddAction
+                            title="Добавить договор аренды"
+                            aria-label="Добавить договор аренды"
+                            loading={createMutation.isPending}
+                            disabled={busy || isLoading || isError}
+                            sx={{ p: 0.4, '& .MuiSvgIcon-root': { fontSize: 17 } }}
+                            onClick={openCreate}
+                        />
                     )}
                 </Stack>
             </Stack>
-            {isLoading ? <CircularProgress size={18} /> : activeContract ? (
-                <Typography variant="body2">{contractLabel(activeContract)}</Typography>
+            {isLoading ? (
+                <CircularProgress size={18} />
+            ) : isError ? (
+                <Alert severity="error" action={
+                    <Button color="inherit" size="small" onClick={() => { void refetch() }}>Повторить</Button>
+                }>{errorMessage(loadError)}</Alert>
+            ) : activeContract ? (
+                <Typography variant="h6" sx={detailSx.fieldValue}>
+                    № {activeContract.contract_number} от {formatDate(activeContract.contract_date)}
+                </Typography>
             ) : (
-                <Typography variant="body2" color="text.secondary">Действующий договор не выбран</Typography>
+                <Typography variant="body2" color="text.secondary" sx={{ fontSize: '0.8125rem', fontWeight: 400, lineHeight: 1.6 }}>
+                    {contracts.length === 0 ? 'Договор аренды не создан' : 'Действующий договор не выбран'}
+                </Typography>
             )}
-            {isError && <Alert severity="error" sx={{ mt: 1 }} action={
-                <Button color="inherit" size="small" onClick={() => refetch()}>Повторить</Button>
-            }>{errorMessage(loadError)}</Alert>}
             {actionError && !historyOpen && !formOpen && !confirmDelete && (
                 <Alert severity="error" sx={{ mt: 1 }} onClose={() => setActionError('')}>
                     {actionError}
@@ -184,6 +205,10 @@ export default function CustomerRentalContracts({ customerId, readOnly = false }
                     {actionError && !formOpen && !confirmDelete && <Alert severity="error" sx={{ mb: 2 }}>{actionError}</Alert>}
                     {isLoading ? (
                         <Box py={2} textAlign="center"><CircularProgress size={26} /></Box>
+                    ) : isError ? (
+                        <Alert severity="error" action={
+                            <Button color="inherit" onClick={() => { void refetch() }}>Повторить</Button>
+                        }>{errorMessage(loadError)}</Alert>
                     ) : contracts.length === 0 ? (
                         <Typography color="text.secondary">Договоры ещё не добавлены.</Typography>
                     ) : (
@@ -208,28 +233,21 @@ export default function CustomerRentalContracts({ customerId, readOnly = false }
                                     </Box>
                                     {!readOnly && (
                                         <>
-                                            <Tooltip title="Исправить реквизиты">
-                                                <span>
-                                                    <IconButton size="small" disabled={busy} onClick={() => openEdit(contract)}
-                                                        aria-label={`Изменить ${contractLabel(contract)}`}>
-                                                        <EditOutlinedIcon fontSize="small" />
-                                                    </IconButton>
-                                                </span>
-                                            </Tooltip>
-                                            <Tooltip title={contract.is_used === false
+                                            <IconAction title="Исправить реквизиты" disabled={busy}
+                                                onClick={() => openEdit(contract)}
+                                                aria-label={`Изменить ${contractLabel(contract)}`}>
+                                                <EditOutlinedIcon fontSize="small" />
+                                            </IconAction>
+                                            <IconAction title={contract.is_used === false
                                                 ? 'Удалить договор'
                                                 : contract.is_used === true
                                                     ? 'Договор используется в системе — удаление запрещено'
-                                                    : 'Проверка возможности удаления недоступна'}>
-                                                <span>
-                                                    <IconButton size="small"
-                                                        disabled={busy || contract.is_used !== false}
-                                                        onClick={() => { setActionError(''); setConfirmDelete(contract) }}
-                                                        aria-label={`Удалить ${contractLabel(contract)}`}>
-                                                        <DeleteOutlineIcon fontSize="small" />
-                                                    </IconButton>
-                                                </span>
-                                            </Tooltip>
+                                                    : 'Проверка возможности удаления недоступна'}
+                                                disabled={busy || contract.is_used !== false}
+                                                onClick={() => { setActionError(''); setConfirmDelete(contract) }}
+                                                aria-label={`Удалить ${contractLabel(contract)}`}>
+                                                <DeleteOutlineIcon fontSize="small" />
+                                            </IconAction>
                                         </>
                                     )}
                                 </Stack>
@@ -297,6 +315,6 @@ export default function CustomerRentalContracts({ customerId, readOnly = false }
                     </Button>
                 </DialogActions>
             </Dialog>
-        </Paper>
+        </Box>
     )
 }

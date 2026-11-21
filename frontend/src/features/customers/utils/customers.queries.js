@@ -19,7 +19,7 @@ export const customerKeys = {
     detail: (id) => [...customerKeys.all, 'detail', String(id)],
     objectDetail: (id, objectId) => [...customerKeys.detail(id), 'object', String(objectId)],
     objects: (id) => [...customerKeys.detail(id), 'objects'],
-    contracts: (id) => [...customerKeys.detail(id), 'rental_contracts'],
+    contracts: (id) => [...customerKeys.detail(id), 'contracts'],
     prices: (customerId, productIds = []) => [
         ...customerKeys.all,
         'prices',
@@ -243,8 +243,10 @@ export function useGetCustomerContracts(customerId) {
 
 async function invalidateCustomerContractData(queryClient, customerId) {
     await Promise.all([
-        queryClient.invalidateQueries({ queryKey: customerKeys.detail(customerId) }),
+        queryClient.invalidateQueries({ queryKey: customerKeys.contracts(customerId) }),
+        queryClient.invalidateQueries({ queryKey: customerKeys.detail(customerId), exact: true }),
         queryClient.invalidateQueries({ queryKey: customerKeys.list() }),
+        queryClient.invalidateQueries({ queryKey: ['object-detail', customerApiPaths.detail(customerId)] }),
     ])
 }
 

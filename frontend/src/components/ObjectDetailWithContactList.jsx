@@ -31,6 +31,7 @@ export default function ObjectDetailWithContactList({
     ownerId,
     fields,
     renderEditDialog,
+    renderAside,
 }) {
     const navigate = useNavigate()
     const location = useLocation()
@@ -291,29 +292,43 @@ export default function ObjectDetailWithContactList({
                                 <CircularProgress />
                             </Box>
                         ) : (
-                            <Stack>
-                                {rows.map((item) => {
-                                    const isEmpty = item.value === null || item.value === undefined || item.value === ''
+                            <Box
+                                sx={renderAside ? {
+                                    display: 'grid',
+                                    gridTemplateColumns: { xs: 'minmax(0, 1fr)', md: 'minmax(0, 1fr) minmax(260px, 0.85fr)' },
+                                    columnGap: { md: 5 },
+                                    rowGap: 3,
+                                    alignItems: 'start',
+                                } : undefined}
+                            >
+                                <Stack sx={renderAside ? { pl: { xs: 0, md: 1.5 }, minWidth: 0 } : undefined}>
+                                    {rows.map((item) => {
+                                        const isEmpty = item.value === null || item.value === undefined || item.value === ''
+                                        const isNode = React.isValidElement(item.value)
 
-                                    const isNode = React.isValidElement(item.value)
-
-                                    return (
-                                        <Box key={item.label} sx={sx.row}>
-                                            <Typography variant="body2" sx={sx.fieldLabel}>
-                                                {item.label}
-                                            </Typography>
-
-                                            {isNode ? (
-                                                item.value
-                                            ) : (
-                                                <Typography variant="h6" sx={sx.fieldValue}>
-                                                    {isEmpty ? '—' : item.value}
+                                        return (
+                                            <Box key={item.label} sx={sx.row}>
+                                                <Typography variant="body2" sx={sx.fieldLabel}>
+                                                    {item.label}
                                                 </Typography>
-                                            )}
-                                        </Box>
-                                    )
-                                })}
-                            </Stack>
+
+                                                {isNode ? (
+                                                    item.value
+                                                ) : (
+                                                    <Typography variant="h6" sx={sx.fieldValue}>
+                                                        {isEmpty ? '—' : item.value}
+                                                    </Typography>
+                                                )}
+                                            </Box>
+                                        )
+                                    })}
+                                </Stack>
+                                {renderAside && (
+                                    <Box sx={[sx.row, { minWidth: 0 }]}>
+                                        {renderAside({ entity, id })}
+                                    </Box>
+                                )}
+                            </Box>
                         )}
                     </CardContent>
                 </Card>

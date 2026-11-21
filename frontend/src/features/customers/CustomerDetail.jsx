@@ -1,11 +1,10 @@
-import { Box } from '@mui/material'
 import { useParams } from 'react-router-dom'
 
 import ObjectDetailWithContactList from '../../components/ObjectDetailWithContactList.jsx'
 import { emailValue } from '../../utils/emailValue.jsx'
 
 import CustomerDialog from './CustomerDialog.jsx'
-import CustomerRentalContracts from './CustomerRentalContracts.jsx'
+import CustomerRentalContractsInline from './CustomerRentalContractsInline.jsx'
 import { customerApiPaths } from './utils/customerApiPaths.js'
 
 export default function CustomerDetailPage() {
@@ -13,8 +12,7 @@ export default function CustomerDetailPage() {
     const customerId = Number(id)
 
     return (
-        <>
-            <ObjectDetailWithContactList
+        <ObjectDetailWithContactList
             id={customerId}
             label="Заказчик"
             editTo={(id) => `/customers/${id}/edit`}
@@ -29,13 +27,10 @@ export default function CustomerDetailPage() {
                 { label: 'Телефон', value: c?.phone },
                 { label: 'Email', value: emailValue(c?.email) },
             ]}
+            renderAside={() => <CustomerRentalContractsInline customerId={customerId} />}
             renderEditDialog={({ open, entity, onClose, onSaved }) => (
                 <CustomerDialog open={open} mode="edit" initialData={entity} onClose={onClose} onSaved={onSaved} />
             )}
         />
-            <Box sx={{ maxWidth: 1200, mx: 'auto', px: { xs: 2, sm: 3 }, pb: 3 }}>
-                <CustomerRentalContracts customerId={customerId} />
-            </Box>
-        </>
     )
 }
