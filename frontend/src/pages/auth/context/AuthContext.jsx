@@ -1,5 +1,9 @@
 // Shares the current user, loading state, and access-check helpers through React context.
-import { useMemo } from 'react'
+import { useEffect, useMemo, useState } from 'react'
+import { useQueryClient } from '@tanstack/react-query'
+
+import { endAuthSession, getAuthSessionGeneration, isInvalidRefreshError } from '../../../api.js'
+import { ACCESS_TOKEN, REFRESH_TOKEN } from '../../../constants.js'
 
 import { Alert, Box, Button, CircularProgress, Typography } from '@mui/material'
 
@@ -9,7 +13,47 @@ import { AuthContext } from './useAuth.js'
 
 // Loads the current user and provides authentication state and access checks to descendants.
 export function AuthProvider({ children }) {
-    const { data: user, isLoading, isError, isFetching, refetch } = useGetUserMe()
+    const queryClient = useQueryClient()
+    const { data: user, isLoading, isError, isFetching, error, refetch } = useGetUserMe()
+    const [resolvingSession, setResolvingSession] = useState(false)
+    const authRejected = isError && (isInvalidRefreshError(error) || error?.response?.status === 401)
+
+    // If /me cannot refresh an invalid session, return to login automatically.
+    // Do not treat connection failures or ordinary resource 403s as logout.
+    useEffect(() => {
+        if (!authRejected) {
+            setResolvingSession(false)
+            return undefined
+        }
+
+        let cancelled = false
+        const generation = getAuthSessionGeneration()
+        const accessBefore = localStorage.getItem(ACCESS_TOKEN)
+        const refreshBefore = localStorage.getItem(REFRESH_TOKEN)
+        setResolvingSession(true)
+
+        const timeout = setTimeout(() => {
+            if (cancelled || getAuthSessionGeneration() !== generation) return
+            if (
+                localStorage.getItem(ACCESS_TOKEN) !== accessBefore ||
+                localStorage.getItem(REFRESH_TOKEN) !== refreshBefore
+            ) {
+                setResolvingSession(false)
+                void refetch()
+                return
+            }
+            endAuthSession()
+            void queryClient.cancelQueries()
+            queryClient.clear()
+            // This also works when the provider is mounted outside BrowserRouter.
+            window.location.replace('/login')
+        }, 1500)
+
+        return () => {
+            cancelled = true
+            clearTimeout(timeout)
+        }
+    }, [authRejected, queryClient, refetch])
 
     const value = useMemo(/* Builds access-check helpers from the current authentication state. */ () => {
         const permissions = new Set(user?.permissions ?? [])
@@ -54,11 +98,11 @@ export function AuthProvider({ children }) {
 
     // Do not render private pages until /me has been checked. This also covers
     // the home page, which does not pass through PermissionRoute.
-    if (isLoading) {
+    if (isLoading || resolvingSession || authRejected) {
         return (
             <Box sx={{ minHeight: '60vh', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 2 }}>
                 <CircularProgress size={26} />
-                <Typography color="text.secondary">Проверяем права доступа…</Typography>
+                <Typography color="text.secondary">Проверяем авторизацию…</Typography>
             </Box>
         )
     }

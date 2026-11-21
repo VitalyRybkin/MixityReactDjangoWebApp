@@ -46,12 +46,21 @@ export function endAuthSession() {
 const sessionChanged = () => Object.assign(new Error('Сессия изменилась.'), { code: 'AUTH_SESSION_CHANGED' })
 const isCurrentSession = (generation) => generation === getAuthSessionGeneration()
 
+// Only a rejected refresh (or missing refresh token) proves that a session
+// cannot be continued. Network failures and resource-level 403s are different.
+export function isInvalidRefreshError(error) {
+    if (error?.code === 'AUTH_REFRESH_MISSING') return true
+    const status = error?.response?.status
+    return [400, 401, 403].includes(status) && error?.config?.url?.includes('/api/auth/token/refresh/')
+}
+
 api.interceptors.request.use(
     (config) => {
         // Preserve the original generation when retrying an earlier request.
         config._authSessionGeneration ??= getAuthSessionGeneration()
         const token = localStorage.getItem(ACCESS_TOKEN)
-        if (token && !config.headers?.Authorization) {
+        // A refresh request must not carry a potentially expired access token.
+        if (token && !config.url?.includes('/api/auth/token/refresh/') && !config.headers?.Authorization) {
             config.headers = config.headers ?? {}
             config.headers.Authorization = `Bearer ${token}`
         }
@@ -65,20 +74,33 @@ let refreshGeneration = null
 
 export async function refreshAccessToken() {
     const generation = getAuthSessionGeneration()
-    const refresh = localStorage.getItem(REFRESH_TOKEN)
-    if (!refresh) throw new Error('Refresh token is missing')
+    const refreshAtStart = localStorage.getItem(REFRESH_TOKEN)
+    const accessAtStart = localStorage.getItem(ACCESS_TOKEN)
+    if (!refreshAtStart) {
+        throw Object.assign(new Error('Refresh token is missing'), { code: 'AUTH_REFRESH_MISSING' })
+    }
 
     if (refreshPromise && refreshGeneration === generation) {
         return refreshPromise
     }
 
-    const pending = (async () => {
+    const performRefresh = async () => {
+        if (!isCurrentSession(generation)) throw sessionChanged()
+
+        // Under the cross-tab lock, another tab may already have rotated the token.
+        const refresh = localStorage.getItem(REFRESH_TOKEN)
+        if (!refresh) throw Object.assign(new Error('Refresh token is missing'), { code: 'AUTH_REFRESH_MISSING' })
+        const currentAccess = localStorage.getItem(ACCESS_TOKEN)
+        if ((refresh !== refreshAtStart || currentAccess !== accessAtStart) && currentAccess) {
+            return currentAccess
+        }
+
         let response
         try {
-            response = await api.post('/api/auth/token/refresh/', { refresh })
+            response = await api.post('/api/auth/token/refresh/', { refresh }, { timeout: 15000 })
         } catch (error) {
             if (!isCurrentSession(generation)) throw sessionChanged()
-            // Another tab may have rotated this session's refresh token first.
+            // Fall back gracefully when a tab that does not support Web Locks wins.
             if (localStorage.getItem(REFRESH_TOKEN) !== refresh) {
                 const latestAccess = localStorage.getItem(ACCESS_TOKEN)
                 if (latestAccess) return latestAccess
@@ -87,7 +109,6 @@ export async function refreshAccessToken() {
         }
         if (!isCurrentSession(generation)) throw sessionChanged()
 
-        // Do not overwrite another tab's newer refresh result.
         if (localStorage.getItem(REFRESH_TOKEN) !== refresh) {
             const latestAccess = localStorage.getItem(ACCESS_TOKEN)
             if (latestAccess) return latestAccess
@@ -101,7 +122,13 @@ export async function refreshAccessToken() {
             localStorage.setItem(REFRESH_TOKEN, response.data.refresh)
         }
         return newAccess
-    })()
+    }
+
+    // Serialize refresh rotation across tabs when the browser supports Web Locks.
+    // Same-tab requests are already coalesced via refreshPromise.
+    const pending = typeof navigator !== 'undefined' && navigator.locks?.request
+        ? navigator.locks.request('mixity-auth-refresh', performRefresh)
+        : performRefresh()
 
     refreshPromise = pending
     refreshGeneration = generation
