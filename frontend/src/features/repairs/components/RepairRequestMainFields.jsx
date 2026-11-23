@@ -6,12 +6,28 @@ import { withCurrentRepairOption } from '../utils/repair.form.mappers.js'
 
 import RepairFilesSection from './RepairFilesSection.jsx'
 
+const formatContractDate = (date) => {
+    if (!date) return '—'
+    const [year, month, day] = String(date).split('-')
+    return year && month && day ? `${day}.${month}.${year}` : String(date)
+}
+
+const contractOptionName = (contract) => {
+    const label = `№ ${contract.contract_number} от ${formatContractDate(contract.contract_date)}`
+    return `${label} · ${contract.is_active ? 'Действующий' : 'Архивный'}`
+}
+
 export default function RepairRequestMainFields({
     form,
     originalRequest,
     customers,
     customerObjects,
     repairCompanies,
+    customerContracts,
+    contractsLoading,
+    contractsError,
+    selectedContractId,
+    contractError,
     onChange,
     onSelectChange,
     onCustomerChange,
@@ -36,6 +52,18 @@ export default function RepairRequestMainFields({
     )
     const customerOptions = withCurrentRepairOption(customers, form.customerId, originalCustomer, 'Контрагент')
     const objectOptions = withCurrentRepairOption(customerObjects, form.construction_object, originalObject, 'Объект')
+    const originalContract = originalRequest?.rental_contract == null
+        ? null
+        : {
+            id: originalRequest.rental_contract,
+            name: `№ ${originalRequest.rental_contract_number || originalRequest.rental_contract} от ${formatContractDate(originalRequest.rental_contract_date)}`,
+        }
+    const contractOptions = withCurrentRepairOption(
+        customerContracts.map((contract) => ({ ...contract, name: contractOptionName(contract) })),
+        selectedContractId,
+        originalContract,
+        'Договор аренды',
+    )
 
     return (
         <Box component="fieldset" sx={[fieldsetStyles, sx.fieldset]}>
@@ -87,7 +115,36 @@ export default function RepairRequestMainFields({
                     disabled={!form.customerId}
                     fullWidth
                 />
+
+                <AppSelectField
+                    id="repair-rental-contract"
+                    label="Договор аренды"
+                    value={selectedContractId}
+                    options={contractOptions}
+                    onChange={(value) => onSelectChange('rental_contract', value)}
+                    searchable
+                    includeAll={false}
+                    disabled={!form.customerId || (contractsLoading && !originalContract)}
+                    fullWidth
+                />
             </Box>
+
+            {contractError && (
+                <Typography role="alert" variant="caption" color="error.main" sx={{ display: 'block', mt: 1, lineHeight: 1.4 }}>
+                    {contractError}
+                </Typography>
+            )}
+
+            {form.customerId && contractsError && (
+                <Typography variant="caption" color="warning.main" sx={{ display: 'block', lineHeight: 1.4 }}>
+                    Не удалось загрузить договоры аренды. Повторите попытку позже.
+                </Typography>
+            )}
+            {form.customerId && !contractsLoading && !contractsError && customerContracts.length === 0 && !originalContract && (
+                <Typography variant="caption" color="warning.main" sx={{ display: 'block', lineHeight: 1.4 }}>
+                    Отсутствует договор. Добавьте договор в карточке заказчика.
+                </Typography>
+            )}
 
             <Box sx={sx.filesSection}>
                 <RepairFilesSection

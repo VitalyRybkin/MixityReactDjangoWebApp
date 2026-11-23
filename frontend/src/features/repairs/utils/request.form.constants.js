@@ -14,6 +14,9 @@ export const createEmptyRequestForm = () => ({
     location: 'site',
     customerId: '',
     construction_object: '',
+    // null: suggest an active contract; '': explicitly no contract (legacy edit).
+    rental_contract: null,
+    is_after_return: false,
     description: '',
     closing_description: '',
 })

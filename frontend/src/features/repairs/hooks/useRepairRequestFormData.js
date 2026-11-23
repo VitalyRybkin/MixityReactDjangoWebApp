@@ -54,6 +54,8 @@ export function useRepairRequestFormData({
             repair_company: getRepairRelationId(repairRequest.repair_company) ?? '',
             customerId: getRepairRelationId(repairRequest.construction_object?.customer) ?? '',
             construction_object: getRepairRelationId(repairRequest.construction_object) ?? '',
+            rental_contract: getRepairRelationId(repairRequest.rental_contract) ?? '',
+            is_after_return: Boolean(repairRequest.is_after_return),
             description: repairRequest.description ?? '',
             inspection_description: repairRequest.inspection_description ?? '',
             closing_description: repairRequest.closing_description ?? '',

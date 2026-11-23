@@ -6,7 +6,19 @@ export const getRepairRelationId = (value) => {
 const sameRelationId = (first, second) =>
     first === second || (first != null && second != null && String(first) === String(second))
 
-export const toRepairRequestPayload = (form, specifications, originalRequest = null) => {
+// null means propose the customer's active contract; an explicit empty string
+// prevents automatic selection (important for editing legacy repairs).
+export const resolveRentalContractSelection = (form, customerContracts = []) => {
+    if (form.rental_contract !== null && form.rental_contract !== undefined) {
+        const id = getRepairRelationId(form.rental_contract)
+        return id == null ? '' : String(id)
+    }
+    if (!form.customerId) return ''
+    const active = customerContracts.find((contract) => contract.is_active)
+    return active ? String(active.id) : ''
+}
+
+export const toRepairRequestPayload = (form, specifications, originalRequest = null, selectedContractId = form.rental_contract) => {
     const payload = {
         request_date: form.request_date,
         closing_date: form.closing_date || null,
@@ -14,6 +26,8 @@ export const toRepairRequestPayload = (form, specifications, originalRequest = n
         location: form.location,
         repair_company: getRepairRelationId(form.repair_company),
         construction_object: getRepairRelationId(form.construction_object),
+        rental_contract: getRepairRelationId(selectedContractId),
+        is_after_return: form.location === 'workshop' && Boolean(form.is_after_return),
         description: form.description,
         inspection_description: form.inspection_description,
         closing_description: form.closing_description,
@@ -22,7 +36,7 @@ export const toRepairRequestPayload = (form, specifications, originalRequest = n
 
     if (originalRequest) {
         // PATCH must not revalidate unchanged historical relations against active-only choices.
-        for (const field of ['repair_company', 'construction_object']) {
+        for (const field of ['repair_company', 'construction_object', 'rental_contract']) {
             if (sameRelationId(payload[field], getRepairRelationId(originalRequest[field]))) {
                 delete payload[field]
             }

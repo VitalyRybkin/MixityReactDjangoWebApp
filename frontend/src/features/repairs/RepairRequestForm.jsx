@@ -1,4 +1,4 @@
-import React, { useRef } from 'react'
+import React, { useRef, useState } from 'react'
 import { useParams } from 'react-router-dom'
 
 import { Alert, Box, CircularProgress, Divider, Stack, Typography } from '@mui/material'
@@ -13,7 +13,7 @@ import { useFormLogic } from '../../hooks/useEntityForm.js'
 import useSnackbar from '../../hooks/useSnackbar.js'
 import { entityTableListSx as listSx } from '../../styles/entityTableList.styles.js'
 import { firstError } from '../../utils/apiError.js'
-import { useGetCustomerObjects, useGetCustomers } from '../customers/utils/customers.queries.js'
+import { useGetCustomerContracts, useGetCustomerObjects, useGetCustomers } from '../customers/utils/customers.queries.js'
 import { useLoadingError } from '../orders/hooks/useLoadingError.js'
 import { useUnsavedGuard } from '../orders/hooks/useUnsavedGuard.js'
 
@@ -32,7 +32,7 @@ import {
     useUploadClosingFile,
     useUploadRequestFile,
 } from './utils/repair.files.queries.js'
-import { toRepairRequestPayload } from './utils/repair.form.mappers.js'
+import { resolveRentalContractSelection, toRepairRequestPayload } from './utils/repair.form.mappers.js'
 import { useGetSpareParts } from './utils/repair.parts.queries.js'
 import {
     useCreateRepairRequest,
@@ -156,6 +156,9 @@ export default function RepairRequestFormPage() {
     } = useRepairSpecifications()
 
     const markCleanRef = useRef(null)
+    const [contractSubmitAttempted, setContractSubmitAttempted] = useState(false)
+    // The active contract is fetched asynchronously; read the latest value on submit.
+    const selectedContractIdRef = useRef('')
 
     const {
         form,
@@ -177,6 +180,7 @@ export default function RepairRequestFormPage() {
                 form,
                 buildSpecificationsPayload(specifications),
                 isEdit ? repairRequest : null,
+                selectedContractIdRef.current,
             ),
 
         validate: validateSpecifications,
@@ -200,19 +204,61 @@ export default function RepairRequestFormPage() {
     const { confirmOpen, handleConfirm, handleCancel } = useUnsavedGuard(isDirty && !saving)
 
     const { data: customerObjects = [] } = useGetCustomerObjects(form.customerId)
+    const {
+        data: customerContracts = [],
+        isLoading: contractsLoading,
+        isError: contractsError,
+    } = useGetCustomerContracts(form.customerId)
+    const selectedContractId = resolveRentalContractSelection(form, customerContracts)
+    selectedContractIdRef.current = selectedContractId
+    const missingRequiredContract = !isEdit && (!selectedContractId || contractsLoading || contractsError)
+    const removingExistingContract = isEdit && Boolean(repairRequest?.rental_contract) && !selectedContractId
+    const missingContractForReturn = isEdit && form.location === 'workshop' && Boolean(form.is_after_return) && !selectedContractId
+    const contractValidationMessage = missingContractForReturn
+        ? 'Для ремонта после возврата выберите договор аренды.'
+        : removingExistingContract
+            ? 'Нельзя убрать договор аренды из заявки. Выберите договор.'
+            : missingRequiredContract
+                ? contractsLoading
+                    ? 'Дождитесь загрузки договоров аренды.'
+                    : contractsError
+                        ? 'Не удалось загрузить договоры аренды.'
+                        : 'Выберите договор аренды выбранного контрагента.'
+                : ''
 
     const handleSelectChange = (field, value) => {
+        if (field === 'rental_contract' || field === 'location' || field === 'is_after_return') {
+            setContractSubmitAttempted(false)
+        }
         setForm((prev) => ({
             ...prev,
             [field]: value,
+            ...(field === 'location' && value !== 'workshop' ? { is_after_return: false } : {}),
         }))
     }
 
+    // ExecutionFields can use either onChange('location') or onSelectChange.
+    const handleExecutionChange = (field) => field === 'location'
+        ? (event) => handleSelectChange(field, event.target.value)
+        : onChange(field)
+
+    const handleSubmit = (event) => {
+        if (contractValidationMessage) {
+            event.preventDefault()
+            setContractSubmitAttempted(true)
+            return
+        }
+        setContractSubmitAttempted(false)
+        onSubmit(event)
+    }
+
     const handleCustomerChange = (value) => {
+        setContractSubmitAttempted(false)
         setForm((prev) => ({
             ...prev,
             customerId: value,
             construction_object: '',
+            rental_contract: null,
         }))
     }
 
@@ -230,7 +276,7 @@ export default function RepairRequestFormPage() {
         <Box sx={listSx.page}>
             <AppBreadcrumbs />
 
-            <Box component="form" noValidate onSubmit={onSubmit} sx={sx.form}>
+            <Box component="form" noValidate onSubmit={handleSubmit} sx={sx.form}>
                 <Box sx={sx.header}>
                     <PageHeaderCreateUpdate
                         isEdit={isEdit}
@@ -273,6 +319,11 @@ export default function RepairRequestFormPage() {
                                 customers={customers}
                                 customerObjects={customerObjects}
                                 repairCompanies={repairCompanies}
+                                customerContracts={customerContracts}
+                                contractsLoading={contractsLoading}
+                                contractsError={contractsError}
+                                selectedContractId={selectedContractId}
+                                contractError={contractSubmitAttempted ? contractValidationMessage : ''}
                                 onChange={onChange}
                                 onSelectChange={handleSelectChange}
                                 onCustomerChange={handleCustomerChange}
@@ -285,7 +336,8 @@ export default function RepairRequestFormPage() {
 
                             <RepairRequestExecutionFields
                                 form={form}
-                                onChange={onChange}
+                                onAfterReturnChange={(value) => handleSelectChange('is_after_return', value)}
+                                onChange={handleExecutionChange}
                                 onSelectChange={handleSelectChange}
                                 requestId={id}
                                 closingFiles={closingFiles}

@@ -4,6 +4,7 @@ import AppSelectField from '../../../components/AppSelectField.jsx'
 import { fieldsetStyles, repairRequestFormSx as sx } from '../RepairRequestForm.styles.js'
 import { locationOptions, statusOptions } from '../utils/request.form.constants.js'
 
+import RepairAfterReturnField from './RepairAfterReturnField.jsx'
 import RepairFilesSection from './RepairFilesSection.jsx'
 
 const toSelectOptions = (options) =>
@@ -16,6 +17,7 @@ export default function RepairRequestExecutionFields({
     form,
     onChange,
     onSelectChange,
+    onAfterReturnChange,
 
     requestId,
     closingFiles,
@@ -58,6 +60,12 @@ export default function RepairRequestExecutionFields({
                     onChange={(value) => onSelectChange('location', value)}
                     includeAll={false}
                     fullWidth
+                />
+                <RepairAfterReturnField
+                    location={form.location}
+                    isAfterReturn={form.is_after_return}
+                    onChange={onAfterReturnChange}
+                    requestId={requestId}
                 />
             </Box>
 
