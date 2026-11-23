@@ -1,6 +1,9 @@
 from typing import Any, Final
 
+from django.utils import timezone
+
 from core.tests.permission_matrix_test_case import BasePermissionMatrixTestCase
+from order.models import ConstructionObject, RentalContract
 from order.tests.factories import ConstructionObjectFactory
 from repairs.models import RepairCompany
 from repairs.models.repair_request_models import RepairRequest
@@ -66,6 +69,7 @@ class TestRepairRequestPermissionMatrix(BasePermissionMatrixTestCase):
 
     __test__ = True
 
+    permission_matrix_label = "REPAIR REQUEST"
     app_label = "repairs"
     role_matrix = ROLE_MATRIX
     permission_codenames = REPAIR_PERMISSIONS
@@ -75,12 +79,20 @@ class TestRepairRequestPermissionMatrix(BasePermissionMatrixTestCase):
             name="Permission Test Company",
         )
 
+        construction_object: ConstructionObject = ConstructionObjectFactory.create()
+        contract = RentalContract.objects.create(
+            customer=construction_object.customer,
+            contract_number="TEST-001",
+            contract_date=timezone.localdate(),
+        )
+
         return RepairRequest._default_manager.create(
             repair_company=company,
-            construction_object=ConstructionObjectFactory(),
+            construction_object=construction_object,
             location="site",
             status="open",
             description="Permission matrix test",
+            rental_contract=contract,
         )
 
     def get_create_url(self) -> str:
@@ -93,12 +105,13 @@ class TestRepairRequestPermissionMatrix(BasePermissionMatrixTestCase):
         obj = self.create_object()
 
         return {
-            "repair_company": obj.repair_company.pk,
-            "construction_object": obj.construction_object.pk,
+            "repair_company": obj.repair_company_id,
+            "construction_object": obj.construction_object_id,
             "location": "site",
             "status": "open",
             "description": "Permission matrix test",
             "closing_description": "",
+            "rental_contract": obj.rental_contract_id,
         }
 
     def get_update_payload(self) -> dict:

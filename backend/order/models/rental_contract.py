@@ -66,9 +66,14 @@ class RentalContract(models.Model):
             customer_id = self.customer_id
             is_active = self.is_active
             if update_fields is not None and self.pk is not None:
-                persisted = contracts.filter(pk=self.pk).values_list(
-                    "customer_id", "is_active",
-                ).first()
+                persisted = (
+                    contracts.filter(pk=self.pk)
+                    .values_list(
+                        "customer_id",
+                        "is_active",
+                    )
+                    .first()
+                )
                 if persisted is not None:
                     if update_fields.isdisjoint({"customer", "customer_id"}):
                         customer_id = persisted[0]
@@ -83,7 +88,9 @@ class RentalContract(models.Model):
                 contracts.filter(
                     customer_id=customer_id,
                     is_active=True,
-                ).exclude(pk=self.pk).update(is_active=False)
+                ).exclude(
+                    pk=self.pk
+                ).update(is_active=False)
 
             super().save(
                 force_insert=force_insert,
@@ -105,8 +112,12 @@ def rental_contract_is_used(contract: RentalContract) -> bool:
     """
     using = contract._state.db or router.db_for_read(type(contract), instance=contract)
     for relation in contract._meta.related_objects:
-        if relation.related_model._base_manager.using(using).filter(
-            **{relation.field.name: contract},
-        ).exists():
+        if (
+            relation.field.model._base_manager.using(using)
+            .filter(
+                **{relation.field.name: contract},
+            )
+            .exists()
+        ):
             return True
     return False

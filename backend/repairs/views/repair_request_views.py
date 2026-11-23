@@ -73,6 +73,7 @@ class RepairRequestQuerySetMixin:
             "repair_company",
             "construction_object",
             "construction_object__customer",
+            "rental_contract",
         ).annotate(
             request_sum=Coalesce(
                 Subquery(specs_subquery),
@@ -112,10 +113,10 @@ class RepairRequestQuerySetMixin:
             queryset = queryset.filter(construction_object__customer_id=customer_id)
 
         if object_id := params.get("object_id"):
-            queryset = queryset.filter(construction_object_id=object_id)
+            queryset = queryset.filter(construction_object_id=int(object_id))
 
         if repair_company_id := params.get("repair_company_id"):
-            queryset = queryset.filter(repair_company_id=repair_company_id)
+            queryset = queryset.filter(repair_company_id=int(repair_company_id))
 
         return queryset.order_by(self.ordering)
 
@@ -189,6 +190,8 @@ class RepairRequestRetrieveUpdateDestroyAPIView(
 
     queryset = RepairRequest._default_manager.select_related(
         "construction_object",
+        "construction_object__customer",
+        "rental_contract",
         "created_by",
         "repair_company",
     ).prefetch_related(

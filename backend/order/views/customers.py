@@ -209,11 +209,17 @@ class CustomerContractsRetrieveUpdateDestroyAPIView(BaseRetrieveUpdateDestroyAPI
 
     def perform_destroy(self, instance: RentalContract) -> None:
         """Prevent deleting any contract referenced by another Django model."""
-        using = instance._state.db or router.db_for_write(RentalContract, instance=instance)
+        using = instance._state.db or router.db_for_write(
+            RentalContract, instance=instance
+        )
         try:
             with transaction.atomic(using=using):
                 # Lock before checking to serialize delete with FK-based inserts.
-                locked = RentalContract.objects.using(using).select_for_update().get(pk=instance.pk)
+                locked = (
+                    RentalContract.objects.using(using)
+                    .select_for_update()
+                    .get(pk=instance.pk)
+                )
                 if rental_contract_is_used(locked):
                     raise RentalContractInUse()
                 locked.delete(using=using)

@@ -2,6 +2,7 @@ from django.db import transaction
 from rest_framework import serializers
 
 from order.models import ConstructionObject
+from order.models.rental_contract import RentalContract
 from order.serializers.customer_serializers import BaseCustomerObjectsSerializer
 from repairs.models import RepairCompany
 from repairs.models.repair_request_models import (
@@ -41,7 +42,15 @@ class RepairRequestSerializer(serializers.ModelSerializer):
     Serializer for RepairRequest.
     """
 
-    construction_object = RepairConstructionObjectSerializer()
+    construction_object = RepairConstructionObjectSerializer(read_only=True)
+    rental_contract_number = serializers.CharField(
+        source="rental_contract.contract_number",
+        read_only=True,
+    )
+    rental_contract_date = serializers.DateField(
+        source="rental_contract.contract_date",
+        read_only=True,
+    )
 
     class Meta:
         model = RepairRequest
@@ -54,6 +63,10 @@ class RepairRequestSerializer(serializers.ModelSerializer):
             "location",
             "status",
             "construction_object",
+            "rental_contract",
+            "rental_contract_number",
+            "rental_contract_date",
+            "is_after_return",
         ]
 
 
@@ -107,6 +120,14 @@ class RepairRequestWriteSerializer(serializers.ModelSerializer):
             "does_not_exist": "Выбранный объект не существует.",
         },
     )
+    rental_contract = serializers.PrimaryKeyRelatedField(
+        queryset=RentalContract.objects.all(),
+        required=False,
+        allow_null=True,
+        error_messages={
+            "does_not_exist": "Выбранный договор аренды не существует.",
+        },
+    )
     specifications = RepairSpecificationWriteSerializer(
         many=True,
         write_only=True,
@@ -126,6 +147,8 @@ class RepairRequestWriteSerializer(serializers.ModelSerializer):
             "status",
             "repair_company",
             "construction_object",
+            "rental_contract",
+            "is_after_return",
             "description",
             "inspection_description",
             "closing_description",
@@ -135,6 +158,49 @@ class RepairRequestWriteSerializer(serializers.ModelSerializer):
             "id",
             "created_by",
         ]
+
+    def validate(self, attrs: dict) -> dict:
+        """Enforce the contract/customer match without breaking legacy repairs."""
+        attrs = super().validate(attrs)
+        instance = self.instance
+        construction_object = (
+            attrs["construction_object"]
+            if "construction_object" in attrs
+            else (instance.construction_object if instance is not None else None)
+        )
+        rental_contract = (
+            attrs["rental_contract"]
+            if "rental_contract" in attrs
+            else (instance.rental_contract if instance is not None else None)
+        )
+        location = attrs.get(
+            "location",
+            instance.location if instance is not None else RepairRequest.Location.SITE,
+        )
+        is_after_return = attrs.get(
+            "is_after_return",
+            instance.is_after_return if instance is not None else False,
+        )
+
+        errors = {}
+        if rental_contract is None and (
+            instance is None
+            or (instance.rental_contract_id is not None)
+            or is_after_return
+        ):
+            errors["rental_contract"] = "Выберите договор аренды."
+        if construction_object and rental_contract:
+            if construction_object.customer_id != rental_contract.customer_id:
+                errors["rental_contract"] = (
+                    "Договор не принадлежит заказчику выбранного объекта."
+                )
+        if is_after_return and location != RepairRequest.Location.WORKSHOP:
+            errors["is_after_return"] = (
+                "Ремонт после возврата выполняется в мастерской."
+            )
+        if errors:
+            raise serializers.ValidationError(errors)
+        return attrs
 
     @transaction.atomic
     def create(self, validated_data: dict) -> RepairRequest:
@@ -203,6 +269,14 @@ class RepairRequestExportReadSerializer(serializers.ModelSerializer):
         source="construction_object.address",
         read_only=True,
     )
+    rental_contract_number = serializers.CharField(
+        source="rental_contract.contract_number",
+        read_only=True,
+    )
+    rental_contract_date = serializers.DateField(
+        source="rental_contract.contract_date",
+        read_only=True,
+    )
     request_sum = serializers.DecimalField(
         max_digits=12,
         decimal_places=2,
@@ -225,4 +299,7 @@ class RepairRequestExportReadSerializer(serializers.ModelSerializer):
             "description",
             "inspection_description",
             "closing_description",
+            "rental_contract_number",
+            "rental_contract_date",
+            "is_after_return",
         ]

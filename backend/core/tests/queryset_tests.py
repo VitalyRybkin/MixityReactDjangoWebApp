@@ -79,10 +79,10 @@ class QuerysetContractMixin(_Base):
         return response
 
     def _get_object_related_entities_list(
-            self,
-            obj_id: int,
-            expected_objects: Sequence[models.Model],
-            entity: str,
+        self,
+        obj_id: int,
+        expected_objects: Sequence[models.Model],
+        entity: str,
     ) -> None:
         detail_url = self.get_detail_url(obj_id)
         self._logger_header(f"ENDPOINT GET: {detail_url}")

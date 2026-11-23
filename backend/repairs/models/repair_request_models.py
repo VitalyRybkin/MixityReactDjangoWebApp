@@ -1,4 +1,5 @@
 from django.conf import settings
+from django.core.exceptions import ValidationError
 from django.core.validators import FileExtensionValidator
 from django.db import models
 from django.utils import timezone
@@ -48,6 +49,18 @@ class RepairRequest(models.Model):
         on_delete=models.CASCADE,
         verbose_name="Объект",
     )
+    rental_contract = models.ForeignKey(
+        "order.RentalContract",
+        on_delete=models.PROTECT,
+        null=True,
+        blank=True,
+        related_name="repair_requests",
+        verbose_name="Договор аренды",
+    )
+    is_after_return = models.BooleanField(
+        default=False,
+        verbose_name="Ремонт после возврата оборудования",
+    )
     created_by = models.ForeignKey(
         settings.AUTH_USER_MODEL,
         on_delete=models.SET_NULL,
@@ -69,6 +82,31 @@ class RepairRequest(models.Model):
         blank=True,
         verbose_name="Описание при закрытии",
     )
+
+    def clean(self) -> None:
+        """Validate cross-field relations for explicit full_clean()/Django Admin."""
+        super().clean()
+        errors = {}
+        if self.rental_contract_id and self.construction_object_id:
+            contract = self.rental_contract
+            if (
+                contract is not None
+                and contract.customer_id != self.construction_object.customer_id
+            ):
+                errors["rental_contract"] = (
+                    "Договор не принадлежит заказчику выбранного объекта."
+                )
+        if self.is_after_return:
+            if self.location != self.Location.WORKSHOP:
+                errors["is_after_return"] = (
+                    "Ремонт после возврата выполняется в мастерской."
+                )
+            if not self.rental_contract_id:
+                errors["rental_contract"] = (
+                    "Для ремонта после возврата выберите договор аренды."
+                )
+        if errors:
+            raise ValidationError(errors)
 
     class Meta:
         verbose_name = "Заявка на ремонт"

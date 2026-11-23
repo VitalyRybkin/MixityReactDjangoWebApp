@@ -1,6 +1,6 @@
 from datetime import date
-from unittest.mock import patch
 from typing import Any
+from unittest.mock import patch
 
 from django.db import IntegrityError, transaction
 from django.test import TestCase
@@ -108,13 +108,19 @@ class TestCustomerContractsAPIList(
         """List the newest dates first and resolve date ties by descending ID."""
         customer = self.obj.customer
         latest = self.factory.create(
-            customer=customer, contract_date=date(2026, 12, 1), is_active=False,
+            customer=customer,
+            contract_date=date(2026, 12, 1),
+            is_active=False,
         )
         tied = self.factory.create(
-            customer=customer, contract_date=latest.contract_date, is_active=False,
+            customer=customer,
+            contract_date=latest.contract_date,
+            is_active=False,
         )
         earliest = self.factory.create(
-            customer=customer, contract_date=date(2026, 1, 1), is_active=False,
+            customer=customer,
+            contract_date=date(2026, 1, 1),
+            is_active=False,
         )
         self.obj.contract_date = date(2026, 6, 1)
         self.obj.save(update_fields=["contract_date"])
@@ -127,7 +133,9 @@ class TestCustomerContractsAPIList(
             [contract["id"] for contract in response.data],
             [tied.id, latest.id, self.obj.id, earliest.id],
         )
-        self._logger_success("Contract history retrieved", "Date and ID ordering verified")
+        self._logger_success(
+            "Contract history retrieved", "Date and ID ordering verified"
+        )
 
     def test_str_method(self) -> None:
         """Check that the contract label includes the customer, number, and date."""
@@ -265,7 +273,9 @@ class TestCustomerRentalContractAPIDetailAPI(
     def test_contract_from_another_customer_returns_404(self) -> None:
         """Test the logic for retrieving a rental contract from another customer."""
 
-        self._logger_header("ENDPOINT GET: retrieve rental contract from another customer")
+        self._logger_header(
+            "ENDPOINT GET: retrieve rental contract from another customer"
+        )
         another_customer = CustomerFactory.create()
 
         url = reverse(
@@ -320,7 +330,10 @@ class TestCustomerRentalContractAPIDetailAPI(
 
     def test_used_contract_is_marked_in_detail(self) -> None:
         """Expose the usage flag so the frontend can disable deletion."""
-        with patch("order.serializers.customer_serializers.rental_contract_is_used", return_value=True):
+        with patch(
+            "order.serializers.customer_serializers.rental_contract_is_used",
+            return_value=True,
+        ):
             response = self.client.get(self.url)
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
@@ -422,12 +435,16 @@ class TestRentalContractModel(TestCase, TestLoggerMixin):
 
         current.refresh_from_db()
         self.assertTrue(current.is_active)
-        self._logger_success("Duplicate primary key rejected", "Active contract preserved")
+        self._logger_success(
+            "Duplicate primary key rejected", "Active contract preserved"
+        )
 
     def test_database_rejects_second_active_contract(self) -> None:
         """Enforce the active limit on writes that bypass the save method."""
         current = RentalContractFactory.create()
-        historical = RentalContractFactory.create(customer=current.customer, is_active=False)
+        historical = RentalContractFactory.create(
+            customer=current.customer, is_active=False
+        )
         self._logger_header("CONSTRAINT: one active rental contract per customer")
 
         with self.assertRaises(IntegrityError), transaction.atomic():
@@ -435,4 +452,6 @@ class TestRentalContractModel(TestCase, TestLoggerMixin):
 
         historical.refresh_from_db()
         self.assertFalse(historical.is_active)
-        self._logger_success("Second active contract rejected", "Database constraint enforced")
+        self._logger_success(
+            "Second active contract rejected", "Database constraint enforced"
+        )

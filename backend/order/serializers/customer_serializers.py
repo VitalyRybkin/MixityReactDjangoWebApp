@@ -19,7 +19,9 @@ class CustomerRentalContractSerializer(serializers.ModelSerializer[RentalContrac
         return rental_contract_is_used(obj)
 
     def update(
-        self, instance: RentalContract, validated_data: dict[str, Any],
+        self,
+        instance: RentalContract,
+        validated_data: dict[str, Any],
     ) -> RentalContract:
         # Editing number/date must never implicitly reactivate a stale contract.
         for field, value in validated_data.items():

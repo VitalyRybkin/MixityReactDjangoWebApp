@@ -1,4 +1,4 @@
-from typing import Dict, Any
+from typing import Any, Dict
 
 from rest_framework import status
 from rest_framework.reverse import reverse
