@@ -1,4 +1,4 @@
-import React, { useRef, useState } from 'react'
+import React, { useEffect, useRef, useState } from 'react'
 import { useParams } from 'react-router-dom'
 
 import { Alert, Box, CircularProgress, Divider, Stack, Typography } from '@mui/material'
@@ -13,7 +13,11 @@ import { useFormLogic } from '../../hooks/useEntityForm.js'
 import useSnackbar from '../../hooks/useSnackbar.js'
 import { entityTableListSx as listSx } from '../../styles/entityTableList.styles.js'
 import { firstError } from '../../utils/apiError.js'
-import { useGetCustomerContracts, useGetCustomerObjects, useGetCustomers } from '../customers/utils/customers.queries.js'
+import {
+    useGetCustomerContracts,
+    useGetCustomerObjects,
+    useGetCustomers,
+} from '../customers/utils/customers.queries.js'
 import { useLoadingError } from '../orders/hooks/useLoadingError.js'
 import { useUnsavedGuard } from '../orders/hooks/useUnsavedGuard.js'
 
@@ -32,7 +36,13 @@ import {
     useUploadClosingFile,
     useUploadRequestFile,
 } from './utils/repair.files.queries.js'
-import { resolveRentalContractSelection, toRepairRequestPayload } from './utils/repair.form.mappers.js'
+import {
+    getRepairRelationId,
+    isLegacyLinkedWorkshop,
+    isRegulatoryRepair,
+    resolveRentalContractSelection,
+    toRepairRequestPayload,
+} from './utils/repair.form.mappers.js'
 import { useGetSpareParts } from './utils/repair.parts.queries.js'
 import {
     useCreateRepairRequest,
@@ -42,6 +52,16 @@ import {
 } from './utils/repair.queries.js'
 import { useGetRepairServices } from './utils/repair.services.queries.js'
 import { createEmptyRequestForm } from './utils/request.form.constants.js'
+import { transitionRepairContextWithDraft } from './utils/repairContextDraft.js'
+
+// Clear only flags on an explicit transition into regulatory maintenance.
+// Do not modify positions, quantities, prices, or the originally loaded record.
+const clearRebillableFlags = (items) =>
+    items.some((item) => Boolean(item.is_rebillable))
+        ? items.map((item) => (
+            item.is_rebillable ? { ...item, is_rebillable: false } : item
+        ))
+        : items
 
 export default function RepairRequestFormPage() {
     const { id } = useParams()
@@ -151,7 +171,7 @@ export default function RepairRequestFormPage() {
         validate: validateSpecifications,
         handleAddService,
         handleAddPart,
-        handleChange: handleSpecificationChange,
+        handleChange: updateSpecification,
         handleRemove: handleSpecificationRemove,
     } = useRepairSpecifications()
 
@@ -159,6 +179,13 @@ export default function RepairRequestFormPage() {
     const [contractSubmitAttempted, setContractSubmitAttempted] = useState(false)
     // The active contract is fetched asynchronously; read the latest value on submit.
     const selectedContractIdRef = useRef('')
+
+    // Kept only in memory while the form is open; never included in the payload.
+    const rentalContextDraftRef = useRef(null)
+    useEffect(() => {
+        // Navigating to another request must not restore the previous request's relations.
+        rentalContextDraftRef.current = null
+    }, [id, isEdit])
 
     const {
         form,
@@ -184,7 +211,10 @@ export default function RepairRequestFormPage() {
             ),
 
         validate: validateSpecifications,
-        onSuccess: () => markCleanRef.current?.(),
+        onSuccess: () => {
+            rentalContextDraftRef.current = null
+            markCleanRef.current?.()
+        },
     })
 
     const { isDirty, markClean } = useRepairRequestFormData({
@@ -211,49 +241,110 @@ export default function RepairRequestFormPage() {
     } = useGetCustomerContracts(form.customerId)
     const selectedContractId = resolveRentalContractSelection(form, customerContracts)
     selectedContractIdRef.current = selectedContractId
-    const missingRequiredContract = !isEdit && (!selectedContractId || contractsLoading || contractsError)
-    const removingExistingContract = isEdit && Boolean(repairRequest?.rental_contract) && !selectedContractId
-    const missingContractForReturn = isEdit && form.location === 'workshop' && Boolean(form.is_after_return) && !selectedContractId
-    const contractValidationMessage = missingContractForReturn
-        ? 'Для ремонта после возврата выберите договор аренды.'
-        : removingExistingContract
-            ? 'Нельзя убрать договор аренды из заявки. Выберите договор.'
-            : missingRequiredContract
-                ? contractsLoading
-                    ? 'Дождитесь загрузки договоров аренды.'
-                    : contractsError
-                        ? 'Не удалось загрузить договоры аренды.'
-                        : 'Выберите договор аренды выбранного контрагента.'
-                : ''
+    const isLegacyWorkshop = isLegacyLinkedWorkshop(isEdit ? repairRequest : null)
+    const showRentalContext =
+        form.location === 'site' ||
+        Boolean(form.is_after_return) ||
+        (isLegacyWorkshop &&
+            form.location === 'workshop' &&
+            (Boolean(form.customerId) || getRepairRelationId(form.construction_object) || selectedContractId))
+    const isRegulatory = isRegulatoryRepair(form) && !showRentalContext
+    const originalHadRentalContext = Boolean(
+        getRepairRelationId(repairRequest?.construction_object) || getRepairRelationId(repairRequest?.rental_contract),
+    )
+    const contextWillBeCleared = isEdit && isRegulatory && originalHadRentalContext
+    const needContract = form.location === 'site' || Boolean(form.is_after_return)
+    const missingObject = needContract && !getRepairRelationId(form.construction_object)
+    const originalObjectId = getRepairRelationId(repairRequest?.construction_object)
+    const currentObjectId = getRepairRelationId(form.construction_object)
+    const customerChanged = String(form.customerId || '') !== String(repairRequest?.construction_object?.customer ?? '')
+    const objectChanged = String(currentObjectId ?? '') !== String(originalObjectId ?? '')
+    const isUnchangedLegacySite =
+        isEdit &&
+        repairRequest?.location === 'site' &&
+        !repairRequest?.rental_contract &&
+        !customerChanged &&
+        !objectChanged &&
+        !form.is_after_return
+    const missingRequiredContract = needContract && !selectedContractId && !isUnchangedLegacySite
+    const removingExistingContract =
+        needContract && isEdit && Boolean(repairRequest?.rental_contract) && !selectedContractId
+    const contractValidationMessage = missingObject
+        ? 'Выберите объект ремонта.'
+        : removingExistingContract || missingRequiredContract
+          ? contractsLoading
+              ? 'Дождитесь загрузки договоров аренды.'
+              : contractsError
+                ? 'Не удалось загрузить договоры аренды.'
+                : 'Выберите договор аренды выбранного контрагента.'
+          : ''
+
+    const handleSpecificationChange = (rowId, updates) => {
+        // Defensive guard: a regulatory repair cannot mark a line for rebilling.
+        const safeUpdates = isRegulatory && updates?.is_rebillable === true
+            ? { ...updates, is_rebillable: false }
+            : updates
+        updateSpecification(rowId, safeUpdates)
+    }
 
     const handleSelectChange = (field, value) => {
-        if (field === 'rental_contract' || field === 'location' || field === 'is_after_return') {
+        if (
+            field === 'rental_contract' ||
+            field === 'location' ||
+            field === 'is_after_return' ||
+            field === 'construction_object'
+        ) {
             setContractSubmitAttempted(false)
         }
-        setForm((prev) => ({
-            ...prev,
-            [field]: value,
-            ...(field === 'location' && value !== 'workshop' ? { is_after_return: false } : {}),
-        }))
+        // Only mode toggles can restore an unsaved rental context. The saved
+        // regulatory form itself continues to have empty rental relations.
+        const { form: nextForm, draft } = transitionRepairContextWithDraft(
+            form,
+            field,
+            value,
+            rentalContextDraftRef.current,
+        )
+        if (field === 'location' || field === 'is_after_return') {
+            rentalContextDraftRef.current = draft
+        }
+        // Clear rebilling flags only on an explicit switch to regulatory repair.
+        if (!isRegulatoryRepair(form) && isRegulatoryRepair(nextForm)) {
+            setSpecifications(clearRebillableFlags)
+        }
+        setForm(nextForm)
     }
 
     // ExecutionFields can use either onChange('location') or onSelectChange.
-    const handleExecutionChange = (field) => field === 'location'
-        ? (event) => handleSelectChange(field, event.target.value)
-        : onChange(field)
+    const handleExecutionChange = (field) =>
+        field === 'location' ? (event) => handleSelectChange(field, event.target.value) : onChange(field)
 
     const handleSubmit = (event) => {
+        if (isRegulatory && buildSpecificationsPayload(specifications).some((item) => Boolean(item.is_rebillable))) {
+            event.preventDefault()
+            setError('Для регламентного ремонта отключите перевыставление расходов во всех позициях.')
+            return
+        }
         if (contractValidationMessage) {
             event.preventDefault()
             setContractSubmitAttempted(true)
             return
         }
         setContractSubmitAttempted(false)
+        setError(null)
         onSubmit(event)
     }
 
     const handleCustomerChange = (value) => {
         setContractSubmitAttempted(false)
+        const nextForm = {
+            ...form,
+            customerId: value,
+            construction_object: '',
+            rental_contract: null,
+        }
+        if (!isRegulatoryRepair(form) && isRegulatoryRepair(nextForm)) {
+            setSpecifications(clearRebillableFlags)
+        }
         setForm((prev) => ({
             ...prev,
             customerId: value,
@@ -324,6 +415,9 @@ export default function RepairRequestFormPage() {
                                 contractsError={contractsError}
                                 selectedContractId={selectedContractId}
                                 contractError={contractSubmitAttempted ? contractValidationMessage : ''}
+                                showRentalContext={showRentalContext}
+                                isRegulatory={isRegulatory}
+                                contextWillBeCleared={contextWillBeCleared}
                                 onChange={onChange}
                                 onSelectChange={handleSelectChange}
                                 onCustomerChange={handleCustomerChange}
@@ -354,6 +448,12 @@ export default function RepairRequestFormPage() {
 
             <Divider sx={sx.divider} />
 
+            {isRegulatory && (
+                <Typography variant="caption" color="text.secondary" sx={{ px: 1, mb: 1 }}>
+                    Регламентный ремонт: расходы не перевыставляются заказчику.
+                </Typography>
+            )}
+
             <Box sx={sx.specificationSection}>
                 <Stack sx={sx.specificationHeader} direction="row">
                     <Typography variant="h6" sx={sx.specificationGrandTotalValue}>
@@ -365,6 +465,7 @@ export default function RepairRequestFormPage() {
                 <Divider sx={sx.divider} />
 
                 <RepairSpecificationServicesList
+                    disableRebillable={isRegulatory}
                     rows={serviceSpecifications}
                     serviceErrors={specificationErrors}
                     servicesList={repairServices}
@@ -387,6 +488,7 @@ export default function RepairRequestFormPage() {
                 <Divider sx={sx.divider} />
 
                 <RepairSpecificationPartsList
+                    disableRebillable={isRegulatory}
                     rows={partSpecifications}
                     partErrors={specificationErrors}
                     partsList={spareParts}

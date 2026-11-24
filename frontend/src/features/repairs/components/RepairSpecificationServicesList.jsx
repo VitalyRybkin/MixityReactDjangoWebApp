@@ -11,6 +11,7 @@ import { useCreateRepairService } from '../utils/repair.services.queries.js'
 
 export default function RepairSpecificationServicesList({
                                                             rows,
+                                                            disableRebillable = false,
                                                             serviceErrors = {},
                                                             servicesList,
                                                             onChange,
@@ -118,6 +119,8 @@ export default function RepairSpecificationServicesList({
                                 control={
                                     <Checkbox
                                         checked={Boolean(row.is_rebillable)}
+                                        // Existing legacy marks can be removed but not added.
+                                        disabled={disableRebillable && !row.is_rebillable}
                                         onChange={(e) =>
                                             onChange(row.id, {
                                                 is_rebillable: e.target.checked,

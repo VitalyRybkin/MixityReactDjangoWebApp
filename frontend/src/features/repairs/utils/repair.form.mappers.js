@@ -18,6 +18,71 @@ export const resolveRentalContractSelection = (form, customerContracts = []) => 
     return active ? String(active.id) : ''
 }
 
+export const isRegulatoryRepair = (form) =>
+    form.location === 'workshop' && !form.is_after_return &&
+    !getRepairRelationId(form.construction_object) &&
+    !getRepairRelationId(form.rental_contract) &&
+    !form.customerId
+
+// Strip only rebilling flags when the user explicitly switches a repair into
+// the regulatory mode. Keep parts, services, quantities and prices untouched.
+export const clearRebillableOnRegulatorySwitch = (items, previousForm, nextForm) => {
+    if (isRegulatoryRepair(previousForm) || !isRegulatoryRepair(nextForm)) return items
+    return items.map((item) => (
+        item.is_rebillable ? { ...item, is_rebillable: false } : item
+    ))
+}
+
+export const isLegacyLinkedWorkshop = (originalRequest) =>
+    Boolean(
+        originalRequest && originalRequest.location === 'workshop' &&
+        !originalRequest.is_after_return &&
+        (getRepairRelationId(originalRequest.construction_object) ||
+            getRepairRelationId(originalRequest.rental_contract)),
+    )
+
+// Preserve linked historical workshop repairs until the user explicitly changes
+// the location or after-return checkbox. Switching to maintenance clears rentals.
+export const changeRepairContext = (previous, field, value) => {
+    if (field === 'location') {
+        if (value === previous.location) return previous
+        return value === 'workshop'
+            ? {
+                ...previous,
+                location: 'workshop',
+                is_after_return: false,
+                customerId: '',
+                construction_object: '',
+                rental_contract: '',
+            }
+            : {
+                ...previous,
+                location: 'site',
+                is_after_return: false,
+                customerId: '',
+                construction_object: '',
+                rental_contract: null,
+            }
+    }
+    if (field === 'is_after_return' && previous.location === 'workshop') {
+        if (Boolean(value) === Boolean(previous.is_after_return)) return previous
+        return value
+            ? {
+                ...previous,
+                is_after_return: true,
+                rental_contract: previous.customerId ? previous.rental_contract : null,
+            }
+            : {
+                ...previous,
+                is_after_return: false,
+                customerId: '',
+                construction_object: '',
+                rental_contract: '',
+            }
+    }
+    return { ...previous, [field]: value }
+}
+
 export const toRepairRequestPayload = (form, specifications, originalRequest = null, selectedContractId = form.rental_contract) => {
     const payload = {
         request_date: form.request_date,

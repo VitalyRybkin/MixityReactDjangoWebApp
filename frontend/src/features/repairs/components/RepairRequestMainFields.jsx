@@ -28,6 +28,9 @@ export default function RepairRequestMainFields({
     contractsError,
     selectedContractId,
     contractError,
+    showRentalContext,
+    isRegulatory,
+    contextWillBeCleared,
     onChange,
     onSelectChange,
     onCustomerChange,
@@ -93,56 +96,71 @@ export default function RepairRequestMainFields({
                     fullWidth
                 />
 
-                <AppSelectField
-                    id="repair-customer"
-                    label="Контрагент"
-                    value={form.customerId || ''}
-                    options={customerOptions}
-                    onChange={onCustomerChange}
-                    searchable
-                    includeAll={false}
-                    fullWidth
-                />
+                {showRentalContext && (
+                    <>
+                        <AppSelectField
+                            id="repair-customer"
+                            label="Контрагент"
+                            value={form.customerId || ''}
+                            options={customerOptions}
+                            onChange={onCustomerChange}
+                            searchable
+                            includeAll={false}
+                            fullWidth
+                        />
 
-                <AppSelectField
-                    id="repair-object"
-                    label="Объект"
-                    value={form.construction_object || ''}
-                    options={objectOptions}
-                    onChange={(value) => onSelectChange('construction_object', value)}
-                    searchable
-                    includeAll={false}
-                    disabled={!form.customerId}
-                    fullWidth
-                />
+                        <AppSelectField
+                            id="repair-object"
+                            label="Объект"
+                            value={form.construction_object || ''}
+                            options={objectOptions}
+                            onChange={(value) => onSelectChange('construction_object', value)}
+                            searchable
+                            includeAll={false}
+                            disabled={!form.customerId}
+                            fullWidth
+                        />
 
-                <AppSelectField
-                    id="repair-rental-contract"
-                    label="Договор аренды"
-                    value={selectedContractId}
-                    options={contractOptions}
-                    onChange={(value) => onSelectChange('rental_contract', value)}
-                    searchable
-                    includeAll={false}
-                    disabled={!form.customerId || (contractsLoading && !originalContract)}
-                    fullWidth
-                />
+                        <AppSelectField
+                            id="repair-rental-contract"
+                            label="Договор аренды"
+                            value={selectedContractId}
+                            options={contractOptions}
+                            onChange={(value) => onSelectChange('rental_contract', value)}
+                            searchable
+                            includeAll={false}
+                            disabled={!form.customerId || (contractsLoading && !originalContract)}
+                            fullWidth
+                        />
+                    </>
+                )}
             </Box>
 
-            {contractError && (
+            {showRentalContext && contractError && (
                 <Typography role="alert" variant="caption" color="error.main" sx={{ display: 'block', mt: 1, lineHeight: 1.4 }}>
                     {contractError}
                 </Typography>
             )}
 
-            {form.customerId && contractsError && (
-                <Typography variant="caption" color="warning.main" sx={{ display: 'block', lineHeight: 1.4 }}>
+            {showRentalContext && form.customerId && contractsError && (
+                <Typography variant="caption" color="warning.main" sx={{ display: 'block', mt: 1, lineHeight: 1.4 }}>
                     Не удалось загрузить договоры аренды. Повторите попытку позже.
                 </Typography>
             )}
-            {form.customerId && !contractsLoading && !contractsError && customerContracts.length === 0 && !originalContract && (
-                <Typography variant="caption" color="warning.main" sx={{ display: 'block', lineHeight: 1.4 }}>
-                    Отсутствует договор. Добавьте договор в карточке заказчика.
+            {showRentalContext && form.customerId && !contractsLoading && !contractsError && customerContracts.length === 0 && !originalContract && (
+                <Typography variant="caption" color="warning.main" sx={{ display: 'block', mt: 1, lineHeight: 1.4 }}>
+                    Договоров аренды нет. Добавьте договор в карточке заказчика.
+                </Typography>
+            )}
+
+            {isRegulatory && (
+                <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mt: 1 }}>
+                    Регламентный ремонт: без контрагента, объекта и договора аренды.
+                </Typography>
+            )}
+            {contextWillBeCleared && (
+                <Typography variant="caption" color="warning.main" sx={{ display: 'block', mt: 1 }}>
+                    При сохранении связи с объектом и договором аренды будут удалены из заявки.
                 </Typography>
             )}
 

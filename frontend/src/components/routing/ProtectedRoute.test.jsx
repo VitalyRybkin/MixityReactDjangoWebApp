@@ -134,7 +134,7 @@ describe('authorization rechecks', () => {
         await act(async () => pending.reject(new Error('Refresh temporarily rejected')))
 
         expect(privateInput()).toBeNull()
-        expect(container.textContent).toContain('Не удалось подтвердить сессию')
+        expect(container.textContent).toContain('Не удалось проверить авторизацию.')
         expect(localStorage.getItem(ACCESS_TOKEN)).toBe(expired)
         expect(localStorage.getItem(REFRESH_TOKEN)).toBe('refresh-token')
         expect(localStorage.getItem(AUTH_SESSION_ID_KEY)).toBe(sessionId)
@@ -142,24 +142,42 @@ describe('authorization rechecks', () => {
         await remoteWrite(ACCESS_TOKEN, token(3600))
 
         expect(privateInput()).not.toBeNull()
-        expect(container.textContent).not.toContain('Не удалось подтвердить сессию')
+        expect(container.textContent).not.toContain('Не удалось проверить авторизацию.')
     })
 
-    it('removes stale authorization when token decoding fails before refresh', async () => {
+    it('blocks malformed access tokens until a refresh succeeds', async () => {
         await renderRoute()
+        const pending = deferred()
+        vi.mocked(refreshAccessToken).mockReturnValue(pending.promise)
+
         await remoteWrite(ACCESS_TOKEN, 'malformed-token')
 
+        // Never render private content with a malformed access token.
+        // A valid refresh token allows recovery, but must be verified first.
         expect(privateInput()).toBeNull()
-        expect(container.textContent).toContain('Не удалось подтвердить сессию')
-        expect(refreshAccessToken).not.toHaveBeenCalled()
+        expect(container.textContent).toContain('Проверяем авторизацию')
+        expect(refreshAccessToken).toHaveBeenCalledTimes(1)
+
+        await act(async () => {
+            localStorage.setItem(ACCESS_TOKEN, token(3600))
+            pending.resolve('refreshed-access')
+        })
+
+        expect(privateInput()).not.toBeNull()
     })
 
     it('allows an explicit retry after a failed authorization check', async () => {
         localStorage.setItem(ACCESS_TOKEN, token(-60))
         vi.mocked(refreshAccessToken).mockRejectedValueOnce(new Error('Temporary failure'))
         await renderRoute()
-        vi.mocked(refreshAccessToken).mockResolvedValueOnce('refreshed-access')
+        // The real refreshAccessToken writes the new access token to storage;
+        // the mock must reproduce this side effect, not just return a string.
+        vi.mocked(refreshAccessToken).mockImplementationOnce(async () => {
+            localStorage.setItem(ACCESS_TOKEN, token(3600))
+            return 'refreshed-access'
+        })
         const retry = [...container.querySelectorAll('button')].find((button) => button.textContent === 'Повторить')
+        expect(retry).toBeDefined()
 
         await act(async () => retry.click())
 

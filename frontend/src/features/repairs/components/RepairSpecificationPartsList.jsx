@@ -9,7 +9,7 @@ import AddAction from "../../../components/ui/buttons/AddAction.jsx";
 import {useCreateSparePart} from "../utils/repair.parts.queries.js";
 import RepairSpecificationItemCreateDialog from "./RepairSpecificationItemCreateDialog.jsx";
 
-export default function RepairSpecificationPartsList({ rows, partErrors = {}, partsList, onChange, onRemove, totalPartsPrice, totalPartsPriceRebillable, }) {
+export default function RepairSpecificationPartsList({ rows, partErrors = {}, partsList, onChange, onRemove, totalPartsPrice, totalPartsPriceRebillable, disableRebillable = false, }) {
     const selectedPartIds = useMemo(() => rows.map((row) => row.partId).filter(Boolean), [rows])
     const createPart = useCreateSparePart()
     const [createForRowId, setCreateForRowId] = useState(null)
@@ -110,6 +110,8 @@ export default function RepairSpecificationPartsList({ rows, partErrors = {}, pa
                                 control={
                                     <Checkbox
                                         checked={Boolean(row.is_rebillable)}
+                                        // Existing legacy marks can be removed but not added.
+                                        disabled={disableRebillable && !row.is_rebillable}
                                         onChange={(e) =>
                                             onChange(row.id, {
                                                 is_rebillable: e.target.checked,
