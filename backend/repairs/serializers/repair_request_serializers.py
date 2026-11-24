@@ -5,6 +5,10 @@ from order.models import ConstructionObject
 from order.models.rental_contract import RentalContract
 from order.serializers.customer_serializers import BaseCustomerObjectsSerializer
 from repairs.models import RepairCompany
+from repairs.services.repair_request_context import (
+    is_maintenance,
+    repair_context_errors,
+)
 from repairs.models.repair_request_models import (
     RepairRequest,
 )
@@ -116,10 +120,13 @@ class RepairRequestWriteSerializer(serializers.ModelSerializer):
     )
     construction_object = serializers.PrimaryKeyRelatedField(
         queryset=ConstructionObject.objects.active(),
+        required=False,
+        allow_null=True,
         error_messages={
             "does_not_exist": "Выбранный объект не существует.",
         },
     )
+    # An old (inactive) contract remains valid for its historical rental.
     rental_contract = serializers.PrimaryKeyRelatedField(
         queryset=RentalContract.objects.all(),
         required=False,
@@ -160,18 +167,16 @@ class RepairRequestWriteSerializer(serializers.ModelSerializer):
         ]
 
     def validate(self, attrs: dict) -> dict:
-        """Enforce the contract/customer match without breaking legacy repairs."""
+        """Validate all three repair contexts, including partial updates."""
         attrs = super().validate(attrs)
         instance = self.instance
-        construction_object = (
-            attrs["construction_object"]
-            if "construction_object" in attrs
-            else (instance.construction_object if instance is not None else None)
+        construction_object = attrs.get(
+            "construction_object",
+            instance.construction_object if instance is not None else None,
         )
-        rental_contract = (
-            attrs["rental_contract"]
-            if "rental_contract" in attrs
-            else (instance.rental_contract if instance is not None else None)
+        rental_contract = attrs.get(
+            "rental_contract",
+            instance.rental_contract if instance is not None else None,
         )
         location = attrs.get(
             "location",
@@ -181,23 +186,44 @@ class RepairRequestWriteSerializer(serializers.ModelSerializer):
             "is_after_return",
             instance.is_after_return if instance is not None else False,
         )
+        construction_object_id = construction_object.pk if construction_object is not None else None
+        rental_contract_id = rental_contract.pk if rental_contract is not None else None
 
-        errors = {}
-        if rental_contract is None and (
-            instance is None
-            or (instance.rental_contract_id is not None)
-            or is_after_return
+        errors = repair_context_errors(
+            existing=instance,
+            location=location,
+            is_after_return=is_after_return,
+            construction_object_id=construction_object_id,
+            rental_contract_id=rental_contract_id,
+            construction_customer_id=(
+                construction_object.customer_id if construction_object is not None else None
+            ),
+            contract_customer_id=(
+                rental_contract.customer_id if rental_contract is not None else None
+            ),
+        )
+
+        if is_maintenance(
+            location=location,
+            is_after_return=is_after_return,
+            construction_object_id=construction_object_id,
+            rental_contract_id=rental_contract_id,
         ):
-            errors["rental_contract"] = "Выберите договор аренды."
-        if construction_object and rental_contract:
-            if construction_object.customer_id != rental_contract.customer_id:
-                errors["rental_contract"] = (
-                    "Договор не принадлежит заказчику выбранного объекта."
+            specifications_data = attrs.get("specifications")
+            if specifications_data is not None:
+                has_rebillable_items = any(
+                    item.get("is_rebillable", False) for item in specifications_data
                 )
-        if is_after_return and location != RepairRequest.Location.WORKSHOP:
-            errors["is_after_return"] = (
-                "Ремонт после возврата выполняется в мастерской."
-            )
+            else:
+                has_rebillable_items = bool(
+                    instance is not None
+                    and instance.specifications.filter(is_rebillable=True).exists()
+                )
+            if has_rebillable_items:
+                errors["specifications"] = (
+                    "Для регламентного ремонта отключите перевыставление расходов."
+                )
+
         if errors:
             raise serializers.ValidationError(errors)
         return attrs
@@ -256,6 +282,8 @@ class RepairRequestExportReadSerializer(serializers.ModelSerializer):
     customer = serializers.CharField(
         source="construction_object.customer.name",
         read_only=True,
+        allow_null=True,
+        default=None,
     )
     repair_company = serializers.CharField(
         source="repair_company.name",
@@ -264,10 +292,14 @@ class RepairRequestExportReadSerializer(serializers.ModelSerializer):
     construction_object = serializers.CharField(
         source="construction_object.name",
         read_only=True,
+        allow_null=True,
+        default=None,
     )
     construction_object_address = serializers.CharField(
         source="construction_object.address",
         read_only=True,
+        allow_null=True,
+        default=None,
     )
     rental_contract_number = serializers.CharField(
         source="rental_contract.contract_number",

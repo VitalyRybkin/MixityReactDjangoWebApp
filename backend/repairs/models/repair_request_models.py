@@ -4,6 +4,8 @@ from django.core.validators import FileExtensionValidator
 from django.db import models
 from django.utils import timezone
 
+from repairs.services.repair_request_context import repair_context_errors, is_maintenance
+
 
 class RepairRequest(models.Model):
     """Track equipment repairs and their associated paperwork and specifications."""
@@ -46,7 +48,9 @@ class RepairRequest(models.Model):
     )
     construction_object = models.ForeignKey(
         "order.ConstructionObject",
-        on_delete=models.CASCADE,
+        on_delete=models.PROTECT,
+        null=True,
+        blank=True,
         verbose_name="Объект",
     )
     rental_contract = models.ForeignKey(
@@ -84,27 +88,28 @@ class RepairRequest(models.Model):
     )
 
     def clean(self) -> None:
-        """Validate cross-field relations for explicit full_clean()/Django Admin."""
+        """Keep business rules consistent with the write serializer and admin."""
         super().clean()
-        errors = {}
-        if self.rental_contract_id and self.construction_object_id:
-            contract = self.rental_contract
-            if (
-                contract is not None
-                and contract.customer_id != self.construction_object.customer_id
-            ):
-                errors["rental_contract"] = (
-                    "Договор не принадлежит заказчику выбранного объекта."
-                )
-        if self.is_after_return:
-            if self.location != self.Location.WORKSHOP:
-                errors["is_after_return"] = (
-                    "Ремонт после возврата выполняется в мастерской."
-                )
-            if not self.rental_contract_id:
-                errors["rental_contract"] = (
-                    "Для ремонта после возврата выберите договор аренды."
-                )
+        previous = (
+            type(self)._default_manager.filter(pk=self.pk).first()
+            if self.pk is not None
+            else None
+        )
+        errors = repair_context_errors(
+            existing=previous,
+            location=self.location,
+            is_after_return=self.is_after_return,
+            construction_object_id=self.construction_object_id,
+            rental_contract_id=self.rental_contract_id,
+            construction_customer_id=(
+                self.construction_object.customer_id
+                if self.construction_object_id is not None else None
+            ),
+            contract_customer_id=(
+                self.rental_contract.customer_id
+                if self.rental_contract_id is not None else None
+            ),
+        )
         if errors:
             raise ValidationError(errors)
 
@@ -264,6 +269,21 @@ class RepairSpecification(models.Model):
     is_rebillable = models.BooleanField(
         default=False, verbose_name="Перевыставить арендатору для возмещения"
     )
+
+    def clean(self) -> None:
+        super().clean()
+        if not self.is_rebillable or not self.repair_request_id:
+            return
+        request = self.repair_request
+        if is_maintenance(
+            location=request.location,
+            is_after_return=request.is_after_return,
+            construction_object_id=request.construction_object_id,
+            rental_contract_id=request.rental_contract_id,
+        ):
+            raise ValidationError({
+                "is_rebillable": "Регламентный ремонт не перевыставляется заказчику."
+            })
 
     class Meta:
         verbose_name = "Позиция спецификации"
