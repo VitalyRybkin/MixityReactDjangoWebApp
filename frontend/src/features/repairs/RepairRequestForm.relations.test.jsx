@@ -38,6 +38,11 @@ vi.mock('./utils/repair.queries.js', () => ({
 vi.mock('../customers/utils/customers.queries.js', () => ({
     useGetCustomers: () => ({ data: customers }),
     useGetCustomerObjects: (customerId) => ({ data: customerId ? objects : [] }),
+    useGetCustomerContracts: (customerId) => ({
+        data: customerId ? contracts : [],
+        isLoading: false,
+        isError: false,
+    }),
 }))
 vi.mock('./utils/repair.parts.queries.js', () => ({ useGetSpareParts: () => ({ data: [] }) }))
 vi.mock('./utils/repair.services.queries.js', () => ({ useGetRepairServices: () => ({ data: [] }) }))
@@ -63,12 +68,15 @@ const ARCHIVED_OBJECT = {
     customer_name: CUSTOMER.name,
 }
 const COMPANY_LABEL = 'Ремонтирующая компания № 7'
+const ACTIVE_CONTRACT = { id: 71, contract_number: '71/26', contract_date: '2026-11-01', is_active: true }
+const CONTRACT_LABEL = '№ 71/26 от 01.11.2026 · Действующий'
 let container
 let root
 let request
 let companies
 let customers
 let objects
+let contracts
 let createRequest
 let updateRequest
 let currentForm
@@ -85,7 +93,7 @@ const renderForm = async ({ create = false } = {}) => {
     ))
 }
 const input = (name) => {
-    const label = { company: 'Ремонтирующая компания', customer: 'Контрагент', object: 'Объект' }[name]
+    const label = { company: 'Ремонтирующая компания', customer: 'Контрагент', object: 'Объект', contract: 'Договор аренды' }[name]
     const autocomplete = [...container.querySelectorAll('.MuiAutocomplete-root')]
         .find((element) => element.querySelector('label')?.textContent === label)
     return autocomplete?.querySelector('input[role="combobox"]') ?? null
@@ -144,6 +152,7 @@ beforeEach(() => {
     companies = [ACTIVE_COMPANY]
     customers = [CUSTOMER]
     objects = [ACTIVE_OBJECT]
+    contracts = [ACTIVE_CONTRACT]
     vi.spyOn(HTMLElement.prototype, 'getBoundingClientRect').mockReturnValue({
         x: 0, y: 0, top: 0, left: 0, right: 200, bottom: 36, width: 200, height: 36,
         toJSON: () => ({}),
@@ -197,10 +206,12 @@ describe('repair edits with historical company and object relations', () => {
     it('includes an explicitly selected active object and omits the unchanged company', async () => {
         await renderForm()
         await select('object', ACTIVE_OBJECT.name)
+        await select('contract', CONTRACT_LABEL)
         await submit()
 
         const payload = updatePayload()
         expect(payload.construction_object).toBe(10)
+        expect(payload.rental_contract).toBe('71')
         expect(payload).not.toHaveProperty('repair_company')
     })
 
@@ -215,15 +226,13 @@ describe('repair edits with historical company and object relations', () => {
         expect(payload).not.toHaveProperty('construction_object')
     })
 
-    it('sends an explicit object clear instead of restoring the archived object', async () => {
+    it('blocks saving a site repair after clearing its required construction object', async () => {
         await renderForm()
         await clear('object')
         await submit()
 
-        const payload = updatePayload()
-        expect(payload).toHaveProperty('construction_object')
-        expect([null, '']).toContain(payload.construction_object)
-        expect(payload).not.toHaveProperty('repair_company')
+        expect(updateRequest).not.toHaveBeenCalled()
+        expect(container.textContent).toContain('Выберите объект ремонта.')
     })
 
     it('includes selected company and object IDs when creating a new repair request', async () => {
@@ -243,6 +252,7 @@ describe('repair edits with historical company and object relations', () => {
         await renderForm()
         await select('company', ACTIVE_COMPANY.name)
         await select('object', ACTIVE_OBJECT.name)
+        await select('contract', CONTRACT_LABEL)
         await editDescription('Unsaved description')
         companies = [{ ...ACTIVE_COMPANY, name: 'Refreshed company label' }]
         objects = [{ ...ACTIVE_OBJECT, name: 'Refreshed object label' }]
@@ -260,6 +270,7 @@ describe('repair edits with historical company and object relations', () => {
             description: 'Unsaved description',
             repair_company: 8,
             construction_object: 10,
+            rental_contract: '71',
         })
     })
 })
