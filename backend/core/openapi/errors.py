@@ -1,51 +1,111 @@
-from drf_spectacular.utils import OpenApiExample, OpenApiResponse, inline_serializer
-from rest_framework import serializers
+"""OpenAPI schemas for the responses produced by the API exception handler."""
 
-CoreDetailErrorSerializer = inline_serializer(
-    name="CoreDetailError",
-    fields={"detail": serializers.CharField()},
-)
+from drf_spectacular.utils import OpenApiExample, OpenApiResponse
 
-CoreValidationErrorSerializer = inline_serializer(
-    name="CoreValidationError",
-    fields={
-        "non_field_errors": serializers.ListField(child=serializers.CharField(), required=False),
-        "field_errors": serializers.DictField(
-            child=serializers.ListField(child=serializers.CharField()),
-            required=False,
-        ),
+MESSAGE_LIST = {"type": "array", "items": {"type": "string"}}
+ERROR_ENVELOPE_FIELDS = {
+    "type": "object",
+    "required": ["errors", "messages"],
+}
+ERROR_ENVELOPE = {
+    **ERROR_ENVELOPE_FIELDS,
+    "properties": {
+        "errors": {
+            "type": "object",
+            "additionalProperties": {
+                "anyOf": [
+                    {"type": "string"},
+                    {"type": "array", "items": {}},
+                    {"type": "object", "additionalProperties": {}},
+                ],
+            },
+        },
+        "messages": MESSAGE_LIST,
     },
-)
+}
+DETAIL_ERROR_ENVELOPE = {
+    **ERROR_ENVELOPE_FIELDS,
+    "properties": {
+        "errors": {
+            "type": "object",
+            "required": ["detail"],
+            "properties": {"detail": {"type": "string"}},
+        },
+        "messages": MESSAGE_LIST,
+    },
+}
 
 ERROR_400 = OpenApiResponse(
-    response=CoreValidationErrorSerializer,
-    description="Validation error",
+    response=ERROR_ENVELOPE,
+    description="Request validation or parsing failed.",
     examples=[
-        OpenApiExample("Field validation", value={"name": ["This field is required."]}),
-        OpenApiExample("Multiple fields", value={"name": ["Too short."], "phone": ["Invalid format."]}),
+        OpenApiExample(
+            "Field validation",
+            value={
+                "errors": {"name": ["This field is required."]},
+                "messages": ["Name: This field is required."],
+            },
+        ),
+        OpenApiExample(
+            "Nested validation",
+            value={
+                "errors": {"items": [{"quantity": ["Enter a positive quantity."]}]},
+                "messages": ["Items: Enter a positive quantity."],
+            },
+        ),
     ],
 )
 
 ERROR_401 = OpenApiResponse(
-    response=CoreDetailErrorSerializer,
-    description="Unauthorized",
-    examples=[OpenApiExample("Unauthorized", value={"detail": "Authentication credentials were not provided."})],
+    response={"oneOf": [DETAIL_ERROR_ENVELOPE, MESSAGE_LIST]},
+    description="Missing credentials use the error envelope. Invalid or expired credentials return a list of messages.",
+    examples=[
+        OpenApiExample(
+            "Invalid or expired credentials",
+            value=["Ошибка аутентификации."],
+        ),
+    ],
 )
 
 ERROR_403 = OpenApiResponse(
-    response=CoreDetailErrorSerializer,
-    description="Forbidden",
-    examples=[OpenApiExample("Forbidden", value={"detail": "You do not have permission to perform this action."})],
+    response=DETAIL_ERROR_ENVELOPE,
+    description="The authenticated user lacks the required permission.",
+)
+
+ERROR_406 = OpenApiResponse(
+    response=DETAIL_ERROR_ENVELOPE,
+    description="The requested response media type is unavailable.",
+)
+
+ERROR_500 = OpenApiResponse(
+    response=MESSAGE_LIST,
+    description="An unexpected server error occurred.",
+    examples=[OpenApiExample("Server error", value=["Внутренняя ошибка сервера."])],
+)
+
+ERROR_503 = OpenApiResponse(
+    response={"oneOf": [DETAIL_ERROR_ENVELOPE, MESSAGE_LIST]},
+    description="A required service is temporarily unavailable.",
+    examples=[
+        OpenApiExample(
+            "Database unavailable", value=["Отсутствует подключение к базе данных."]
+        ),
+    ],
 )
 
 ERROR_404 = OpenApiResponse(
-    response=CoreDetailErrorSerializer,
-    description="Not found",
-    examples=[OpenApiExample("Not found", value={"detail": "Not found."})],
+    response=DETAIL_ERROR_ENVELOPE,
+    description="The requested resource or page was not found.",
+)
+ERROR_415 = OpenApiResponse(
+    response=DETAIL_ERROR_ENVELOPE,
+    description="The request body uses an unsupported media type.",
 )
 
 ERRORS_AUTH = {401: ERROR_401, 403: ERROR_403}
-ERRORS_READ = {**ERRORS_AUTH}
-ERRORS_WRITE = {400: ERROR_400, **ERRORS_AUTH}
-ERRORS_DETAIL = {**ERRORS_AUTH, 404: ERROR_404}
-ERRORS_DETAIL_WRITE = {400: ERROR_400, **ERRORS_DETAIL}
+ERRORS_READ = {**ERRORS_AUTH, 406: ERROR_406, 500: ERROR_500, 503: ERROR_503}
+ERRORS_FILTERED_READ = {400: ERROR_400, **ERRORS_READ}
+ERRORS_DETAIL = {**ERRORS_READ, 404: ERROR_404}
+ERRORS_FILTERED_DETAIL = {400: ERROR_400, **ERRORS_DETAIL}
+ERRORS_WRITE = {**ERRORS_FILTERED_READ, 415: ERROR_415}
+ERRORS_DETAIL_WRITE = {**ERRORS_FILTERED_DETAIL, 415: ERROR_415}

@@ -30,7 +30,7 @@ UV := uv run --active python
 DJANGO := $(UV) manage.py
 
 # Python packages/directories checked by formatters and linters.
-CODE_DIRS := catalog logistic stock core/tests contacts order common repairs
+CODE_DIRS := catalog logistic stock core/tests contacts order common repairs additional_services
 
 # Docker Compose file is one directory above backend/.
 COMPOSE := docker compose -f ../docker-compose.yml
@@ -173,27 +173,22 @@ format:
 
 # CHECK must never change source files. Suitable for CI and before push.
 check:
-	uv run --active python -m isort catalog logistic stock core/tests contacts order common repairs \
+	uv run --active python -m isort $(CODE_DIRS) \
 		--skip-glob "*/migrations/*" \
 		--skip-glob "*/fixtures/*"
 
-	uv run --active python -m black catalog logistic stock core/tests contacts order common repairs \
+	uv run --active python -m black $(CODE_DIRS) \
 		--exclude "/(\.git|\.hg|\.mypy_cache|\.tox|\.venv|venv|env|_build|build|dist|media|swagger_ui/static|migrations|__pycache__|fixtures|templates)/" \
 		--include "\.pyi?$$"
 
-	uv run --active python -m isort catalog logistic stock core/tests contacts order common repairs \
-		--check-only \
-		--skip-glob "*/migrations/*" \
-		--skip-glob "*/fixtures/*"
-
-	uv run --active python -m black catalog logistic stock core/tests contacts order common repairs \
+	uv run --active python -m black $(CODE_DIRS) \
 		--check \
 		--exclude "/(\.git|\.hg|\.mypy_cache|\.tox|\.venv|venv|env|_build|build|dist|media|swagger_ui/static|migrations|__pycache__|fixtures|templates)/" \
 		--include "\.pyi?$$"
 
-	uv run --active python -m flake8 catalog logistic stock core/tests contacts order common repairs
+	uv run --active python -m flake8 $(CODE_DIRS)
 
-	uv run --active python -m mypy catalog logistic stock contacts order common repairs
+	uv run --active python -m mypy $(CODE_DIRS)
 
 pre-commit:
 	$(UV) -m pre_commit run --all-files

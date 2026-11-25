@@ -33,6 +33,13 @@ GROUP_FULL_APPS = {
 }
 
 
+ADDITIONAL_SERVICE_ACTIONS = {
+    "Order Manager": ("view", "add", "change"),
+    "Logistic Manager": ("view", "add", "change", "delete"),
+    "Accountant": ("view", "add", "change"),
+}
+
+
 class Command(BaseCommand):
     help = "Synchronize Django group permissions"
 
@@ -50,6 +57,7 @@ class Command(BaseCommand):
             if group_name == "Accountant":
                 permissions = permissions | self._accountant_order_permissions()
 
+            permissions = permissions | self._additional_service_permissions(group_name)
             permissions = permissions.distinct()
 
             group.permissions.set(permissions)
@@ -85,3 +93,13 @@ class Command(BaseCommand):
         )
 
         return order_view_permissions | upd_permission
+
+    @staticmethod
+    def _additional_service_permissions(group_name):
+        """Grant CRUD permissions on additional service requests by role."""
+        actions = ADDITIONAL_SERVICE_ACTIONS[group_name]
+        return Permission.objects.filter(
+            content_type__app_label="additional_services",
+            content_type__model="additionalservicerequest",
+            codename__in=[f"{action}_additionalservicerequest" for action in actions],
+        )
