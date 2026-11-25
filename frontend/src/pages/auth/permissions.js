@@ -30,6 +30,13 @@ export const PERMISSIONS = {
         delete: 'order.delete_constructionobject',
     },
 
+    additionalServices: {
+        view: 'additional_services.view_additionalservicerequest',
+        add: 'additional_services.add_additionalservicerequest',
+        change: 'additional_services.change_additionalservicerequest',
+        delete: 'additional_services.delete_additionalservicerequest',
+    },
+
     repairRequests: {
         view: 'repairs.view_repairrequest',
         add: 'repairs.add_repairrequest',

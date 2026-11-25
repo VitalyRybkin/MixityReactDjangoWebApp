@@ -32,7 +32,7 @@ const REFERENCE_ITEMS = [
         permission: PERMISSIONS.customers.view,
     },
     {
-        label: 'Ремонт',
+        label: 'Ремонтные компании',
         to: '/repair/companies',
         permission: PERMISSIONS.repairCompanies.view,
     },
@@ -50,12 +50,22 @@ const NAV_ITEMS = [
         to: '/filtering',
         permission: PERMISSIONS.orders.view,
     },
+]
+
+const SERVICE_ITEMS = [
     {
         label: 'Ремонт',
         to: '/repair/requests',
         permission: PERMISSIONS.repairRequests.view,
     },
+    {
+        label: 'Допуслуги',
+        to: '/additional-services',
+        permission: PERMISSIONS.additionalServices.view,
+    },
 ]
+
+const SERVICE_PERMISSIONS = SERVICE_ITEMS.map(({ permission }) => permission)
 
 const MenuItems = ({ items, onClick }) =>
     items.map(({ label, to, permission }) => (
@@ -71,11 +81,16 @@ const TopBarNav = () => {
 
     const [mobileMenuAnchorEl, setMobileMenuAnchorEl] = useState(null)
     const [referencesAnchorEl, setReferencesAnchorEl] = useState(null)
+    const [servicesAnchorEl, setServicesAnchorEl] = useState(null)
+    const [mobileReferencesOpen, setMobileReferencesOpen] = useState(false)
+    const [mobileServicesOpen, setMobileServicesOpen] = useState(false)
 
     const mobileMenuOpen = Boolean(mobileMenuAnchorEl)
     const referencesMenuOpen = Boolean(referencesAnchorEl)
+    const servicesMenuOpen = Boolean(servicesAnchorEl)
 
     const referencesActive = REFERENCE_ITEMS.some(({ to }) => location.pathname.startsWith(to))
+    const servicesActive = SERVICE_ITEMS.some(({ to }) => location.pathname.startsWith(to))
 
     const handleOpenMobileMenu = (event) => {
         setMobileMenuAnchorEl(event.currentTarget)
@@ -84,22 +99,34 @@ const TopBarNav = () => {
     const handleCloseMobileMenu = () => {
         setMobileMenuAnchorEl(null)
         setMobileReferencesOpen(false)
+        setMobileServicesOpen(false)
     }
 
     const handleOpenReferencesMenu = (event) => {
+        setServicesAnchorEl(null)
         setReferencesAnchorEl(event.currentTarget)
+    }
+
+    const handleOpenServicesMenu = (event) => {
+        setReferencesAnchorEl(null)
+        setServicesAnchorEl(event.currentTarget)
     }
 
     const handleCloseReferencesMenu = () => {
         setReferencesAnchorEl(null)
     }
 
-    const handleCloseAllMenus = () => {
-        setReferencesAnchorEl(null)
-        setMobileMenuAnchorEl(null)
+    const handleCloseServicesMenu = () => {
+        setServicesAnchorEl(null)
     }
 
-    const [mobileReferencesOpen, setMobileReferencesOpen] = useState(false)
+    const handleCloseAllMenus = () => {
+        setReferencesAnchorEl(null)
+        setServicesAnchorEl(null)
+        setMobileMenuAnchorEl(null)
+        setMobileReferencesOpen(false)
+        setMobileServicesOpen(false)
+    }
 
     return (
         <>
@@ -130,6 +157,20 @@ const TopBarNav = () => {
                     </Can>
                 ))}
 
+                <Can any={SERVICE_PERMISSIONS}>
+                    <Button
+                        color="inherit"
+                        onClick={handleOpenServicesMenu}
+                        endIcon={<ArrowDropDownIcon />}
+                        sx={[sx.navButton, servicesActive && sx.activeNavButton]}
+                        aria-controls={servicesMenuOpen ? 'services-menu' : undefined}
+                        aria-haspopup="true"
+                        aria-expanded={servicesMenuOpen ? 'true' : undefined}
+                    >
+                        Услуги
+                    </Button>
+                </Can>
+
                 <Can permission={PERMISSIONS.catalog.view}>
                     <Button component={NavLink} to="/catalog" color="inherit" sx={sx.navButton}>
                         Каталог
@@ -142,24 +183,30 @@ const TopBarNav = () => {
                 anchorEl={referencesAnchorEl}
                 open={referencesMenuOpen}
                 onClose={handleCloseReferencesMenu}
-                anchorOrigin={{
-                    vertical: 'bottom',
-                    horizontal: 'left',
-                }}
-                transformOrigin={{
-                    vertical: 'top',
-                    horizontal: 'left',
-                }}
+                anchorOrigin={{ vertical: 'bottom', horizontal: 'left' }}
+                transformOrigin={{ vertical: 'top', horizontal: 'left' }}
                 slotProps={{
-                    paper: {
-                        sx: {
-                            width: referencesAnchorEl?.offsetWidth,
-                        },
-                    },
+                    paper: { sx: { width: referencesAnchorEl?.offsetWidth } },
                 }}
             >
                 <Can any={REFERENCE_PERMISSIONS}>
                     <MenuItems items={REFERENCE_ITEMS} onClick={handleCloseAllMenus} />
+                </Can>
+            </Menu>
+
+            <Menu
+                id="services-menu"
+                anchorEl={servicesAnchorEl}
+                open={servicesMenuOpen}
+                onClose={handleCloseServicesMenu}
+                anchorOrigin={{ vertical: 'bottom', horizontal: 'left' }}
+                transformOrigin={{ vertical: 'top', horizontal: 'left' }}
+                slotProps={{
+                    paper: { sx: { width: servicesAnchorEl?.offsetWidth } },
+                }}
+            >
+                <Can any={SERVICE_PERMISSIONS}>
+                    <MenuItems items={SERVICE_ITEMS} onClick={handleCloseAllMenus} />
                 </Can>
             </Menu>
 
@@ -177,9 +224,21 @@ const TopBarNav = () => {
                 </IconButton>
             </Tooltip>
 
-            <Menu id="top-bar-menu" anchorEl={mobileMenuAnchorEl} open={mobileMenuOpen} onClose={handleCloseMobileMenu}>
-                {mobileReferencesOpen ? (
-                    <MenuItem onClick={() => setMobileReferencesOpen(false)}>← Назад</MenuItem>
+            <Menu
+                id="top-bar-menu"
+                anchorEl={mobileMenuAnchorEl}
+                open={mobileMenuOpen}
+                onClose={handleCloseMobileMenu}
+            >
+                {mobileReferencesOpen || mobileServicesOpen ? (
+                    <MenuItem
+                        onClick={() => {
+                            setMobileReferencesOpen(false)
+                            setMobileServicesOpen(false)
+                        }}
+                    >
+                        ← Назад
+                    </MenuItem>
                 ) : (
                     <MenuItem component={NavLink} to="/" onClick={handleCloseMobileMenu} sx={sx.menuItem}>
                         Главная
@@ -190,20 +249,29 @@ const TopBarNav = () => {
                     <Can any={REFERENCE_PERMISSIONS}>
                         <MenuItems items={REFERENCE_ITEMS} onClick={handleCloseMobileMenu} />
                     </Can>
+                ) : mobileServicesOpen ? (
+                    <Can any={SERVICE_PERMISSIONS}>
+                        <MenuItems items={SERVICE_ITEMS} onClick={handleCloseMobileMenu} />
+                    </Can>
                 ) : (
-                    <Can any={REFERENCE_PERMISSIONS}>
-                        <MenuItem onClick={() => setMobileReferencesOpen(true)}>Справочники</MenuItem>
-                    </Can>
-                )}
-
-                {!mobileReferencesOpen && <MenuItems items={NAV_ITEMS} onClick={handleCloseMobileMenu} />}
-
-                {!mobileReferencesOpen && (
-                    <Can permission={PERMISSIONS.catalog.view}>
-                        <MenuItem component={NavLink} to="/catalog" onClick={handleCloseMobileMenu} sx={sx.menuItem}>
-                            Каталог
-                        </MenuItem>
-                    </Can>
+                    <>
+                        <Can any={REFERENCE_PERMISSIONS}>
+                            <MenuItem onClick={() => setMobileReferencesOpen(true)}>
+                                Справочники
+                            </MenuItem>
+                        </Can>
+                        <Can any={SERVICE_PERMISSIONS}>
+                            <MenuItem onClick={() => setMobileServicesOpen(true)}>
+                                Услуги
+                            </MenuItem>
+                        </Can>
+                        <MenuItems items={NAV_ITEMS} onClick={handleCloseMobileMenu} />
+                        <Can permission={PERMISSIONS.catalog.view}>
+                            <MenuItem component={NavLink} to="/catalog" onClick={handleCloseMobileMenu} sx={sx.menuItem}>
+                                Каталог
+                            </MenuItem>
+                        </Can>
+                    </>
                 )}
             </Menu>
         </>

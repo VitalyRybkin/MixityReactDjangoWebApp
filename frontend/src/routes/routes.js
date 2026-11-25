@@ -124,6 +124,18 @@ export const routes = [
         breadcrumb: 'Редактировать',
     },
     {
+        path: '/additional-services',
+        breadcrumb: 'Дополнительные услуги',
+    },
+    {
+        path: '/additional-services/create',
+        breadcrumb: 'Создать заявку',
+    },
+    {
+        path: '/additional-services/:id',
+        breadcrumb: 'Карточка',
+    },
+    {
         path: '/repair/requests',
         breadcrumb: 'Ремонт',
     },

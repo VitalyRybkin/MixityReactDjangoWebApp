@@ -32,6 +32,8 @@ import RepairCompanyDetailPage from './features/repairs/RepairCompanyDetail.jsx'
 import RepairCompanyFormPage from './features/repairs/RepairCompanyForm.jsx'
 import RepairCompaniesList from './features/repairs/RepairCompniesList.jsx'
 import RepairRequestFormPage from './features/repairs/RepairRequestForm.jsx'
+import AdditionalServiceForm from './features/additionalServices/AdditionalServiceForm.jsx'
+import AdditionalServicesList from './features/additionalServices/AdditionalServicesList.jsx'
 import RepairRequestListPage from './features/repairs/RepairRequestList.jsx'
 import WarehouseInfoPage from './features/warehouses/WarehouseDetail.jsx'
 import WarehouseFormPage from './features/warehouses/WarehouseForm.jsx'
@@ -154,6 +156,15 @@ const router = createBrowserRouter(
 
                     <Route element={<PermissionRoute permission={PERMISSIONS.repairCompanies.change} />}>
                         <Route path="/repair/companies/:id/edit" element={<RepairCompanyFormPage />} />
+                    </Route>
+
+                    {/* Additional services */}
+                    <Route element={<PermissionRoute permission={PERMISSIONS.additionalServices.view} />}>
+                        <Route path="/additional-services" element={<AdditionalServicesList />} />
+                        <Route path="/additional-services/:id" element={<AdditionalServiceForm />} />
+                    </Route>
+                    <Route element={<PermissionRoute permission={PERMISSIONS.additionalServices.add} />}>
+                        <Route path="/additional-services/create" element={<AdditionalServiceForm />} />
                     </Route>
 
                     {/* Catalog */}
