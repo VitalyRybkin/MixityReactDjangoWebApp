@@ -35,11 +35,11 @@ ROLE_MATRIX: Final[dict[str, dict[str, bool]]] = {
     },
     "Accountant": {
         "view": True,
-        "add": False,
-        "change": False,
+        "add": True,
+        "change": True,
         "delete": False,
         "manage_upd": True,
-        "export": False,
+        "export": True,
     },
 }
 

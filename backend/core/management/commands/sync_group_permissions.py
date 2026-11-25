@@ -40,6 +40,27 @@ ADDITIONAL_SERVICE_ACTIONS = {
 }
 
 
+# Temporary development policy: all operational groups can read, create,
+# update and export requests. Keep existing delete rules unchanged.
+WORKING_REQUEST_PERMISSIONS = {
+    "order": (
+        "view_order",
+        "add_order",
+        "change_order",
+        "export_order",
+    ),
+    "repairs": (
+        "view_repairrequest",
+        "add_repairrequest",
+        "change_repairrequest",
+        "export_repairrequest",
+        "print_repairrequest_claim",
+        # The repair form needs a read-only company picker.
+        "view_repaircompany",
+    ),
+}
+
+
 class Command(BaseCommand):
     help = "Synchronize Django group permissions"
 
@@ -58,6 +79,7 @@ class Command(BaseCommand):
                 permissions = permissions | self._accountant_order_permissions()
 
             permissions = permissions | self._additional_service_permissions(group_name)
+            permissions = permissions | self._working_request_permissions()
             permissions = permissions.distinct()
 
             group.permissions.set(permissions)
@@ -103,3 +125,14 @@ class Command(BaseCommand):
             content_type__model="additionalservicerequest",
             codename__in=[f"{action}_additionalservicerequest" for action in actions],
         )
+
+    @staticmethod
+    def _working_request_permissions():
+        """Temporary shared operational access, without granting delete rights."""
+        permissions = Permission.objects.none()
+        for app_label, codenames in WORKING_REQUEST_PERMISSIONS.items():
+            permissions = permissions | Permission.objects.filter(
+                content_type__app_label=app_label,
+                codename__in=codenames,
+            )
+        return permissions
