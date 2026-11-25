@@ -1,4 +1,4 @@
-"""Read and write service requests and describe financial report responses."""
+"""Read and write additional service requests and their specification."""
 
 from typing import Any
 
@@ -58,6 +58,9 @@ class AdditionalServiceReadSerializer(serializers.ModelSerializer):
     customer = serializers.IntegerField(
         source="construction_object.customer_id", read_only=True
     )
+    customer_name = serializers.CharField(source="construction_object.customer.name", read_only=True)
+    object_name = serializers.CharField(source="construction_object.name", read_only=True)
+    provider_name = serializers.SerializerMethodField()
     provider_type = serializers.CharField(read_only=True)
     service_type = serializers.CharField(read_only=True)
     composition = serializers.SerializerMethodField()
@@ -74,6 +77,9 @@ class AdditionalServiceReadSerializer(serializers.ModelSerializer):
             "status",
             "construction_object",
             "customer",
+            "customer_name",
+            "object_name",
+            "provider_name",
             "rental_contract",
             "carrier",
             "repair_company",
@@ -85,6 +91,11 @@ class AdditionalServiceReadSerializer(serializers.ModelSerializer):
             "items",
             "totals",
         )
+
+    def get_provider_name(self, obj: AdditionalServiceRequest) -> str | None:
+        """Return selected executor name without exposing provider dictionaries."""
+        provider = obj.carrier if obj.carrier_id is not None else obj.repair_company
+        return provider.name if provider is not None else None
 
     def get_composition(self, obj: AdditionalServiceRequest) -> str:
         """Return the combination of categories present in the specification."""
@@ -220,40 +231,3 @@ class AdditionalServiceWriteSerializer(serializers.ModelSerializer):
                 ]
             )
         return instance
-
-
-class FinancialCategoryTotalsSerializer(serializers.Serializer):
-    """Describe the monetary amounts and row count for one category."""
-
-    cost = serializers.DecimalField(max_digits=24, decimal_places=2, read_only=True)
-    charge = serializers.DecimalField(max_digits=24, decimal_places=2, read_only=True)
-    margin = serializers.DecimalField(max_digits=24, decimal_places=2, read_only=True)
-    count = serializers.IntegerField(read_only=True)
-
-
-class FinancialTotalsSerializer(serializers.Serializer):
-    """Describe monetary amounts overall and by specification category."""
-
-    cost = serializers.DecimalField(max_digits=24, decimal_places=2, read_only=True)
-    charge = serializers.DecimalField(max_digits=24, decimal_places=2, read_only=True)
-    margin = serializers.DecimalField(max_digits=24, decimal_places=2, read_only=True)
-    by_category = serializers.DictField(
-        child=FinancialCategoryTotalsSerializer(), read_only=True
-    )
-
-
-class AdditionalServiceReportGroupSerializer(serializers.Serializer):
-    """Describe one report group and its request count and totals."""
-
-    key = serializers.CharField()
-    count = serializers.IntegerField()
-    totals = FinancialTotalsSerializer()
-
-
-class AdditionalServiceReportSerializer(serializers.Serializer):
-    """Describe the grouped financial report response."""
-
-    group_by = serializers.CharField()
-    groups = AdditionalServiceReportGroupSerializer(many=True)
-    count = serializers.IntegerField()
-    totals = FinancialTotalsSerializer()
