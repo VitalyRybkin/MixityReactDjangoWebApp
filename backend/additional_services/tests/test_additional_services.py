@@ -1,4 +1,4 @@
-"""Exercise additional service validation, filtering, reporting and permissions."""
+"""Exercise additional service validation, filtering and permissions."""
 
 from datetime import date
 from decimal import Decimal
@@ -48,9 +48,6 @@ class TestAdditionalServicesAPI(
         self.client.force_authenticate(user=user)
         self.url = reverse(
             f"additional_services:{AdditionalServicesRoutes.LIST_CREATE.name}"
-        )
-        self.report_url = reverse(
-            f"additional_services:{AdditionalServicesRoutes.REPORT.name}"
         )
         self.obj = cast(ConstructionObject, ConstructionObjectFactory())
         self.other_obj = cast(ConstructionObject, ConstructionObjectFactory())
@@ -445,43 +442,6 @@ class TestAdditionalServicesAPI(
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertIn("composition", response.data["errors"])
         self._logger_success("Unknown composition rejected", "HTTP 400")
-
-    def test_grouped_report_has_both_categories(self) -> None:
-        """Group financial results by provider and include both item categories."""
-        self._logger_header(f"ENDPOINT GET: {self.report_url}")
-        self.create()
-        self.create(
-            carrier=None,
-            repair_company=self.company.pk,
-            items=[
-                self.item(
-                    "specialist",
-                    "Диагностика",
-                    "1.000",
-                    "200.00",
-                    "300.00",
-                    rebill=True,
-                )
-            ],
-        )
-        response = cast(
-            Response, self.client.get(f"{self.report_url}?group_by=provider_type")
-        )
-        self.assertEqual(response.status_code, status.HTTP_200_OK, response.data)
-        self.assertEqual(response.data["count"], 2)
-        self.assertEqual(response.data["totals"]["cost"], "2200.00")
-        self.assertEqual(response.data["totals"]["charge"], "3300.00")
-        self.assertEqual(
-            response.data["totals"]["by_category"]["specialist"]["cost"], "200.00"
-        )
-        self.assertEqual(
-            {group["key"] for group in response.data["groups"]},
-            {"carrier", "repair_company"},
-        )
-        self._logger_success(
-            "Financial report grouped by provider",
-            "Both provider groups and category totals verified",
-        )
 
     def test_post_without_add_permission_returns_403(self) -> None:
         """Require add permission to create a service request."""

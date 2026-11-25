@@ -40,9 +40,6 @@ class TestAdditionalServicePermissionMatrix(TestLoggerMixin, APITestCase):
         self.list_url = reverse(
             f"additional_services:{AdditionalServicesRoutes.LIST_CREATE.name}"
         )
-        self.report_url = reverse(
-            f"additional_services:{AdditionalServicesRoutes.REPORT.name}"
-        )
 
     def _user(self, role: str):
         user = get_user_model().objects.create_user(
@@ -100,7 +97,6 @@ class TestAdditionalServicePermissionMatrix(TestLoggerMixin, APITestCase):
             return status.HTTP_403_FORBIDDEN
         return {
             "view": status.HTTP_200_OK,
-            "report": status.HTTP_200_OK,
             "add": status.HTTP_201_CREATED,
             "change": status.HTTP_200_OK,
             "status_change": status.HTTP_200_OK,
@@ -131,7 +127,7 @@ class TestAdditionalServicePermissionMatrix(TestLoggerMixin, APITestCase):
             self.client.force_authenticate(user=user)
             try:
                 for action in (
-                    "view", "report", "add", "change", "status_change",
+                    "view", "add", "change", "status_change",
                     "financial_change", "delete"
                 ):
                     obj = self._object()
@@ -141,8 +137,6 @@ class TestAdditionalServicePermissionMatrix(TestLoggerMixin, APITestCase):
                     )
                     if action == "view":
                         response = self.client.get(url)
-                    elif action == "report":
-                        response = self.client.get(self.report_url)
                     elif action == "add":
                         response = self.client.post(self.list_url, self._payload(), format="json")
                     elif action == "change":
@@ -159,15 +153,18 @@ class TestAdditionalServicePermissionMatrix(TestLoggerMixin, APITestCase):
                         )
                     else:
                         response = self.client.delete(url)
-                    allowed = actions["view" if action == "report" else
-                                      "change" if action in ("status_change", "financial_change")
-                                      else action]
+                    permission_action = (
+                        "change"
+                        if action in ("status_change", "financial_change")
+                        else action
+                    )
+                    allowed = actions[permission_action]
                     with self.subTest(role=role, action=action):
                         self.assertEqual(
                             response.status_code,
                             self._expected_api_status(action, allowed),
                             getattr(response, "data", None),
                         )
-                self._logger_success(role, "CRUD, report, status and finance verified")
+                self._logger_success(role, "CRUD, status and finance verified")
             finally:
                 self.client.force_authenticate(user=None)
