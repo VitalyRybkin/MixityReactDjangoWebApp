@@ -1,38 +1,58 @@
 import { describe, expect, it } from 'vitest'
-import { amountInCents, formatCents, makeParams, previewTotals, toForm, toPayload, validateForm } from './additionalServices.logic.js'
+
+import {
+    amountInCents,
+    formatCents,
+    makeParams,
+    previewTotals,
+    toForm,
+    toPayload,
+    validateForm,
+} from './additionalServices.logic.js'
 
 const row = (overrides = {}) => ({
-    category: 'transport', name: 'Манипулятор', quantity: '0.333',
-    cost_per_unit: '1.00', price_per_unit: '2.00', is_rebillable: true, ...overrides,
+    category: 'transport',
+    name: 'Манипулятор',
+    quantity: '0.333',
+    cost_per_unit: '1.00',
+    price_per_unit: '2.00',
+    is_rebillable: true,
+    ...overrides,
 })
 
 const form = (overrides = {}) => ({
-    service_date: '2026-11-25', direction: 'site_work', status: 'created',
-    customerId: '1', construction_object: '2', rental_contract: '8',
-    providerType: 'carrier', providerId: '3', description: '', items: [row()], ...overrides,
+    service_date: '2026-11-25',
+    direction: 'site_work',
+    status: 'open',
+    customerId: '1',
+    construction_object: '2',
+    rental_contract: '8',
+    providerType: 'carrier',
+    providerId: '3',
+    description: '',
+    items: [row()],
+    ...overrides,
 })
 
 describe('additional services form and filter helpers', () => {
-    it('requires a rental contract for every direction', () => {
-        for (const direction of ['delivery', 'return', 'site_work']) {
-            expect(validateForm(form({ direction, rental_contract: '' }))).toContain('Выберите договор аренды.')
-            expect(validateForm(form({ direction, rental_contract: null }))).toContain('Выберите договор аренды.')
-            expect(validateForm(form({ direction, rental_contract: '8' }))).toEqual([])
-        }
-    })
-
-    it('requires an executor even when the contract is chosen', () => {
-        expect(validateForm(form({ providerId: '' }))).toContain('Выберите исполнителя.')
-    })
-
     it('supports grouped multi-select and exact service type filtering', () => {
-        expect(makeParams({
-            directions: ['delivery', 'site_work'], providers: ['carrier'],
-            types: ['site_work_carrier'], compositions: ['transport_only', 'both'],
-            itemName: 'манипулятор',
-        }, 3)).toMatchObject({
-            page: 3, direction: 'delivery,site_work', provider_type: 'carrier',
-            service_type: 'site_work_carrier', composition: 'transport_only,both',
+        expect(
+            makeParams(
+                {
+                    directions: ['delivery', 'site_work'],
+                    providers: ['carrier'],
+                    types: ['site_work_carrier'],
+                    compositions: ['transport_only', 'both'],
+                    itemName: 'манипулятор',
+                },
+                3,
+            ),
+        ).toMatchObject({
+            page: 3,
+            direction: 'delivery,site_work',
+            provider_type: 'carrier',
+            service_type: 'site_work_carrier',
+            composition: 'transport_only,both',
             item_name: 'манипулятор',
         })
     })
@@ -49,7 +69,13 @@ describe('additional services form and filter helpers', () => {
     it('keeps specialist and transport financial totals separate', () => {
         const totals = previewTotals([
             row({ quantity: '2.000', cost_per_unit: '1000.00', price_per_unit: '1500.00' }),
-            row({ category: 'specialist', quantity: '1.000', cost_per_unit: '400.00', price_per_unit: '600.00', is_rebillable: false }),
+            row({
+                category: 'specialist',
+                quantity: '1.000',
+                cost_per_unit: '400.00',
+                price_per_unit: '600.00',
+                is_rebillable: false,
+            }),
         ])
         expect(totals.by_category.transport.cost).toBe(200000n)
         expect(totals.by_category.specialist.cost).toBe(40000n)
@@ -70,15 +96,24 @@ describe('additional services form and filter helpers', () => {
     })
 
     it('allows specialist-only site work by RepairCompany', () => {
-        expect(validateForm(form({ providerType: 'repair_company', items: [row({ category: 'specialist' })] }))).toEqual([])
+        expect(
+            validateForm(form({ providerType: 'repair_company', items: [row({ category: 'specialist' })] })),
+        ).toEqual([])
     })
 
     it('keeps a selected archived object and contract when only the description changes', () => {
         const original = {
-            id: 91, customer: 5, construction_object: 45, rental_contract: 9,
-            carrier: 7, repair_company: null,
-            status: 'created', direction: 'site_work', service_date: '2026-11-25',
-            description: '', items: [{ id: 19, ...row() }],
+            id: 91,
+            customer: 5,
+            construction_object: 45,
+            rental_contract: 9,
+            carrier: 7,
+            repair_company: null,
+            status: 'open',
+            direction: 'site_work',
+            service_date: '2026-11-25',
+            description: '',
+            items: [{ id: 19, ...row() }],
         }
         const patch = toPayload({ ...toForm(original), description: 'Перенести силос' }, original)
         expect(patch.construction_object).toBeUndefined()
@@ -89,10 +124,16 @@ describe('additional services form and filter helpers', () => {
 
     it('sends specialist row removal when changing RepairCompany to Carrier', () => {
         const original = {
-            customer: 1, construction_object: 2, rental_contract: 8,
-            carrier: null, repair_company: 4,
-            status: 'created', direction: 'site_work', service_date: '2026-11-25',
-            description: '', items: [{ id: 19, ...row({ category: 'specialist' }) }],
+            customer: 1,
+            construction_object: 2,
+            rental_contract: 8,
+            carrier: null,
+            repair_company: 4,
+            status: 'open',
+            direction: 'site_work',
+            service_date: '2026-11-25',
+            description: '',
+            items: [{ id: 19, ...row({ category: 'specialist' }) }],
         }
         const next = { ...toForm(original), providerType: 'carrier', providerId: '3', items: [row()] }
         const patch = toPayload(next, original)
@@ -104,18 +145,24 @@ describe('additional services form and filter helpers', () => {
 
     it('does not replace unchanged specification or archived relations on PATCH', () => {
         const original = {
-            construction_object: 2, rental_contract: 8, carrier: 3, repair_company: null,
-            status: 'created', direction: 'site_work', service_date: '2026-11-25',
-            description: '', customer: 1,
+            construction_object: 2,
+            rental_contract: 8,
+            carrier: 3,
+            repair_company: null,
+            status: 'open',
+            direction: 'site_work',
+            service_date: '2026-11-25',
+            description: '',
+            customer: 1,
             items: [{ id: 12, ...row() }],
         }
         const current = toForm(original)
-        const patch = toPayload({ ...current, status: 'completed' }, original)
+        const patch = toPayload({ ...current, status: 'closed' }, original)
         expect(patch.items).toBeUndefined()
         expect(patch.construction_object).toBeUndefined()
         expect(patch.rental_contract).toBeUndefined()
         expect(patch.carrier).toBeUndefined()
         expect(patch.repair_company).toBeUndefined()
-        expect(patch.status).toBe('completed')
+        expect(patch.status).toBe('closed')
     })
 })

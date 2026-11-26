@@ -16,8 +16,8 @@ export const COMPOSITIONS = {
 }
 
 export const STATUSES = {
-    created: 'Создана',
-    completed: 'Выполнена',
+    open: 'Открыта',
+    closed: 'Закрыта',
 }
 
 export const DIRECTION_OPTIONS = Object.entries(DIRECTIONS).map(([id, name]) => ({ id, name }))
@@ -45,7 +45,7 @@ export const INITIAL_FILTERS = {
     itemName: '',
 }
 
-const localISODate = () => {
+export const localISODate = () => {
     const now = new Date()
     return [
         now.getFullYear(),
@@ -66,8 +66,9 @@ export const emptyItem = (category) => ({
 
 export const emptyForm = () => ({
     service_date: localISODate(),
+    closing_date: '',
     direction: 'site_work',
-    status: 'created',
+    status: 'open',
     customerId: '',
     construction_object: '',
     rental_contract: '',

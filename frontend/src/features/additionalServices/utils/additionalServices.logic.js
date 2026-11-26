@@ -36,8 +36,9 @@ export const makeParams = (filters = {}, page = 1) => {
 
 export const toForm = (request) => ({
     service_date: request.service_date || '',
+    closing_date: request.closing_date || '',
     direction: request.direction || 'site_work',
-    status: request.status || 'created',
+    status: request.status === 'completed' ? 'closed' : (request.status === 'created' ? 'open' : (request.status || 'open')),
     customerId: String(relationId(request.customer) || ''),
     construction_object: String(relationId(request.construction_object) || ''),
     rental_contract: String(relationId(request.rental_contract) || ''),
@@ -57,6 +58,9 @@ export const toForm = (request) => ({
 
 export const validateForm = (form) => {
     const errors = []
+    if (!['open', 'closed'].includes(form.status)) errors.push('Выберите статус заявки.')
+    if (form.status === 'closed' && !form.closing_date) errors.push('Укажите дату закрытия заявки.')
+    if (form.status === 'open' && form.closing_date) errors.push('Дата закрытия допустима только при статусе «Закрыта».')
     if (!form.service_date) errors.push('Укажите дату услуги.')
     if (!form.direction) errors.push('Выберите направление.')
     if (!positiveId(form.construction_object)) errors.push('Выберите объект.')
@@ -87,6 +91,9 @@ export const toPayload = (form, original = null) => {
     const providerId = positiveId(form.providerId)
     const payload = {
         service_date: form.service_date,
+        ...(Object.prototype.hasOwnProperty.call(form, 'closing_date')
+            ? { closing_date: form.closing_date || null }
+            : {}),
         direction: form.direction,
         status: form.status,
         construction_object: positiveId(form.construction_object),
@@ -105,6 +112,10 @@ export const toPayload = (form, original = null) => {
     }
     // An unchanged specification must not be deleted and reinserted by a status-only PATCH.
     if (original) {
+        if (Object.prototype.hasOwnProperty.call(payload, 'closing_date')
+            && payload.closing_date === (original.closing_date || null)) {
+            delete payload.closing_date
+        }
         const existingItems = toForm(original).items.map(({ category, name, quantity, cost_per_unit, price_per_unit, is_rebillable }) => ({
             category, name: name.trim(), quantity, cost_per_unit, price_per_unit, is_rebillable,
         }))

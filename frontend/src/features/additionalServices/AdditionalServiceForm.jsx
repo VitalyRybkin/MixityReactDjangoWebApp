@@ -37,6 +37,7 @@ import {
     emptyItem,
     PROVIDER_OPTIONS,
     STATUS_OPTIONS,
+    localISODate,
 } from './utils/additionalServices.constants.js'
 import { formatCents, previewTotals, toForm, toPayload, validateForm } from './utils/additionalServices.logic.js'
 import {
@@ -75,7 +76,7 @@ const columnsSx = {
 // makes the individual select controls drift relative to the date field.
 const alignedFieldsSx = {
     display: 'grid',
-    gridTemplateRows: 'repeat(4, 40px)',
+    gridTemplateRows: 'repeat(5, 40px)',
     gap: 2,
     alignContent: 'start',
     minWidth: 0,
@@ -212,6 +213,11 @@ export default function AdditionalServiceForm() {
         [name]: value,
         ...(name === 'customerId' ? { construction_object: '', rental_contract: '' } : {}),
         ...(name === 'providerType' ? { providerId: '' } : {}),
+        // A closed request has an editable closing date, prefilled once.
+        ...(name === 'status' && value === 'closed'
+            ? { closing_date: previous.closing_date || localISODate() }
+            : {}),
+        ...(name === 'status' && value === 'open' ? { closing_date: '' } : {}),
     }))
 
     const changeRow = (localId, changes) => setForm((previous) => ({
@@ -385,6 +391,19 @@ export default function AdditionalServiceForm() {
                                 </Typography>
 
                                 <Box sx={alignedFieldsSx}>
+                                    <Box sx={alignedFieldRowSx}>
+                                        <TextField
+                                            label="Дата закрытия заявки"
+                                            type="date"
+                                            size="small"
+                                            value={form.closing_date || ''}
+                                            disabled={disabled || form.status !== 'closed'}
+                                            onChange={(event) => set('closing_date', event.target.value)}
+                                            slotProps={{ inputLabel: { shrink: true } }}
+                                            sx={sx.field}
+                                        />
+                                    </Box>
+
                                     <Box sx={alignedFieldRowSx}>
                                         <AlignedSelectField
                                             id="as-direction-form"
