@@ -67,10 +67,18 @@ const SERVICE_ITEMS = [
 
 const SERVICE_PERMISSIONS = SERVICE_ITEMS.map(({ permission }) => permission)
 
+// Menus should be wide enough for the longest item and open below the navigation.
+const dropdownPaperSx = {
+    minWidth: 220,
+    width: 'max-content',
+    maxWidth: 'calc(100vw - 32px)',
+    mt: 1.5,
+}
+
 const MenuItems = ({ items, onClick }) =>
     items.map(({ label, to, permission }) => (
         <Can key={to} permission={permission}>
-            <MenuItem component={NavLink} to={to} onClick={onClick} sx={sx.menuItem}>
+            <MenuItem component={NavLink} to={to} onClick={onClick} sx={[sx.menuItem, { whiteSpace: 'nowrap' }]}>
                 {label}
             </MenuItem>
         </Can>
@@ -186,7 +194,7 @@ const TopBarNav = () => {
                 anchorOrigin={{ vertical: 'bottom', horizontal: 'left' }}
                 transformOrigin={{ vertical: 'top', horizontal: 'left' }}
                 slotProps={{
-                    paper: { sx: { width: referencesAnchorEl?.offsetWidth } },
+                    paper: { sx: dropdownPaperSx },
                 }}
             >
                 <Can any={REFERENCE_PERMISSIONS}>
@@ -202,7 +210,7 @@ const TopBarNav = () => {
                 anchorOrigin={{ vertical: 'bottom', horizontal: 'left' }}
                 transformOrigin={{ vertical: 'top', horizontal: 'left' }}
                 slotProps={{
-                    paper: { sx: { width: servicesAnchorEl?.offsetWidth } },
+                    paper: { sx: dropdownPaperSx },
                 }}
             >
                 <Can any={SERVICE_PERMISSIONS}>

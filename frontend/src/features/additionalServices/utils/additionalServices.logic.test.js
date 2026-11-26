@@ -8,11 +8,23 @@ const row = (overrides = {}) => ({
 
 const form = (overrides = {}) => ({
     service_date: '2026-11-25', direction: 'site_work', status: 'created',
-    customerId: '1', construction_object: '2', rental_contract: '',
+    customerId: '1', construction_object: '2', rental_contract: '8',
     providerType: 'carrier', providerId: '3', description: '', items: [row()], ...overrides,
 })
 
 describe('additional services form and filter helpers', () => {
+    it('requires a rental contract for every direction', () => {
+        for (const direction of ['delivery', 'return', 'site_work']) {
+            expect(validateForm(form({ direction, rental_contract: '' }))).toContain('Выберите договор аренды.')
+            expect(validateForm(form({ direction, rental_contract: null }))).toContain('Выберите договор аренды.')
+            expect(validateForm(form({ direction, rental_contract: '8' }))).toEqual([])
+        }
+    })
+
+    it('requires an executor even when the contract is chosen', () => {
+        expect(validateForm(form({ providerId: '' }))).toContain('Выберите исполнителя.')
+    })
+
     it('supports grouped multi-select and exact service type filtering', () => {
         expect(makeParams({
             directions: ['delivery', 'site_work'], providers: ['carrier'],
@@ -77,7 +89,7 @@ describe('additional services form and filter helpers', () => {
 
     it('sends specialist row removal when changing RepairCompany to Carrier', () => {
         const original = {
-            customer: 1, construction_object: 2, rental_contract: null,
+            customer: 1, construction_object: 2, rental_contract: 8,
             carrier: null, repair_company: 4,
             status: 'created', direction: 'site_work', service_date: '2026-11-25',
             description: '', items: [{ id: 19, ...row({ category: 'specialist' }) }],

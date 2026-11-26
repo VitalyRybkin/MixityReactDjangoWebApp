@@ -227,13 +227,52 @@ class TestAdditionalServicesAPI(
         self.assertIn("rental_contract", response.data["errors"])
         self._logger_success("Contract from another customer rejected", "HTTP 400")
 
-    def test_contract_is_optional_for_work_at_site(self) -> None:
-        """Accept site work without a linked rental contract."""
+    def test_contract_is_required_for_every_direction(self) -> None:
+        """Reject requests without a contract, regardless of work direction."""
         self._logger_header(f"ENDPOINT POST: {self.url}")
-        response = self.create(rental_contract=None)
-        self.assertEqual(response.status_code, status.HTTP_201_CREATED, response.data)
-        self.assertIsNone(response.data["rental_contract"])
-        self._logger_success("Site work created without a contract", "HTTP 201")
+        for direction in ("delivery", "return", "site_work"):
+            with self.subTest(direction=direction):
+                response = self.create(direction=direction, rental_contract=None)
+                self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+                self.assertIn("rental_contract", response.data["errors"])
+        self.assertEqual(AdditionalServiceRequest.objects.count(), 0)
+        self._logger_success("Contract required", "HTTP 400 in all directions")
+
+    def test_contract_is_required_when_omitted_on_create(self) -> None:
+        """Reject a missing contract field, not only an explicit null."""
+        self._logger_header(f"ENDPOINT POST: {self.url}")
+        data = self.payload()
+        del data["rental_contract"]
+        response = cast(Response, self.client.post(self.url, data, format="json"))
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertIn("rental_contract", response.data["errors"])
+        self.assertEqual(AdditionalServiceRequest.objects.count(), 0)
+        self._logger_success("Missing contract rejected", "HTTP 400")
+
+    def test_cannot_clear_contract_on_patch(self) -> None:
+        """Reject clearing a saved contract but allow ordinary partial updates."""
+        created = self.create()
+        self.assertEqual(created.status_code, status.HTTP_201_CREATED, created.data)
+        url = reverse(
+            f"additional_services:{AdditionalServicesRoutes.DETAIL.name}",
+            kwargs={"pk": created.data["id"]},
+        )
+        rejected = cast(
+            Response,
+            self.client.patch(url, {"rental_contract": None}, format="json"),
+        )
+        self.assertEqual(rejected.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertIn("rental_contract", rejected.data["errors"])
+        saved = AdditionalServiceRequest.objects.get(pk=created.data["id"])
+        self.assertEqual(saved.rental_contract_id, self.contract.pk)
+
+        accepted = cast(
+            Response,
+            self.client.patch(url, {"description": "Согласовано"}, format="json"),
+        )
+        self.assertEqual(accepted.status_code, status.HTTP_200_OK, accepted.data)
+        self.assertEqual(accepted.data["rental_contract"], self.contract.pk)
+        self._logger_success("Saved contract is protected", "HTTP 400 then HTTP 200")
 
     def test_missing_items_and_zero_quantity_rejected(self) -> None:
         """Reject empty specifications and rows with zero quantity."""

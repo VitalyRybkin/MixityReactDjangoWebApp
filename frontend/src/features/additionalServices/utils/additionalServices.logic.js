@@ -60,6 +60,7 @@ export const validateForm = (form) => {
     if (!form.service_date) errors.push('Укажите дату услуги.')
     if (!form.direction) errors.push('Выберите направление.')
     if (!positiveId(form.construction_object)) errors.push('Выберите объект.')
+    if (!positiveId(form.rental_contract)) errors.push('Выберите договор аренды.')
     if (!positiveId(form.providerId)) errors.push('Выберите исполнителя.')
     if (!form.items.length) errors.push('Добавьте хотя бы одну позицию.')
     if (form.providerType === 'carrier' && form.items.some((item) => item.category === 'specialist')) {

@@ -1,32 +1,145 @@
 import { useEffect, useRef, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
-import { Alert, Box, Button, CircularProgress, Divider, Paper, Stack, TextField, Typography } from '@mui/material'
-import AppBreadcrumbs from '../../components/AppBreadcrumbs.jsx'
-import AppSelectField from '../../components/AppSelectField.jsx'
-import { useAuth } from '../../pages/auth/context/useAuth.js'
-import { firstError } from '../../utils/apiError.js'
-import ConfirmDialog from '../../components/ui/feedback/ConfirmDialog.jsx'
-import { useUnsavedGuard } from '../orders/hooks/useUnsavedGuard.js'
+
 import {
-    useGetCustomerContracts, useGetCustomerObjects, useGetCustomers,
+    Alert,
+    Box,
+    Button,
+    CircularProgress,
+    Divider,
+    FormControl,
+    InputLabel,
+    MenuItem,
+    Select,
+    Stack,
+    TextField,
+    Typography,
+} from '@mui/material'
+
+import AppBreadcrumbs from '../../components/AppBreadcrumbs.jsx'
+import ErrorState from '../../components/ui/ErrorState.jsx'
+import ConfirmDialog from '../../components/ui/feedback/ConfirmDialog.jsx'
+import { useAuth } from '../../pages/auth/context/useAuth.js'
+import { entityTableListSx as listSx } from '../../styles/entityTableList.styles.js'
+import { firstError } from '../../utils/apiError.js'
+import {
+    useGetCustomerContracts,
+    useGetCustomerObjects,
+    useGetCustomers,
 } from '../customers/utils/customers.queries.js'
+import { useUnsavedGuard } from '../orders/hooks/useUnsavedGuard.js'
+import { fieldsetStyles, repairRequestFormSx as sx } from '../repairs/RepairRequestForm.styles.js'
+
 import AdditionalServiceItems from './components/AdditionalServiceItems.jsx'
 import {
-    DIRECTION_OPTIONS, emptyForm, emptyItem, PROVIDER_OPTIONS, STATUS_OPTIONS,
+    DIRECTION_OPTIONS,
+    emptyForm,
+    emptyItem,
+    PROVIDER_OPTIONS,
+    STATUS_OPTIONS,
 } from './utils/additionalServices.constants.js'
+import { formatCents, previewTotals, toForm, toPayload, validateForm } from './utils/additionalServices.logic.js'
 import {
-    formatCents, previewTotals, toForm, toPayload, validateForm,
-} from './utils/additionalServices.logic.js'
-import {
-    useAdditionalService, useAdditionalServiceProviders,
-    useCreateAdditionalService, useUpdateAdditionalService,
+    useAdditionalService,
+    useAdditionalServiceProviders,
+    useCreateAdditionalService,
+    useUpdateAdditionalService,
 } from './utils/additionalServices.queries.js'
+
+const LIST_PATH = '/additional-services'
 
 const mapIdsToStrings = (values) => values.map((item) => ({ ...item, id: String(item.id) }))
 
 const includeArchived = (choices, selected, label) => {
-    if (!selected || choices.some((v) => String(v.id) === String(selected))) return choices
+    if (!selected || choices.some((item) => String(item.id) === String(selected))) return choices
     return [{ id: String(selected), name: `${label} №${selected} (архивный)` }, ...choices]
+}
+
+// Match the repair form's three-column layout while remaining usable on narrow screens.
+const columnsSx = {
+    display: 'grid',
+    gap: 3,
+    width: '100%',
+    minWidth: 0,
+    mb: 2,
+    alignItems: 'stretch',
+    ...sx.formColumns,
+    gridTemplateColumns: {
+        xs: 'minmax(0, 1fr)',
+        md: 'minmax(280px, 440px) minmax(280px, 440px) minmax(280px, 1fr)',
+    },
+}
+
+// Both fieldsets use four identical grid tracks. Each control has no external margin.
+// This avoids the mt: 2 built into the shared AppSelectField component, which
+// makes the individual select controls drift relative to the date field.
+const alignedFieldsSx = {
+    display: 'grid',
+    gridTemplateRows: 'repeat(4, 40px)',
+    gap: 2,
+    alignContent: 'start',
+    minWidth: 0,
+}
+
+const alignedFieldRowSx = {
+    minWidth: 0,
+    minHeight: 0,
+    height: 40,
+    '& > .MuiFormControl-root': {
+        width: '100%',
+        minWidth: 0,
+        height: '100%',
+        m: 0,
+    },
+    '& .MuiInputBase-root': {
+        height: '100%',
+    },
+}
+
+// A select used only by this form: unlike AppSelectField it has no mt: 2.
+// Preserve the same outlined MUI appearance, options and archived-ID fallback.
+function AlignedSelectField({
+    id,
+    label,
+    value,
+    options = [],
+    onChange,
+    disabled = false,
+    required = false,
+    includeAll = true,
+    allLabel = 'Все',
+}) {
+    const selected = options.some((option) => option.id === value)
+        ? value
+        : ''
+
+    return (
+        <FormControl
+            fullWidth
+            size="small"
+            variant="outlined"
+            disabled={disabled}
+            required={required}
+            sx={{ m: 0, minWidth: 0, height: '100%' }}
+        >
+            <InputLabel id={`${id}-label`}>{label}</InputLabel>
+            <Select
+                id={id}
+                labelId={`${id}-label`}
+                label={label}
+                value={selected}
+                onChange={(event) => onChange(event.target.value)}
+                sx={{ height: '100%' }}
+            >
+                {includeAll && <MenuItem value="">{allLabel}</MenuItem>}
+                {options.map((option) => (
+                    <MenuItem key={option.id} value={option.id}>
+                        {option.name}
+                    </MenuItem>
+                ))}
+            </Select>
+        </FormControl>
+    )
 }
 
 export default function AdditionalServiceForm() {
@@ -34,19 +147,24 @@ export default function AdditionalServiceForm() {
     const isEdit = Boolean(id)
     const navigate = useNavigate()
     const { hasPermission } = useAuth()
+
     const canChange = hasPermission('additional_services.change_additionalservicerequest')
     const canAdd = hasPermission('additional_services.add_additionalservicerequest')
     const disabled = isEdit ? !canChange : !canAdd
+
     const detail = useAdditionalService(id)
     const create = useCreateAdditionalService()
     const update = useUpdateAdditionalService()
+
     const loadedId = useRef(null)
     const [form, setForm] = useState(emptyForm)
+    const initialNewForm = useRef(JSON.stringify(form))
     const [initialState, setInitialState] = useState(null)
     const [error, setError] = useState('')
     const [busy, setBusy] = useState(false)
 
     const saved = detail.data
+
     useEffect(() => {
         if (!isEdit || !saved || loadedId.current === id) return
         const value = toForm(saved)
@@ -59,43 +177,75 @@ export default function AdditionalServiceForm() {
     const objectsQuery = useGetCustomerObjects(form.customerId)
     const contractsQuery = useGetCustomerContracts(form.customerId)
     const providersQuery = useAdditionalServiceProviders(form.providerType)
+
     const customerOptions = includeArchived(mapIdsToStrings(customers), form.customerId, 'Контрагент')
-    const objectOptions = includeArchived(mapIdsToStrings(objectsQuery.data ?? []), form.construction_object, 'Объект')
-    const contractOptions = includeArchived(
-        mapIdsToStrings(contractsQuery.data ?? []).map((c) => ({ ...c, name: `№ ${c.contract_number || c.id} · ${c.is_active ? 'Действующий' : 'Архивный'}` })),
-        form.rental_contract, 'Договор',
+    const objectOptions = includeArchived(
+        mapIdsToStrings(objectsQuery.data ?? []),
+        form.construction_object,
+        'Объект',
     )
-    const providerOptions = includeArchived(mapIdsToStrings(providersQuery.data ?? []), form.providerId, 'Исполнитель')
+    const contractOptions = includeArchived(
+        mapIdsToStrings(contractsQuery.data ?? []).map((contract) => ({
+            ...contract,
+            name: `№ ${contract.contract_number || contract.id} · ${contract.is_active ? 'Действующий' : 'Архивный'}`,
+        })),
+        form.rental_contract,
+        'Договор',
+    )
+    const providerOptions = includeArchived(
+        mapIdsToStrings(providersQuery.data ?? []),
+        form.providerId,
+        'Исполнитель',
+    )
+
     const totals = previewTotals(form.items)
     const saving = busy || create.isPending || update.isPending
-    const isDirty = !isEdit || (initialState !== null && JSON.stringify(form) !== initialState)
-    const { confirmOpen, handleNavigate, handleConfirm, handleCancel } = useUnsavedGuard(isDirty && !saving)
-    const currentDirection = form.direction
+    const snapshot = JSON.stringify(form)
+    const isDirty = isEdit
+        ? initialState !== null && snapshot !== initialState
+        : snapshot !== initialNewForm.current
 
-    const set = (name, value) => setForm((old) => ({
-        ...old,
+    const { confirmOpen, handleNavigate, handleConfirm, handleCancel } = useUnsavedGuard(isDirty && !saving)
+
+    const set = (name, value) => setForm((previous) => ({
+        ...previous,
         [name]: value,
         ...(name === 'customerId' ? { construction_object: '', rental_contract: '' } : {}),
         ...(name === 'providerType' ? { providerId: '' } : {}),
     }))
-    const changeRow = (localId, changes) => setForm((old) => ({
-        ...old, items: old.items.map((item) => item.localId === localId ? { ...item, ...changes } : item),
+
+    const changeRow = (localId, changes) => setForm((previous) => ({
+        ...previous,
+        items: previous.items.map((item) =>
+            item.localId === localId ? { ...item, ...changes } : item),
     }))
-    const addRow = (category) => setForm((old) => ({ ...old, items: [...old.items, emptyItem(category)] }))
-    const removeRow = (localId) => setForm((old) => ({ ...old, items: old.items.filter((row) => row.localId !== localId) }))
+    const addRow = (category) => setForm((previous) => ({
+        ...previous,
+        items: [...previous.items, emptyItem(category)],
+    }))
+    const removeRow = (localId) => setForm((previous) => ({
+        ...previous,
+        items: previous.items.filter((row) => row.localId !== localId),
+    }))
 
     const submit = async (event) => {
         event.preventDefault()
-        if (saving || disabled) return
+        if (saving || disabled || !isDirty) return
+
         const errors = validateForm(form)
-        if (errors.length > 0) { setError(errors.join('\n')); return }
+        if (errors.length > 0) {
+            setError(errors.join('\n'))
+            return
+        }
+
         setError('')
-        const payload = toPayload(form, saved)
+        const payload = toPayload(form, isEdit ? saved : null)
         setBusy(true)
+
         try {
             if (isEdit) await update.mutateAsync({ id, payload })
             else await create.mutateAsync(payload)
-            navigate('/additional-services', { replace: true })
+            navigate(LIST_PATH, { replace: true })
         } catch (requestError) {
             setError(firstError(requestError) || 'Не удалось сохранить заявку.')
         } finally {
@@ -103,70 +253,257 @@ export default function AdditionalServiceForm() {
         }
     }
 
-    if (isEdit && detail.isLoading && !saved) return <Box sx={{ p: 3 }}><CircularProgress /></Box>
-    if (isEdit && detail.isError) return <Alert severity="error">{firstError(detail.error)}</Alert>
+    const hasIncompatibleSpecialistItems = form.providerType === 'carrier'
+        && form.items.some((item) => item.category === 'specialist')
 
     return (
-        <Box sx={{ p: 3 }}>
+        <Box sx={listSx.page}>
             <AppBreadcrumbs />
-            <Box component="form" noValidate onSubmit={submit}>
-                <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ my: 2 }}>
-                    <Typography variant="h5">{isEdit ? `Дополнительная услуга №${id}` : 'Новая дополнительная услуга'}</Typography>
-                    <Stack direction="row" spacing={1}>
-                        <Button onClick={() => handleNavigate('/additional-services')} disabled={saving}>К списку</Button>
-                        {!disabled && <Button type="submit" variant="contained" disabled={saving || !isDirty}>{saving ? 'Сохранение…' : 'Сохранить'}</Button>}
+
+            <Box component="form" noValidate onSubmit={submit} sx={sx.form}>
+                <Box
+                    sx={{
+                        ...sx.header,
+                        display: 'flex',
+                        flexDirection: { xs: 'column', sm: 'row' },
+                        alignItems: { xs: 'stretch', sm: 'center' },
+                        justifyContent: 'space-between',
+                        gap: 2,
+                        minWidth: 0,
+                        p: 3,
+                    }}
+                >
+                    <Typography variant="h4" fontWeight={600} sx={{ minWidth: 0, overflowWrap: 'anywhere' }}>
+                        {isEdit
+                            ? `Редактирование заявки на дополнительные услуги № ${id}`
+                            : 'Заявка на дополнительные услуги'}
+                    </Typography>
+
+                    <Stack direction="row" spacing={2} sx={{ pt: 1 }}>
+                        {!disabled && (
+                            <Button type="submit" variant="contained" disabled={saving || !isDirty}>
+                                {saving ? 'Сохранение...' : 'Сохранить'}
+                            </Button>
+                        )}
+                        <Button variant="outlined" onClick={() => handleNavigate(LIST_PATH)} disabled={saving}>
+                            Отмена
+                        </Button>
                     </Stack>
-                </Stack>
-                <Divider sx={{ mb: 2 }} />
-                {error && <Alert severity="error" sx={{ mb: 2, whiteSpace: 'pre-line' }} onClose={() => setError('')}>{error}</Alert>}
-                {providersQuery.isError && <Alert severity="warning" sx={{ mb: 2 }}>Не удалось загрузить исполнителей. Проверьте справочный API дополнительных услуг.</Alert>}
-                <Paper variant="outlined" sx={{ p: 2, mb: 2 }}>
-                    <Typography variant="subtitle1" sx={{ mb: 2 }}>Заявка</Typography>
-                    <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', md: 'repeat(3, 1fr)' }, gap: 2 }}>
-                        <TextField label="Дата услуги" type="date" size="small" value={form.service_date} disabled={disabled} onChange={(e) => set('service_date', e.target.value)} slotProps={{ inputLabel: { shrink: true } }} required />
-                        <AppSelectField id="as-direction-form" label="Направление" value={form.direction} options={DIRECTION_OPTIONS} onChange={(v) => set('direction', v)} disabled={disabled} includeAll={false} sx={{ mt: 0 }} />
-                        <AppSelectField id="as-status-form" label="Статус" value={form.status} options={STATUS_OPTIONS} onChange={(v) => set('status', v)} disabled={disabled} includeAll={false} sx={{ mt: 0 }} />
-                        <AppSelectField id="as-customer-form" label="Контрагент" value={form.customerId} options={customerOptions} onChange={(v) => set('customerId', v)} disabled={disabled} includeAll={false} sx={{ mt: 0 }} />
-                        <AppSelectField id="as-object-form" label="Объект" value={form.construction_object} options={objectOptions} onChange={(v) => set('construction_object', v)} disabled={disabled || (!form.customerId && !form.construction_object)} includeAll={false} sx={{ mt: 0 }} />
-                        <AppSelectField id="as-contract-form" label="Договор аренды (необязательно)" value={form.rental_contract} options={contractOptions} onChange={(v) => set('rental_contract', v)} disabled={disabled || !form.customerId} allLabel="Без договора" sx={{ mt: 0 }} />
-                        <AppSelectField id="as-provider-type" label="Тип исполнителя" value={form.providerType} options={PROVIDER_OPTIONS} onChange={(v) => set('providerType', v)} disabled={disabled} includeAll={false} sx={{ mt: 0 }} />
-                        <AppSelectField id="as-provider-form" label="Исполнитель" value={form.providerId} options={providerOptions} onChange={(v) => set('providerId', v)} disabled={disabled || providersQuery.isLoading} includeAll={false} sx={{ mt: 0 }} />
-                        <TextField label="Описание" size="small" value={form.description} disabled={disabled} onChange={(e) => set('description', e.target.value)} multiline minRows={2} />
-                    </Box>
-                    {currentDirection !== 'site_work' && <Typography color="text.secondary" variant="caption">Для доставки и возврата обязательна транспортная позиция.</Typography>}
-                </Paper>
-                <AdditionalServiceItems
-                    items={form.items}
-                    providerType={form.providerType}
-                    onChange={changeRow}
-                    onAdd={addRow}
-                    onRemove={removeRow}
-                    disabled={disabled}
-                />
-                {form.providerType === 'carrier' && form.items.some((item) => item.category === 'specialist') && (
-                    <Alert severity="warning" sx={{ mt: 2 }}>Удалите позиции специалиста перед сохранением заявки с перевозчиком. Они не удаляются автоматически.</Alert>
+                </Box>
+
+                <Divider sx={sx.divider} />
+
+                {error && (
+                    <Alert severity="error" sx={{ mb: 2, whiteSpace: 'pre-line' }} onClose={() => setError('')}>
+                        {error}
+                    </Alert>
                 )}
-                <Paper variant="outlined" sx={{ p: 2, mt: 2 }}>
-                    <Typography variant="subtitle1">Итого по заявке</Typography>
-                    <Stack direction={{ xs: 'column', sm: 'row' }} spacing={3} sx={{ mt: 1 }}>
-                        <Typography>Расходы: <strong>{formatCents(totals.cost)}</strong></Typography>
-                        <Typography>Заказчику: <strong>{formatCents(totals.charge)}</strong></Typography>
-                        <Typography>Разница: <strong>{formatCents(totals.margin)}</strong></Typography>
-                    </Stack>
-                </Paper>
-                {!disabled && <Stack direction="row" justifyContent="flex-end" sx={{ mt: 2 }}>
-                    <Button type="submit" variant="contained" disabled={saving || !isDirty}>Сохранить</Button>
-                </Stack>}
-                <ConfirmDialog
-                    open={confirmOpen}
-                    title="Несохранённые изменения"
-                    text="Изменения в заявке не сохранены. Перейти к списку без сохранения?"
-                    confirmText="Не сохранять"
-                    cancelText="Вернуться"
-                    onClose={handleCancel}
-                    onConfirm={handleConfirm}
-                />
+
+                {detail.isError && isEdit ? (
+                    <ErrorState
+                        error={detail.error}
+                        onRetry={() => detail.refetch()}
+                        loading={detail.isFetching}
+                    />
+                ) : isEdit && detail.isLoading && !saved ? (
+                    <Box sx={sx.loading}>
+                        <CircularProgress aria-label="Загрузка..." />
+                    </Box>
+                ) : (
+                    <>
+                        {providersQuery.isError && (
+                            <Alert severity="warning" sx={{ mb: 2 }}>
+                                Не удалось загрузить исполнителей. Проверьте API дополнительных услуг.
+                            </Alert>
+                        )}
+
+                        <Box sx={columnsSx}>
+                            <Box component="fieldset" sx={[fieldsetStyles, sx.fieldset]}>
+                                <Typography component="legend" variant="caption" sx={sx.legend}>
+                                    Открытие заявки:
+                                </Typography>
+
+                                <Box sx={alignedFieldsSx}>
+                                    <Box sx={alignedFieldRowSx}>
+                                        <TextField
+                                            label="Дата услуги"
+                                            type="date"
+                                            size="small"
+                                            value={form.service_date}
+                                            disabled={disabled}
+                                            onChange={(event) => set('service_date', event.target.value)}
+                                            slotProps={{ inputLabel: { shrink: true } }}
+                                            sx={sx.field}
+                                            required
+                                        />
+                                    </Box>
+
+                                    <Box sx={alignedFieldRowSx}>
+                                        <AlignedSelectField
+                                            id="as-customer-form"
+                                            label="Контрагент"
+                                            required
+                                            value={form.customerId}
+                                            options={customerOptions}
+                                            onChange={(value) => set('customerId', value)}
+                                            disabled={disabled}
+                                            includeAll={false}
+                                        />
+                                    </Box>
+
+                                    <Box sx={alignedFieldRowSx}>
+                                        <AlignedSelectField
+                                            id="as-object-form"
+                                            label="Объект"
+                                            required
+                                            value={form.construction_object}
+                                            options={objectOptions}
+                                            onChange={(value) => set('construction_object', value)}
+                                            disabled={disabled || (!form.customerId && !form.construction_object)}
+                                            includeAll={false}
+                                        />
+                                    </Box>
+
+                                    <Box sx={alignedFieldRowSx}>
+                                        <AlignedSelectField
+                                            id="as-contract-form"
+                                            label="Договор аренды"
+                                            required
+                                            value={form.rental_contract}
+                                            options={contractOptions}
+                                            onChange={(value) => set('rental_contract', value)}
+                                            disabled={disabled || !form.customerId}
+                                            includeAll={false}
+                                        />
+                                    </Box>
+                                </Box>
+                            </Box>
+
+                            <Box component="fieldset" sx={[fieldsetStyles, sx.fieldset]}>
+                                <Typography component="legend" variant="caption" sx={sx.legend}>
+                                    Выполнение заявки:
+                                </Typography>
+
+                                <Box sx={alignedFieldsSx}>
+                                    <Box sx={alignedFieldRowSx}>
+                                        <AlignedSelectField
+                                            id="as-direction-form"
+                                            label="Направление"
+                                            required
+                                            value={form.direction}
+                                            options={DIRECTION_OPTIONS}
+                                            onChange={(value) => set('direction', value)}
+                                            disabled={disabled}
+                                            includeAll={false}
+                                        />
+                                    </Box>
+
+                                    <Box sx={alignedFieldRowSx}>
+                                        <AlignedSelectField
+                                            id="as-status-form"
+                                            label="Статус"
+                                            value={form.status}
+                                            options={STATUS_OPTIONS}
+                                            onChange={(value) => set('status', value)}
+                                            disabled={disabled}
+                                            includeAll={false}
+                                        />
+                                    </Box>
+
+                                    <Box sx={alignedFieldRowSx}>
+                                        <AlignedSelectField
+                                            id="as-provider-type"
+                                            label="Тип исполнителя"
+                                            value={form.providerType}
+                                            options={PROVIDER_OPTIONS}
+                                            onChange={(value) => set('providerType', value)}
+                                            disabled={disabled}
+                                            includeAll={false}
+                                        />
+                                    </Box>
+
+                                    <Box sx={alignedFieldRowSx}>
+                                        <AlignedSelectField
+                                            id="as-provider-form"
+                                            label="Исполнитель"
+                                            required
+                                            value={form.providerId}
+                                            options={providerOptions}
+                                            onChange={(value) => set('providerId', value)}
+                                            disabled={disabled || providersQuery.isLoading}
+                                            includeAll={false}
+                                        />
+                                    </Box>
+
+                                </Box>
+                            </Box>
+
+                            <Box component="fieldset" sx={[fieldsetStyles, sx.fieldset]}>
+                                <Typography component="legend" variant="caption" sx={sx.legend}>
+                                    Описание:
+                                </Typography>
+
+                                <TextField
+                                    label="Описание заявки"
+                                    value={form.description}
+                                    onChange={(event) => set('description', event.target.value)}
+                                    disabled={disabled}
+                                    multiline
+                                    minRows={10}
+                                    fullWidth
+                                    sx={{
+                                        ...sx.descriptionField,
+                                        flex: 1,
+                                        minWidth: 0,
+                                        '& .MuiInputBase-root': {
+                                            height: '100%',
+                                            alignItems: 'flex-start',
+                                        },
+                                    }}
+                                />
+                            </Box>
+                        </Box>
+
+                        <Divider sx={sx.divider} />
+
+                        <AdditionalServiceItems
+                            items={form.items}
+                            providerType={form.providerType}
+                            onChange={changeRow}
+                            onAdd={addRow}
+                            onRemove={removeRow}
+                            disabled={disabled || saving}
+                        />
+
+                        {hasIncompatibleSpecialistItems && (
+                            <Alert severity="warning" sx={{ my: 2 }}>
+                                При выборе перевозчика позиции специалиста необходимо удалить вручную.
+                                Они не удаляются автоматически.
+                            </Alert>
+                        )}
+
+                        <Box sx={{ mt: 3, py: 2, display: 'flex', flexDirection: 'column', gap: 1 }}>
+                            <Typography variant="h6" fontWeight={600}>
+                                ИТОГО ПО ЗАЯВКЕ — РАСХОДЫ: {formatCents(totals.cost)}
+                            </Typography>
+                            <Typography variant="body2" color="text.secondary">
+                                К перевыставлению заказчику: {formatCents(totals.charge)}
+                            </Typography>
+                        </Box>
+
+                    </>
+                )}
             </Box>
+
+            <ConfirmDialog
+                open={confirmOpen}
+                title="Есть несохранённые изменения"
+                text="Вы изменили форму. Уйти без сохранения?"
+                confirmText="Уйти"
+                cancelText="Остаться"
+                onClose={handleCancel}
+                onConfirm={handleConfirm}
+            />
         </Box>
     )
 }

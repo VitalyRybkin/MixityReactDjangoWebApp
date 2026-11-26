@@ -1,71 +1,173 @@
-import { Box, Button, Checkbox, FormControlLabel, Stack, TextField, Typography } from '@mui/material'
-import { amountInCents, formatCents, previewTotals } from '../utils/additionalServices.logic.js'
+import { Box, Checkbox, Divider, FormControlLabel, Stack, TextField, Typography } from '@mui/material'
+
+import AddAction from '../../../components/ui/buttons/AddAction.jsx'
+import DeleteAction from '../../../components/ui/buttons/DeleteAction.jsx'
+import { repairRequestFormSx as sx } from '../../repairs/RepairRequestForm.styles.js'
+import { formatCents, previewTotals } from '../utils/additionalServices.logic.js'
 
 const CATEGORIES = [
-    { key: 'transport', title: 'Транспортные услуги / спецтехника' },
-    { key: 'specialist', title: 'Услуги специалиста' },
+    { key: 'transport', title: 'ТРАНСПОРТ / СПЕЦТЕХНИКА', footer: 'Итого транспорт' },
+    { key: 'specialist', title: 'УСЛУГИ СПЕЦИАЛИСТА', footer: 'Итого специалист' },
 ]
+
+const sectionSx = {
+    ...sx.specificationSection,
+    mt: 2,
+    minWidth: 0,
+}
+
+const headerSx = {
+    ...sx.specificationHeader,
+    alignItems: 'center',
+    gap: 2,
+    mb: 1,
+}
+
+const rowSx = {
+    py: 1.5,
+    borderBottom: '1px solid',
+    borderColor: 'divider',
+    minWidth: 0,
+}
+
+const fieldsSx = {
+    display: 'grid',
+    gridTemplateColumns: {
+        xs: 'minmax(0, 1fr)',
+        sm: 'minmax(0, 1fr) minmax(100px, 140px)',
+        lg: 'minmax(190px, 2.2fr) minmax(90px, .65fr) minmax(135px, 1fr) minmax(135px, 1fr) minmax(155px, 1fr) auto',
+    },
+    alignItems: 'center',
+    gap: 2,
+    minWidth: 0,
+}
 
 export default function AdditionalServiceItems({ items, providerType, onChange, onAdd, onRemove, disabled }) {
     const totals = previewTotals(items)
+
     return (
-        <Stack spacing={2}>
-            {CATEGORIES.filter((group) => group.key === 'transport' || providerType === 'repair_company' || items.some((item) => item.category === 'specialist')).map((group) => {
+        <>
+            {CATEGORIES.filter(
+                (group) => group.key === 'transport'
+                    || providerType === 'repair_company'
+                    || items.some((item) => item.category === 'specialist'),
+            ).map((group) => {
                 const rows = items.filter((item) => item.category === group.key)
-                const totalsForGroup = totals.by_category[group.key]
+                const groupTotals = totals.by_category[group.key]
+                const canAdd = !disabled && !(group.key === 'specialist' && providerType === 'carrier')
+
                 return (
-                    <Box component="fieldset" key={group.key} sx={{ border: '1px solid', borderColor: 'divider', borderRadius: 1, p: 2, minWidth: 0 }}>
-                        <Typography component="legend" variant="subtitle1" sx={{ px: 1 }}>{group.title}</Typography>
-                        <Stack spacing={1}>
-                            {rows.length === 0 && <Typography color="text.secondary" variant="body2">Пока нет позиций.</Typography>}
-                            {rows.map((item) => (
-                                <Box key={item.localId} sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', md: 'minmax(170px,2fr) 100px 140px 140px 150px 80px' }, gap: 1, alignItems: 'center' }}>
+                    <Box key={group.key} sx={sectionSx}>
+                        <Stack direction="row" sx={headerSx}>
+                            <Typography variant="h6" sx={sx.specificationGrandTotalValue}>
+                                {group.title}
+                            </Typography>
+                            {!disabled && (
+                                <AddAction
+                                    title="Добавить позицию"
+                                    onClick={() => onAdd(group.key)}
+                                    disabled={!canAdd}
+                                />
+                            )}
+                        </Stack>
+
+                        <Divider sx={sx.divider} />
+
+                        {rows.length === 0 && (
+                            <Typography color="text.secondary" sx={{ py: 2 }}>
+                                Добавьте позицию.
+                            </Typography>
+                        )}
+
+                        {rows.map((item) => (
+                            <Box key={item.localId} sx={rowSx}>
+                                <Box sx={fieldsSx}>
                                     <TextField
                                         label="Наименование работы"
+                                        size="small"
                                         value={item.name}
-                                        onChange={(e) => onChange(item.localId, { name: e.target.value })}
-                                        size="small" fullWidth disabled={disabled} required
+                                        onChange={(event) => onChange(item.localId, { name: event.target.value })}
+                                        disabled={disabled}
+                                        required
+                                        fullWidth
                                     />
+
                                     <TextField
-                                        label="Кол-во" type="number" size="small"
-                                        value={item.quantity} disabled={disabled} required
-                                        onChange={(e) => onChange(item.localId, { quantity: e.target.value })}
+                                        label="Кол-во"
+                                        type="number"
+                                        size="small"
+                                        value={item.quantity}
+                                        onChange={(event) => onChange(item.localId, { quantity: event.target.value })}
                                         slotProps={{ htmlInput: { min: '0.001', step: '0.001' } }}
+                                        disabled={disabled}
+                                        required
+                                        fullWidth
                                     />
+
                                     <TextField
-                                        label="Наши расходы/ед." type="number" size="small"
-                                        value={item.cost_per_unit} disabled={disabled} required
-                                        onChange={(e) => onChange(item.localId, { cost_per_unit: e.target.value })}
+                                        label="Наши расходы/ед."
+                                        type="number"
+                                        size="small"
+                                        value={item.cost_per_unit}
+                                        onChange={(event) => onChange(item.localId, { cost_per_unit: event.target.value })}
                                         slotProps={{ htmlInput: { min: '0', step: '0.01' } }}
+                                        disabled={disabled}
+                                        required
+                                        fullWidth
                                     />
+
                                     <TextField
-                                        label="Заказчику/ед." type="number" size="small"
-                                        value={item.price_per_unit} disabled={disabled} required
-                                        onChange={(e) => onChange(item.localId, { price_per_unit: e.target.value })}
+                                        label="Заказчику/ед."
+                                        type="number"
+                                        size="small"
+                                        value={item.price_per_unit}
+                                        onChange={(event) => onChange(item.localId, { price_per_unit: event.target.value })}
                                         slotProps={{ htmlInput: { min: '0', step: '0.01' } }}
+                                        disabled={disabled}
+                                        required
+                                        fullWidth
                                     />
-                                    <Box>
-                                        <FormControlLabel
-                                            label="Перевыставить"
-                                            control={<Checkbox checked={item.is_rebillable} disabled={disabled} onChange={(e) => onChange(item.localId, { is_rebillable: e.target.checked })} />}
-                                        />
-                                        <Typography variant="caption" color="text.secondary" display="block">
-                                            {formatCents(amountInCents(item, 'cost_per_unit'))} / {formatCents(item.is_rebillable ? amountInCents(item, 'price_per_unit') : 0n)}
-                                        </Typography>
+
+                                    <FormControlLabel
+                                        control={
+                                            <Checkbox
+                                                checked={Boolean(item.is_rebillable)}
+                                                disabled={disabled}
+                                                onChange={(event) => onChange(item.localId, { is_rebillable: event.target.checked })}
+                                            />
+                                        }
+                                        label="Перевыставить"
+                                        sx={{ m: 0 }}
+                                    />
+
+                                    <Box sx={{ display: 'flex', justifyContent: 'flex-end' }}>
+                                        {!disabled && (
+                                            <DeleteAction onClick={() => onRemove(item.localId)} />
+                                        )}
                                     </Box>
-                                    <Button size="small" color="error" disabled={disabled} onClick={() => onRemove(item.localId)}>Удалить</Button>
                                 </Box>
-                            ))}
-                            <Stack direction={{ xs: 'column', sm: 'row' }} alignItems="center" justifyContent="space-between" spacing={1}>
-                                <Button size="small" variant="outlined" disabled={disabled || (group.key === 'specialist' && providerType === 'carrier')} onClick={() => onAdd(group.key)}>Добавить позицию</Button>
-                                <Typography variant="body2">
-                                    Расходы: {formatCents(totalsForGroup.cost)} · Заказчику: {formatCents(totalsForGroup.charge)} · Разница: {formatCents(totalsForGroup.margin)}
-                                </Typography>
-                            </Stack>
+                            </Box>
+                        ))}
+
+                        <Stack
+                            direction={{ xs: 'column', sm: 'row' }}
+                            alignItems={{ xs: 'flex-start', sm: 'center' }}
+                            spacing={1}
+                            sx={{ py: 2 }}
+                        >
+                            <Typography variant="h6">
+                                {group.footer} (расходы):
+                            </Typography>
+                            <Typography variant="h6" sx={sx.specificationGrandTotalValue}>
+                                {formatCents(groupTotals.cost)}
+                            </Typography>
+                            <Typography variant="body2" color="text.secondary">
+                                Заказчику: {formatCents(groupTotals.charge)}
+                            </Typography>
                         </Stack>
                     </Box>
                 )
             })}
-        </Stack>
+        </>
     )
 }

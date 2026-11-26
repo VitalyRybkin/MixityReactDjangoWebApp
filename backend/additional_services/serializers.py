@@ -165,6 +165,8 @@ class AdditionalServiceWriteSerializer(serializers.ModelSerializer):
         errors = {}
         if (carrier is None) == (repair_company is None):
             errors["carrier"] = "Нужно выбрать ровно одного исполнителя."
+        if contract is None:
+            errors["rental_contract"] = "Выберите договор аренды."
         if (
             contract
             and construction_object
