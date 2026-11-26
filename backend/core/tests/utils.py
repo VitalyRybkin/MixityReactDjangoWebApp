@@ -1,12 +1,7 @@
 from dataclasses import dataclass
-from typing import TYPE_CHECKING, Any, Callable, Optional, Union
+from typing import Any, Callable, Optional, Union
 
 from rest_framework import status
-
-if TYPE_CHECKING:
-    from core.tests.type_stubs import BaseMixinProto as _Base
-else:
-    _Base = object
 
 CastFn = Union[type, Callable[[Any], Any]]
 
@@ -79,13 +74,13 @@ def coerce_fieldspec(raw: Any) -> FieldSpec:
     raise TypeError(f"Invalid fields_map entry: {raw!r}")
 
 
-class TestLoggerMixin(_Base):
+class TestLoggerMixin:
     """
     Provides a mixin for enhanced logging functionality with color-coded output.
 
     Mixin to add formatted logging features to other classes. Supports colored log messages for headers, subheaders,
-    success messages, and error messages using ANSI escape codes. It is not intended to be
-    used as a standalone class and should be combined with other classes.
+    success messages, and error messages using ANSI escape codes. It can also be
+    instantiated by standalone pytest functions.
 
     Attributes:
         COLOR (dict): A dictionary defining ANSI color codes for different logging

@@ -143,6 +143,7 @@ class ValidationContractMixin(_Base):
                     api_field,
                     current_payload,
                 )
+                self._logger_success(api_field, "Missing required field rejected")
 
     def _test_all_unique_fields(self, valid_payload: dict) -> None:
         """
@@ -185,7 +186,7 @@ class ValidationContractMixin(_Base):
                     error_found,
                     msg=f"Expected '{api_field}' or 'non_field_errors' in response, got: {response.data}",
                 )
-                self._logger_error(api_field, "Duplicated")
+                self._logger_success(api_field, "Duplicate value rejected")
 
     def _test_field_validation(
         self,
@@ -307,8 +308,8 @@ class ValidationContractMixin(_Base):
             expected_error in str(response.data),
             msg=f"Unexpected errors: {response.data}",
         )
-        self._logger_error(
-            self.model.__name__, f"Unique fields validation failed: {expected_error}"
+        self._logger_success(
+            self.model.__name__, f"Duplicate value rejected: {expected_error}"
         )
 
     def _test_update_should_preserve_same_values(
@@ -359,7 +360,7 @@ class ValidationContractMixin(_Base):
             msg=f"Unexpected errors: {response.data}",
         )
 
-        self._logger_error(
+        self._logger_success(
             self.model.__name__,
-            f"Update with repeated field values failed: {expected_error}",
+            f"Update with repeated field values rejected: {expected_error}",
         )

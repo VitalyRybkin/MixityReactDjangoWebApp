@@ -322,14 +322,17 @@ class TestCustomerRentalContractAPIDetailAPI(
 
     def test_used_contract_cannot_be_deleted(self) -> None:
         """Reject deletion of a contract referenced elsewhere in the system."""
+        self._logger_header("CUSTOMER CONTRACTS: USED CONTRACT CANNOT BE DELETED")
         with patch("order.views.customers.rental_contract_is_used", return_value=True):
             response = self.client.delete(self.url)
 
         self.assertEqual(response.status_code, status.HTTP_409_CONFLICT)
         self.assertTrue(RentalContract.objects.filter(pk=self.obj.pk).exists())
+        self._logger_success("Used contract cannot be deleted", "HTTP 409")
 
     def test_used_contract_is_marked_in_detail(self) -> None:
         """Expose the usage flag so the frontend can disable deletion."""
+        self._logger_header("CUSTOMER CONTRACTS: USED CONTRACT IS MARKED IN DETAIL")
         with patch(
             "order.serializers.customer_serializers.rental_contract_is_used",
             return_value=True,
@@ -338,6 +341,7 @@ class TestCustomerRentalContractAPIDetailAPI(
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertTrue(response.data["is_used"])
+        self._logger_success("Used contract is marked in detail", "HTTP 200")
 
     def test_patch_reactivates_inactive_contract(self) -> None:
         """Activating an older contract retires the currently active contract."""

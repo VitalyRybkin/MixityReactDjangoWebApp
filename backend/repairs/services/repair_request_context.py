@@ -4,9 +4,21 @@ Two persisted flags describe the three *new* workflows. Pre-existing linked
 workshop repairs remain valid without reclassifying their business history.
 """
 
+from __future__ import annotations
+
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from repairs.models.repair_request_models import RepairRequest
+
 
 def is_legacy_linked_workshop(
-    existing, *, location, is_after_return, construction_object_id, rental_contract_id
+    existing: RepairRequest | None,
+    *,
+    location: str,
+    is_after_return: bool,
+    construction_object_id: int | None,
+    rental_contract_id: int | None,
 ) -> bool:
     """Grandfather a linked workshop repair only while its context stays unchanged."""
     return bool(
@@ -14,7 +26,10 @@ def is_legacy_linked_workshop(
         and existing.pk is not None
         and existing.location == "workshop"
         and not existing.is_after_return
-        and (existing.construction_object_id is not None or existing.rental_contract_id is not None)
+        and (
+            existing.construction_object_id is not None
+            or existing.rental_contract_id is not None
+        )
         and location == "workshop"
         and not is_after_return
         and construction_object_id == existing.construction_object_id
@@ -23,7 +38,12 @@ def is_legacy_linked_workshop(
 
 
 def is_legacy_site_without_context(
-    existing, *, location, is_after_return, construction_object_id, rental_contract_id
+    existing: RepairRequest | None,
+    *,
+    location: str,
+    is_after_return: bool,
+    construction_object_id: int | None,
+    rental_contract_id: int | None,
 ) -> bool:
     """Allow unrelated updates to historically incomplete site repairs."""
     return bool(
@@ -31,7 +51,10 @@ def is_legacy_site_without_context(
         and existing.pk is not None
         and existing.location == "site"
         and not existing.is_after_return
-        and (existing.construction_object_id is None or existing.rental_contract_id is None)
+        and (
+            existing.construction_object_id is None
+            or existing.rental_contract_id is None
+        )
         and location == "site"
         and not is_after_return
         and construction_object_id == existing.construction_object_id
@@ -40,7 +63,11 @@ def is_legacy_site_without_context(
 
 
 def is_maintenance(
-    *, location, is_after_return, construction_object_id, rental_contract_id
+    *,
+    location: str,
+    is_after_return: bool,
+    construction_object_id: int | None,
+    rental_contract_id: int | None,
 ) -> bool:
     """Regulatory work is a workshop repair without any rental relationships."""
     return (
@@ -52,8 +79,14 @@ def is_maintenance(
 
 
 def repair_context_errors(
-    *, existing, location, is_after_return, construction_object_id, rental_contract_id,
-    construction_customer_id=None, contract_customer_id=None
+    *,
+    existing: RepairRequest | None,
+    location: str,
+    is_after_return: bool,
+    construction_object_id: int | None,
+    rental_contract_id: int | None,
+    construction_customer_id: int | None = None,
+    contract_customer_id: int | None = None,
 ) -> dict[str, str]:
     errors: dict[str, str] = {}
 
@@ -62,7 +95,9 @@ def repair_context_errors(
 
     if construction_object_id is not None and rental_contract_id is not None:
         if construction_customer_id != contract_customer_id:
-            errors["rental_contract"] = "Договор не принадлежит заказчику выбранного объекта."
+            errors["rental_contract"] = (
+                "Договор не принадлежит заказчику выбранного объекта."
+            )
 
     legacy_workshop = is_legacy_linked_workshop(
         existing,
@@ -88,8 +123,12 @@ def repair_context_errors(
     elif location == "workshop" and not legacy_workshop:
         # A new standard workshop request is maintenance. No implicit rebilling.
         if construction_object_id is not None:
-            errors["construction_object"] = "Для регламентного ремонта объект не указывается."
+            errors["construction_object"] = (
+                "Для регламентного ремонта объект не указывается."
+            )
         if rental_contract_id is not None:
-            errors["rental_contract"] = "Для регламентного ремонта договор аренды не указывается."
+            errors["rental_contract"] = (
+                "Для регламентного ремонта договор аренды не указывается."
+            )
 
     return errors

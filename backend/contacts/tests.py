@@ -68,6 +68,7 @@ class TestContactAPICreate(BaseAPIMixin):
 
     def test_invalid_xor_multiple(self) -> None:
         """Test that a contact can't belong to multiple parent entities."""
+        self._logger_header("CONTACTS: CREATE WITH MULTIPLE PARENTS")
         carrier = CarrierFactory.create()
         warehouse = WarehouseFactory.create()
         client = ClientFactory.create()
@@ -85,9 +86,9 @@ class TestContactAPICreate(BaseAPIMixin):
                 "repair_company": repair_company.id,
             }
         )
-        print(payload)
 
         self._create_invalid_xor(payload)
+        self._logger_success("Contact with multiple parents rejected", "HTTP 400")
 
     def test_phone_numbers_validation(self) -> None:
         payload = {

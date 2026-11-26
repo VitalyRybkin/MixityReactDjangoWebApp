@@ -170,6 +170,9 @@ class TestOrderAPIList(BaseAPIMixin):
         self._create_logic(payload)
 
     def test_create_with_inactive_customer_object_returns_400(self) -> None:
+        self._logger_header(
+            "ORDER API: " "CREATE WITH INACTIVE CUSTOMER OBJECT RETURNS 400"
+        )
         payload, temp = self.payload_generator()
 
         self._assert_create_with_inactive_related_returns_400(
@@ -206,10 +209,9 @@ class TestOrderAPIList(BaseAPIMixin):
             status.HTTP_400_BAD_REQUEST,
             response.data,
         )
-        print(
-            f"{self.INDENT}{self.COLOR['OK']}"
-            "✓ Customer object from another customer rejected | 400"
-            f"{self.COLOR['END']}"
+        self._logger_success(
+            "Customer object from another customer rejected",
+            "HTTP 400",
         )
 
     def test_create_with_invalid_contact_returns_400(self) -> None:
@@ -238,11 +240,7 @@ class TestOrderAPIList(BaseAPIMixin):
                     status.HTTP_400_BAD_REQUEST,
                     response.data,
                 )
-        print(
-            f"{self.INDENT}{self.COLOR['OK']}"
-            "✓ Unrelated contacts rejected | all cases returned 400"
-            f"{self.COLOR['END']}"
-        )
+        self._logger_success("Unrelated contacts rejected", "all cases returned 400")
 
     def test_create_with_customer_contact_returns_201(self) -> None:
         """Tests that creating an order with a customer contact returns a 201 status code."""
@@ -268,11 +266,7 @@ class TestOrderAPIList(BaseAPIMixin):
             response.data,
         )
 
-        print(
-            f"{self.INDENT}{self.COLOR['OK']}"
-            "✓ Customer contact accepted | 201"
-            f"{self.COLOR['END']}"
-        )
+        self._logger_success("Customer contact accepted", "HTTP 201")
 
     def test_create_with_delivery_from_another_carrier_returns_400(self) -> None:
         """Tests that creating an order with a delivery from another carrier returns a 400 status code."""
@@ -311,10 +305,9 @@ class TestOrderAPIList(BaseAPIMixin):
                     status.HTTP_400_BAD_REQUEST,
                     response.data,
                 )
-        print(
-            f"{self.INDENT}{self.COLOR['OK']}"
-            "✓ Driver/truck from another carrier rejected | all cases returned 400"
-            f"{self.COLOR['END']}"
+        self._logger_success(
+            "Driver/truck from another carrier rejected",
+            "all cases returned 400",
         )
 
     def test_create_with_valid_delivery_returns_201(self) -> None:
@@ -344,11 +337,7 @@ class TestOrderAPIList(BaseAPIMixin):
             response.data,
         )
 
-        print(
-            f"{self.INDENT}{self.COLOR['OK']}"
-            "✓ Carrier + driver + truck accepted | 201"
-            f"{self.COLOR['END']}"
-        )
+        self._logger_success("Carrier + driver + truck accepted", "HTTP 201")
 
     def test_create_with_inactive_delivery_carrier_returns_400(self) -> None:
         """Tests that creating an order with an inactive delivery carrier returns a 400 status code."""
@@ -373,11 +362,7 @@ class TestOrderAPIList(BaseAPIMixin):
             response.data,
         )
 
-        print(
-            f"{self.INDENT}{self.COLOR['OK']}"
-            "✓ Inactive carrier rejected | 400"
-            f"{self.COLOR['END']}"
-        )
+        self._logger_success("Inactive carrier rejected", "HTTP 400")
 
     def test_create_with_order_date(self) -> None:
         self._logger_header("CREATE ORDER WITH CUSTOM ORDER DATE")
@@ -404,11 +389,7 @@ class TestOrderAPIList(BaseAPIMixin):
             date(2026, 9, 20),
         )
 
-        print(
-            f"{self.INDENT}{self.COLOR['OK']}"
-            "✓ Order created with custom order date | 2026-09-20"
-            f"{self.COLOR['END']}"
-        )
+        self._logger_success("Order created with custom order date", "2026-09-20")
 
     def payload_generator(self) -> tuple[dict[str, list[Any] | Any], Any]:
         """Generates a payload for order creation tests."""
@@ -481,11 +462,7 @@ class TestOrderRetrieveUpdateDestroy(BaseAPIMixin):
             status.HTTP_400_BAD_REQUEST,
             response.data,
         )
-        print(
-            f"{self.INDENT}{self.COLOR['OK']}"
-            "✓ Object from previous customer rejected | 400"
-            f"{self.COLOR['END']}"
-        )
+        self._logger_success("Object from previous customer rejected", "HTTP 400")
 
     def test_patch_client_rejects_existing_contact_from_old_client(self) -> None:
         """
@@ -511,11 +488,7 @@ class TestOrderRetrieveUpdateDestroy(BaseAPIMixin):
             status.HTTP_400_BAD_REQUEST,
             response.data,
         )
-        print(
-            f"{self.INDENT}{self.COLOR['OK']}"
-            "✓ Contact from old client rejected | 400"
-            f"{self.COLOR['END']}"
-        )
+        self._logger_success("Contact from old client rejected", "HTTP 400")
 
     def test_patch_carrier_rejects_existing_driver_and_truck_from_old_carrier(
         self,
@@ -553,10 +526,9 @@ class TestOrderRetrieveUpdateDestroy(BaseAPIMixin):
             status.HTTP_400_BAD_REQUEST,
             response.data,
         )
-        print(
-            f"{self.INDENT}{self.COLOR['OK']}"
-            "✓ Existing driver and truck from old carrier rejected | 400"
-            f"{self.COLOR['END']}"
+        self._logger_success(
+            "Existing driver and truck from old carrier rejected",
+            "HTTP 400",
         )
 
     def test_patch_cannot_change_order_user(self) -> None:
@@ -595,11 +567,7 @@ class TestOrderRetrieveUpdateDestroy(BaseAPIMixin):
             original_user.pk,
         )
 
-        print(
-            f"{self.INDENT}{self.COLOR['OK']}"
-            "✓ Order user protected | attempted change ignored"
-            f"{self.COLOR['END']}"
-        )
+        self._logger_success("Order user protected", "attempted change ignored")
 
     def test_patch_cannot_upload_upd_pdf_through_order_endpoint(self) -> None:
         """
@@ -628,10 +596,9 @@ class TestOrderRetrieveUpdateDestroy(BaseAPIMixin):
 
         self.assertFalse(self.obj.upd_pdf)
 
-        print(
-            f"{self.INDENT}{self.COLOR['OK']}"
-            "✓ UPD PDF protected | upload through Order endpoint ignored"
-            f"{self.COLOR['END']}"
+        self._logger_success(
+            "UPD PDF protected",
+            "upload through Order endpoint ignored",
         )
 
     def test_patch_order_date(self) -> None:
@@ -659,8 +626,4 @@ class TestOrderRetrieveUpdateDestroy(BaseAPIMixin):
             date(2026, 9, 15),
         )
 
-        print(
-            f"{self.INDENT}{self.COLOR['OK']}"
-            "✓ Order date updated successfully | 2026-09-15"
-            f"{self.COLOR['END']}"
-        )
+        self._logger_success("Order date updated successfully", "2026-09-15")

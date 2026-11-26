@@ -165,6 +165,7 @@ class TestCarrierResources(
         self._nonexistent_parent_visibility_logic()
 
     def test_get_with_only_carrier_permission_returns_403(self) -> None:
+        self._logger_header("CARRIER: GET WITH ONLY CARRIER PERMISSION RETURNS 403")
         user = User.objects.create_user(
             username="carrier_only",
             password="test_password",
@@ -183,8 +184,10 @@ class TestCarrierResources(
             response.status_code,
             status.HTTP_403_FORBIDDEN,
         )
+        self._logger_success("Get with only carrier permission returns 403", "HTTP 403")
 
     def test_get_without_driver_permission_returns_403(self) -> None:
+        self._logger_header("CARRIER: GET WITHOUT DRIVER PERMISSION RETURNS 403")
         user = User.objects.create_user(
             username="without_driver",
             password="test_password",
@@ -206,8 +209,10 @@ class TestCarrierResources(
             response.status_code,
             status.HTTP_403_FORBIDDEN,
         )
+        self._logger_success("Get without driver permission returns 403", "HTTP 403")
 
     def test_get_without_truck_permission_returns_403(self) -> None:
+        self._logger_header("CARRIER: GET WITHOUT TRUCK PERMISSION RETURNS 403")
         user = User.objects.create_user(
             username="without_truck",
             password="test_password",
@@ -229,6 +234,7 @@ class TestCarrierResources(
             response.status_code,
             status.HTTP_403_FORBIDDEN,
         )
+        self._logger_success("Get without truck permission returns 403", "HTTP 403")
 
 
 class TestCarrierDriverList(

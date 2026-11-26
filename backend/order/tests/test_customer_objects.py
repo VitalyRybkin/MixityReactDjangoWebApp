@@ -183,11 +183,7 @@ class TestCustomerConstructionObjectsAPIDetailAPI(
             status.HTTP_404_NOT_FOUND,
         )
 
-        print(
-            f"{self.INDENT}{self.COLOR['OK']}"
-            "✓ Object from another customer rejected | HTTP 404"
-            f"{self.COLOR['END']}"
-        )
+        self._logger_success("Object from another customer rejected", "HTTP 404")
 
     def test_inactive_construction_object_returns_404(self) -> None:
         """Test inactive construction object returns 404."""

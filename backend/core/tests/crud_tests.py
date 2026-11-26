@@ -72,20 +72,14 @@ class CrudContractMixin(_Base):
             self.assertIn("errors", response_data)
             self.assertIn("messages", response_data)
             self.assertEqual(response_data["messages"], [expected_error])
-            print(
-                f"{self.INDENT}{self.COLOR['ERR']}"
-                f"✗ {self.COLOR['END']}{self.COLOR['OK']}Object \n{payload} \ncreation failed"
-                f"{self.COLOR['END']}"
-            )
+            self._logger_success("Create rejected", f"HTTP {response.status_code}")
             return
 
         is_created = self.model.objects.filter(pk=response.data["id"]).exists()
         if not is_created:
             self.assertTrue(is_created, msg="Object was not created successfully")
 
-        print(
-            f"{self.INDENT}{self.COLOR['OK']}✓ Object created successfully{self.COLOR['END']}"
-        )
+        self._logger_success("Object created", f"HTTP {response.status_code}")
 
     def _retrieve_object_by_id(
         self,
@@ -115,9 +109,7 @@ class CrudContractMixin(_Base):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(response.data["id"], obj.id)
 
-        print(
-            f"{self.INDENT}{self.COLOR['OK']}✓ Object successfully retrieved{self.COLOR['END']}"
-        )
+        self._logger_success("Object retrieved", f"HTTP {response.status_code}")
 
     def _retrieve_object_by_id_not_found(self) -> None:
         """
@@ -138,11 +130,7 @@ class CrudContractMixin(_Base):
         response = self.client.get(url)
 
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
-        print(
-            f"{self.INDENT}{self.COLOR['ERR']}"
-            f"✗ {self.COLOR['END']}{self.COLOR['OK']}Object not found | HTTP 404"
-            f"{self.COLOR['END']}"
-        )
+        self._logger_success("Object not found", "HTTP 404")
 
     def _get_resources_logic(
         self,
@@ -189,10 +177,9 @@ class CrudContractMixin(_Base):
         if response.data["drivers"]:
             self.assertTrue(isinstance(response.data["drivers"][0], dict))
 
-        print(
-            f"{self.INDENT}{self.COLOR['OK']}✓ Resources verified "
-            f"(trucks={len(response.data['trucks'])}, drivers={len(response.data['drivers'])})"
-            f"{self.COLOR['END']}"
+        self._logger_success(
+            "Resources returned",
+            f"{len(response.data['trucks'])} trucks and {len(response.data['drivers'])} drivers",
         )
 
     @pytest.mark.usefixtures("temp_media_root")
@@ -228,9 +215,7 @@ class CrudContractMixin(_Base):
         self.assertTrue(self.obj.directions.name)
         self.assertIn(spec.upload_to, self.obj.directions.name)
 
-        print(
-            f"{self.INDENT}{self.COLOR['OK']}✓ Map uploaded successfully{self.COLOR['END']}"
-        )
+        self._logger_success("Map uploaded", f"HTTP {resp.status_code}")
 
     def _upload_map_missing_file_400(
         self,
@@ -258,9 +243,7 @@ class CrudContractMixin(_Base):
             msg=f"Expected field '{spec.field_name}' in errors, but got: {resp.data}",
         )
 
-        print(
-            f"{self.INDENT}{self.COLOR['OK']}✓ Missing file validation passed{self.COLOR['END']}"
-        )
+        self._logger_success("Missing file rejected", f"HTTP {resp.status_code}")
 
     def _patch_logic_success(
         self,
@@ -285,9 +268,7 @@ class CrudContractMixin(_Base):
         if response.status_code != 200:
             self.fail(f"PATCH failed\nPayload: {payload}\nErrors: {response.data}")
 
-        print(
-            f"{self.INDENT}{self.COLOR['OK']}✓ PATCH logic passed for payload - {payload}{self.COLOR['END']}"
-        )
+        self._logger_success("Object updated", f"HTTP {response.status_code}")
 
     def _patch_logic_failed(
         self,
@@ -315,8 +296,9 @@ class CrudContractMixin(_Base):
                 msg=f"Expected error on '{expected_field}', got: {response.data}",
             )
 
-        print(
-            f"{self.INDENT}{self.COLOR['OK']}✓ PATCH failed as expected for payload - {payload}{self.COLOR['END']}"
+        self._logger_success(
+            "Update rejected",
+            f"HTTP {response.status_code}",
         )
 
     def _delete_logic(self, expected_status: int = status.HTTP_204_NO_CONTENT) -> None:
@@ -334,9 +316,7 @@ class CrudContractMixin(_Base):
         if response.status_code != expected_status:
             self.fail(f"DELETE failed\nErrors: {response.data}")
 
-        print(
-            f"{self.INDENT}{self.COLOR['OK']}✓ DELETE logic passed{self.COLOR['END']}"
-        )
+        self._logger_success("Object deleted", f"HTTP {response.status_code}")
 
     def _create_invalid_xor(self, payload: dict) -> None:
         """
@@ -390,4 +370,6 @@ class CrudContractMixin(_Base):
                 f"Expected {expected_contacts} contacts, but got {len(data)}",
             )
 
-        print(f"{self.INDENT}{self.COLOR['OK']}✓ GET logic passed{self.COLOR['END']}")
+        self._logger_success(
+            "Related objects retrieved", f"HTTP {response.status_code}"
+        )

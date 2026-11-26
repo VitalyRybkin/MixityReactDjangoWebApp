@@ -30,6 +30,7 @@ class TestOrdersDownloadPermissions(
         Tests that without the export permission, a GET request to the download
         orders endpoint returns a 403 Forbidden status.
         """
+        self._logger_header("ORDER EXPORT: WITHOUT EXPORT PERMISSION RETURNS 403")
         user = get_user_model().objects.create_user(
             username="export_no_permission",
             password="test_password",
@@ -44,17 +45,14 @@ class TestOrdersDownloadPermissions(
             status.HTTP_403_FORBIDDEN,
         )
 
-        print(
-            f"{self.INDENT}{self.COLOR['OK']}"
-            "✓ Access denied without order.export_order | HTTP 403"
-            f"{self.COLOR['END']}"
-        )
+        self._logger_success("Access denied without order.export_order", "HTTP 403")
 
     def test_with_export_permission_returns_200(self) -> None:
         """
         Tests that with the export permission, a GET request to the download
         orders endpoint returns a 200 OK status.
         """
+        self._logger_header("ORDER EXPORT: WITH EXPORT PERMISSION RETURNS 200")
         user = get_user_model().objects.create_user(
             username="export_with_permission",
             password="test_password",
@@ -76,16 +74,15 @@ class TestOrdersDownloadPermissions(
             response.data,
         )
 
-        print(
-            f"{self.INDENT}{self.COLOR['OK']}"
-            "✓ Access granted with order.export_order | HTTP 200"
-            f"{self.COLOR['END']}"
-        )
+        self._logger_success("Access granted with order.export_order", "HTTP 200")
 
     def test_view_order_permission_is_not_enough_for_export(self) -> None:
         """
         Tests that the view_order permission is not enough for exporting orders.
         """
+        self._logger_header(
+            "ORDER EXPORT: " "VIEW ORDER PERMISSION IS NOT ENOUGH FOR EXPORT"
+        )
         user = get_user_model().objects.create_user(
             username="export_view_only",
             password="test_password",
@@ -106,8 +103,4 @@ class TestOrdersDownloadPermissions(
             status.HTTP_403_FORBIDDEN,
         )
 
-        print(
-            f"{self.INDENT}{self.COLOR['OK']}"
-            "✓ order.view_order is not enough for export | HTTP 403"
-            f"{self.COLOR['END']}"
-        )
+        self._logger_success("order.view_order is not enough for export", "HTTP 403")

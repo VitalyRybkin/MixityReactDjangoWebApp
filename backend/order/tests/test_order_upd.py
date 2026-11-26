@@ -139,11 +139,7 @@ class TestOrderUpdUploadAPIView(
 
         self.assertTrue(self.order.upd_pdf.storage.exists(stored_name))
 
-        print(
-            f"{self.INDENT}{self.COLOR['OK']}"
-            "✓ PDF stored with randomized UUID filename"
-            f"{self.COLOR['END']}"
-        )
+        self._logger_success("Verified", "PDF stored with randomized UUID filename")
 
     def test_upload_fake_pdf_returns_400(self) -> None:
         """Upload a fake PDF file."""
@@ -173,11 +169,7 @@ class TestOrderUpdUploadAPIView(
         self.order.refresh_from_db()
         self.assertFalse(self.order.upd_pdf)
 
-        print(
-            f"{self.INDENT}{self.COLOR['OK']}"
-            "✓ Fake PDF rejected | HTTP 400"
-            f"{self.COLOR['END']}"
-        )
+        self._logger_success("Fake PDF rejected", "HTTP 400")
 
     def test_delete_upd_pdf(self) -> None:
         """Delete the uploaded PDF file."""
@@ -221,9 +213,7 @@ class TestOrderUpdUploadAPIView(
 
         self.assertFalse(self.order.upd_pdf)
         self.assertFalse(storage.exists(old_file_name))
-        print(
-            f"{self.INDENT}{self.COLOR['OK']}✓ PDF deleted successfully.{self.COLOR['END']}"
-        )
+        self._logger_success("Verified", "PDF deleted successfully.")
 
     def test_replace_upd_pdf_deletes_old_file(self) -> None:
         """Replace the uploaded PDF file and delete the old file."""
@@ -276,11 +266,7 @@ class TestOrderUpdUploadAPIView(
         self.assertFalse(storage.exists(old_file_name))
         self.assertTrue(storage.exists(new_file_name))
 
-        print(
-            f"{self.INDENT}{self.COLOR['OK']}"
-            "✓ Upload allowed with change_order permission | HTTP 200"
-            f"{self.COLOR['END']}"
-        )
+        self._logger_success("Upload allowed with change_order permission", "HTTP 200")
 
     @patch("core.validators.files.scan_file_for_malware")
     def test_upload_pdf_with_malware_returns_400(
@@ -315,11 +301,7 @@ class TestOrderUpdUploadAPIView(
 
         mock_scan.assert_called_once()
 
-        print(
-            f"{self.INDENT}{self.COLOR['OK']}"
-            "✓ PDF with malware rejected | HTTP 400"
-            f"{self.COLOR['END']}"
-        )
+        self._logger_success("PDF with malware rejected", "HTTP 400")
 
     @patch("core.validators.files.scan_file_for_malware")
     def test_upload_pdf_when_clamav_unavailable_returns_503(
@@ -357,9 +339,7 @@ class TestOrderUpdUploadAPIView(
 
         mock_scan.assert_called_once()
 
-        print(
-            f"{self.INDENT}{self.COLOR['OK']}✓ Antivirus unavailable handled correctly | HTTP 503{self.COLOR['END']}"
-        )
+        self._logger_success("Antivirus unavailable handled correctly", "HTTP 503")
 
     def test_upload_without_change_order_permission_returns_403(self) -> None:
         """Upload a PDF file without change order permission."""
@@ -394,10 +374,9 @@ class TestOrderUpdUploadAPIView(
 
         self.assertFalse(self.order.upd_pdf)
 
-        print(
-            f"{self.INDENT}{self.COLOR['OK']}"
-            "✓ Upload denied without change_order permission | HTTP 403"
-            f"{self.COLOR['END']}"
+        self._logger_success(
+            "Upload denied without change_order permission",
+            "HTTP 403",
         )
 
     def test_upload_with_manage_order_upd_permission_returns_200(self) -> None:
@@ -439,6 +418,4 @@ class TestOrderUpdUploadAPIView(
         self.order.refresh_from_db()
 
         self.assertTrue(self.order.upd_pdf)
-        print(
-            f"{self.INDENT}{self.COLOR['OK']}✓ PDF replaced successfully.{self.COLOR['END']}"
-        )
+        self._logger_success("Verified", "PDF replaced successfully.")

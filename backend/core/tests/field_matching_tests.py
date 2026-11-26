@@ -117,6 +117,7 @@ class FieldContractMixin(_Base):
             if api_field == "isActive":
                 self.assertEqual(api_val, True, msg=f"Mismatch for field '{api_field}'")
 
-        print(
-            f"{self.INDENT}{self.COLOR['OK']}✓ List verified ({len(self.fields_map)} fields){self.COLOR['END']}"
+        self._logger_success(
+            "Verified",
+            f"List verified ({len(self.fields_map)} fields)",
         )

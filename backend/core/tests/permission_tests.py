@@ -54,6 +54,7 @@ class PermissionContractMixin(_Base):
         if not self.check_get_permissions:
             pytest.skip("GET permission check not applicable: GET disabled")
 
+        self._logger_header(f"ENDPOINT GET: {self.url} without view permission")
         user = User.objects.create_user(
             username="permission_without_view",
             password="test_password",
@@ -71,17 +72,14 @@ class PermissionContractMixin(_Base):
             status.HTTP_403_FORBIDDEN,
         )
 
-        print(
-            f"{self.INDENT}{self.COLOR['ERR']}"
-            f"✗ {self.COLOR['END']}{self.COLOR['OK']}Access denied without view permission | HTTP 403"
-            f"{self.COLOR['END']}"
-        )
+        self._logger_success("Access denied without view permission", "HTTP 403")
 
     def test_get_with_view_permission_returns_200(self) -> None:
 
         if not self.check_get_permissions:
             pytest.skip("GET permission check not applicable: GET disabled")
 
+        self._logger_header(f"ENDPOINT GET: {self.url} with view permission")
         user = User.objects.create_user(
             username="permission_with_view",
             password="test_password",
@@ -104,8 +102,4 @@ class PermissionContractMixin(_Base):
             status.HTTP_200_OK,
         )
 
-        print(
-            f"{self.INDENT}{self.COLOR['OK']}"
-            f"✓ Access granted with view permission | HTTP 200"
-            f"{self.COLOR['END']}"
-        )
+        self._logger_success("Access granted with view permission", "HTTP 200")

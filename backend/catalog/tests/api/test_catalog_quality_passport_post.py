@@ -15,11 +15,12 @@ from catalog.api.routes import QualityPassportRoutes
 from catalog.models import AppUnit, Product, QualityPassport
 from catalog.tests.api.factories import ProductFactory, ProductUnitFactory
 from catalog.utils.unit_choices import TitleChoices
+from core.tests.utils import TestLoggerMixin
 from order.models import Order
 from order.tests.factories import OrderFactory, OrderItemFactory
 
 
-class TestCatalogQualityPassportPost(APITestCase):
+class TestCatalogQualityPassportPost(TestLoggerMixin, APITestCase):
     today: ClassVar[date]
     product: ClassVar[Product]
     previous: ClassVar[QualityPassport]
@@ -65,6 +66,7 @@ class TestCatalogQualityPassportPost(APITestCase):
     def test_creates_passport_and_preserves_previous_passport_and_order_assignment(
         self,
     ) -> None:
+        self._logger_header("CATALOG QUALITY PASSPORT: POST A NEW PASSPORT")
         item = OrderItemFactory.create(
             order=OrderFactory.create(status=Order.Status.CREATED),
             product=self.product,
@@ -97,8 +99,13 @@ class TestCatalogQualityPassportPost(APITestCase):
         item.refresh_from_db()
         self.assertEqual(item.quality_passport_id, self.previous.pk)
         self.assertFalse(passport.order_items.exists())
+        self._logger_success(
+            "HTTP 201",
+            "Previous passport and order assignment preserved",
+        )
 
     def test_rejects_invalid_dates(self) -> None:
+        self._logger_header("CATALOG QUALITY PASSPORT: POST INVALID DATES")
         previous_date = self.previous.issue_date.isoformat()
         tomorrow = (self.today + timedelta(days=1)).isoformat()
         cases = (
@@ -121,8 +128,13 @@ class TestCatalogQualityPassportPost(APITestCase):
         self.assertFalse(
             QualityPassport.objects.filter(number=self.payload["number"]).exists()
         )
+        self._logger_success(
+            "HTTP 400",
+            "Invalid dates rejected without issuing a passport",
+        )
 
     def test_rejects_invalid_bulk_quantities(self) -> None:
+        self._logger_header("CATALOG QUALITY PASSPORT: POST INVALID BULK QUANTITIES")
         for quantity in ("0.000", "-0.010", "2.0001", "2.005"):
             with self.subTest(quantity=quantity):
                 response = self.client.post(
@@ -135,8 +147,13 @@ class TestCatalogQualityPassportPost(APITestCase):
         self.assertFalse(
             QualityPassport.objects.filter(number=self.payload["number"]).exists()
         )
+        self._logger_success(
+            "HTTP 400",
+            "Invalid quantities rejected without issuing a passport",
+        )
 
     def test_applies_configured_piece_weight(self) -> None:
+        self._logger_header("CATALOG QUALITY PASSPORT: POST PIECE-BASED QUANTITIES")
         product = ProductFactory.create(is_piece_based=True)
         ProductUnitFactory.create(product=product, value=12)
         previous = QualityPassport.objects.create(
@@ -163,8 +180,13 @@ class TestCatalogQualityPassportPost(APITestCase):
         self.assertIn("quantity", invalid.data["errors"])
         self.assertEqual(valid.status_code, status.HTTP_201_CREATED, valid.data)
         self.assertEqual(valid.data["quantity"], "0.036")
+        self._logger_success(
+            "HTTP 400 / 201",
+            "Quantity validated against configured piece weight",
+        )
 
     def test_requires_passport_add_permission(self) -> None:
+        self._logger_header("CATALOG QUALITY PASSPORT: POST WITHOUT ADD PERMISSION")
         viewer = get_user_model().objects.create_user(username="passport_viewer")
         viewer.user_permissions.add(
             *Permission.objects.filter(
@@ -183,8 +205,13 @@ class TestCatalogQualityPassportPost(APITestCase):
         self.assertFalse(
             QualityPassport.objects.filter(number=self.payload["number"]).exists()
         )
+        self._logger_success(
+            "HTTP 403",
+            "Issuance denied without passport add permission",
+        )
 
     def test_returns_not_found_for_missing_product(self) -> None:
+        self._logger_header("CATALOG QUALITY PASSPORT: POST FOR A MISSING PRODUCT")
         missing_id = Product.objects.latest("pk").pk + 1
 
         response = self.client.post(
@@ -192,8 +219,10 @@ class TestCatalogQualityPassportPost(APITestCase):
         )
 
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND, response.data)
+        self._logger_success("HTTP 404", "Missing product rejected")
 
     def test_rejects_stale_latest_passport_after_another_issuance(self) -> None:
+        self._logger_header("CATALOG QUALITY PASSPORT: POST WITH STALE LATEST PASSPORT")
         yesterday = (self.today - timedelta(days=1)).isoformat()
         issued = self.client.post(
             self.url,
@@ -213,3 +242,7 @@ class TestCatalogQualityPassportPost(APITestCase):
             QualityPassport.objects.get(pk=issued.data["id"]),
         )
         self.assertFalse(QualityPassport.objects.filter(number=54675).exists())
+        self._logger_success(
+            "HTTP 409",
+            "Stale issuance rejected and latest passport preserved",
+        )

@@ -19,6 +19,7 @@ from catalog.models import AppUnit, Product, QualityPassport
 from catalog.models.quality_passport import MAX_PASSPORT_NUMBER
 from catalog.tests.api.factories import ProductFactory, ProductUnitFactory
 from catalog.utils.unit_choices import TitleChoices
+from core.tests.utils import TestLoggerMixin
 from order.models import Order, OrderItem
 from order.routes import OrderRoutes
 from order.tests.factories import OrderFactory, OrderItemFactory
@@ -65,7 +66,7 @@ def issue_payload(
     }
 
 
-class GlobalPassportNumberTests(APITestCase):
+class GlobalPassportNumberTests(TestLoggerMixin, APITestCase):
     def setUp(self) -> None:
         self.sg = bulk_product()
         self.ep = bulk_product()
@@ -108,6 +109,9 @@ class GlobalPassportNumberTests(APITestCase):
         )
 
     def test_empty_and_integer_limit(self) -> None:
+        self._logger_header(
+            "GLOBAL QUALITY PASSPORT NUMBERS: GET SUGGESTIONS AT SEQUENCE BOUNDARIES"
+        )
         for source in ("catalog", "order"):
             state = self.state(self.sg, source)
             self.assertEqual(state["suggested_next_passport_number"], 1)
@@ -122,8 +126,15 @@ class GlobalPassportNumberTests(APITestCase):
             self.assertIsNone(
                 self.state(self.sg, source)["suggested_next_passport_number"]
             )
+        self._logger_success(
+            "Number suggestion",
+            "Empty sequence starts at 1 and stops at the integer limit",
+        )
 
     def test_both_issuance_paths_share_the_global_maximum(self) -> None:
+        self._logger_header(
+            "GLOBAL QUALITY PASSPORT NUMBERS: ISSUE THROUGH CATALOG AND ORDERS"
+        )
         ep = previous_passport(self.ep, 544, "12.433", 5)
         sg = previous_passport(self.sg, 543, "12.432", 3)
         previous_passport(self.ep, 542, "12.431", 4)
@@ -171,8 +182,15 @@ class GlobalPassportNumberTests(APITestCase):
         state = self.state(self.sg, "catalog")
         self.assertEqual(state["suggested_next_passport_number"], 547)
         self.assertEqual(state["passport"]["batch_number"], "12.433")
+        self._logger_success(
+            "Shared numbering",
+            "Both paths advance the same sequence and report conflicts",
+        )
 
     def test_manual_duplicate_has_number_field_error(self) -> None:
+        self._logger_header(
+            "GLOBAL QUALITY PASSPORT NUMBERS: POST A MANUALLY ENTERED DUPLICATE"
+        )
         sg = previous_passport(self.sg, 543, "12.432", 3)
         previous_passport(self.ep, 544, "12.433", 3)
         payload = issue_payload(sg, 544, "12.433")
@@ -181,8 +199,12 @@ class GlobalPassportNumberTests(APITestCase):
         self.assertEqual(response.status_code, 400, response.data)
         self.assertIn("number", response.json()["errors"])
         self.assertEqual(QualityPassport.objects.count(), 2)
+        self._logger_success("HTTP 400", "Duplicate number returned a field error")
 
     def test_an_old_suggestion_can_still_be_used_if_the_number_is_free(self) -> None:
+        self._logger_header(
+            "GLOBAL QUALITY PASSPORT NUMBERS: POST WITH AN OLDER FREE SUGGESTION"
+        )
         sg = previous_passport(self.sg, 543, "12.432", 3)
         previous_passport(self.ep, 544, "12.433", 3)
         self.assertEqual(
@@ -195,14 +217,21 @@ class GlobalPassportNumberTests(APITestCase):
         self.assertEqual(
             self.state(self.sg, "catalog")["suggested_next_passport_number"], 551
         )
+        self._logger_success(
+            "HTTP 201",
+            "Older suggestion accepted while the number was still free",
+        )
 
 
 @skipUnless(
     connection.vendor == "postgresql",
     "Requires PostgreSQL row locking and unique-index concurrency",
 )
-class GlobalPassportNumberRaceTests(APITransactionTestCase):
+class GlobalPassportNumberRaceTests(TestLoggerMixin, APITransactionTestCase):
     def test_two_products_race_at_the_unique_index(self) -> None:
+        self._logger_header(
+            "GLOBAL QUALITY PASSPORT NUMBERS: CONCURRENT POST REQUESTS FOR THE SAME NUMBER"
+        )
         url = reverse(f"catalog:{QualityPassportRoutes.CREATE.name}")
         user = get_user_model().objects.create_superuser(
             username="passport-race-issuer"
@@ -276,3 +305,7 @@ class GlobalPassportNumberRaceTests(APITransactionTestCase):
         for item, passport in zip(items, passports, strict=True):
             item.refresh_from_db()
             self.assertEqual(item.quality_passport_id, passport.pk)
+        self._logger_success(
+            "HTTP 201 / 409",
+            "One issuance won and the other succeeded with the next number",
+        )

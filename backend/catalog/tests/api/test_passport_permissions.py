@@ -54,6 +54,12 @@ class TestQualityPassportPermissionMatrix(BasePermissionMatrixTestCase):
     permission_codenames = PASSPORT_PERMISSIONS
     api_actions = ("view",)
 
+    def expected_status(self, action: str, allowed: bool) -> int:
+        if action == "view" and not allowed:
+            return status.HTTP_404_NOT_FOUND
+
+        return super().expected_status(action, allowed)
+
     def create_object(self) -> QualityPassport:
         """Create a passport fixture for a permission check."""
         return QualityPassportFactory.create()

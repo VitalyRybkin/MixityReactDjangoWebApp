@@ -68,11 +68,7 @@ class BasePriceContractMixin(BaseAPIMixin):
             price_id,
         )
 
-        print(
-            f"{self.INDENT}{self.COLOR['OK']}✓ "
-            f"Prices filtered by {self.entity_name}"
-            f"{self.COLOR['END']}"
-        )
+        self._logger_success("Verified", f"Prices filtered by {self.entity_name}")
 
     def _duplicated_date_product_entity_name_returns_400(
         self,
@@ -97,13 +93,10 @@ class BasePriceContractMixin(BaseAPIMixin):
             f"{self.entity_name}_id",
         )
 
-        print(
-            f"{self.INDENT}{self.COLOR['ERR']}✗ "
-            f"{self.COLOR['OK']}Duplicate rejected | "
-            f"date={self.obj.date}, "
-            f"product={self.obj.product_id}, "
-            f"{self.entity_name}={entity_id}"
-            f"{self.COLOR['END']}"
+        self._logger_success(
+            "Duplicate rejected",
+            f"date={self.obj.date}, product={self.obj.product_id}, "
+            f"{self.entity_name}={entity_id}",
         )
 
     def _same_date_entity_name_different_product_allowed(
@@ -127,11 +120,9 @@ class BasePriceContractMixin(BaseAPIMixin):
 
         assert response.status_code == status.HTTP_201_CREATED
 
-        print(
-            f"{self.INDENT}{self.COLOR['OK']}✓ "
-            f"Same date/{self.entity_name} with different product allowed | "
-            f"product={product_id}"
-            f"{self.COLOR['END']}"
+        self._logger_success(
+            f"Same date/{self.entity_name} with different product allowed",
+            f"product={product_id}",
         )
 
 

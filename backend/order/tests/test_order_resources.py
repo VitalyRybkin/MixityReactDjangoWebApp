@@ -78,10 +78,9 @@ class TestOrderResourcesAPIView(
                 for item in response.data[resource_name]:
                     self.assertIn("id", item)
 
-                print(
-                    f"{self.INDENT}{self.COLOR['OK']}✓ "
-                    f"{resource_name} and id's are available in response | Expected amount received."
-                    f"{self.COLOR['END']}"
+                self._logger_success(
+                    resource_name,
+                    f"{expected_count} resources returned with IDs",
                 )
 
     def test_order_resources_returns_only_active_items(self) -> None:
@@ -96,10 +95,9 @@ class TestOrderResourcesAPIView(
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(len(response.data["clients"]), self.AMOUNT_OF_RESOURCES)
 
-        print(
-            f"{self.INDENT}{self.COLOR['OK']}✓ "
-            f"Only active clients are returned in response."
-            f"{self.COLOR['END']}"
+        self._logger_success(
+            "Client visibility",
+            "Only active clients returned",
         )
 
     def test_with_add_order_permission_returns_200(self) -> None:

@@ -15,6 +15,7 @@ from catalog.tests.api.test_global_quality_passport_numbers import (
     issue_payload,
     previous_passport,
 )
+from core.tests.utils import TestLoggerMixin
 from order.models import Order
 from order.routes import OrderRoutes
 from order.tests.factories import OrderFactory, OrderItemFactory
@@ -23,7 +24,7 @@ if TYPE_CHECKING:
     from rest_framework.response import _MonkeyPatchedResponse
 
 
-class MultipleOrderPassportIssuanceTests(APITransactionTestCase):
+class MultipleOrderPassportIssuanceTests(TestLoggerMixin, APITransactionTestCase):
     def setUp(self) -> None:
         self.client.force_authenticate(
             get_user_model().objects.create_superuser(username="multi-passport-issuer")
@@ -70,6 +71,10 @@ class MultipleOrderPassportIssuanceTests(APITransactionTestCase):
         )
 
     def test_assigns_two_new_passports_and_preserves_the_historical_link(self) -> None:
+        self._logger_header(
+            "ORDER MULTIPLE PASSPORT ISSUANCE: "
+            "ASSIGNS TWO NEW PASSPORTS AND PRESERVES THE HISTORICAL LINK"
+        )
         response = self.submit()
         self.assertEqual(response.status_code, 200, response.data)
 
@@ -81,10 +86,18 @@ class MultipleOrderPassportIssuanceTests(APITransactionTestCase):
             self.assertEqual(item.quality_passport.number, number)
             self.assertEqual(str(item.quality_passport.batch_number), batch)
         self.assertEqual(self.items[2].quality_passport_id, self.historical.pk)
+        self._logger_success(
+            "Assigns two new passports and preserves the historical link",
+            "Both new passports persisted and the historical link was preserved",
+        )
 
     def test_rolls_back_the_first_passport_when_the_second_number_is_taken(
         self,
     ) -> None:
+        self._logger_header(
+            "ORDER MULTIPLE PASSPORT ISSUANCE: "
+            "ROLLS BACK THE FIRST PASSPORT WHEN THE SECOND NUMBER IS TAKEN"
+        )
         competitor = previous_passport(bulk_product(), 546, "12.433", 2)
         original_description = self.order.description
         original_links = [item.quality_passport_id for item in self.items]
@@ -112,3 +125,7 @@ class MultipleOrderPassportIssuanceTests(APITransactionTestCase):
             item.refresh_from_db()
             self.assertEqual(item.quality_passport_id, passport_id)
             self.assertEqual(item.weight_quantity, Decimal("1.00"))
+        self._logger_success(
+            "Rolls back the first passport when the second number is taken",
+            "Failed issuance preserved both original order links",
+        )

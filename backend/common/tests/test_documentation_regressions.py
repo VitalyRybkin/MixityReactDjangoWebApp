@@ -7,6 +7,7 @@ from unittest.mock import patch
 
 from django.contrib.auth import get_user_model
 from django.core.files.base import ContentFile
+from django.http import FileResponse
 from django.test import override_settings
 from django.urls import reverse
 from rest_framework import status
@@ -59,7 +60,7 @@ class TestDocumentationFilesRegression(TestLoggerMixin, APITestCase):
         url = reverse(f"common:{DocumentationRoutes.DOWNLOAD_ZIP.name}")
         response = self.client.post(url, {"ids": [doc.pk, doc.pk]}, format="json")
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertTrue(response.streaming)
+        assert isinstance(response, FileResponse)
         archive = io.BytesIO(b"".join(response.streaming_content))
         response.close()
         with zipfile.ZipFile(archive) as zf:

@@ -37,10 +37,9 @@ class TestOrderRetrieveUpdateDestroySerializers(
         """
         self._logger_header("SERIALIZERS: ORDER DETAIL")
         self._serializer_classes_logic()
-        print(
-            f"{self.INDENT}{self.COLOR['OK']}"
-            "✓ GET / PUT / PATCH / DELETE use expected serializers"
-            f"{self.COLOR['END']}"
+        self._logger_success(
+            "Verified",
+            "GET / PUT / PATCH / DELETE use expected serializers",
         )
 
 
@@ -63,11 +62,7 @@ class TestOrderListCreateSerializers(
         """
         self._logger_header("SERIALIZERS: ORDER LIST / CREATE")
         self._serializer_classes_logic()
-        print(
-            f"{self.INDENT}{self.COLOR['OK']}"
-            "✓ GET / POST use expected serializers"
-            f"{self.COLOR['END']}"
-        )
+        self._logger_success("Verified", "GET / POST use expected serializers")
 
 
 class TestOrderWriteSerializerSecurity(
@@ -93,8 +88,7 @@ class TestOrderWriteSerializerSecurity(
         """
         self._logger_header("ORDER WRITE SERIALIZER SECURITY")
         self._excluded_fields_are_not_exposed_logic()
-        print(
-            f"{self.INDENT}{self.COLOR['OK']}"
-            "✓ Protected fields are not exposed: user, upd_pdf, order_products"
-            f"{self.COLOR['END']}"
+        self._logger_success(
+            "Verified",
+            "Protected fields are not exposed: user, upd_pdf, order_products",
         )

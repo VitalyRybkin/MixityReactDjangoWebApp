@@ -35,11 +35,7 @@ class ParentVisibilityContractMixin:
 
         assert response.status_code == status.HTTP_404_NOT_FOUND
 
-        print(
-            f"{logger.INDENT}{logger.COLOR['OK']}"
-            f"✓ Inactive {parent_name} hidden | HTTP 404"
-            f"{logger.COLOR['END']}"
-        )
+        logger._logger_success(f"Inactive {parent_name} hidden", "HTTP 404")
 
     def _nonexistent_parent_visibility_logic(self) -> None:
         logger = cast(TestLoggerMixin, self)
@@ -61,8 +57,4 @@ class ParentVisibilityContractMixin:
 
         assert response.status_code == status.HTTP_404_NOT_FOUND
 
-        print(
-            f"{logger.INDENT}{logger.COLOR['OK']}"
-            f"✓ Nonexistent {parent_name} hidden | HTTP 404"
-            f"{logger.COLOR['END']}"
-        )
+        logger._logger_success(f"Nonexistent {parent_name} hidden", "HTTP 404")

@@ -5,10 +5,6 @@ from order.models import ConstructionObject
 from order.models.rental_contract import RentalContract
 from order.serializers.customer_serializers import BaseCustomerObjectsSerializer
 from repairs.models import RepairCompany
-from repairs.services.repair_request_context import (
-    is_maintenance,
-    repair_context_errors,
-)
 from repairs.models.repair_request_models import (
     RepairRequest,
 )
@@ -19,6 +15,10 @@ from repairs.serializers.repair_file_serializers import (
 from repairs.serializers.repair_specification_serializer import (
     RepairSpecificationReadSerializer,
     RepairSpecificationWriteSerializer,
+)
+from repairs.services.repair_request_context import (
+    is_maintenance,
+    repair_context_errors,
 )
 from repairs.services.specification_items import sync_specification_items
 
@@ -186,7 +186,9 @@ class RepairRequestWriteSerializer(serializers.ModelSerializer):
             "is_after_return",
             instance.is_after_return if instance is not None else False,
         )
-        construction_object_id = construction_object.pk if construction_object is not None else None
+        construction_object_id = (
+            construction_object.pk if construction_object is not None else None
+        )
         rental_contract_id = rental_contract.pk if rental_contract is not None else None
 
         errors = repair_context_errors(
@@ -196,7 +198,9 @@ class RepairRequestWriteSerializer(serializers.ModelSerializer):
             construction_object_id=construction_object_id,
             rental_contract_id=rental_contract_id,
             construction_customer_id=(
-                construction_object.customer_id if construction_object is not None else None
+                construction_object.customer_id
+                if construction_object is not None
+                else None
             ),
             contract_customer_id=(
                 rental_contract.customer_id if rental_contract is not None else None

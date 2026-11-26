@@ -3,6 +3,8 @@ from typing import Any, Callable, cast
 from rest_framework import status
 from rest_framework.test import APIClient
 
+from core.tests.utils import TestLoggerMixin
+
 
 class RelatedObjectContractMixin:
     def _assert_create_with_inactive_related_returns_400(
@@ -105,7 +107,5 @@ class RelatedObjectContractMixin:
         )
 
     def _log_success(self, message: str) -> None:
-        color = cast(dict[str, str], getattr(self, "COLOR"))
-        indent = cast(str, getattr(self, "INDENT"))
-
-        print(f"{indent}{color['OK']}✓ {message}{color['END']}")
+        logger = cast(TestLoggerMixin, self)
+        logger._logger_success("Related object", message)

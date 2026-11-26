@@ -84,8 +84,4 @@ class AuthenticationContractMixin:
 
         assert response.status_code == status.HTTP_401_UNAUTHORIZED, response.data
 
-        print(
-            f"{logger.INDENT}{logger.COLOR['ERR']}"
-            f"✗ {logger.COLOR['END']}{logger.COLOR['OK']}Access denied without authentication | HTTP 401"
-            f"{logger.COLOR['END']}"
-        )
+        logger._logger_success("Access denied without authentication", "HTTP 401")

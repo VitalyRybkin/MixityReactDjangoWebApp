@@ -47,11 +47,7 @@ class TestClamAVScanner(TestLoggerMixin):
 
         file.seek.assert_any_call(0)
 
-        print(
-            f"{self.INDENT}{self.COLOR['OK']}"
-            "✓ Clean file accepted by ClamAV scanner"
-            f"{self.COLOR['END']}"
-        )
+        self._logger_success("Verified", "Clean file accepted by ClamAV scanner")
 
     @patch("core.security.clamav.project_settings")
     @patch("core.security.clamav.socket.create_connection")
@@ -85,11 +81,7 @@ class TestClamAVScanner(TestLoggerMixin):
 
         file.seek.assert_any_call(0)
 
-        print(
-            f"{self.INDENT}{self.COLOR['OK']}"
-            "✓ Malware detected by ClamAV scanner"
-            f"{self.COLOR['END']}"
-        )
+        self._logger_success("Verified", "Malware detected by ClamAV scanner")
 
     @patch("core.security.clamav.project_settings")
     @patch(
@@ -120,11 +112,7 @@ class TestClamAVScanner(TestLoggerMixin):
 
         file.seek.assert_any_call(0)
 
-        print(
-            f"{self.INDENT}{self.COLOR['OK']}"
-            "✓ ClamAV scanner is unavailable"
-            f"{self.COLOR['END']}"
-        )
+        self._logger_success("Verified", "ClamAV scanner is unavailable")
 
     @patch("core.security.clamav.project_settings")
     @patch("core.security.clamav.socket.create_connection")
@@ -145,8 +133,4 @@ class TestClamAVScanner(TestLoggerMixin):
 
         mock_create_connection.assert_not_called()
 
-        print(
-            f"{self.INDENT}{self.COLOR['OK']}"
-            "✓ ClamAV scanner is disabled"
-            f"{self.COLOR['END']}"
-        )
+        self._logger_success("Verified", "ClamAV scanner is disabled")

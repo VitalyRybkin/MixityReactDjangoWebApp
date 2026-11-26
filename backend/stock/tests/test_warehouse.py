@@ -192,15 +192,20 @@ class TestWarehouseUploadMap(BaseAPIMixin):
         return self._upload_map_missing_file_400(self.upload_file_spec)
 
     def test_directions_image_validation(self) -> None:
+        self._logger_header("WAREHOUSE: DIRECTIONS IMAGE VALIDATION")
         self._image_field_validation_logic(
             model=self.model,
             field_name="directions",
+        )
+        self._logger_success(
+            "Directions image validation", "Image field validation passed"
         )
 
     def test_disallowed_methods_return_405(self) -> None:
         self._disallowed_methods_logic()
 
     def test_patch_without_change_permission_returns_403(self) -> None:
+        self._logger_header("WAREHOUSE: PATCH WITHOUT CHANGE PERMISSION RETURNS 403")
         user = get_user_model().objects.create_user(
             username="warehouse_map_no_permission",
             password="test_password",
@@ -222,13 +227,10 @@ class TestWarehouseUploadMap(BaseAPIMixin):
             response.data,
         )
 
-        print(
-            f"{self.INDENT}{self.COLOR['OK']}"
-            "✓ Access denied without stock.change_warehouse | HTTP 403"
-            f"{self.COLOR['END']}"
-        )
+        self._logger_success("Access denied without stock.change_warehouse", "HTTP 403")
 
     def test_patch_with_change_permission_returns_200(self) -> None:
+        self._logger_header("WAREHOUSE: PATCH WITH CHANGE PERMISSION RETURNS 200")
         user = get_user_model().objects.create_user(
             username="warehouse_map_change_permission",
             password="test_password",
@@ -256,11 +258,7 @@ class TestWarehouseUploadMap(BaseAPIMixin):
             response.data,
         )
 
-        print(
-            f"{self.INDENT}{self.COLOR['OK']}"
-            "✓ Access granted with stock.change_warehouse | HTTP 200"
-            f"{self.COLOR['END']}"
-        )
+        self._logger_success("Access granted with stock.change_warehouse", "HTTP 200")
 
     def test_patch_inactive_warehouse_returns_404(self) -> None:
         temp = self.factory.build()

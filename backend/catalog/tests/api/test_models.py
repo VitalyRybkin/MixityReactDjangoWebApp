@@ -52,7 +52,7 @@ class TestDescriptionItemModel(BaseModelTestCase):
         self._str_method(expected)
         self._logger_success(
             "str_with_description",
-            "Verify the model string representation includes its identifying fields",
+            "Description item title used as the label",
         )
 
 
@@ -73,7 +73,7 @@ class TestPurchasePriceHistoryModel(BaseModelTestCase):
         self._str_method(expected)
         self._logger_success(
             "str_with_description",
-            "Verify the model string representation includes its identifying fields",
+            "Product, warehouse, and date included in the label",
         )
 
     def test_purchase_price_history(self) -> None:
@@ -87,7 +87,10 @@ class TestPurchasePriceHistoryModel(BaseModelTestCase):
             context_field="warehouse_id",
             owner_field="warehouse",
         )
-        self._logger_success("purchase_price_history", "Verify purchase price history")
+        self._logger_success(
+            "purchase_price_history",
+            "Latest price selected for the warehouse and product",
+        )
 
 
 class TestSalesPriceHistoryModel(BaseModelTestCase):
@@ -106,7 +109,7 @@ class TestSalesPriceHistoryModel(BaseModelTestCase):
         self._str_method(expected)
         self._logger_success(
             "str_with_description",
-            "Verify the model string representation includes its identifying fields",
+            "Product, customer, and date included in the label",
         )
 
     def test_sales_price_history(self) -> None:
@@ -120,7 +123,9 @@ class TestSalesPriceHistoryModel(BaseModelTestCase):
             context_field="customer_id",
             owner_field="customer",
         )
-        self._logger_success("sales_price_history", "Verify sales price history")
+        self._logger_success(
+            "sales_price_history", "Latest price selected for the customer and product"
+        )
 
 
 class TestProductGroupModel(BaseModelTestCase):
@@ -137,7 +142,7 @@ class TestProductGroupModel(BaseModelTestCase):
         self._str_method(expected)
         self._logger_success(
             "str_with_description",
-            "Verify the model string representation includes its identifying fields",
+            "Product group name used as the label",
         )
 
 
@@ -155,7 +160,7 @@ class TestSpecificationGroupModel(BaseModelTestCase):
         self._str_method(expected)
         self._logger_success(
             "str_with_description",
-            "Verify the model string representation includes its identifying fields",
+            "Specification group name used as the label",
         )
 
 
@@ -171,7 +176,7 @@ class TestProductSpecValueModel(BaseModelTestCase):
         self._logger_header("PRODUCT SPEC VALUE MODEL: STR METHOD")
         expected = f"{self.obj.title}"
         self._str_method(expected)
-        self._logger_success("str_method", "Verify the model string representation")
+        self._logger_success("str_method", "Specification title used as the label")
 
 
 class TestProductSpecificationModel(BaseModelTestCase):
@@ -186,7 +191,9 @@ class TestProductSpecificationModel(BaseModelTestCase):
         self._logger_header("PRODUCT SPECIFICATION MODEL: STR METHOD")
         expected = f"{self.obj.name} ({self.obj.product.name})"
         self._str_method(expected)
-        self._logger_success("str_method", "Verify the model string representation")
+        self._logger_success(
+            "str_method", "Specification and product names included in the label"
+        )
 
 
 class TestProductDescriptionModel(BaseModelTestCase):

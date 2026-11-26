@@ -46,9 +46,7 @@ class QuerysetContractMixin(_Base):
         self.assertEqual(len(response.data), 1)
         self.assertEqual(response.data[0]["id"], price_to_get.id)
 
-        print(
-            f"{self.INDENT}{self.COLOR['OK']}✓ Retrieval of latest price passed{self.COLOR['END']}"
-        )
+        self._logger_success("Verified", "Retrieval of latest price passed")
 
         return response
 
@@ -70,10 +68,9 @@ class QuerysetContractMixin(_Base):
             response.data["messages"], ["products: Product ids must be integers."]
         )
 
-        print(
-            f"{self.INDENT}{self.COLOR['OK']}"
-            f"✓ Retrieval of latest price with invalid product ID passed"
-            f"{self.COLOR['END']}"
+        self._logger_success(
+            "Verified",
+            "Retrieval of latest price with invalid product ID passed",
         )
 
         return response
@@ -116,9 +113,7 @@ class QuerysetContractMixin(_Base):
 
         self.assertEqual(response.status_code, 200)
         self.assertEqual(len(response.data), expected_count)
-        print(
-            f"{self.INDENT}{self.COLOR['OK']}✓ Retrieval of filtered queryset passed: "
-            f"\n {self.INDENT}  "
-            f"- response count - {len(response.data)}, expected count - {expected_count}"
-            f"{self.COLOR['END']}"
+        self._logger_success(
+            "Filtered queryset",
+            f"Returned {len(response.data)} of {expected_count} expected rows",
         )

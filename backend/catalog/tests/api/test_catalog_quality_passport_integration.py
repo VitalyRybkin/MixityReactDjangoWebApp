@@ -121,6 +121,10 @@ class TestQualityPassportCatalogIntegration(APITestCase, TestLoggerMixin):
         )
 
     def test_catalog_state_allows_issuer_without_order_view_permission(self) -> None:
+        self._logger_header(
+            "CATALOG QUALITY PASSPORT INTEGRATION: "
+            "CATALOG STATE ALLOWS ISSUER WITHOUT ORDER VIEW PERMISSION"
+        )
         product = ProductFactory.create(is_piece_based=True)
         ProductUnitFactory.create(product=product, value=25)
         passport = QualityPassport.objects.create(
@@ -159,8 +163,16 @@ class TestQualityPassportCatalogIntegration(APITestCase, TestLoggerMixin):
         self.assertEqual(catalog.data["product"]["product_unit"]["value"], 25)
         self.assertIsNone(catalog.data["projected_used_quantity"])
         self.assertEqual(order.status_code, 403, order.data)
+        self._logger_success(
+            "Catalog state allows issuer without order view permission",
+            "HTTP 200",
+        )
 
     def test_catalog_state_order_state_and_detail_permission_matrix(self) -> None:
+        self._logger_header(
+            "CATALOG QUALITY PASSPORT INTEGRATION: "
+            "CATALOG STATE ORDER STATE AND DETAIL PERMISSION MATRIX"
+        )
         product_view = ("catalog", "view_product")
         passport_view = ("catalog", "view_qualitypassport")
         passport_add = ("catalog", "add_qualitypassport")
@@ -203,6 +215,10 @@ class TestQualityPassportCatalogIntegration(APITestCase, TestLoggerMixin):
                     (catalog.status_code, order.status_code, detail.status_code),
                     expected,
                 )
+        self._logger_success(
+            "Catalog state order state and detail permission matrix",
+            "Allowed and denied requests matched the permission matrix",
+        )
 
     def test_catalog_allows_next_calendar_day(self) -> None:
         """Verify catalog allows next calendar day."""

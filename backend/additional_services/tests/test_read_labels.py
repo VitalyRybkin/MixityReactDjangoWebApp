@@ -7,11 +7,12 @@ from rest_framework.test import APITestCase
 
 from additional_services.models import AdditionalServiceRequest
 from additional_services.routes import AdditionalServicesRoutes
+from core.tests.utils import TestLoggerMixin
 from logistic.models import Carrier
 from order.tests.factories import ConstructionObjectFactory
 
 
-class TestAdditionalServiceReadLabels(APITestCase):
+class TestAdditionalServiceReadLabels(TestLoggerMixin, APITestCase):
     def setUp(self) -> None:
         user = get_user_model().objects.create_user(
             username="additional_services_read_labels", password="test_password"
@@ -29,6 +30,7 @@ class TestAdditionalServiceReadLabels(APITestCase):
         )
 
     def test_detail_includes_related_names(self) -> None:
+        self._logger_header("ADDITIONAL SERVICE READ LABELS: GET DETAIL")
         url = reverse(
             f"additional_services:{AdditionalServicesRoutes.DETAIL.name}",
             kwargs={"pk": self.record.pk},
@@ -38,8 +40,13 @@ class TestAdditionalServiceReadLabels(APITestCase):
         self.assertEqual(response.data["provider_name"], self.carrier.name)
         self.assertEqual(response.data["object_name"], self.obj.name)
         self.assertEqual(response.data["customer_name"], self.obj.customer.name)
+        self._logger_success(
+            "HTTP 200",
+            "Provider, object, and customer names returned",
+        )
 
     def test_list_includes_related_names(self) -> None:
+        self._logger_header("ADDITIONAL SERVICE READ LABELS: GET LIST")
         url = reverse(
             f"additional_services:{AdditionalServicesRoutes.LIST_CREATE.name}"
         )
@@ -50,3 +57,4 @@ class TestAdditionalServiceReadLabels(APITestCase):
         )
         self.assertEqual(row["provider_name"], self.carrier.name)
         self.assertEqual(row["object_name"], self.obj.name)
+        self._logger_success("HTTP 200", "Provider and object names returned")

@@ -42,11 +42,7 @@ class TestAuthenticationExceptionLogging(TestLoggerMixin):
         debug_mock.assert_called_once_with("JWT token expired")
         warning_mock.assert_not_called()
 
-        print(
-            f"{self.INDENT}{self.COLOR['OK']}"
-            "✓ Expired JWT logged as DEBUG, not WARNING | HTTP 401"
-            f"{self.COLOR['END']}"
-        )
+        self._logger_success("Expired JWT logged as DEBUG, not WARNING", "HTTP 401")
 
     def test_authentication_failure_is_logged_as_warning(self) -> None:
         """
@@ -70,8 +66,4 @@ class TestAuthenticationExceptionLogging(TestLoggerMixin):
         )
         debug_mock.assert_not_called()
 
-        print(
-            f"{self.INDENT}{self.COLOR['OK']}"
-            "✓ Authentication failure logged as WARNING | HTTP 401"
-            f"{self.COLOR['END']}"
-        )
+        self._logger_success("Authentication failure logged as WARNING", "HTTP 401")

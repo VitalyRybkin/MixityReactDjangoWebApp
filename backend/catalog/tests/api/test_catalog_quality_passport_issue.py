@@ -57,6 +57,10 @@ class CatalogPassportIssueSerializerTests(APITestCase, TestLoggerMixin):
         )
 
     def test_numeric_number_input_and_fixed_scale_output(self) -> None:
+        self._logger_header(
+            "CATALOG QUALITY PASSPORT ISSUE: "
+            "NUMERIC NUMBER INPUT AND FIXED SCALE OUTPUT"
+        )
         for batch_number, expected in [
             (28.34, "28.340"),
             ("29", "29.000"),
@@ -72,8 +76,16 @@ class CatalogPassportIssueSerializerTests(APITestCase, TestLoggerMixin):
                 )
                 self.assertEqual(serializer.data["number"], 54673)
                 self.assertEqual(serializer.data["batch_number"], expected)
+        self._logger_success(
+            "Numeric number input and fixed scale output",
+            "Numeric input accepted and fixed-scale output verified",
+        )
 
     def test_rejects_invalid_passport_and_batch_numbers(self) -> None:
+        self._logger_header(
+            "CATALOG QUALITY PASSPORT ISSUE: "
+            "REJECTS INVALID PASSPORT AND BATCH NUMBERS"
+        )
         cases: dict[str, list[int | float | str]] = {
             "number": [0, -1, 1.5, 2_147_483_648],
             "batch_number": ["-0.001", "28.3456", "1000000", "NaN"],
@@ -86,6 +98,10 @@ class CatalogPassportIssueSerializerTests(APITestCase, TestLoggerMixin):
                     )
                     self.assertFalse(serializer.is_valid())
                     self.assertIn(field, serializer.errors)
+        self._logger_success(
+            "Rejects invalid passport and batch numbers",
+            "Both invalid fields reported validation errors",
+        )
 
     def test_catalog_requires_issue_date(self) -> None:
         """Verify catalog requires issue date."""

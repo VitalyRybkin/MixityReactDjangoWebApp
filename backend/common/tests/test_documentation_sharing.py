@@ -27,8 +27,10 @@ from common.services.documentation_sharing import (
     DOCUMENTATION_SHARE_MAX_AGE,
     DOCUMENTATION_SHARE_SALT,
 )
+from core.tests.utils import TestLoggerMixin
 
 pytestmark = pytest.mark.django_db
+test_logger = TestLoggerMixin()
 ISSUE_URL = "/api/common/documentation/share-links/"
 CONTENT = b"%PDF-1.4 documentation recipient fixture"
 
@@ -79,20 +81,31 @@ def shared_url(token: str) -> str:
 def test_issuance_requires_authentication(
     document_factory: Callable[..., Documentation],
 ) -> None:
+    test_logger._logger_header(
+        "DOCUMENTATION SHARING: " "ISSUANCE REQUIRES AUTHENTICATION"
+    )
     document = document_factory()
     response = APIClient().post(ISSUE_URL, {"ids": [document.pk]}, format="json")
     assert response.status_code == 401
+    test_logger._logger_success("Issuance requires authentication", "HTTP 401")
 
 
 def test_issuance_requires_documentation_view_permission(
     document_factory: Callable[..., Documentation],
 ) -> None:
+    test_logger._logger_header(
+        "DOCUMENTATION SHARING: " "ISSUANCE REQUIRES DOCUMENTATION VIEW PERMISSION"
+    )
     user = get_user_model().objects.create_user(username="no_documentation_permission")
     client = APIClient()
     client.force_authenticate(user)
     document = document_factory()
     assert (
         client.post(ISSUE_URL, {"ids": [document.pk]}, format="json").status_code == 403
+    )
+    test_logger._logger_success(
+        "Issuance requires documentation view permission",
+        "HTTP 403",
     )
 
 
@@ -101,6 +114,10 @@ def test_view_permission_grants_only_selected_files_with_fresh_expiring_links(
     viewer: User,
     document_factory: Callable[..., Documentation],
 ) -> None:
+    test_logger._logger_header(
+        "DOCUMENTATION SHARING: "
+        "VIEW PERMISSION GRANTS ONLY SELECTED FILES WITH FRESH EXPIRING LINKS"
+    )
     first = document_factory("First certificate")
     second = document_factory("Second certificate")
     document_factory("Unselected certificate")
@@ -129,6 +146,10 @@ def test_view_permission_grants_only_selected_files_with_fresh_expiring_links(
     assert payload["file"] == hashlib.sha256(first.file.name.encode()).hexdigest()
     assert first.file.name not in str(payload)
     assert issue_link(sharing_client, first) != urlsplit(first_url).path
+    test_logger._logger_success(
+        "View permission grants only selected files with fresh expiring links",
+        "HTTP 200",
+    )
 
 
 @pytest.mark.parametrize(
@@ -137,20 +158,34 @@ def test_view_permission_grants_only_selected_files_with_fresh_expiring_links(
 def test_issuance_rejects_invalid_or_oversized_selections(
     sharing_client: APIClient, ids: list[Any]
 ) -> None:
+    test_logger._logger_header(
+        "DOCUMENTATION SHARING: " "ISSUANCE REJECTS INVALID OR OVERSIZED SELECTIONS"
+    )
     assert (
         sharing_client.post(ISSUE_URL, {"ids": ids}, format="json").status_code == 400
+    )
+    test_logger._logger_success(
+        "Issuance rejects invalid or oversized selections",
+        "HTTP 400",
     )
 
 
 def test_issuance_accepts_the_maximum_selection_size(
     sharing_client: APIClient, document_factory: Callable[..., Documentation]
 ) -> None:
+    test_logger._logger_header(
+        "DOCUMENTATION SHARING: " "ISSUANCE ACCEPTS THE MAXIMUM SELECTION SIZE"
+    )
     documents = [document_factory(f"Certificate {index}") for index in range(100)]
     response = sharing_client.post(
         ISSUE_URL, {"ids": [document.pk for document in documents]}, format="json"
     )
     assert response.status_code == 200
     assert len(response.data["links"]) == 100
+    test_logger._logger_success(
+        "Issuance accepts the maximum selection size",
+        "HTTP 200",
+    )
 
 
 @pytest.mark.parametrize("unavailable", ["unknown_id", "empty_file", "missing_file"])
@@ -159,6 +194,9 @@ def test_issuance_validates_the_complete_batch_before_signing(
     document_factory: Callable[..., Documentation],
     unavailable: str,
 ) -> None:
+    test_logger._logger_header(
+        "DOCUMENTATION SHARING: " "ISSUANCE VALIDATES THE COMPLETE BATCH BEFORE SIGNING"
+    )
     first = document_factory("Available")
     second = document_factory("Unavailable")
     unavailable_id = second.pk
@@ -177,6 +215,10 @@ def test_issuance_validates_the_complete_batch_before_signing(
     assert response.status_code == 404
     assert "links" not in response.data
     sign.assert_not_called()
+    test_logger._logger_success(
+        "Issuance validates the complete batch before signing",
+        "HTTP 404",
+    )
 
 
 @pytest.mark.parametrize("expired_jwt", [False, True])
@@ -186,6 +228,10 @@ def test_recipient_can_stream_the_file_without_an_active_login(
     viewer: User,
     expired_jwt: bool,
 ) -> None:
+    test_logger._logger_header(
+        "DOCUMENTATION SHARING: "
+        "RECIPIENT CAN STREAM THE FILE WITHOUT AN ACTIVE LOGIN"
+    )
     document = document_factory()
     url = issue_link(sharing_client, document)
     recipient = APIClient()
@@ -209,6 +255,10 @@ def test_recipient_can_stream_the_file_without_an_active_login(
     assert response["Referrer-Policy"] == "no-referrer"
     assert response["X-Content-Type-Options"] == "nosniff"
     response.close()
+    test_logger._logger_success(
+        "Recipient can stream the file without an active login",
+        "HTTP 200",
+    )
 
 
 @pytest.mark.parametrize(
@@ -219,6 +269,10 @@ def test_invalid_grants_return_the_same_generic_not_found_response(
     document_factory: Callable[..., Documentation],
     invalid_grant: str,
 ) -> None:
+    test_logger._logger_header(
+        "DOCUMENTATION SHARING: "
+        "INVALID GRANTS RETURN THE SAME GENERIC NOT FOUND RESPONSE"
+    )
     document = document_factory()
     url = issue_link(sharing_client, document)
     token = token_from_url(url)
@@ -243,6 +297,10 @@ def test_invalid_grants_return_the_same_generic_not_found_response(
     assert response.status_code == 404
     assert response.data == recipient.get(shared_url("invalid")).data
     assert "no-store" in response["Cache-Control"]
+    test_logger._logger_success(
+        "Invalid grants return the same generic not found response",
+        "HTTP 404",
+    )
 
 
 @pytest.mark.parametrize(
@@ -253,6 +311,10 @@ def test_grants_stop_working_when_the_document_or_its_file_changes(
     document_factory: Callable[..., Documentation],
     change: str,
 ) -> None:
+    test_logger._logger_header(
+        "DOCUMENTATION SHARING: "
+        "GRANTS STOP WORKING WHEN THE DOCUMENT OR ITS FILE CHANGES"
+    )
     document = document_factory()
     url = issue_link(sharing_client, document)
     if change == "deleted":
@@ -270,6 +332,10 @@ def test_grants_stop_working_when_the_document_or_its_file_changes(
     response = APIClient().get(url)
     assert response.status_code == 404
     assert response.data == APIClient().get(shared_url("invalid")).data
+    test_logger._logger_success(
+        "Grants stop working when the document or its file changes",
+        "HTTP 404",
+    )
 
 
 @pytest.mark.parametrize(
@@ -284,6 +350,10 @@ def test_grants_stop_working_when_the_document_or_its_file_changes(
 def test_original_documentation_routes_still_require_authentication(
     document_factory: Callable[..., Documentation], route: str
 ) -> None:
+    test_logger._logger_header(
+        "DOCUMENTATION SHARING: "
+        "ORIGINAL DOCUMENTATION ROUTES STILL REQUIRE AUTHENTICATION"
+    )
     document = document_factory()
     client = APIClient()
     if route == "documentation_download_zip":
@@ -294,6 +364,10 @@ def test_original_documentation_routes_still_require_authentication(
         args = [] if route == "documentation_list" else [document.pk]
         response = client.get(reverse(f"common:{route}", args=args))
     assert response.status_code == 401
+    test_logger._logger_success(
+        "Original documentation routes still require authentication",
+        "HTTP 401",
+    )
 
 
 @pytest.mark.parametrize("debug", [False, True])
@@ -301,6 +375,10 @@ def test_original_documentation_routes_still_require_authentication(
 def test_raw_documentation_media_is_denied_even_when_the_file_exists(
     document_factory: Callable[..., Documentation], debug: bool, prefix: str
 ) -> None:
+    test_logger._logger_header(
+        "DOCUMENTATION SHARING: "
+        "RAW DOCUMENTATION MEDIA IS DENIED EVEN WHEN THE FILE EXISTS"
+    )
     document = document_factory()
     assert document.file.storage.exists(document.file.name)
     try:
@@ -314,11 +392,19 @@ def test_raw_documentation_media_is_denied_even_when_the_file_exists(
     finally:
         importlib.reload(project_urls)
         clear_url_caches()
+    test_logger._logger_success(
+        "Raw documentation media is denied even when the file exists",
+        "HTTP 404",
+    )
 
 
 def test_development_media_still_serves_non_documentation_files(
     settings: pytest_django.fixtures.SettingsWrapper,
 ) -> None:
+    test_logger._logger_header(
+        "DOCUMENTATION SHARING: "
+        "DEVELOPMENT MEDIA STILL SERVES NON DOCUMENTATION FILES"
+    )
     target = Path(settings.MEDIA_ROOT) / "maps" / "public-map.png"
     target.parent.mkdir(exist_ok=True)
     target.write_bytes(b"public map")
@@ -340,3 +426,7 @@ def test_development_media_still_serves_non_documentation_files(
     finally:
         importlib.reload(project_urls)
         clear_url_caches()
+    test_logger._logger_success(
+        "Development media still serves non documentation files",
+        "HTTP 200",
+    )

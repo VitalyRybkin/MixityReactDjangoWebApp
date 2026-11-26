@@ -4,7 +4,10 @@ from django.core.validators import FileExtensionValidator
 from django.db import models
 from django.utils import timezone
 
-from repairs.services.repair_request_context import repair_context_errors, is_maintenance
+from repairs.services.repair_request_context import (
+    is_maintenance,
+    repair_context_errors,
+)
 
 
 class RepairRequest(models.Model):
@@ -95,6 +98,8 @@ class RepairRequest(models.Model):
             if self.pk is not None
             else None
         )
+        construction_object = self.construction_object
+        rental_contract = self.rental_contract
         errors = repair_context_errors(
             existing=previous,
             location=self.location,
@@ -102,12 +107,12 @@ class RepairRequest(models.Model):
             construction_object_id=self.construction_object_id,
             rental_contract_id=self.rental_contract_id,
             construction_customer_id=(
-                self.construction_object.customer_id
-                if self.construction_object_id is not None else None
+                construction_object.customer_id
+                if construction_object is not None
+                else None
             ),
             contract_customer_id=(
-                self.rental_contract.customer_id
-                if self.rental_contract_id is not None else None
+                rental_contract.customer_id if rental_contract is not None else None
             ),
         )
         if errors:
@@ -281,9 +286,9 @@ class RepairSpecification(models.Model):
             construction_object_id=request.construction_object_id,
             rental_contract_id=request.rental_contract_id,
         ):
-            raise ValidationError({
-                "is_rebillable": "Регламентный ремонт не перевыставляется заказчику."
-            })
+            raise ValidationError(
+                {"is_rebillable": "Регламентный ремонт не перевыставляется заказчику."}
+            )
 
     class Meta:
         verbose_name = "Позиция спецификации"

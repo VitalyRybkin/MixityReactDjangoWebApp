@@ -17,8 +17,4 @@ class TestHealthCheck(TestLoggerMixin):
             "status": "ok",
         }
 
-        print(
-            f"{self.INDENT}{self.COLOR['OK']}"
-            "✓ Health check is OK | HTTP 200"
-            f"{self.COLOR['END']}"
-        )
+        self._logger_success("Health check is OK", "HTTP 200")

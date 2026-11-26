@@ -34,11 +34,7 @@ class TestDocumentationFileValidation(TestLoggerMixin):
 
         document.full_clean()
 
-        print(
-            f"{self.INDENT}{self.COLOR['OK']}"
-            "✓ PDF extension accepted"
-            f"{self.COLOR['END']}"
-        )
+        self._logger_success("Verified", "PDF extension accepted")
 
     def test_jpg_is_allowed(self) -> None:
         self._logger_header("VALIDATION DOCUMENTATION: JPG")
@@ -53,11 +49,7 @@ class TestDocumentationFileValidation(TestLoggerMixin):
 
         document.full_clean()
 
-        print(
-            f"{self.INDENT}{self.COLOR['OK']}"
-            "✓ JPG extension accepted"
-            f"{self.COLOR['END']}"
-        )
+        self._logger_success("Verified", "JPG extension accepted")
 
     def test_html_is_rejected(self) -> None:
         self._logger_header("VALIDATION DOCUMENTATION: HTML")
@@ -76,11 +68,7 @@ class TestDocumentationFileValidation(TestLoggerMixin):
 
         assert "file" in exc.value.message_dict
 
-        print(
-            f"{self.INDENT}{self.COLOR['OK']}"
-            "✓ HTML extension rejected"
-            f"{self.COLOR['END']}"
-        )
+        self._logger_success("Verified", "HTML extension rejected")
 
     def test_oversized_file_is_rejected(self) -> None:
         self._logger_header("VALIDATION DOCUMENTATION: oversized file")
@@ -99,8 +87,4 @@ class TestDocumentationFileValidation(TestLoggerMixin):
 
         assert "file" in exc.value.message_dict
 
-        print(
-            f"{self.INDENT}{self.COLOR['OK']}"
-            "✓ Oversized file rejected"
-            f"{self.COLOR['END']}"
-        )
+        self._logger_success("Verified", "Oversized file rejected")

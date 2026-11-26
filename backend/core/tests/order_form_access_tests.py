@@ -5,6 +5,8 @@ from django.contrib.auth.models import Permission
 from rest_framework import status
 from rest_framework.test import APIClient
 
+from core.tests.utils import TestLoggerMixin
+
 
 class OrderFormAccessContractMixin:
     def _request_with_permission(
@@ -29,6 +31,8 @@ class OrderFormAccessContractMixin:
         client.force_authenticate(user=user)
 
         url = cast(str, getattr(self, "url"))
+        logger = cast(TestLoggerMixin, self)
+        logger._logger_header(f"ENDPOINT GET: {url} with {permission}")
 
         return client.get(url)
 
@@ -40,13 +44,8 @@ class OrderFormAccessContractMixin:
 
         assert response.status_code == status.HTTP_200_OK, response.data
 
-        color = getattr(self, "COLOR", {"OK": "", "END": ""})
-
-        print(
-            f"    {color['OK']}"
-            "✓ Access granted with order.add_order | HTTP 200"
-            f"{color['END']}"
-        )
+        logger = cast(TestLoggerMixin, self)
+        logger._logger_success("Access granted with order.add_order", "HTTP 200")
 
     def _with_change_order_permission_logic(self) -> None:
         response = self._request_with_permission(
@@ -56,13 +55,8 @@ class OrderFormAccessContractMixin:
 
         assert response.status_code == status.HTTP_200_OK, response.data
 
-        color = getattr(self, "COLOR", {"OK": "", "END": ""})
-
-        print(
-            f"    {color['OK']}"
-            "✓ Access granted with order.change_order | HTTP 200"
-            f"{color['END']}"
-        )
+        logger = cast(TestLoggerMixin, self)
+        logger._logger_success("Access granted with order.change_order", "HTTP 200")
 
     def _with_view_order_permission_logic(self) -> None:
         response = self._request_with_permission(
@@ -72,10 +66,5 @@ class OrderFormAccessContractMixin:
 
         assert response.status_code == status.HTTP_200_OK, response.data
 
-        color = getattr(self, "COLOR", {"OK": "", "END": ""})
-
-        print(
-            f"    {color['OK']}"
-            "✓ Access granted with order.view_order | HTTP 200"
-            f"{color['END']}"
-        )
+        logger = cast(TestLoggerMixin, self)
+        logger._logger_success("Access granted with order.view_order", "HTTP 200")

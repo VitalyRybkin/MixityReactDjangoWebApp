@@ -7,6 +7,8 @@ from django.contrib.auth.models import Group, User
 from django.core.management import call_command
 from django.test import TestCase
 
+from core.tests.utils import TestLoggerMixin
+
 ROLE_NAMES = ("Admins", "Order Manager", "Logistic Manager", "Accountant")
 
 # The operational workflow is open to all four roles.
@@ -41,7 +43,7 @@ DELETE_PERMISSIONS = (
 )
 
 
-class TestWorkingSectionsPermissions(TestCase):
+class TestWorkingSectionsPermissions(TestLoggerMixin, TestCase):
     @classmethod
     def setUpTestData(cls) -> None:
         super().setUpTestData()
@@ -58,20 +60,38 @@ class TestWorkingSectionsPermissions(TestCase):
         return user
 
     def test_all_roles_can_work_with_requests(self) -> None:
+        self._logger_header(
+            "WORKING SECTIONS PERMISSIONS: " "ALL ROLES CAN WORK WITH REQUESTS"
+        )
         for role in ROLE_NAMES:
             user = self._user(role)
             for permission in SHARED_WORKFLOW_PERMISSIONS:
                 with self.subTest(role=role, permission=permission):
                     self.assertTrue(user.has_perm(permission))
+        self._logger_success(
+            "All roles can work with requests",
+            "Request permissions verified for each role",
+        )
 
     def test_existing_delete_limits_are_preserved(self) -> None:
+        self._logger_header(
+            "WORKING SECTIONS PERMISSIONS: " "EXISTING DELETE LIMITS ARE PRESERVED"
+        )
         for role, expected in DELETE_MATRIX.items():
             user = self._user(role)
             for permission, allowed in zip(DELETE_PERMISSIONS, expected, strict=True):
                 with self.subTest(role=role, permission=permission):
                     self.assertEqual(user.has_perm(permission), allowed)
+        self._logger_success(
+            "Existing delete limits are preserved",
+            "Restricted roles retain their existing delete limits",
+        )
 
     def test_directory_and_catalog_permissions_are_not_broadened(self) -> None:
+        self._logger_header(
+            "WORKING SECTIONS PERMISSIONS: "
+            "DIRECTORY AND CATALOG PERMISSIONS ARE NOT BROADENED"
+        )
         order_manager = self._user("Order Manager")
         logistic_manager = self._user("Logistic Manager")
         accountant = self._user("Accountant")
@@ -81,8 +101,13 @@ class TestWorkingSectionsPermissions(TestCase):
         self.assertFalse(logistic_manager.has_perm("repairs.add_repaircompany"))
         self.assertFalse(logistic_manager.has_perm("repairs.delete_repaircompany"))
         self.assertFalse(accountant.has_perm("catalog.view_product"))
+        self._logger_success(
+            "Directory and catalog permissions are not broadened",
+            "Unrelated model permissions unaffected",
+        )
 
     def test_sync_is_repeatable(self) -> None:
+        self._logger_header("WORKING SECTIONS PERMISSIONS: SYNC IS REPEATABLE")
         counts_before = {
             name: Group.objects.get(name=name).permissions.count()
             for name in ROLE_NAMES
@@ -93,3 +118,6 @@ class TestWorkingSectionsPermissions(TestCase):
             for name in ROLE_NAMES
         }
         self.assertEqual(counts_before, counts_after)
+        self._logger_success(
+            "Sync is repeatable", "Repeated sync produced the same permissions"
+        )

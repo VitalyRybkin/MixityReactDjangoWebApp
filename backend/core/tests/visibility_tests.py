@@ -47,9 +47,7 @@ class ActiveVisibilityContractMixin(_Base):
             inactive.id, ids, msg="Inactive object leaked into list response"
         )
 
-        print(
-            f"{self.INDENT}{self.COLOR['OK']}✓ Active-only visibility verified{self.COLOR['END']}"
-        )
+        self._logger_success("Verified", "Active-only visibility verified")
 
 
 class SoftDeleteContractMixin(_Base):
@@ -82,9 +80,7 @@ class SoftDeleteContractMixin(_Base):
         self.assertIn("isActive", resp.data)
         self.assertEqual(resp.data["isActive"], False)
 
-        print(
-            f"{self.INDENT}{self.COLOR['OK']}✓ Soft delete verified{self.COLOR['END']}"
-        )
+        self._logger_success("Verified", "Soft delete verified")
 
 
 class ReadOnlyActiveFieldContractMixin(_Base):
@@ -174,11 +170,7 @@ class ReadOnlyActiveFieldContractMixin(_Base):
             msg=f"{model_field} changed via PATCH but should be read-only",
         )
 
-        print(
-            f"{self.INDENT}{self.COLOR['OK']}"
-            f"✓ Field '{api_field}' is read-only via API"
-            f"{self.COLOR['END']}"
-        )
+        self._logger_success("Verified", f"Field '{api_field}' is read-only via API")
 
 
 class InactiveObjectVisibilityContractMixin(_Base):
@@ -216,8 +208,4 @@ class InactiveObjectVisibilityContractMixin(_Base):
             response.data,
         )
 
-        print(
-            f"{self.INDENT}{self.COLOR['OK']}"
-            "✓ Inactive object hidden | HTTP 404"
-            f"{self.COLOR['END']}"
-        )
+        self._logger_success("Inactive object hidden", "HTTP 404")

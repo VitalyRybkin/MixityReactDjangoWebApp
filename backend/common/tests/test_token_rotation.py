@@ -90,8 +90,4 @@ class TestRefreshTokenRotation(TestLoggerMixin, APITestCase):
             second_refresh_response.data,
         )
 
-        print(
-            f"{self.INDENT}{self.COLOR['ERR']}"
-            f"✗ {self.COLOR['END']}{self.COLOR['OK']}Refresh token rotated and old token rejected | HTTP 401"
-            f"{self.COLOR['END']}"
-        )
+        self._logger_success("Refresh token rotated and old token rejected", "HTTP 401")
