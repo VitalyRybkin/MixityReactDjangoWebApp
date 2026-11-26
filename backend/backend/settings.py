@@ -121,6 +121,7 @@ INSTALLED_APPS = [
     "common.apps.CommonConfig",
     "order.apps.OrderConfig",
     "repairs.apps.RepairsConfig",
+    "additional_services.apps.AdditionalServicesConfig",
     "drf_spectacular",
     "drf_spectacular_sidecar",
     'django_cleanup.apps.CleanupConfig',

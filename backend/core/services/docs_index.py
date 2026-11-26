@@ -14,6 +14,7 @@ def build_docs_index_sections() -> list[dict[str, str]]:
         "Customer Documentation": "swagger-customer",
         "Order Documentation": "swagger-order",
         "Repair Documentation": "swagger-repair",
+        "Additional Services Documentation": "swagger-additional-services",
         "Full API Schema (JSON)": "schema-json",
     }
 

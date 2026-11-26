@@ -42,6 +42,7 @@ def list_create_schema(
         create_summary (Optional[str]): A brief summary for the POST method endpoint (default: generated dynamically).
         list_description (Optional[str]): A detailed description for the GET method endpoint (default: generated dynamically).
         create_description (Optional[str]): A detailed description for the POST method endpoint (default: generated dynamically).
+        parameters (Optional[List[Dict[str, Any]]]): A list of parameters for the endpoint (default: None).
     """
     list_operation_id = list_operation_id or f"list{resource}s"
     create_operation_id = create_operation_id or f"create{resource}"
@@ -92,6 +93,8 @@ def retrieve_update_destroy_schema(
     get_description: Optional[str] = None,
     patch_description: Optional[str] = None,
     delete_description: Optional[str] = None,
+    include_put: bool = False,
+    hard_delete: bool = False,
 ) -> Any:
     """
     Generates an extended schema configuration for handling retrieve, update, and delete
@@ -130,6 +133,9 @@ def retrieve_update_destroy_schema(
     """
 
     read_response = OpenApiResponse(response=read_serializer)
+    delete_response: dict[int, OpenApiResponse | None] = (
+        {204: None} if hard_delete else {200: read_response}
+    )
 
     get_operation_id = get_operation_id or f"get{resource}"
     patch_operation_id = patch_operation_id or f"patch{resource}"
@@ -137,7 +143,9 @@ def retrieve_update_destroy_schema(
 
     get_summary = get_summary or f"Retrieve a {resource}"
     patch_summary = patch_summary or f"Partially update a {resource}"
-    delete_summary = delete_summary or f"Deactivate (soft delete) a {resource}"
+    delete_summary = delete_summary or (
+        f"Delete a {resource}" if hard_delete else f"Deactivate (soft delete) a {resource}"
+    )
 
     get_description = get_description or (
         f"Handles retrieving a single `{resource}` object - retrieve details of a specific `{resource}`."
@@ -146,7 +154,9 @@ def retrieve_update_destroy_schema(
         f"Handles partially updating a single `{resource}` object.- partially update a single `{resource}` by ID."
     )
     delete_description = delete_description or (
-        f"Handles deactivating a single `{resource}` object - deactivate (soft delete) a single `{resource}` by ID."
+        f"Permanently delete a single `{resource}` object by ID."
+        if hard_delete
+        else f"Handles deactivating a single `{resource}` object - deactivate (soft delete) a single `{resource}` by ID."
     )
 
 
@@ -166,12 +176,22 @@ def retrieve_update_destroy_schema(
             responses={200: read_response, **errors_detail_write},
             description=patch_description,
         ),
-        put=extend_schema(exclude=True),
+        put=(
+            extend_schema(
+                operation_id=f"update{resource}",
+                summary=f"Replace a {resource}",
+                tags=tags,
+                request=request_serializer,
+                responses={200: read_response, **errors_detail_write},
+            )
+            if include_put
+            else extend_schema(exclude=True)
+        ),
         delete=extend_schema(
             operation_id=delete_operation_id,
             summary=delete_summary,
             tags=tags,
-            responses={200: read_response, **errors_detail},
+            responses={**delete_response, **errors_detail},
             description=delete_description,
         ),
     )

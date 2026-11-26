@@ -26,12 +26,12 @@ ROLE_MATRIX: Final[dict[str, dict[str, bool]]] = {
         "print_claim": True,
     },
     "Logistic Manager": {
-        "view": False,
-        "add": False,
-        "change": False,
+        "view": True,
+        "add": True,
+        "change": True,
         "delete": False,
-        "export": False,
-        "print_claim": False,
+        "export": True,
+        "print_claim": True,
     },
     "Accountant": {
         "view": True,

@@ -16,6 +16,8 @@ class BaseListCreateAPIView(generics.ListCreateAPIView):
     write_serializer: Any
     errors_read: dict[int, Any]
     errors_write: dict[int, Any]
+    schema_read_errors: ClassVar[dict[int, Any]] = errors.ERRORS_READ
+    schema_write_errors: ClassVar[dict[int, Any]] = errors.ERRORS_WRITE
     query_parameters: ClassVar[list[OpenApiParameter]] = []
 
 
@@ -30,6 +32,8 @@ class BaseListCreateAPIView(generics.ListCreateAPIView):
             read_serializer=cls.read_serializer_class,
             write_serializer=cls.write_serializer_class,
             parameters=cls.query_parameters,
+            errors_read=cls.schema_read_errors,
+            errors_write=cls.schema_write_errors,
         )(cls)
         return super(BaseListCreateAPIView, decorated).as_view(**kwargs)
 
@@ -51,6 +55,10 @@ class BaseRetrieveUpdateDestroyAPIView(generics.RetrieveUpdateDestroyAPIView):
     """
     resource_name: ClassVar[str] = ""
     schema_tags: ClassVar[list[str]] = []
+    schema_read_errors: ClassVar[dict[int, Any]] = ERRORS_DETAIL
+    schema_write_errors: ClassVar[dict[int, Any]] = errors.ERRORS_DETAIL_WRITE
+    schema_include_put: ClassVar[bool] = False
+    schema_hard_delete: ClassVar[bool] = False
 
     read_serializer_class: ClassVar[Type[serializers.BaseSerializer]] = serializers.Serializer
     write_serializer_class: ClassVar[Type[serializers.BaseSerializer]] = serializers.Serializer
@@ -62,6 +70,10 @@ class BaseRetrieveUpdateDestroyAPIView(generics.RetrieveUpdateDestroyAPIView):
             tags=cls.schema_tags,
             read_serializer=cls.read_serializer_class,
             request_serializer=cls.write_serializer_class,
+            errors_detail=cls.schema_read_errors,
+            errors_detail_write=cls.schema_write_errors,
+            include_put=cls.schema_include_put,
+            hard_delete=cls.schema_hard_delete,
         )(cls)
 
         return super(BaseRetrieveUpdateDestroyAPIView, decorated).as_view(**kwargs)
@@ -192,6 +204,9 @@ class BaseListAPIView(generics.ListAPIView):
 class BaseRetrieveAPIView(generics.RetrieveAPIView):
     resource_name: ClassVar[str] = ""
     schema_tags: ClassVar[list[str]] = []
+    schema_read_errors: ClassVar[dict[int, Any]] = ERRORS_DETAIL
+    schema_summary: ClassVar[str | None] = None
+    schema_description: ClassVar[str | None] = None
     schema_parameters: ClassVar[Sequence[OpenApiParameter]] = ()
 
     read_serializer_class: ClassVar[Type[serializers.BaseSerializer]] = serializers.Serializer
@@ -202,7 +217,9 @@ class BaseRetrieveAPIView(generics.RetrieveAPIView):
             resource=cls.resource_name,
             tags=cls.schema_tags,
             read_serializer=cls.read_serializer_class,
-            errors_read=ERRORS_DETAIL,
+            errors_read=cls.schema_read_errors,
+            get_summary=cls.schema_summary,
+            get_description=cls.schema_description,
             parameters=list(cls.schema_parameters),
         )(cls)
 

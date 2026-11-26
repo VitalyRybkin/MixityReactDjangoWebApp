@@ -1,3 +1,7 @@
+"""Verify generated OpenAPI contracts for selected endpoints."""
+
+from typing import Any, ClassVar
+
 from django.test import SimpleTestCase
 from django.urls import reverse
 from drf_spectacular.generators import SchemaGenerator
@@ -7,12 +11,20 @@ from common.routes import DocumentationRoutes
 
 
 class OpenApiSchemaTests(SimpleTestCase):
-    @classmethod
-    def setUpClass(cls):
-        super().setUpClass()
-        cls.document = SchemaGenerator().get_schema(public=True)
+    """Check request and response shapes in the public OpenAPI document."""
 
-    def test_quality_passport_state_is_an_object_with_query_parameters(self):
+    document: ClassVar[dict[str, Any]]
+
+    @classmethod
+    def setUpClass(cls) -> None:
+        """Generate the public OpenAPI document once for the test class."""
+        super().setUpClass()
+        document = SchemaGenerator().get_schema(public=True)
+        assert document is not None
+        cls.document = document
+
+    def test_quality_passport_state_is_an_object_with_query_parameters(self) -> None:
+        """Check the state response schema and its query parameters."""
         path = reverse(f"catalog:{QualityPassportRoutes.STATE.name}")
         operation = self.document["paths"][path]["get"]
         response = operation["responses"]["200"]["content"]["application/json"][
@@ -31,7 +43,10 @@ class OpenApiSchemaTests(SimpleTestCase):
             {"order_id", "product_id", "quantity", "source", "target_status"},
         )
 
-    def test_document_bulk_download_documents_json_input_and_binary_zip_output(self):
+    def test_document_bulk_download_documents_json_input_and_binary_zip_output(
+        self,
+    ) -> None:
+        """Check the bulk download’s JSON input and binary ZIP response."""
         path = reverse(f"common:{DocumentationRoutes.DOWNLOAD_ZIP.name}")
         operation = self.document["paths"][path]["post"]
         request = operation["requestBody"]["content"]["application/json"]["schema"]
