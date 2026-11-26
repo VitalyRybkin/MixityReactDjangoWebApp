@@ -1,7 +1,6 @@
 """Additional service requests and their independent transport/specialist items."""
 
 from decimal import Decimal
-from typing import TYPE_CHECKING
 
 from django.conf import settings
 from django.core.exceptions import ValidationError
@@ -12,37 +11,28 @@ from django.utils import timezone
 
 
 class AdditionalServiceRequest(models.Model):
-    """A service request linked to a construction object and one provider."""
-
-    if TYPE_CHECKING:
-        objects: models.Manager["AdditionalServiceRequest"]
-        items: models.Manager["AdditionalServiceItem"]
-        carrier_id: int | None
-        repair_company_id: int | None
-        rental_contract_id: int | None
-        construction_object_id: int
-
-        def get_direction_display(self) -> str:
-            """Return Django's display label for the stored direction."""
-            ...
-
     class Direction(models.TextChoices):
         DELIVERY = "delivery", "Доставка оборудования"
         RETURN = "return", "Возврат оборудования"
         SITE_WORK = "site_work", "Работы на объекте"
 
     class Status(models.TextChoices):
-        CREATED = "created", "Создана"
-        COMPLETED = "completed", "Выполнена"
+        OPEN = "open", "Открыта"
+        CLOSED = "closed", "Закрыта"
 
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     service_date = models.DateField(
         default=timezone.localdate, verbose_name="Дата услуги"
     )
+    closing_date = models.DateField(
+        null=True,
+        blank=True,
+        verbose_name="Дата закрытия заявки",
+    )
     direction = models.CharField(max_length=16, choices=Direction.choices)
     status = models.CharField(
-        max_length=12, choices=Status.choices, default=Status.CREATED
+        max_length=12, choices=Status.choices, default=Status.OPEN
     )
     construction_object = models.ForeignKey(
         "order.ConstructionObject",
@@ -103,16 +93,14 @@ class AdditionalServiceRequest(models.Model):
 
     @property
     def provider_type(self) -> str:
-        """Identify the kind of provider assigned to the request."""
         return "carrier" if self.carrier_id is not None else "repair_company"
 
     @property
     def service_type(self) -> str:
-        """Combine the service direction and provider type for filtering."""
+        """Computed exact type, e.g. site_work_repair_company, no redundant DB field."""
         return f"{self.direction}_{self.provider_type}"
 
     def clean(self) -> None:
-        """Validate the provider and the rental contract’s customer."""
         super().clean()
         errors = {}
         if (self.carrier_id is None) == (self.repair_company_id is None):
@@ -120,7 +108,11 @@ class AdditionalServiceRequest(models.Model):
                 "Выберите ровно одного исполнителя: перевозчика или ремонтирующую компанию."
             )
         if self.rental_contract_id and self.construction_object_id:
-            if self.rental_contract.customer_id != self.construction_object.customer_id:
+            contract = self.rental_contract
+            if (
+                contract is not None
+                and contract.customer_id != self.construction_object.customer_id
+            ):
                 errors["rental_contract"] = (
                     "Договор не принадлежит заказчику выбранного объекта."
                 )
@@ -132,12 +124,6 @@ class AdditionalServiceRequest(models.Model):
 
 
 class AdditionalServiceItem(models.Model):
-    """A priced transport or specialist row in a service specification."""
-
-    if TYPE_CHECKING:
-        objects: models.Manager["AdditionalServiceItem"]
-        request_id: int
-
     class Category(models.TextChoices):
         TRANSPORT = "transport", "Транспорт / спецтехника"
         SPECIALIST = "specialist", "Услуги специалиста"
@@ -192,7 +178,6 @@ class AdditionalServiceItem(models.Model):
         ]
 
     def clean(self) -> None:
-        """Reject specialist rows on requests assigned to a carrier."""
         super().clean()
         if (
             self.category == self.Category.SPECIALIST

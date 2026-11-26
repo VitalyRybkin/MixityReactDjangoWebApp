@@ -3,6 +3,7 @@
 from typing import Any
 
 from django.db import transaction
+from django.utils import timezone
 from rest_framework import serializers
 
 from logistic.models import Carrier
@@ -58,8 +59,12 @@ class AdditionalServiceReadSerializer(serializers.ModelSerializer):
     customer = serializers.IntegerField(
         source="construction_object.customer_id", read_only=True
     )
-    customer_name = serializers.CharField(source="construction_object.customer.name", read_only=True)
-    object_name = serializers.CharField(source="construction_object.name", read_only=True)
+    customer_name = serializers.CharField(
+        source="construction_object.customer.name", read_only=True
+    )
+    object_name = serializers.CharField(
+        source="construction_object.name", read_only=True
+    )
     provider_name = serializers.SerializerMethodField()
     provider_type = serializers.CharField(read_only=True)
     service_type = serializers.CharField(read_only=True)
@@ -73,6 +78,7 @@ class AdditionalServiceReadSerializer(serializers.ModelSerializer):
             "created_at",
             "updated_at",
             "service_date",
+            "closing_date",
             "direction",
             "status",
             "construction_object",
@@ -134,6 +140,7 @@ class AdditionalServiceWriteSerializer(serializers.ModelSerializer):
         fields = (
             "id",
             "service_date",
+            "closing_date",
             "direction",
             "status",
             "construction_object",
@@ -158,6 +165,37 @@ class AdditionalServiceWriteSerializer(serializers.ModelSerializer):
         )
         contract = attrs.get("rental_contract", obj.rental_contract if obj else None)
         direction = attrs.get("direction", obj.direction if obj else None)
+
+        # When closing, automatically record today's local date unless the
+        # caller explicitly supplied one. Reopening releases the closing date.
+        # Do not invent dates for historical closed rows during unrelated PATCHes.
+        current_status = obj.status if obj else None
+        next_status = attrs.get(
+            "status", current_status or AdditionalServiceRequest.Status.OPEN
+        )
+        date_explicit = "closing_date" in attrs
+        explicit_status = "status" in attrs
+        closing_date = attrs.get("closing_date", obj.closing_date if obj else None)
+        date_errors = {}
+        if next_status == AdditionalServiceRequest.Status.OPEN:
+            if date_explicit and closing_date is not None:
+                date_errors["closing_date"] = (
+                    "Дата закрытия допустима только для закрытой заявки."
+                )
+            elif obj and current_status == AdditionalServiceRequest.Status.CLOSED:
+                attrs["closing_date"] = None
+        elif next_status == AdditionalServiceRequest.Status.CLOSED:
+            if date_explicit and closing_date is None:
+                date_errors["closing_date"] = (
+                    "Для закрытой заявки укажите дату закрытия."
+                )
+            elif not closing_date and (
+                not obj or (explicit_status and current_status != next_status)
+            ):
+                attrs["closing_date"] = timezone.localdate()
+        if date_errors:
+            raise serializers.ValidationError(date_errors)
+
         items = attrs.get("items")
         if items is None:
             items = list(obj.items.all()) if obj else []

@@ -3,10 +3,9 @@
 from io import StringIO
 
 from django.contrib.auth import get_user_model
-from django.contrib.auth.models import Group
+from django.contrib.auth.models import Group, User
 from django.core.management import call_command
 from django.test import TestCase
-
 
 ROLE_NAMES = ("Admins", "Order Manager", "Logistic Manager", "Accountant")
 
@@ -49,7 +48,7 @@ class TestWorkingSectionsPermissions(TestCase):
         call_command("sync_group_permissions", stdout=StringIO())
 
     @staticmethod
-    def _user(role: str):
+    def _user(role: str) -> User:
         user_model = get_user_model()
         user = user_model.objects.create_user(
             username="working_section_" + role.lower().replace(" ", "_"),

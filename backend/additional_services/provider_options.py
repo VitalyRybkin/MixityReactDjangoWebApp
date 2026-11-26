@@ -3,11 +3,13 @@
 No rights to the Carrier or RepairCompany CRUD API are granted to users.
 """
 
+from django.db.models import QuerySet
 from drf_spectacular.types import OpenApiTypes
 from drf_spectacular.utils import OpenApiParameter, extend_schema
 from rest_framework import serializers
 from rest_framework.exceptions import PermissionDenied, ValidationError
 from rest_framework.permissions import IsAuthenticated
+from rest_framework.request import Request
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
@@ -37,7 +39,7 @@ class AdditionalServiceProviderOptionsAPIView(APIView):
         ],
         responses={200: ProviderOptionSerializer(many=True)},
     )
-    def get(self, request):
+    def get(self, request: Request) -> Response:
         user = request.user
         if not (
             user.has_perm("additional_services.view_additionalservicerequest")
@@ -46,6 +48,7 @@ class AdditionalServiceProviderOptionsAPIView(APIView):
             raise PermissionDenied("Нет доступа к дополнительным услугам.")
 
         provider_type = request.query_params.get("type")
+        qs: QuerySet[Carrier] | QuerySet[RepairCompany]
         if provider_type == "carrier":
             qs = Carrier.objects.all()
         elif provider_type == "repair_company":

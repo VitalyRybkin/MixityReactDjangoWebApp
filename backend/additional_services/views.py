@@ -28,6 +28,7 @@ from .serializers import (
     AdditionalServiceWriteSerializer,
 )
 
+
 class ViewModelPermissions(DjangoModelPermissions):
     """DRF's default DjangoModelPermissions does not check view permissions on GET."""
 

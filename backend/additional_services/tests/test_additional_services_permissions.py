@@ -1,10 +1,11 @@
 """Check the agreed AdditionalServiceRequest permissions for all four Mixity roles."""
 
+from datetime import date
 from io import StringIO
 from typing import Final
 
 from django.contrib.auth import get_user_model
-from django.contrib.auth.models import Group
+from django.contrib.auth.models import Group, User
 from django.core.management import call_command
 from django.urls import reverse
 from rest_framework import status
@@ -14,8 +15,8 @@ from additional_services.models import AdditionalServiceItem, AdditionalServiceR
 from additional_services.routes import AdditionalServicesRoutes
 from core.tests.utils import TestLoggerMixin
 from logistic.models import Carrier
+from order.models import RentalContract
 from order.tests.factories import ConstructionObjectFactory
-
 
 ROLE_MATRIX: Final[dict[str, dict[str, bool]]] = {
     "Admins": {"view": True, "add": True, "change": True, "delete": True},
@@ -37,11 +38,17 @@ class TestAdditionalServicePermissionMatrix(TestLoggerMixin, APITestCase):
         super().setUp()
         self.construction_object = ConstructionObjectFactory.create()
         self.carrier = Carrier.objects.create(name="Перевозчик для проверки прав")
+        self.contract = RentalContract.objects.create(
+            customer=self.construction_object.customer,
+            contract_date=date(2026, 11, 25),
+            contract_number="TEST-AS-PERMISSIONS",
+            is_active=True,
+        )
         self.list_url = reverse(
             f"additional_services:{AdditionalServicesRoutes.LIST_CREATE.name}"
         )
 
-    def _user(self, role: str):
+    def _user(self, role: str) -> User:
         user = get_user_model().objects.create_user(
             username="additional_permissions_" + role.lower().replace(" ", "_"),
             password="test_password",
@@ -53,9 +60,9 @@ class TestAdditionalServicePermissionMatrix(TestLoggerMixin, APITestCase):
         return {
             "service_date": "2026-11-25",
             "direction": "site_work",
-            "status": "created",
+            "status": "open",
             "construction_object": self.construction_object.pk,
-            "rental_contract": None,
+            "rental_contract": self.contract.pk,
             "carrier": self.carrier.pk,
             "repair_company": None,
             "description": "Перестановка силосов",
@@ -75,9 +82,10 @@ class TestAdditionalServicePermissionMatrix(TestLoggerMixin, APITestCase):
         obj = AdditionalServiceRequest.objects.create(
             service_date="2026-11-25",
             direction="site_work",
-            status="created",
+            status="open",
             construction_object=self.construction_object,
             carrier=self.carrier,
+            rental_contract=self.contract,
             description="Тест матрицы",
         )
         AdditionalServiceItem.objects.create(
@@ -127,8 +135,12 @@ class TestAdditionalServicePermissionMatrix(TestLoggerMixin, APITestCase):
             self.client.force_authenticate(user=user)
             try:
                 for action in (
-                    "view", "add", "change", "status_change",
-                    "financial_change", "delete"
+                    "view",
+                    "add",
+                    "change",
+                    "status_change",
+                    "financial_change",
+                    "delete",
                 ):
                     obj = self._object()
                     url = reverse(
@@ -138,17 +150,28 @@ class TestAdditionalServicePermissionMatrix(TestLoggerMixin, APITestCase):
                     if action == "view":
                         response = self.client.get(url)
                     elif action == "add":
-                        response = self.client.post(self.list_url, self._payload(), format="json")
+                        response = self.client.post(
+                            self.list_url, self._payload(), format="json"
+                        )
                     elif action == "change":
-                        response = self.client.patch(url, {"description": "Изменено"}, format="json")
+                        response = self.client.patch(
+                            url, {"description": "Изменено"}, format="json"
+                        )
                     elif action == "status_change":
-                        response = self.client.patch(url, {"status": "completed"}, format="json")
+                        response = self.client.patch(
+                            url, {"status": "closed"}, format="json"
+                        )
                     elif action == "financial_change":
                         response = self.client.patch(
                             url,
-                            {"items": [
-                                {**self._payload()["items"][0], "price_per_unit": "2000.00"}
-                            ]},
+                            {
+                                "items": [
+                                    {
+                                        **self._payload()["items"][0],
+                                        "price_per_unit": "2000.00",
+                                    }
+                                ]
+                            },
                             format="json",
                         )
                     else:

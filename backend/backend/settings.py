@@ -320,7 +320,5 @@ SPECTACULAR_SETTINGS = {
     "ENUM_NAME_OVERRIDES": {
         "OrderStatusEnum": "common.schema_enums.order_status_choices",
         "RepairRequestStatusEnum": "common.schema_enums.repair_status_choices",
-        "AdditionalServiceStatusEnum":
-            "additional_services.models.AdditionalServiceRequest.Status",
     },
 }
