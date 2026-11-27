@@ -50,6 +50,7 @@ export const toForm = (request) => ({
         category: row.category,
         name: row.name,
         service: String(relationId(row.service) || ''),
+        transport_service: String(relationId(row.transport_service) || ''),
         quantity: String(row.quantity),
         cost_per_unit: String(row.cost_per_unit),
         price_per_unit: String(row.price_per_unit),
@@ -76,6 +77,11 @@ export const validateForm = (form) => {
     }
     form.items.forEach((item, index) => {
         if (!item.name.trim()) errors.push(`Позиция ${index + 1}: укажите наименование.`)
+        // Existing free-text transport items remain valid for historical edits.
+        if (item.category === 'transport' && !positiveId(item.transport_service)
+            && !String(item.localId).startsWith('existing-')) {
+            errors.push(`Позиция ${index + 1}: выберите транспортную услугу из справочника.`)
+        }
         if (!/^\d{1,7}(?:[.,]\d{1,3})?$/.test(item.quantity) || Number(item.quantity.replace(',', '.')) <= 0) {
             errors.push(`Позиция ${index + 1}: количество должно быть положительным (до 3 знаков).`)
         }
@@ -102,10 +108,12 @@ export const toPayload = (form, original = null) => {
         carrier: form.providerType === 'carrier' ? providerId : null,
         repair_company: form.providerType === 'repair_company' ? providerId : null,
         description: form.description,
-        items: form.items.map(({ category, name, service, quantity, cost_per_unit, price_per_unit, is_rebillable }) => ({
+        items: form.items.map(({ category, name, service, transport_service, quantity, cost_per_unit, price_per_unit, is_rebillable }) => ({
             category,
             name: name.trim(),
             ...(category === 'specialist' && positiveId(service) ? { service: positiveId(service) } : {}),
+            ...(category === 'transport' && positiveId(transport_service)
+                ? { transport_service: positiveId(transport_service) } : {}),
             quantity: quantity.replace(',', '.'),
             cost_per_unit: cost_per_unit.replace(',', '.'),
             price_per_unit: price_per_unit.replace(',', '.'),
@@ -118,9 +126,11 @@ export const toPayload = (form, original = null) => {
             && payload.closing_date === (original.closing_date || null)) {
             delete payload.closing_date
         }
-        const existingItems = toForm(original).items.map(({ category, name, service, quantity, cost_per_unit, price_per_unit, is_rebillable }) => ({
+        const existingItems = toForm(original).items.map(({ category, name, service, transport_service, quantity, cost_per_unit, price_per_unit, is_rebillable }) => ({
             category, name: name.trim(),
             ...(category === 'specialist' && positiveId(service) ? { service: positiveId(service) } : {}),
+            ...(category === 'transport' && positiveId(transport_service)
+                ? { transport_service: positiveId(transport_service) } : {}),
             quantity, cost_per_unit, price_per_unit, is_rebillable,
         }))
         if (JSON.stringify(payload.items) === JSON.stringify(existingItems)) delete payload.items

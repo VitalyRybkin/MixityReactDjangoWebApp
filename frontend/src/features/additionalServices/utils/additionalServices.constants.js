@@ -59,6 +59,7 @@ export const emptyItem = (category) => ({
     category,
     name: '',
     service: '',
+    transport_service: '',
     quantity: '1.000',
     cost_per_unit: '0.00',
     price_per_unit: '0.00',

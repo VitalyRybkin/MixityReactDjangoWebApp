@@ -22,6 +22,8 @@ import { formatCents, previewTotals } from '../utils/additionalServices.logic.js
 import {
     useAdditionalRepairServices,
     useCreateAdditionalRepairService,
+    useAdditionalTransportServices,
+    useCreateAdditionalTransportService,
 } from '../utils/additionalServices.serviceCatalog.js'
 
 const CATEGORIES = [
@@ -33,8 +35,7 @@ const sectionSx = { ...sx.specificationSection, mt: 2, minWidth: 0 }
 const headerSx = { ...sx.specificationHeader, alignItems: 'center', gap: 2, mb: 1 }
 const rowSx = { py: 1.5, borderBottom: '1px solid', borderColor: 'divider', minWidth: 0 }
 
-// Identical tracks in both sections: the second slot is reserved for the
-// "add to directory" button, even in the transport (free-text) section.
+// Both sections use the same grid tracks and the same catalog-creation action.
 const fieldsSx = {
     display: 'grid',
     gridTemplateColumns: {
@@ -49,21 +50,22 @@ const fieldsSx = {
 
 export default function AdditionalServiceItems({ items, providerType, onChange, onAdd, onRemove, disabled }) {
     const { hasPermission } = useAuth()
-    const [createForRow, setCreateForRow] = useState(null)
+    const [createTarget, setCreateTarget] = useState(null)
 
     const hasSpecialists = items.some((row) => row.category === 'specialist')
     const showSpecialists = providerType === 'repair_company' || hasSpecialists
-    const catalogQuery = useAdditionalRepairServices(showSpecialists)
-    const createService = useCreateAdditionalRepairService()
-    const options = useMemo(() => catalogQuery.data || [], [catalogQuery.data])
-    const selectedIds = items
-        .filter((row) => row.category === 'specialist' && row.service)
-        .map((row) => String(row.service))
+    const specialistQuery = useAdditionalRepairServices(showSpecialists)
+    const transportQuery = useAdditionalTransportServices()
+    const createSpecialist = useCreateAdditionalRepairService()
+    const createTransport = useCreateAdditionalTransportService()
+    const specialistOptions = useMemo(() => specialistQuery.data || [], [specialistQuery.data])
+    const transportOptions = useMemo(() => transportQuery.data || [], [transportQuery.data])
     const canCreateService = !disabled && hasPermission('additional_services.add_additionalservicerequest')
     const totals = previewTotals(items)
 
+    const activeCreate = createTarget?.category === 'transport' ? createTransport : createSpecialist
     const closeCreateDialog = () => {
-        if (!createService.isPending) setCreateForRow(null)
+        if (!activeCreate.isPending) setCreateTarget(null)
     }
 
     return (
@@ -72,6 +74,13 @@ export default function AdditionalServiceItems({ items, providerType, onChange, 
                 const rows = items.filter((row) => row.category === group.key)
                 const amount = totals.by_category[group.key]
                 const mayAddRow = !disabled && !(group.key === 'specialist' && providerType === 'carrier')
+                const isSpecialist = group.key === 'specialist'
+                const query = isSpecialist ? specialistQuery : transportQuery
+                const options = isSpecialist ? specialistOptions : transportOptions
+                const relationKey = isSpecialist ? 'service' : 'transport_service'
+                const selectedIds = items
+                    .filter((item) => item.category === group.key && item[relationKey])
+                    .map((item) => String(item[relationKey]))
 
                 return (
                     <Box key={group.key} sx={sectionSx}>
@@ -90,10 +99,10 @@ export default function AdditionalServiceItems({ items, providerType, onChange, 
 
                         <Divider sx={sx.divider} />
 
-                        {group.key === 'specialist' && catalogQuery.isError && (
+                        {query.isError && (
                             <Alert severity="warning" sx={{ my: 1 }}>
-                                Не удалось загрузить справочник услуг специалиста.{' '}
-                                <Button size="small" onClick={() => catalogQuery.refetch()}>
+                                {isSpecialist ? 'Не удалось загрузить справочник услуг.' : 'Не удалось загрузить транспортный справочник.'}{' '}
+                                <Button size="small" onClick={() => query.refetch()}>
                                     Повторить
                                 </Button>
                             </Alert>
@@ -106,70 +115,57 @@ export default function AdditionalServiceItems({ items, providerType, onChange, 
                         )}
 
                         {rows.map((row) => {
-                            const matched =
-                                group.key === 'specialist'
-                                    ? options.find((option) => String(option.id) === String(row.service))
-                                    : null
-                            // Preserve the text on historical rows and on renamed/archived services.
+                            const matched = options.find(
+                                (option) => String(option.id) === String(row[relationKey]),
+                            )
+                            // Keep the saved name when the catalog entry was renamed or archived.
                             const selectedChoice = matched
                                 ? { ...matched, name: row.name || matched.name }
-                                : row.name && group.key === 'specialist'
-                                  ? { id: row.service || `legacy-${row.localId}`, name: row.name, historical: true }
+                                : row.name
+                                  ? { id: row[relationKey] || `legacy-${row.localId}`, name: row.name, historical: true }
                                   : null
                             const choices = selectedChoice?.historical ? [selectedChoice, ...options] : options
 
                             return (
                                 <Box key={row.localId} sx={rowSx}>
                                     <Box sx={fieldsSx}>
-                                        {group.key === 'specialist' ? (
-                                            <Autocomplete
-                                                fullWidth
-                                                size="small"
-                                                options={choices}
-                                                value={selectedChoice}
-                                                disabled={disabled || catalogQuery.isLoading}
-                                                getOptionLabel={(option) => option?.name || ''}
-                                                isOptionEqualToValue={(option, value) =>
-                                                    String(option.id) === String(value.id)
-                                                }
-                                                getOptionDisabled={(option) =>
-                                                    Boolean(option.historical) ||
-                                                    (selectedIds.includes(String(option.id)) &&
-                                                        String(option.id) !== String(row.service))
-                                                }
-                                                onChange={(_, option) =>
-                                                    onChange(row.localId, {
-                                                        service: option ? String(option.id) : '',
-                                                        name: option?.name || '',
-                                                    })
-                                                }
-                                                renderInput={(params) => (
-                                                    <TextField
-                                                        {...params}
-                                                        label="Услуга"
-                                                        placeholder="Начните вводить название"
-                                                        required
-                                                    />
-                                                )}
-                                            />
-                                        ) : (
-                                            <TextField
-                                                label="Наименование работы"
-                                                size="small"
-                                                value={row.name}
-                                                onChange={(event) =>
-                                                    onChange(row.localId, { name: event.target.value })
-                                                }
-                                                disabled={disabled}
-                                                required
-                                                fullWidth
-                                            />
-                                        )}
+                                        <Autocomplete
+                                            fullWidth
+                                            size="small"
+                                            options={choices}
+                                            value={selectedChoice}
+                                            disabled={disabled || query.isLoading}
+                                            getOptionLabel={(option) => option?.name || ''}
+                                            isOptionEqualToValue={(option, value) =>
+                                                String(option.id) === String(value.id)
+                                            }
+                                            getOptionDisabled={(option) =>
+                                                Boolean(option.historical) ||
+                                                (selectedIds.includes(String(option.id)) &&
+                                                    String(option.id) !== String(row[relationKey]))
+                                            }
+                                            onChange={(_, option) =>
+                                                onChange(row.localId, {
+                                                    [relationKey]: option ? String(option.id) : '',
+                                                    name: option?.name || '',
+                                                })
+                                            }
+                                            renderInput={(params) => (
+                                                <TextField
+                                                    {...params}
+                                                    label="Услуга"
+                                                    placeholder="Начните вводить название"
+                                                    required
+                                                />
+                                            )}
+                                        />
 
-                                        {group.key === 'specialist' && canCreateService ? (
+                                        {canCreateService ? (
                                             <AddAction
-                                                title="Добавить услугу в справочник"
-                                                onClick={() => setCreateForRow(row.localId)}
+                                                title={isSpecialist
+                                                    ? 'Добавить услугу в справочник'
+                                                    : 'Добавить транспортную услугу в справочник'}
+                                                onClick={() => setCreateTarget({ rowId: row.localId, category: group.key })}
                                             />
                                         ) : (
                                             <Box sx={{ width: 36, height: 36 }} />
@@ -260,18 +256,19 @@ export default function AdditionalServiceItems({ items, providerType, onChange, 
             })}
 
             <ReferenceItemCreateDialog
-                open={createForRow !== null}
-                title="Добавить услугу"
-                label="Наименование услуги"
-                saving={createService.isPending}
-                onCreate={(name) => createService.mutateAsync(name)}
+                open={createTarget !== null}
+                title={createTarget?.category === 'transport' ? 'Добавить транспортную услугу' : 'Добавить услугу'}
+                label={createTarget?.category === 'transport' ? 'Наименование транспортной услуги' : 'Наименование услуги'}
+                saving={activeCreate.isPending}
+                onCreate={(name) => activeCreate.mutateAsync(name)}
                 errorMessage="Не удалось добавить услугу."
                 onClose={closeCreateDialog}
                 onCreated={(created) => {
-                    if (createForRow != null) {
-                        onChange(createForRow, { service: String(created.id), name: created.name })
+                    if (createTarget !== null) {
+                        const key = createTarget.category === 'transport' ? 'transport_service' : 'service'
+                        onChange(createTarget.rowId, { [key]: String(created.id), name: created.name })
                     }
-                    setCreateForRow(null)
+                    setCreateTarget(null)
                 }}
             />
         </>

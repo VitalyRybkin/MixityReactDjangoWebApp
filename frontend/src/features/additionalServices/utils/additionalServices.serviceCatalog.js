@@ -30,3 +30,32 @@ export const useCreateAdditionalRepairService = () => {
         onSuccess: () => client.invalidateQueries({ queryKey: key }),
     })
 }
+
+// Independent transport directory, with the same permissions as Additional Services.
+const transportUrl = '/api/additional_services/transport-services/'
+const transportKey = ['additionalServices', 'transportServices']
+
+export const fetchAdditionalTransportServices = async () => {
+    const response = await api.get(transportUrl)
+    return Array.isArray(response.data) ? response.data : response.data?.results || []
+}
+
+export const createAdditionalTransportService = async (name) => {
+    const response = await api.post(transportUrl, { name })
+    return response.data
+}
+
+export const useAdditionalTransportServices = (enabled = true) => useQuery({
+    queryKey: transportKey,
+    queryFn: fetchAdditionalTransportServices,
+    staleTime: REFERENCE_STALE_TIME,
+    enabled,
+})
+
+export const useCreateAdditionalTransportService = () => {
+    const client = useQueryClient()
+    return useMutation({
+        mutationFn: createAdditionalTransportService,
+        onSuccess: () => client.invalidateQueries({ queryKey: transportKey }),
+    })
+}
