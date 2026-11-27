@@ -1,6 +1,7 @@
 from django.urls import path
 
 from .provider_options import AdditionalServiceProviderOptionsAPIView
+from .repair_service_catalog import AdditionalRepairServiceListCreateAPIView
 from .routes import AdditionalServicesRoutes
 from .views import (
     AdditionalServiceDetailAPIView,
@@ -10,6 +11,11 @@ from .views import (
 app_name = "additional_services"
 
 urlpatterns = [
+    path(
+        AdditionalServicesRoutes.SERVICES.path,
+        AdditionalRepairServiceListCreateAPIView.as_view(),
+        name=AdditionalServicesRoutes.SERVICES.name,
+    ),
     path(
         AdditionalServicesRoutes.PROVIDERS.path,
         AdditionalServiceProviderOptionsAPIView.as_view(),

@@ -10,6 +10,7 @@ from logistic.models import Carrier
 from order.models import ConstructionObject
 from order.models.rental_contract import RentalContract
 from repairs.models import RepairCompany
+from repairs.models.repair_request_models import RepairService
 
 from .models import AdditionalServiceItem, AdditionalServiceRequest
 from .totals import (
@@ -29,6 +30,7 @@ class AdditionalServiceItemReadSerializer(serializers.ModelSerializer):
             "id",
             "category",
             "name",
+            "service",
             "quantity",
             "cost_per_unit",
             "price_per_unit",
@@ -38,18 +40,57 @@ class AdditionalServiceItemReadSerializer(serializers.ModelSerializer):
 
 
 class AdditionalServiceItemWriteSerializer(serializers.ModelSerializer):
-    """Validate an incoming transport or specialist specification row."""
+    """Save historical text and, for new specialist items, link RepairService."""
+
+    service = serializers.PrimaryKeyRelatedField(
+        queryset=RepairService.objects.filter(is_additional=True),
+        required=False,
+        allow_null=True,
+        error_messages={
+            "does_not_exist": "Услуга не найдена в справочнике дополнительных услуг.",
+        },
+    )
 
     class Meta:
         model = AdditionalServiceItem
         fields = (
             "category",
             "name",
+            "service",
             "quantity",
             "cost_per_unit",
             "price_per_unit",
             "is_rebillable",
         )
+
+    def validate(self, attrs: dict[str, Any]) -> dict[str, Any]:
+        attrs = super().validate(attrs)
+        service = attrs.get("service")
+        category = attrs.get("category")
+        if (
+            service is not None
+            and category != AdditionalServiceItem.Category.SPECIALIST
+        ):
+            raise serializers.ValidationError(
+                {"service": "Справочник услуг специалиста недоступен для транспорта."}
+            )
+        if service is not None:
+            # Keep the historical snapshot when updating an existing linked row.
+            # For newly linked rows, always derive the name from the directory.
+            request_instance = getattr(self.root, "instance", None)
+            historical_name = attrs.get("name", "")
+            is_existing_snapshot = (
+                isinstance(request_instance, AdditionalServiceRequest)
+                and bool(historical_name)
+                and request_instance.items.filter(
+                    category=AdditionalServiceItem.Category.SPECIALIST,
+                    service=service,
+                    name=historical_name,
+                ).exists()
+            )
+            if not is_existing_snapshot:
+                attrs["name"] = service.name
+        return attrs
 
 
 class AdditionalServiceReadSerializer(serializers.ModelSerializer):

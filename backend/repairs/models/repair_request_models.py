@@ -214,6 +214,10 @@ class RepairService(models.Model):
     name = models.CharField(max_length=255, verbose_name="Название услуги")
     description = models.TextField(blank=True, verbose_name="Описание")
     is_active = models.BooleanField(default=True, verbose_name="Доступна для заказа")
+    is_additional = models.BooleanField(
+        default=False,
+        verbose_name="Для дополнительных услуг",
+    )
 
     class Meta:
         verbose_name = "Услуга"

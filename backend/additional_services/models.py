@@ -136,6 +136,14 @@ class AdditionalServiceItem(models.Model):
     )
     category = models.CharField(max_length=12, choices=Category.choices)
     name = models.CharField(max_length=255, verbose_name="Наименование работы")
+    service = models.ForeignKey(
+        "repairs.RepairService",
+        on_delete=models.PROTECT,
+        related_name="additional_service_items",
+        null=True,
+        blank=True,
+        verbose_name="Услуга из справочника",
+    )
     quantity = models.DecimalField(
         max_digits=10,
         decimal_places=3,
@@ -179,6 +187,15 @@ class AdditionalServiceItem(models.Model):
 
     def clean(self) -> None:
         super().clean()
+        service = self.service
+        if service is not None and (
+            self.category != self.Category.SPECIALIST or not service.is_additional
+        ):
+            raise ValidationError(
+                {
+                    "service": "Выберите услугу специалиста из раздела дополнительных услуг."
+                }
+            )
         if (
             self.category == self.Category.SPECIALIST
             and self.request_id

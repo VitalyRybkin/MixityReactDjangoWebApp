@@ -255,7 +255,7 @@ class RepairServicesListAPIView(BaseListCreateAPIView):
     resource_name = "RepairServices"
     schema_tags = ["Repair Specification"]
 
-    queryset = RepairService._default_manager.all()
+    queryset = RepairService._default_manager.filter(is_additional=False)
     read_serializer_class = ServiceItemSerializer
     write_serializer_class = ServiceItemSerializer
 
