@@ -7,6 +7,7 @@ from django.core.exceptions import ValidationError
 from django.core.validators import MinValueValidator
 from django.db import models
 from django.db.models import Q
+from django.db.models.functions import Lower
 from django.utils import timezone
 
 
@@ -108,10 +109,10 @@ class AdditionalServiceRequest(models.Model):
                 "Выберите ровно одного исполнителя: перевозчика или ремонтирующую компанию."
             )
         if self.rental_contract_id and self.construction_object_id:
-            contract = self.rental_contract
+            rental_contract = self.rental_contract
             if (
-                contract is not None
-                and contract.customer_id != self.construction_object.customer_id
+                rental_contract is not None
+                and rental_contract.customer_id != self.construction_object.customer_id
             ):
                 errors["rental_contract"] = (
                     "Договор не принадлежит заказчику выбранного объекта."
@@ -121,6 +122,29 @@ class AdditionalServiceRequest(models.Model):
 
     def __str__(self) -> str:
         return f"Допуслуга № {self.pk}: {self.get_direction_display()}"
+
+
+class TransportService(models.Model):
+    """Catalog of transport works offered through Additional Services."""
+
+    name = models.CharField(
+        max_length=255, verbose_name="Наименование транспортной услуги"
+    )
+    is_active = models.BooleanField(default=True, verbose_name="Активна")
+
+    class Meta:
+        ordering = ["name", "id"]
+        verbose_name = "Транспортная услуга"
+        verbose_name_plural = "Транспортные услуги"
+        constraints = [
+            models.UniqueConstraint(
+                Lower("name"),
+                name="additional_transport_service_name_ci_unique",
+            ),
+        ]
+
+    def __str__(self) -> str:
+        return self.name
 
 
 class AdditionalServiceItem(models.Model):
@@ -143,6 +167,14 @@ class AdditionalServiceItem(models.Model):
         null=True,
         blank=True,
         verbose_name="Услуга из справочника",
+    )
+    transport_service = models.ForeignKey(
+        TransportService,
+        on_delete=models.PROTECT,
+        related_name="additional_service_items",
+        null=True,
+        blank=True,
+        verbose_name="Транспортная услуга из справочника",
     )
     quantity = models.DecimalField(
         max_digits=10,
@@ -187,13 +219,22 @@ class AdditionalServiceItem(models.Model):
 
     def clean(self) -> None:
         super().clean()
-        service = self.service
-        if service is not None and (
-            self.category != self.Category.SPECIALIST or not service.is_additional
+        if self.service_id is not None and (
+            self.category != self.Category.SPECIALIST
+            or ((service := self.service) is not None and not service.is_additional)
         ):
             raise ValidationError(
                 {
                     "service": "Выберите услугу специалиста из раздела дополнительных услуг."
+                }
+            )
+        if (
+            self.transport_service_id is not None
+            and self.category != self.Category.TRANSPORT
+        ):
+            raise ValidationError(
+                {
+                    "transport_service": "Транспортная услуга допустима только для транспортной позиции.",
                 }
             )
         if (

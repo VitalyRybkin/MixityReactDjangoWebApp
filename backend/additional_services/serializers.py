@@ -12,7 +12,7 @@ from order.models.rental_contract import RentalContract
 from repairs.models import RepairCompany
 from repairs.models.repair_request_models import RepairService
 
-from .models import AdditionalServiceItem, AdditionalServiceRequest
+from .models import AdditionalServiceItem, AdditionalServiceRequest, TransportService
 from .totals import (
     FormattedFinancialTotals,
     calculate_totals,
@@ -31,6 +31,7 @@ class AdditionalServiceItemReadSerializer(serializers.ModelSerializer):
             "category",
             "name",
             "service",
+            "transport_service",
             "quantity",
             "cost_per_unit",
             "price_per_unit",
@@ -40,7 +41,7 @@ class AdditionalServiceItemReadSerializer(serializers.ModelSerializer):
 
 
 class AdditionalServiceItemWriteSerializer(serializers.ModelSerializer):
-    """Save historical text and, for new specialist items, link RepairService."""
+    """Save historical name snapshots with specialist/transport catalog links."""
 
     service = serializers.PrimaryKeyRelatedField(
         queryset=RepairService.objects.filter(is_additional=True),
@@ -51,12 +52,22 @@ class AdditionalServiceItemWriteSerializer(serializers.ModelSerializer):
         },
     )
 
+    transport_service = serializers.PrimaryKeyRelatedField(
+        queryset=TransportService.objects.all(),
+        required=False,
+        allow_null=True,
+        error_messages={
+            "does_not_exist": "Транспортная услуга не найдена в справочнике.",
+        },
+    )
+
     class Meta:
         model = AdditionalServiceItem
         fields = (
             "category",
             "name",
             "service",
+            "transport_service",
             "quantity",
             "cost_per_unit",
             "price_per_unit",
@@ -65,31 +76,51 @@ class AdditionalServiceItemWriteSerializer(serializers.ModelSerializer):
 
     def validate(self, attrs: dict[str, Any]) -> dict[str, Any]:
         attrs = super().validate(attrs)
-        service = attrs.get("service")
         category = attrs.get("category")
+        specialist_service = attrs.get("service")
+        transport_service = attrs.get("transport_service")
+
         if (
-            service is not None
+            specialist_service is not None
             and category != AdditionalServiceItem.Category.SPECIALIST
         ):
             raise serializers.ValidationError(
-                {"service": "Справочник услуг специалиста недоступен для транспорта."}
+                {
+                    "service": "Справочник услуг специалиста недоступен для транспорта.",
+                }
             )
-        if service is not None:
-            # Keep the historical snapshot when updating an existing linked row.
-            # For newly linked rows, always derive the name from the directory.
+        if (
+            transport_service is not None
+            and category != AdditionalServiceItem.Category.TRANSPORT
+        ):
+            raise serializers.ValidationError(
+                {
+                    "transport_service": "Транспортный справочник недоступен для услуг специалиста.",
+                }
+            )
+
+        # Preserve the original name on a saved item when the linked service
+        # is renamed or archived. A newly selected catalog entry uses its name.
+        directory = (
+            specialist_service if specialist_service is not None else transport_service
+        )
+        if directory is not None:
             request_instance = getattr(self.root, "instance", None)
             historical_name = attrs.get("name", "")
+            relation_field = (
+                "service" if specialist_service is not None else "transport_service"
+            )
             is_existing_snapshot = (
                 isinstance(request_instance, AdditionalServiceRequest)
                 and bool(historical_name)
                 and request_instance.items.filter(
-                    category=AdditionalServiceItem.Category.SPECIALIST,
-                    service=service,
+                    category=category,
                     name=historical_name,
+                    **{relation_field: directory},
                 ).exists()
             )
             if not is_existing_snapshot:
-                attrs["name"] = service.name
+                attrs["name"] = directory.name
         return attrs
 
 
