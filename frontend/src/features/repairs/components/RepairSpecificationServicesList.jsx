@@ -1,24 +1,24 @@
-import {useMemo, useState} from 'react'
+import { useMemo, useState } from 'react'
 
-import {Autocomplete, Box, Checkbox, Divider, FormControlLabel, Stack, TextField, Typography} from '@mui/material'
+import { Autocomplete, Box, Checkbox, Divider, FormControlLabel, Stack, TextField, Typography } from '@mui/material'
 
+import AddAction from '../../../components/ui/buttons/AddAction.jsx'
 import DeleteAction from '../../../components/ui/buttons/DeleteAction.jsx'
-
-import { repairSpecificationListSx as sx } from './RepairSpecificationList.styles.js'
-import AddAction from "../../../components/ui/buttons/AddAction.jsx";
-import RepairSpecificationItemCreateDialog from './RepairSpecificationItemCreateDialog.jsx'
+import ReferenceItemCreateDialog from '../../../components/ui/dialogs/ReferenceItemCreateDialog.jsx'
 import { useCreateRepairService } from '../utils/repair.services.queries.js'
 
+import { repairSpecificationListSx as sx } from './RepairSpecificationList.styles.js'
+
 export default function RepairSpecificationServicesList({
-                                                            rows,
-                                                            disableRebillable = false,
-                                                            serviceErrors = {},
-                                                            servicesList,
-                                                            onChange,
-                                                            onRemove,
-                                                            totalServicesPrice,
-                                                            totalServicesPriceRebillable,
-                                                        }) {
+    rows,
+    disableRebillable = false,
+    serviceErrors = {},
+    servicesList,
+    onChange,
+    onRemove,
+    totalServicesPrice,
+    totalServicesPriceRebillable,
+}) {
     const selectedServiceIds = useMemo(() => rows.map((row) => row.serviceId).filter(Boolean), [rows])
     const [createForRowId, setCreateForRowId] = useState(null)
     const createService = useCreateRepairService()
@@ -27,7 +27,7 @@ export default function RepairSpecificationServicesList({
         <Stack spacing={1}>
             {rows.length === 0 && (
                 <Typography color="text.secondary" sx={sx.emptyText}>
-                    Добавьте услугу.
+                    Добавьте позицию.
                 </Typography>
             )}
 
@@ -66,10 +66,7 @@ export default function RepairSpecificationServicesList({
                                 sx={sx.itemField}
                             />
 
-                            <AddAction
-                                title="Добавить услугу"
-                                onClick={() => setCreateForRowId(row.id)}
-                            />
+                            <AddAction title="Добавить услугу" onClick={() => setCreateForRowId(row.id)} />
 
                             <TextField
                                 size="small"
@@ -143,9 +140,7 @@ export default function RepairSpecificationServicesList({
             <Divider />
 
             <Box sx={sx.totalFooter}>
-                <Typography variant="h6">
-                    Итого услуги:
-                </Typography>
+                <Typography variant="h6">Итого услуги:</Typography>
                 <Typography variant="h6" sx={sx.totalValue}>
                     {totalServicesPrice} руб.
                 </Typography>
@@ -155,11 +150,12 @@ export default function RepairSpecificationServicesList({
                 </Typography>
             </Box>
 
-            <RepairSpecificationItemCreateDialog
+            <ReferenceItemCreateDialog
                 open={Boolean(createForRowId)}
                 title="Добавить услугу"
                 label="Наименование услуги"
-                mutation={createService}
+                saving={createService.isPending}
+                onCreate={(name) => createService.mutateAsync({ name })}
                 errorMessage="Не удалось добавить услугу"
                 onClose={() => setCreateForRowId(null)}
                 onCreated={(created) => {
@@ -173,6 +169,5 @@ export default function RepairSpecificationServicesList({
                 }}
             />
         </Stack>
-
     )
 }

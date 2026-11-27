@@ -1,15 +1,23 @@
-import {useMemo, useState} from 'react'
+import { useMemo, useState } from 'react'
 
-import {Autocomplete, Box, Checkbox, Divider, FormControlLabel, Stack, TextField, Typography} from '@mui/material'
+import { Autocomplete, Box, Checkbox, Divider, FormControlLabel, Stack, TextField, Typography } from '@mui/material'
 
+import AddAction from '../../../components/ui/buttons/AddAction.jsx'
 import DeleteAction from '../../../components/ui/buttons/DeleteAction.jsx'
+import ReferenceItemCreateDialog from '../../../components/ui/dialogs/ReferenceItemCreateDialog.jsx'
+import { useCreateSparePart } from '../utils/repair.parts.queries.js'
 
 import { repairSpecificationListSx as sx } from './RepairSpecificationList.styles.js'
-import AddAction from "../../../components/ui/buttons/AddAction.jsx";
-import {useCreateSparePart} from "../utils/repair.parts.queries.js";
-import RepairSpecificationItemCreateDialog from "./RepairSpecificationItemCreateDialog.jsx";
 
-export default function RepairSpecificationPartsList({ rows, partErrors = {}, partsList, onChange, onRemove, totalPartsPrice, totalPartsPriceRebillable, disableRebillable = false, }) {
+export default function RepairSpecificationPartsList({
+    rows,
+    partErrors = {},
+    partsList,
+    onChange,
+    onRemove,
+    totalPartsPrice,
+    totalPartsPriceRebillable,
+}) {
     const selectedPartIds = useMemo(() => rows.map((row) => row.partId).filter(Boolean), [rows])
     const createPart = useCreateSparePart()
     const [createForRowId, setCreateForRowId] = useState(null)
@@ -18,7 +26,7 @@ export default function RepairSpecificationPartsList({ rows, partErrors = {}, pa
         <Stack spacing={1}>
             {rows.length === 0 && (
                 <Typography color="text.secondary" sx={sx.emptyText}>
-                    Добавьте запчасти.
+                    Добавьте позицию.
                 </Typography>
             )}
 
@@ -58,7 +66,7 @@ export default function RepairSpecificationPartsList({ rows, partErrors = {}, pa
                             />
 
                             <AddAction
-                                title="Добавить запчаcть"
+                                title="Добавить запчасть в справочник"
                                 onClick={() => setCreateForRowId(row.id)}
                             />
 
@@ -110,8 +118,6 @@ export default function RepairSpecificationPartsList({ rows, partErrors = {}, pa
                                 control={
                                     <Checkbox
                                         checked={Boolean(row.is_rebillable)}
-                                        // Existing legacy marks can be removed but not added.
-                                        disabled={disableRebillable && !row.is_rebillable}
                                         onChange={(e) =>
                                             onChange(row.id, {
                                                 is_rebillable: e.target.checked,
@@ -134,9 +140,7 @@ export default function RepairSpecificationPartsList({ rows, partErrors = {}, pa
             <Divider />
 
             <Box sx={sx.totalFooter}>
-                <Typography variant="h6">
-                    Итого запчасти:
-                </Typography>
+                <Typography variant="h6">Итого запчасти:</Typography>
 
                 <Typography variant="h6" sx={sx.totalValue}>
                     {totalPartsPrice} руб.
@@ -147,11 +151,12 @@ export default function RepairSpecificationPartsList({ rows, partErrors = {}, pa
                 </Typography>
             </Box>
 
-            <RepairSpecificationItemCreateDialog
+            <ReferenceItemCreateDialog
                 open={Boolean(createForRowId)}
                 title="Добавить запчасть"
                 label="Наименование запчасти"
-                mutation={createPart}
+                saving={createPart.isPending}
+                onCreate={(name) => createPart.mutateAsync({ name })}
                 errorMessage="Не удалось добавить запчасть"
                 onClose={() => setCreateForRowId(null)}
                 onCreated={(created) => {
@@ -165,6 +170,5 @@ export default function RepairSpecificationPartsList({ rows, partErrors = {}, pa
                 }}
             />
         </Stack>
-
     )
 }

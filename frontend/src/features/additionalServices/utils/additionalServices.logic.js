@@ -49,6 +49,7 @@ export const toForm = (request) => ({
         localId: `existing-${row.id}`,
         category: row.category,
         name: row.name,
+        service: String(relationId(row.service) || ''),
         quantity: String(row.quantity),
         cost_per_unit: String(row.cost_per_unit),
         price_per_unit: String(row.price_per_unit),
@@ -101,9 +102,10 @@ export const toPayload = (form, original = null) => {
         carrier: form.providerType === 'carrier' ? providerId : null,
         repair_company: form.providerType === 'repair_company' ? providerId : null,
         description: form.description,
-        items: form.items.map(({ category, name, quantity, cost_per_unit, price_per_unit, is_rebillable }) => ({
+        items: form.items.map(({ category, name, service, quantity, cost_per_unit, price_per_unit, is_rebillable }) => ({
             category,
             name: name.trim(),
+            ...(category === 'specialist' && positiveId(service) ? { service: positiveId(service) } : {}),
             quantity: quantity.replace(',', '.'),
             cost_per_unit: cost_per_unit.replace(',', '.'),
             price_per_unit: price_per_unit.replace(',', '.'),
@@ -116,8 +118,10 @@ export const toPayload = (form, original = null) => {
             && payload.closing_date === (original.closing_date || null)) {
             delete payload.closing_date
         }
-        const existingItems = toForm(original).items.map(({ category, name, quantity, cost_per_unit, price_per_unit, is_rebillable }) => ({
-            category, name: name.trim(), quantity, cost_per_unit, price_per_unit, is_rebillable,
+        const existingItems = toForm(original).items.map(({ category, name, service, quantity, cost_per_unit, price_per_unit, is_rebillable }) => ({
+            category, name: name.trim(),
+            ...(category === 'specialist' && positiveId(service) ? { service: positiveId(service) } : {}),
+            quantity, cost_per_unit, price_per_unit, is_rebillable,
         }))
         if (JSON.stringify(payload.items) === JSON.stringify(existingItems)) delete payload.items
 

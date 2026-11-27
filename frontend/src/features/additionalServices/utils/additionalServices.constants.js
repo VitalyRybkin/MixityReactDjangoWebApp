@@ -58,6 +58,7 @@ export const emptyItem = (category) => ({
     localId: `${Date.now()}_${Math.random().toString(36).slice(2)}`,
     category,
     name: '',
+    service: '',
     quantity: '1.000',
     cost_per_unit: '0.00',
     price_per_unit: '0.00',
@@ -75,5 +76,5 @@ export const emptyForm = () => ({
     providerType: 'carrier',
     providerId: '',
     description: '',
-    items: [emptyItem('transport')],
+    items: [],
 })
