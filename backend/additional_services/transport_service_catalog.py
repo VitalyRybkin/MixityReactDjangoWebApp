@@ -9,6 +9,7 @@ from rest_framework.request import Request
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
+from .catalog_validation import catalog_name_exists
 from .models import TransportService
 
 
@@ -24,7 +25,11 @@ class TransportServiceCatalogSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError(
                 "Укажите наименование транспортной услуги."
             )
-        if TransportService.objects.filter(name__iexact=name).exists():
+        if catalog_name_exists(
+            TransportService.objects.all(),
+            name,
+            exclude_pk=self.instance.pk if self.instance is not None else None,
+        ):
             raise serializers.ValidationError(
                 "Такая транспортная услуга уже есть в справочнике."
             )

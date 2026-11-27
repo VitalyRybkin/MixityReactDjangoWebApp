@@ -15,6 +15,9 @@ from additional_services.serializers import (
     AdditionalServiceItemWriteSerializer,
     AdditionalServiceWriteSerializer,
 )
+from additional_services.transport_service_catalog import (
+    TransportServiceCatalogSerializer,
+)
 from core.tests.utils import TestLoggerMixin
 from order.models import RentalContract
 from order.tests.factories import ConstructionObjectFactory
@@ -63,6 +66,28 @@ class TestTransportServiceCatalog(TestLoggerMixin, APITestCase):
         self._logger_success(
             "HTTP 201 / 400", "Name trimmed and invalid names rejected"
         )
+
+    def test_create_rejects_cyrillic_duplicate_of_legacy_padded_name(self) -> None:
+        TransportService.objects.create(name="  Подъём  ", is_active=False)
+        response = self.client.post(self.url, {"name": "\tПОДЪЁМ  "}, format="json")
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+
+    def test_update_trims_name_and_excludes_current_service(self) -> None:
+        service = TransportService.objects.create(name="Доставка")
+        serializer = TransportServiceCatalogSerializer(
+            service, data={"name": "\tДОСТАВКА  "}
+        )
+        self.assertTrue(serializer.is_valid(), serializer.errors)
+        serializer.save()
+        service.refresh_from_db()
+        self.assertEqual(service.name, "ДОСТАВКА")
+
+        TransportService.objects.create(name="Перевозка")
+        serializer = TransportServiceCatalogSerializer(
+            service, data={"name": " ПЕРЕВОЗКА "}
+        )
+        self.assertFalse(serializer.is_valid())
+        self.assertIn("name", serializer.errors)
 
     def test_permissions_use_additional_services_not_repairs(self) -> None:
         self._logger_header("TRANSPORT CATALOG: ADDITIONAL SERVICES PERMISSIONS")

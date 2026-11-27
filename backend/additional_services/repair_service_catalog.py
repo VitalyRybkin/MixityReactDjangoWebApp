@@ -11,6 +11,8 @@ from rest_framework.views import APIView
 
 from repairs.models.repair_request_models import RepairService
 
+from .catalog_validation import catalog_name_exists
+
 
 class AdditionalRepairServiceSerializer(serializers.ModelSerializer):
     class Meta:
@@ -22,7 +24,11 @@ class AdditionalRepairServiceSerializer(serializers.ModelSerializer):
         name = value.strip()
         if not name:
             raise serializers.ValidationError("Укажите наименование услуги.")
-        if RepairService.objects.filter(is_additional=True, name__iexact=name).exists():
+        if catalog_name_exists(
+            RepairService.objects.filter(is_additional=True),
+            name,
+            exclude_pk=self.instance.pk if self.instance is not None else None,
+        ):
             raise serializers.ValidationError("Такая услуга уже есть в справочнике.")
         return name
 

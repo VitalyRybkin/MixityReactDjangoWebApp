@@ -9,6 +9,9 @@ from rest_framework import status
 from rest_framework.test import APITestCase
 
 from additional_services.models import AdditionalServiceItem
+from additional_services.repair_service_catalog import (
+    AdditionalRepairServiceSerializer,
+)
 from additional_services.routes import AdditionalServicesRoutes
 from additional_services.serializers import AdditionalServiceItemWriteSerializer
 from order.models import RentalContract
@@ -56,6 +59,36 @@ class TestAdditionalRepairServiceCatalog(APITestCase):
         RepairService.objects.create(name="Пусконаладка", is_additional=True)
         response = self.client.post(self.url, {"name": "пусконаладка"}, format="json")
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+
+    def test_create_trims_name_and_checks_only_the_additional_directory(self) -> None:
+        RepairService.objects.create(name="МОНТАЖ", is_additional=False)
+        response = self.client.post(self.url, {"name": "\tМонтаж  "}, format="json")
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED, response.data)
+        service = RepairService.objects.get(pk=response.data["id"])
+        self.assertEqual(service.name, "Монтаж")
+
+        RepairService.objects.create(
+            name="  Подъём  ", is_additional=True, is_active=False
+        )
+        response = self.client.post(self.url, {"name": " ПОДЪЁМ\t"}, format="json")
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+
+    def test_update_trims_name_and_excludes_current_service(self) -> None:
+        service = RepairService.objects.create(name="Монтаж", is_additional=True)
+        serializer = AdditionalRepairServiceSerializer(
+            service, data={"name": "  МОНТАЖ\t"}
+        )
+        self.assertTrue(serializer.is_valid(), serializer.errors)
+        serializer.save()
+        service.refresh_from_db()
+        self.assertEqual(service.name, "МОНТАЖ")
+
+        RepairService.objects.create(name="Демонтаж", is_additional=True)
+        serializer = AdditionalRepairServiceSerializer(
+            service, data={"name": "  ДЕМОНТАЖ "}
+        )
+        self.assertFalse(serializer.is_valid())
+        self.assertIn("name", serializer.errors)
 
     def test_service_link_rejects_repair_only_name(self) -> None:
         repair = RepairService.objects.create(name="Замена узла", is_additional=False)
